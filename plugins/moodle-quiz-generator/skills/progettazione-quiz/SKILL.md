@@ -55,7 +55,7 @@ L'utente lavora nella pagina e poi scrive in chat; la pagina non ti avvisa. Prim
 
 - **Punti e minuti**: secondo il preset (di norma 100 punti). Nei Cloze di completamento ogni campo vale 1 punto: i punti della riga decidono il numero dei campi. In EDT i punti vanno a multipli di 5, con un campo Cloze ogni 5 punti.
 - **Pagine di spiegazione**: un argomento, al massimo due, per pagina; se ne servono di più, più pagine, ognuna seguita subito dalle sue domande (anche dentro lo stesso blocco).
-- **Pagine del quiz**: le domande complesse (programmazione, debug, esercizi liberi, aperte con un codice proprio) su una pagina da sole; le domande che hanno bisogno del contesto di un'altra (un codice, una tabella, la pagina a cui rispondono) sulla stessa pagina; le domande brevi nello stesso contesto possono condividerla.
+- **Pagine del quiz**: le domande complesse (programmazione, debug, esercizi liberi, consegne di file, aperte con un codice proprio) su una pagina da sole, al massimo con la pagina di spiegazione che le introduce (per esempio i passi da seguire prima di una consegna); le domande che hanno bisogno del contesto di un'altra (un codice, una tabella, la pagina a cui rispondono) sulla stessa pagina; le domande brevi nello stesso contesto possono condividerla.
 - **Sezioni**: una per parte del quiz che lo studente deve vedere (introduzione, blocchi, esercizi finali). Nelle verifiche niente sezioni che rivelino la parte avanzata.
 - **Strumento**: nelle esercitazioni, per ogni esercizio, «suggerito» o «non nominato» (proposta del preset, decide l'utente); nelle verifiche mai nominato, salvo ciò che è oggetto della valutazione.
 - **Sostegno** del debugging: cala lungo la sequenza (quanti e dove, poi solo quanti, poi nulla).

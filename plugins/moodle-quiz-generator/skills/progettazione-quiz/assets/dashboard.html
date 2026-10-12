@@ -908,7 +908,8 @@ function avvisi(q,rows,C){
   }
   if(!String(q.lezione||"").trim())add("info","Il numero di lezione non è impostato: i nomi delle domande mostrano «L?».");
   const byPag={};rows.forEach(function(r){if(contaRiga(rows,r))(byPag[r.pag]=byPag[r.pag]||[]).push(r);});
-  Object.keys(byPag).forEach(function(pg){const rs=byPag[pg];if(rs.length>1&&rs.some(function(r){return CAT[r.tipologia]&&CAT[r.tipologia].propria;}))add("warn","Pagina "+pg+": contiene "+rs.map(function(r){return r.pos||"?";}).join(", ")+", ma le domande di programmazione stanno su una pagina da sole.",rs[0].id);});
+  /* una pagina di spiegazione (descrizione) può introdurre una domanda complessa sulla stessa pagina del quiz: conta solo le domande */
+  Object.keys(byPag).forEach(function(pg){const rs=byPag[pg].filter(function(r){return !(CAT[r.tipologia]&&CAT[r.tipologia].pagina);});if(rs.length>1&&rs.some(function(r){return CAT[r.tipologia]&&CAT[r.tipologia].propria;}))add("warn","Pagina "+pg+": contiene "+rs.map(function(r){return r.pos||"?";}).join(", ")+", ma le domande di programmazione stanno su una pagina da sole.",rs[0].id);});
   for(let i=1;i<rows.length;i++)if(num(rows[i].pag)<num(rows[i-1].pag)){add("warn","Il numero di pagina scende da "+rows[i-1].pag+" ("+rows[i-1].pos+") a "+rows[i].pag+" ("+rows[i].pos+").",rows[i].id);break;}
   if(tot.man)add("info",tot.man+(tot.man===1?" domanda richiede":" domande richiedono")+" la correzione a mano ("+f1(tot.manP)+" punti).");
   P.gruppi.forEach(function(g){
@@ -952,7 +953,7 @@ function renderHeader(){
   ["home","scaletta","dettaglio"].forEach(function(v){$("#tab-"+v).setAttribute("aria-selected",(S.view===v||(v==="home"&&S.view==="nuovo"))?"true":"false");});
 }
 /* ------------------------------------------------------------------ vista iniziale e nuovo quiz */
-const VERSIONE_PAGINA="0.3.1";
+const VERSIONE_PAGINA="0.3.2";
 const PERCORSO_IMPOSTAZIONI="impostazioni/avvio";
 function triggerAvvio(){return S.imp&&typeof S.imp.trigger==="string"&&/^trig_[A-Za-z0-9]+$/.test(S.imp.trigger)?S.imp.trigger:"";}
 const CONNETTORE="Claude Code Remote";
