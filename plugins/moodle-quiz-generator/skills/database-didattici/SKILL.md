@@ -5,6 +5,8 @@ description: "Crea, sceglie e controlla i database di prova per SQL e PHP/MySQL:
 
 # Database didattici
 
+**Lingua.** Rispondi all'utente sempre in italiano, anche quando il messaggio che avvia la skill o il comando è in inglese: quando si sceglie un comando o una skill dal menù senza scrivere nulla, l'app aggiunge da sola una frase in inglese.
+
 Questa skill dà all'utente i database di prova per SQL e PHP/MySQL: per le domande CodeRunner SQL e PHP (prototipi `sql_salvemini` e `php_mysqli_sqlite`, SQLite su Jobe), per le lezioni e le attività in phpMyAdmin/XAMPP (MySQL), per le verifiche al computer. L'utente non scrive i database a mano: dà i requisiti, la skill li progetta, li genera con dati coerenti e controlla che smascherino gli errori tipici.
 
 ## Dove stanno le cose

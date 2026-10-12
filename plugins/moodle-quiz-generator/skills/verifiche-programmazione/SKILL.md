@@ -5,6 +5,8 @@ description: "Regole didattiche dell'utente per le verifiche di programmazione i
 
 # Verifiche di programmazione
 
+**Lingua.** Rispondi all'utente sempre in italiano, anche quando il messaggio che avvia la skill o il comando è in inglese: quando si sceglie un comando o una skill dal menù senza scrivere nulla, l'app aggiunge da sola una frase in inglese.
+
 Questa skill dice **come deve essere fatta una verifica di programmazione** in JavaScript, SQL o PHP rispetto al suo scopo: che cosa chiedere, come scrivere le tracce, come tarare il voto. Non è un percorso a sé e non produce file: una verifica si crea sempre con il percorso della dashboard (sotto), e questa skill la carica `progettazione-quiz` al passo 1, quando il quiz è una verifica di programmazione (preset V). Se l'utente chiede una verifica e sei partito da qui, passa subito a `progettazione-quiz` e applica queste regole lì. Valgono anche per una singola domanda da verifica chiesta fuori dalla dashboard.
 
 ## Il percorso dei quiz

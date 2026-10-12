@@ -5,6 +5,8 @@ description: "Crea domande CodeRunner JavaScript per il Moodle dell'utente (prot
 
 # Domande CodeRunner JavaScript
 
+**Lingua.** Rispondi all'utente sempre in italiano, anche quando il messaggio che avvia la skill o il comando è in inglese: quando si sceglie un comando o una skill dal menù senza scrivere nulla, l'app aggiunge da sola una frase in inglese.
+
 Le domande JavaScript dell'utente girano su CodeRunner con due prototipi: **«Javascript (con prompt)»** per scrivere programmi (prompt dallo standard input, random da una sequenza fissa) e **«Javascript (con gapfiller)»** per il completamento. L'XML non si scrive a mano: si scrive una specifica e lo script costruisce il programma come il template del prototipo, lo esegue in Node e calcola gli output attesi.
 
 ## Il percorso dei quiz

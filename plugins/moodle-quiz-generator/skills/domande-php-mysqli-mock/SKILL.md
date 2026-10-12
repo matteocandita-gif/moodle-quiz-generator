@@ -5,6 +5,8 @@ description: "Crea domande CodeRunner PHP con database simulato per gli esercizi
 
 # Domande CodeRunner PHP con database simulato
 
+**Lingua.** Rispondi all'utente sempre in italiano, anche quando il messaggio che avvia la skill o il comando è in inglese: quando si sceglie un comando o una skill dal menù senza scrivere nulla, l'app aggiunge da sola una frase in inglese.
+
 Due prototipi, installati nel Moodle dell'utente, eseguono il PHP dello studente su Jobe con una **facciata di mysqli**: funzioni, classi, controllo di server, utente, password e nome del database.
 
 | Prototipo | Le query | Quando |

@@ -5,6 +5,8 @@ description: "Punto di partenza di ogni quiz Moodle dell'utente, comprese le ver
 
 # Progettazione dei quiz
 
+**Lingua.** Rispondi all'utente sempre in italiano, anche quando il messaggio che avvia la skill o il comando è in inglese: quando si sceglie un comando o una skill dal menù senza scrivere nulla, l'app aggiunge da sola una frase in inglese.
+
 Questa skill è la **parte 1** del processo con cui l'utente crea i quiz del suo Moodle: la parte didattica. Si sceglie il tipo di quiz, si scrive la scaletta, poi le tracce di dettaglio, e l'utente rivede tutto nella dashboard «Bozze dei quiz». La **parte 2**, tecnica, la fa `materiali-moodle`: dal database della dashboard produce il Moodle XML e il backup `.mbz` da ripristinare.
 
 È il punto di partenza di ogni quiz, compresa una verifica di programmazione: un quiz non si comincia mai da `materiali-moodle`, da `verifiche-programmazione` o da una skill CodeRunner.

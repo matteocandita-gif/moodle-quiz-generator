@@ -2,7 +2,11 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz»: Claude propone di aggiornarla, e i quiz salvati restano.
 
-## 0.1.0 — in preparazione
+## 0.1.1 — 12/10/2026
+
+- Claude risponde sempre in italiano, anche quando un comando o una skill si avvia dal menù (l'app aggiunge da sola una frase in inglese).
+
+## 0.1.0 — 12/10/2026
 
 Prima versione del plugin, nata dalle skill usate finora a scuola.
 

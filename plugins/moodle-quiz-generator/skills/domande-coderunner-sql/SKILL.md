@@ -5,6 +5,8 @@ description: "Crea domande CodeRunner SQL per il Moodle dell'utente (prototipo s
 
 # Domande CodeRunner SQL
 
+**Lingua.** Rispondi all'utente sempre in italiano, anche quando il messaggio che avvia la skill o il comando è in inglese: quando si sceglie un comando o una skill dal menù senza scrivere nulla, l'app aggiunge da sola una frase in inglese.
+
 Le domande SQL dell'utente girano su CodeRunner con il prototipo **`sql_salvemini`**: SQLite 3.46 su Jobe, chiavi esterne attive come in MySQL con InnoDB, controllo di sola sintassi per le verifiche, errori SQL mostrati come output. L'XML non si scrive a mano: si scrive una specifica e lo script costruisce il database, esegue la soluzione con un emulatore del client sqlite3 verificato su Jobe e calcola gli output attesi.
 
 ## Il percorso dei quiz

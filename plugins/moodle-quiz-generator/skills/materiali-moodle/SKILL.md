@@ -5,6 +5,8 @@ description: "Parte 2, tecnica, del percorso dei quiz Moodle dell'utente, docent
 
 # Materiali Moodle
 
+**Lingua.** Rispondi all'utente sempre in italiano, anche quando il messaggio che avvia la skill o il comando è in inglese: quando si sceglie un comando o una skill dal menù senza scrivere nulla, l'app aggiunge da sola una frase in inglese.
+
 Questa skill produce il materiale che l'utente usa nel Moodle della scuola (versione 5.2): domande per i quiz, pagine di teoria, quiz completi. Le domande si consegnano come **file Moodle XML** generato da uno script, mai scritto a mano: lo script controlla le regole che l'utente ha fissato dopo averle viste fallire in Moodle. Un quiz completo si consegna anche come **backup `.mbz`** da ripristinare, con pagine, sezioni, punti e impostazioni già a posto.
 
 È la parte 2 del percorso dei quiz e lo strumento per le richieste che non diventano un quiz.
