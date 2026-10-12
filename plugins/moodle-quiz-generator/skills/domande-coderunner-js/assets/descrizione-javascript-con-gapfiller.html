@@ -1,0 +1,25 @@
+<p><strong>Javascript (con gapfiller)</strong>: domande a completamento. Lo studente riempie gli spazi vuoti di un programma JavaScript direttamente nell'editor. Il codice viene eseguito con Node.js su Jobe.</p>
+
+<p><strong>Come si scrive la domanda</strong></p>
+<p>Il codice con gli spazi vuoti si scrive nel campo <em>Global extra</em>. Ogni spazio è un segnaposto <span style="font-family: monospace;">{[x]}</span>, dove x è la larghezza in caratteri. Con <span style="font-family: monospace;">{[20-40]}</span> i due numeri sono la larghezza predefinita e quella massima; se il secondo numero (con il trattino) manca, lo spazio si allarga quanto serve.</p>
+<p>Nel campo <em>Answer</em> si scrive l'elenco delle risposte corrette in formato JSON, nell'ordine in cui compaiono gli spazi. Esempio, con questo codice in Global extra:</p>
+<pre style="background-color: #333333; color: #eceff1; padding: 12px; border-radius: 4px; overflow-x: auto; margin: 8px 0; line-height: 1.5;">let somma = {[3]};
+for (let i = 1; i &lt;= {[3]}; i++) {
+    somma = somma + {[3]};
+}
+console.log(somma);</pre>
+<p>la risposta è <span style="font-family: monospace;">["0", "5", "i"]</span> e l'output atteso <span style="font-family: monospace;">15</span>.</p>
+
+<p><strong>Codice del test</strong></p>
+<p>Il codice scritto nel campo <em>Test</em> viene eseguito <strong>prima</strong> del codice completato dallo studente: serve a definire i dati. Esempio: in Global extra <span style="font-family: monospace;">console.log({[8]}.length);</span>, nel test <span style="font-family: monospace;">let nomi = ["Anna", "Luca", "Sara"];</span>, risposta <span style="font-family: monospace;">["nomi"]</span>, output atteso <span style="font-family: monospace;">3</span>.</p>
+
+<p><strong>Input e numeri casuali</strong></p>
+<p>Come nel prototipo «Javascript (con prompt)»: nel campo <em>Standard input</em> un valore per riga per i <span style="font-family: monospace;">prompt()</span> (che restituiscono testo e non mostrano il messaggio nell'output) e, per <span style="font-family: monospace;">Math.random()</span>, questa sequenza fissa:</p>
+<pre style="background-color: #333333; color: #eceff1; padding: 12px; border-radius: 4px; overflow-x: auto; margin: 8px 0; line-height: 1.5;">[ 0.15, 0.23, 0.52, 0.34, 0.75, 0.38, 0.62, 0.01, 0.29, 0.40,
+  0.92, 0.54, 0.42, 0.09, 0.10, 0.07, 0.88, 0.46, 0.01, 0.21,
+  0.17, 0.64, 0.06, 0.57, 0.25, 0.29, 0.81, 0.57, 0.02, 0.62,
+  0.03, 0.38, 0.64, 0.75, 0.22, 0.49, 0.89, 0.92, 0.13, 0.72 ]</pre>
+<p>Ogni test riparte dalla posizione scritta nel campo <em>Extra</em> (predefinita 0). Il parametro <span style="font-family: monospace;">{"random": [0.5, 0.1, 0.9]}</span> nel campo <em>Template params</em> sostituisce la sequenza.</p>
+
+<p><strong>Output atteso e punteggio</strong></p>
+<p>Nel campo <em>Expected output</em> va l'output del programma con le risposte corrette. Il confronto è esatto (maiuscole, minuscole e spazi contano) e la domanda è corretta solo se tutti i test passano.</p>

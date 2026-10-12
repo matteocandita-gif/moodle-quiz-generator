@@ -1,0 +1,230 @@
+=== category
+Esempi domande-coderunner-js
+=== question prompt
+=== name
+S1 - Scrivere: lo sconto con la tessera
+=== note
+Scrittura completa con input. Tre test: con tessera, senza tessera, caso limite (prezzo 0).
+=== questiontext
+<p>La <strong>Libreria Pagina 42</strong> fa uno sconto del <strong>10%</strong> a chi ha la tessera. Scrivi un programma che chiede con <span style="font-family: monospace;">prompt</span> il <strong>prezzo</strong> del libro e poi se il cliente ha la <strong>tessera</strong> (risposta <span style="font-family: monospace;">si</span> o <span style="font-family: monospace;">no</span>), e stampa il prezzo da pagare nella forma:</p>
+[[codice semplice]]
+Da pagare: 18 euro
+[[/codice]]
+=== answer
+let prezzo = Number(prompt("Prezzo del libro"));
+let tessera = prompt("Hai la tessera? (si/no)");
+if (tessera == "si") {
+    prezzo = prezzo - prezzo * 10 / 100;
+}
+console.log("Da pagare: " + prezzo + " euro");
+=== test
+// Caso con tessera: 20 euro
+=== stdin
+20
+si
+=== test
+// Caso senza tessera: 20 euro
+=== stdin
+20
+no
+=== test
+// Caso con tessera: 15 euro
+=== stdin
+15
+si
+
+=== question prompt
+=== name
+S2 - Scrivere: somma fino allo zero
+=== note
+Ciclo con terminatore: l'ultimo valore dello standard input è sempre 0.
+=== questiontext
+<p>Scrivi un programma che chiede numeri con <span style="font-family: monospace;">prompt</span> finché non viene inserito <strong>0</strong>, poi stampa la somma dei numeri inseriti nella forma <span style="font-family: monospace;">Somma: 12</span>.</p>
+=== answer
+let somma = 0;
+let numero = Number(prompt("Inserisci un numero (0 per finire)"));
+while (numero != 0) {
+    somma = somma + numero;
+    numero = Number(prompt("Inserisci un numero (0 per finire)"));
+}
+console.log("Somma: " + somma);
+=== test
+// Tre numeri e poi 0
+=== stdin
+4
+5
+3
+0
+=== test
+// Subito 0
+=== stdin
+0
+=== test
+// Numeri negativi
+=== stdin
+-2
+10
+0
+
+=== question prompt
+=== name
+F1 - Scrivere: la funzione maggiore
+=== note
+Funzione: il codice dei test la chiama. Il primo test, mostrato come esempio, spiega la forma.
+=== questiontext
+<p>Scrivi la funzione <span style="font-family: monospace;">maggiore(a, b)</span> che <strong>restituisce</strong> con <span style="font-family: monospace;">return</span> il maggiore dei due numeri. Non stampare niente dentro la funzione: le chiamate le fanno i test.</p>
+=== answer
+function maggiore(a, b) {
+    if (a > b) {
+        return a;
+    }
+    return b;
+}
+=== test
+// Il primo è maggiore
+console.log(maggiore(10, 3));
+=== test
+// Il secondo è maggiore
+console.log(maggiore(5, 7));
+=== test
+// Numeri uguali
+console.log(maggiore(4, 4));
+
+=== question prompt
+=== name
+A1 - Scrivere: la media dei voti
+=== options
+test_prima: 1
+=== note
+I dati arrivano dal test (test_prima): array diversi in ogni test.
+=== questiontext
+<p>L'array <span style="font-family: monospace;">voti</span> esiste già e contiene i voti di uno studente. Scrivi il codice che calcola la <strong>media</strong> con un ciclo <span style="font-family: monospace;">for</span> e la stampa nella forma <span style="font-family: monospace;">Media: 7</span>.</p>
+=== answer
+let somma = 0;
+for (let i = 0; i < voti.length; i++) {
+    somma = somma + voti[i];
+}
+console.log("Media: " + somma / voti.length);
+=== test
+// voti = [6, 8, 7]
+let voti = [6, 8, 7];
+=== test
+// voti = [5, 8]
+let voti = [5, 8];
+=== test
+// Un solo voto
+let voti = [10];
+
+=== question prompt
+=== name
+R1 - Scrivere: il lancio del dado
+=== note
+Random: Extra diverso in ogni test.
+=== questiontext
+<p>Scrivi un programma che simula il lancio di <strong>due dadi</strong> con <span style="font-family: monospace;">Math.random()</span> e stampa i due risultati e la loro somma nella forma:</p>
+[[codice semplice]]
+Dado 1: 4
+Dado 2: 2
+Somma: 6
+[[/codice]]
+=== answer
+let d1 = Math.floor(Math.random() * 6) + 1;
+let d2 = Math.floor(Math.random() * 6) + 1;
+console.log("Dado 1: " + d1);
+console.log("Dado 2: " + d2);
+console.log("Somma: " + (d1 + d2));
+=== test
+// Primo lancio
+=== test
+// Altro lancio
+=== extra
+4
+=== test
+// Altro lancio
+=== extra
+10
+
+=== question prompt
+=== name
+D1 - Debug: la somma che non torna
+=== note
+Debugging silenzioso: manca Number(), il programma concatena. Il preload mostra «Somma: 43».
+=== questiontext
+<p>Il programma dovrebbe stampare la somma di due numeri inseriti con <span style="font-family: monospace;">prompt</span>, ma con 4 e 3 stampa <span style="font-family: monospace;">Somma: 43</span>. Trova l'errore e correggilo.</p>
+=== preload
+let a = prompt("Primo numero");
+let b = prompt("Secondo numero");
+console.log("Somma: " + (a + b));
+=== answer
+let a = Number(prompt("Primo numero"));
+let b = Number(prompt("Secondo numero"));
+console.log("Somma: " + (a + b));
+=== test
+// 4 e 3
+=== stdin
+4
+3
+=== test
+// 10 e 15
+=== stdin
+10
+15
+
+=== question prompt
+=== name
+D2 - Debug: due errori nel ciclo
+=== note
+Debugging con messaggi: prima un ReferenceError (nome della variabile), poi un errore silenzioso (< invece di <=).
+=== questiontext
+<p>Il programma dovrebbe stampare i numeri da 1 a <span style="font-family: monospace;">n</span>, uno per riga, ma contiene <strong>due errori</strong>. Eseguilo, leggi il messaggio, correggi e riprova.</p>
+=== preload
+let n = Number(prompt("Fino a quale numero?"));
+for (let i = 1; i < n; i++) {
+    console.log(numero);
+}
+=== answer
+let n = Number(prompt("Fino a quale numero?"));
+for (let i = 1; i <= n; i++) {
+    console.log(i);
+}
+=== test
+// Fino a 3
+=== stdin
+3
+=== test
+// Fino a 5
+=== stdin
+5
+
+=== question gapfiller
+=== name
+C1 - Completamento: conta finché non è -100
+=== note
+Gapfiller: una risposta per riga, nell'ordine degli spazi. L'output dipende dall'input, così i test distinguono.
+=== questiontext
+<p>Completa il programma: chiede numeri finché non viene inserito <strong>-100</strong>, poi stampa quanti numeri sono stati inseriti prima di -100.</p>
+=== code
+let conta = 0;
+let numero = Number({[6-6]}("Inserisci un numero (-100 per terminare):"));
+
+while (numero {[2-2]} -100) {
+  conta = conta + 1;
+  {[6-6]} = Number(prompt("Inserisci un numero (-100 per terminare):"));
+}
+
+console.log("Numeri inseriti: " + {[5-5]});
+=== answer
+prompt
+!=
+numero
+conta
+=== test
+// Subito -100
+=== stdin
+-100
+=== test
+// Prima altri due numeri
+=== stdin
+0
+5
+-100

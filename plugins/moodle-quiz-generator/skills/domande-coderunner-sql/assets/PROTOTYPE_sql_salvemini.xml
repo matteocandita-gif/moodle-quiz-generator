@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiz>
+<!-- question: 12307  -->
+  <question type="coderunner">
+    <name>
+      <text>PROTOTYPE_sql_salvemini</text>
+    </name>
+    <questiontext format="html">
+      <text>&lt;p&gt;Prototipo &lt;strong&gt;sql_salvemini&lt;/strong&gt;: SQLite con le chiavi esterne attive (come MySQL con InnoDB), controllo di sola sintassi per i test di tipo precheck ed errori SQL mostrati come output.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Test di tipo &lt;em&gt;Precheck&lt;/em&gt;: esegue solo la risposta e mostra soltanto gli errori (nessun risultato). Output atteso vuoto.&lt;/li&gt;&lt;li&gt;Test normali: risposta + codice del test; stampa i risultati e, in fondo, una riga «ERRORE: messaggio» per ogni errore, senza numeri di riga.&lt;/li&gt;&lt;li&gt;Parametri del template: &lt;code&gt;{"foreign_keys": false}&lt;/code&gt; disattiva le chiavi esterne; &lt;code&gt;{"columnwidths": [..]}&lt;/code&gt; fissa le larghezze delle colonne.&lt;/li&gt;&lt;/ul&gt;</text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>sql_salvemini</coderunnertype>
+    <prototypetype>2</prototypetype>
+    <allornothing>1</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>12</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload></answerpreload>
+    <globalextra></globalextra>
+    <useace>1</useace>
+    <resultcolumns></resultcolumns>
+    <template>import subprocess, os, shutil, re
+
+# Prototipo sql_salvemini: SQLite con chiavi esterne attive, controllo di sola
+# sintassi (precheck) ed errori SQL mostrati come output leggibile.
+student_answer = """{{ STUDENT_ANSWER | e('py') }}""".rstrip()
+column_widths = []
+{% for width in QUESTION.parameters.columnwidths %}
+column_widths.append({{width}})
+{% endfor %}
+foreign_keys = True
+{% if QUESTION.parameters.foreign_keys is defined and QUESTION.parameters.foreign_keys == false %}
+foreign_keys = False
+{% endif %}
+
+if not student_answer.endswith(';'):
+    student_answer = student_answer + ';'
+db_files = [fname for fname in os.listdir() if fname.endswith('.db')]
+if len(db_files) == 0:
+    raise Exception("No DB files found!")
+elif len(db_files) == 1:
+    db_working = db_files[0][:-3]  # Strip .db extension
+else:
+    raise Exception("Multiple DB files not implemented yet, sorry!")
+
+SEPARATOR = "#&lt;ab@17943918#@&gt;#"
+controls = [".mode column", ".headers on"]
+if foreign_keys:
+    controls.append("PRAGMA foreign_keys = ON;")
+if column_widths:
+    controls.append(".width " + ' '.join(str(width) for width in column_widths))
+prelude = '\n'.join(controls) + '\n'
+
+
+def errori_leggibili(stderr):
+    """Una riga 'ERRORE: messaggio' per ogni errore, senza numeri di riga."""
+    righe = []
+    for riga in stderr.splitlines():
+        m = re.match(r'^(?:Parse error|Runtime error|Error)(?: near line \d+)?: (.*?)(?: \(\d+\))?$', riga)
+        if m:
+            righe.append("ERRORE: " + m.group(1))
+    return righe
+
+
+def esegui(codice):
+    with open('commands', 'w') as f:
+        f.write(codice)
+    with open('commands') as f:
+        p = subprocess.run(['sqlite3', db_working], stdin=f, capture_output=True,
+                           universal_newlines=True)
+    uscita = '\n'.join(r.rstrip() for r in p.stdout.rstrip().splitlines())
+    return uscita, errori_leggibili(p.stderr)
+
+
+{% for TEST in TESTCASES %}
+shutil.copyfile(db_files[0], db_working)  # Copy clean writeable db file
+testcode = """{{ TEST.testcode | e('py') }}"""
+extra = """{{ TEST.extra | e('py') }}"""
+{% if TEST.testtype == 1 %}
+# Precheck: esegue solo la risposta e mostra soltanto gli eventuali errori
+uscita, errori = esegui(prelude + student_answer)
+if errori:
+    print('\n'.join(errori))
+{% else %}
+uscita, errori = esegui('\n'.join([prelude, extra, student_answer, testcode]))
+righe = ([uscita] if uscita else []) + errori
+print('\n'.join(righe))
+{% endif %}
+{% if not loop.last %}
+print(SEPARATOR)
+{% endif %}
+{% endfor %}
+</template>
+    <iscombinatortemplate>1</iscombinatortemplate>
+    <allowmultiplestdins>0</allowmultiplestdins>
+    <answer></answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre><![CDATA[|#<ab@17943918#@>#\n|ms]]></testsplitterre>
+    <language>python3</language>
+    <acelang>sql</acelang>
+    <sandbox></sandbox>
+    <grader>EqualityGrader</grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb>500</memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams></templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin>ace</uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+    </testcases>
+  </question>
+
+</quiz>

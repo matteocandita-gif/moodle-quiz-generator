@@ -1,0 +1,214 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Database didattici</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Schedario: elenco dei database a sinistra, scheda del database a destra (schema a schede-tabella, taglie, trappole, esempi) */
+:root{
+  --bg:#F2F4F7; --surface:#FFFFFF; --surface-2:#E8ECF2; --line:#CDD5E0; --line-2:#A9B6C7;
+  --fg:#18202C; --fg-2:#3E4A5C; --fg-3:#5E6B7E;
+  --accent:#2B55A0; --accent-soft:#DCE6F6; --accent-fg:#FFFFFF;
+  --key:#9A5B00; --key-soft:#FFF1D9; --ok:#1E7A3C; --ok-soft:#DDF1E3; --warn:#8F5200; --warn-soft:#FFEFCF;
+  --code-bg:#EEF1F6;
+  --sans:'Atkinson Hyperlegible',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10151D; --surface:#18202B; --surface-2:#212B38; --line:#2F3B4B; --line-2:#475668;
+  --fg:#E6ECF4; --fg-2:#B6C2D2; --fg-3:#8E9BAE;
+  --accent:#86A9EC; --accent-soft:#1F3254; --accent-fg:#0C1424;
+  --key:#F0B35A; --key-soft:#3A2A0E; --ok:#5CC283; --ok-soft:#173A25; --warn:#F0B35A; --warn-soft:#3C2B0E;
+  --code-bg:#121922; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10151D; --surface:#18202B; --surface-2:#212B38; --line:#2F3B4B; --line-2:#475668;
+  --fg:#E6ECF4; --fg-2:#B6C2D2; --fg-3:#8E9BAE;
+  --accent:#86A9EC; --accent-soft:#1F3254; --accent-fg:#0C1424;
+  --key:#F0B35A; --key-soft:#3A2A0E; --ok:#5CC283; --ok-soft:#173A25; --warn:#F0B35A; --warn-soft:#3C2B0E;
+  --code-bg:#121922; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 var(--sans);padding-inline:16px}
+h1,h2,h3{margin:0;text-wrap:balance}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+code,.mono{font-family:var(--mono);font-size:.86em}
+.wrap{max-width:1240px;margin-inline:auto;padding-block:28px 64px;display:grid;gap:22px}
+header.top{display:flex;flex-wrap:wrap;gap:6px 24px;align-items:baseline;justify-content:space-between}
+header.top h1{font-size:28px;letter-spacing:-.01em}
+header.top p{margin:0;color:var(--fg-2);max-width:68ch}
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:22px;align-items:start}
+nav.elenco{display:grid;gap:8px}
+.elenco .lab{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-3)}
+.dbbtn{display:grid;gap:2px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px 12px}
+.dbbtn:hover{border-color:var(--line-2)}
+.dbbtn[aria-current="true"]{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.dbbtn b{font-size:15px}
+.dbbtn span{font-size:12.5px;color:var(--fg-3)}
+.nuovo{border:1px dashed var(--line-2);border-radius:8px;padding:12px;display:grid;gap:8px;font-size:13.5px;color:var(--fg-2)}
+.nuovo p{margin:0}
+.nuovo blockquote{margin:0;padding:8px 10px;background:var(--surface-2);border-radius:6px;font-size:13px;color:var(--fg)}
+article.scheda{display:grid;gap:22px;min-width:0}
+.intesta{display:grid;gap:8px}
+.intesta h2{font-size:24px}
+.intesta p{margin:0;max-width:72ch;color:var(--fg-2)}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--fg-3)}
+.taglie{display:flex;flex-wrap:wrap;gap:8px}
+.taglia{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 14px;display:grid;text-align:left;min-width:150px}
+.taglia b{font-size:14.5px}
+.taglia span{font-size:12.5px;color:var(--fg-3);font-variant-numeric:tabular-nums}
+.taglia[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.azioni{display:flex;flex-wrap:wrap;gap:8px}
+.btn{border:1px solid var(--line-2);background:var(--surface);border-radius:6px;padding:7px 13px;font-weight:700;font-size:14px}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.btn.primary:hover{color:var(--accent-fg);filter:brightness(1.08)}
+.btn[disabled]{opacity:.55;cursor:wait}
+.sez{display:grid;gap:10px;grid-template-columns:minmax(0,1fr);min-width:0}
+.schema{min-width:0}
+.sez h3{font-size:13px;letter-spacing:.07em;text-transform:uppercase;color:var(--fg-3)}
+.schema{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(230px,100%),1fr));gap:12px}
+.tab{border:1px solid var(--line);background:var(--surface);border-radius:8px;overflow:hidden;min-width:0}
+.tab header{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:8px 12px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+.tab header b{font-size:15px}
+.tab header span{font-size:12px;color:var(--fg-3);font-variant-numeric:tabular-nums}
+.tab ul{list-style:none;margin:0;padding:6px 0}
+.tab li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:3px 12px;font-size:13.5px;align-items:baseline}
+.tab li .n{overflow-wrap:anywhere}
+.tab li .t{font-family:var(--mono);font-size:11.5px;color:var(--fg-3);white-space:nowrap}
+.tab li.pk .n{text-decoration:underline;text-underline-offset:3px;font-weight:700}
+.tab li .fk{display:block;font-size:12px;color:var(--key)}
+.pill{display:inline-block;font-size:11px;font-weight:700;border-radius:99px;padding:0 7px;margin-left:4px;vertical-align:1px}
+.pill.pk{background:var(--key-soft);color:var(--key)}
+.notazione{font-family:var(--mono);font-size:13px;background:var(--code-bg);border:1px solid var(--line);border-radius:6px;padding:10px 12px;overflow-x:auto;white-space:pre}
+.notazione u{text-underline-offset:3px}
+.lista{margin:0;padding-left:1.2em;display:grid;gap:5px;max-width:80ch}
+.lista li::marker{color:var(--accent)}
+.controlli li::marker{color:var(--ok)}
+details.es{border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+details.es summary{cursor:pointer;padding:9px 12px;font-weight:700}
+details.es .tw{overflow-x:auto;padding:0 12px 12px}
+table.righe{border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+table.righe th,table.righe td{border:1px solid var(--line);padding:4px 9px;text-align:left;white-space:nowrap}
+table.righe th{background:var(--surface-2)}
+table.righe td.null{color:var(--fg-3);font-style:italic}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:8px;max-width:90vw;font-size:14px}
+.vuoto{color:var(--fg-2)}
+@media (max-width:820px){.layout{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:no-preference){.dbbtn,.taglia,.btn{transition:border-color .15s,background-color .15s}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>Database didattici</h1>
+    <p>I database di prova per le query SQL, le domande CodeRunner e le attività in phpMyAdmin. Ogni database ha tre taglie con gli stessi dati di base e le stesse trappole per gli errori tipici.</p>
+  </header>
+  <div class="layout">
+    <nav class="elenco" aria-label="Database">
+      <span class="lab">Catalogo</span>
+      <div id="elenco"><p class="vuoto">Caricamento del catalogo…</p></div>
+      <div class="nuovo">
+        <p><strong>Un database nuovo</strong> si chiede a Claude in chat, con il numero di tabelle e, se vuoi, il contesto. Per esempio:</p>
+        <blockquote id="esempio">Crea un database didattico di 5 tabelle sul noleggio di biciclette, nelle tre taglie, per esercizi su JOIN e GROUP BY.</blockquote>
+        <div><button class="btn" id="copiaEsempio" type="button">Copia l'esempio</button></div>
+      </div>
+    </nav>
+    <article class="scheda" id="scheda" aria-live="polite"></article>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(function(){
+"use strict";
+const $=function(s){return document.querySelector(s);};
+const esc=function(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});};
+const NOMI_TAGLIA={piccolo:"Piccolo",medio:"Realistico",grande:"Grande"};
+const S={cat:null,db:null,taglia:null,testi:{}};
+try{const t=localStorage.getItem("dbdid-taglia");if(t)S.taglia=t;}catch(e){}
+
+function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(function(){t.hidden=true;},3500);}
+function copia(testo,msg){
+  if(!testo){toast("Il testo non è ancora caricato: riprova tra un attimo.");return;}
+  try{navigator.clipboard.writeText(testo).then(function(){toast(msg);},function(){fallback(testo,msg);});}catch(e){fallback(testo,msg);}
+}
+function fallback(testo,msg){
+  const ta=document.createElement("textarea");ta.value=testo;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();
+  let ok=false;try{ok=document.execCommand("copy");}catch(e){}
+  document.body.removeChild(ta);toast(ok?msg:"La copia non è riuscita: apri la scheda del database e copia a mano.");
+}
+function totale(t){return Object.keys(t.righe).reduce(function(a,k){return a+t.righe[k];},0);}
+function notazioneHTML(t){
+  return t.tabelle.map(function(tb){
+    const fk={};tb.esterne.forEach(function(e){fk[e[0]]=1;});
+    return "<b>"+esc(tb.nome)+"</b> ("+tb.colonne.map(function(c){const n=esc(c.nome)+(fk[c.nome]?"*":"");return tb.chiave.indexOf(c.nome)>=0?"<u>"+n+"</u>":n;}).join(", ")+")";
+  }).join("\n");
+}
+function notazioneTesto(t){
+  return t.tabelle.map(function(tb){
+    const fk={};tb.esterne.forEach(function(e){fk[e[0]]=1;});
+    return "**"+tb.nome+"** ("+tb.colonne.map(function(c){const n=c.nome+(fk[c.nome]?"*":"");return tb.chiave.indexOf(c.nome)>=0?"__"+n+"__":n;}).join(", ")+")";
+  }).join("\n\n");
+}
+function carica(t){
+  const base=t.percorso+"/"+t.nome+"_"+t.taglia;
+  [["comune",base+".sql"],["mysql",base+"_mysql.sql"]].forEach(function(x){
+    const k=t.percorso+":"+x[0];if(S.testi[k]!=null)return;
+    fetch(x[1]).then(function(r){if(!r.ok)throw new Error(r.status);return r.text();}).then(function(tx){S.testi[k]=tx;render();}).catch(function(){S.testi[k]="";});
+  });
+}
+function renderElenco(){
+  const el=$("#elenco");
+  if(!S.cat||!S.cat.database.length){el.innerHTML='<p class="vuoto">Il catalogo è vuoto.</p>';return;}
+  el.innerHTML=S.cat.database.map(function(d){
+    const tg=d.taglie.map(function(t){return NOMI_TAGLIA[t.taglia]||t.taglia;}).join(", ");
+    return '<button class="dbbtn" type="button" data-db="'+esc(d.nome)+'"'+(S.db===d?' aria-current="true"':"")+"><b>"+esc(d.titolo)+"</b><span>"+d.taglie[0].tabelle.length+" tabelle · "+esc(tg)+"</span></button>";
+  }).join("");
+}
+function render(){
+  renderElenco();
+  const sc=$("#scheda"),d=S.db;
+  if(!d){sc.innerHTML="";return;}
+  const t=d.taglie.find(function(x){return x.taglia===S.taglia;})||d.taglie[0];
+  carica(t);
+  const pronto=function(k){return S.testi[t.percorso+":"+k];};
+  sc.innerHTML=
+    '<div class="intesta"><h2>'+esc(d.titolo)+"</h2><p>"+esc(d.contesto)+'</p><div class="meta"><span>Nome del database: <code>'+esc(d.nome)+"</code></span><span>Seme "+t.seme+" (stessi dati a ogni rigenerazione)</span></div></div>"+
+    '<div class="sez"><h3>Taglia</h3><div class="taglie" role="group" aria-label="Taglia">'+d.taglie.map(function(x){
+      return '<button class="taglia" type="button" data-taglia="'+esc(x.taglia)+'" aria-pressed="'+(x===t)+'"><b>'+esc(NOMI_TAGLIA[x.taglia]||x.taglia)+"</b><span>"+Object.keys(x.righe).map(function(k){return x.righe[k];}).join(" · ")+" righe ("+totale(x)+")</span></button>";}).join("")+"</div></div>"+
+    '<div class="sez"><h3>Usalo</h3><div class="azioni">'+
+      '<button class="btn primary" type="button" data-copia="mysql"'+(pronto("mysql")?"":" disabled")+'>Copia lo script per phpMyAdmin</button>'+
+      '<button class="btn" type="button" data-copia="comune"'+(pronto("comune")?"":" disabled")+'>Copia lo script per la dashboard</button>'+
+      '<button class="btn" type="button" data-copia="schema">Copia lo schema per le tracce</button></div>'+
+      '<p class="vuoto" style="margin:0;font-size:13.5px">phpMyAdmin: scheda SQL, incolla ed esegui (crea il database <code>'+esc(d.nome)+'</code> e ricrea le tabelle). Dashboard: riquadro «Database del quiz». I file <code>.sql</code> e <code>.db</code> sono anche nella cartella <code>Lavoro\\database-didattici</code> del tuo computer.</p></div>'+
+    '<div class="sez"><h3>Schema</h3><div class="schema">'+t.tabelle.map(function(tb){
+      const fk={};tb.esterne.forEach(function(e){fk[e[0]]=e[1]+"."+e[2];});
+      return '<section class="tab" aria-label="Tabella '+esc(tb.nome)+'"><header><b>'+esc(tb.nome)+"</b><span>"+tb.righe+" righe</span></header><ul>"+tb.colonne.map(function(c){
+        const pk=tb.chiave.indexOf(c.nome)>=0;
+        return '<li class="'+(pk?"pk":"")+'"><span class="n">'+esc(c.nome)+(pk?'<span class="pill pk">chiave</span>':"")+(fk[c.nome]?'<span class="fk">→ '+esc(fk[c.nome])+"</span>":"")+'</span><span class="t">'+esc(c.tipo)+(/NOT NULL/i.test(c.vincoli)&&!pk?" ·obbl.":"")+"</span></li>";}).join("")+"</ul></section>";}).join("")+"</div>"+
+      '<div class="notazione" aria-label="Schema in notazione">'+notazioneHTML(t)+"</div></div>"+
+    (t.trappole&&t.trappole.length?'<div class="sez"><h3>Righe che smascherano gli errori</h3><ul class="lista">'+t.trappole.map(function(x){return "<li>"+esc(x)+"</li>";}).join("")+"</ul></div>":"")+
+    (t.controlli&&t.controlli.length?'<div class="sez"><h3>Coerenza dei dati (controllata)</h3><ul class="lista controlli">'+t.controlli.map(function(x){return "<li>"+esc(x)+"</li>";}).join("")+"</ul></div>":"")+
+    '<div class="sez"><h3>Prime righe</h3>'+t.tabelle.map(function(tb,i){
+      return '<details class="es"'+(i===0?" open":"")+"><summary>"+esc(tb.nome)+'</summary><div class="tw"><table class="righe"><thead><tr>'+tb.colonne.map(function(c){return '<th scope="col">'+esc(c.nome)+"</th>";}).join("")+"</tr></thead><tbody>"+
+        tb.esempi.map(function(r){return "<tr>"+r.map(function(v){return v==null?'<td class="null">NULL</td>':"<td>"+esc(v)+"</td>";}).join("")+"</tr>";}).join("")+"</tbody></table></div></details>";}).join("")+"</div>";
+}
+document.addEventListener("click",function(e){
+  const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.db){S.db=S.cat.database.find(function(d){return d.nome===b.dataset.db;});try{history.replaceState(null,"","#"+S.db.nome);}catch(err){}render();return;}
+  if(b.dataset.taglia){S.taglia=b.dataset.taglia;try{localStorage.setItem("dbdid-taglia",S.taglia);}catch(err){}render();return;}
+  if(b.dataset.copia){
+    const t=S.db.taglie.find(function(x){return x.taglia===S.taglia;})||S.db.taglie[0];
+    if(b.dataset.copia==="schema")copia(notazioneTesto(t),"Schema copiato: incollalo nella traccia.");
+    else copia(S.testi[t.percorso+":"+b.dataset.copia],b.dataset.copia==="mysql"?"Script copiato: incollalo nella scheda SQL di phpMyAdmin.":"Script copiato: incollalo nel riquadro «Database del quiz».");
+    return;
+  }
+  if(b.id==="copiaEsempio")copia($("#esempio").textContent,"Esempio copiato.");
+});
+fetch("catalogo.json").then(function(r){if(!r.ok)throw new Error(r.status);return r.json();}).then(function(c){
+  S.cat=c;const h=(location.hash||"").slice(1);
+  S.db=c.database.find(function(d){return d.nome===h;})||c.database[0]||null;
+  if(S.db&&!S.db.taglie.some(function(t){return t.taglia===S.taglia;}))S.taglia=(S.db.taglie.find(function(t){return t.taglia==="medio";})||S.db.taglie[0]).taglia;
+  render();
+}).catch(function(){$("#elenco").innerHTML='<p class="vuoto">Non riesco a leggere il catalogo (catalogo.json).</p>';});
+})();
+</script>
+
+</body></html>

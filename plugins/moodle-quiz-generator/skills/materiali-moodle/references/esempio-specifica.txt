@@ -1,0 +1,126 @@
+=== category
+Esempi materiali-moodle
+=== question description
+=== name
+L1 - 00 - Come lavoriamo oggi
+=== questiontext
+<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 900px; margin: 0 auto; color: #333333; line-height: 1.6;">
+<h1 style="color: #2c3e50; border-bottom: 3px solid #e74c3c; padding-bottom: 10px;">Lezione 1 - SQL su una tabella</h1>
+<p>Ripartiamo dalle query su una sola tabella, con il catalogo della <strong>Libreria Pagina 42</strong>. Oggi lavoriamo in <strong>due blocchi</strong>:</p>
+<ol>
+<li><strong>Blocco A - Selezionare</strong>: WHERE, ORDER BY, LIKE.</li>
+<li><strong>Blocco B - Modificare</strong>: INSERT, UPDATE, DELETE.</li>
+</ol>
+<p>Ogni blocco si apre con una pagina di ripasso: leggetela prima di rispondere.</p>
+</div>
+=== question cloze
+=== name
+L1 - A1 - Tracciamento: WHERE e ORDER BY
+=== note
+Famiglia: tracciamento. I campi stanno fuori dal codice; le opzioni sbagliate sono errori tipici.
+=== questiontext
+<p>Data la tabella <strong>Libri</strong>:</p>
+<table style="border-collapse: collapse; margin: 8px 0;">
+<thead>
+<tr><th style="border: 1px solid #999999; padding: 4px 8px; background-color: #eeeeee; text-align: left;">ISBN</th><th style="border: 1px solid #999999; padding: 4px 8px; background-color: #eeeeee; text-align: left;">Titolo</th><th style="border: 1px solid #999999; padding: 4px 8px; background-color: #eeeeee; text-align: left;">Prezzo</th></tr>
+</thead>
+<tbody>
+<tr><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;">9788804</td><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;">Il fu Mattia Pascal</td><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;">9.50</td></tr>
+<tr><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;">9788811</td><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;">Il barone rampante</td><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;">8.00</td></tr>
+<tr><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;">9788865</td><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;">Il nome del vento</td><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;">12.00</td></tr>
+</tbody>
+</table>
+[[codice sql]]
+SELECT Titolo FROM Libri WHERE Prezzo < 10 ORDER BY Titolo;
+[[/codice]]
+<p>La query restituisce {1:NUMERICAL:=2:0#Corretto: solo due libri costano meno di 10 euro.} righe. La prima riga è {1:MULTICHOICE_S:=Il barone rampante#Corretto: è il primo in ordine alfabetico.~Il fu Mattia Pascal#No: costa meno di 10 euro, ma in ordine alfabetico viene dopo.~Il nome del vento#No: costa 12 euro, non soddisfa la condizione.}.</p>
+=== question cloze
+=== name
+L1 - B2 - Completamento: INSERT
+=== note
+Famiglia: completamento. Campi dentro il codice; apostrofi scritti così come sono.
+=== questiontext
+<p>Vogliamo inserire nella tabella <strong>Libri</strong> (<u>ISBN</u>, Titolo, Prezzo) il libro <em>Le città invisibili</em>, che costa 9 euro. Completa la query.</p>
+[[codice sql]]
+INSERT {1:MULTICHOICE_S:=INTO~IN~TO} Libri (ISBN, Titolo, Prezzo)
+{1:MULTICHOICE_S:VALUE~=VALUES~SET} ('9788804', {1:MULTICHOICE_S:='Le città invisibili'#Corretto: i testi vanno tra apici.~Le città invisibili#No: senza apici il DBMS cerca una colonna con quel nome.~(Le città invisibili)#No: le parentesi non delimitano i testi.}, {1:MULTICHOICE_S:'9,00'#No: i numeri non vanno tra apici.~9,00#No: il separatore decimale è il punto.~=9.00#Corretto.});
+[[/codice]]
+=== question cloze
+=== name
+L1 - A3 - Esercizio: richiesta e risposta in ordine
+=== note
+Famiglia: metti in ordine. Stesse opzioni, stesso ordine statico, diverso dall'ordine giusto.
+=== questiontext
+<p>Un utente scrive nel browser l'indirizzo della Libreria Pagina 42. Metti in ordine quello che succede.</p>
+<ol>
+<li>{1:MULTICHOICE:il browser legge l'HTML e chiede anche stile.css~=il browser invia al web server la richiesta per index.html#Corretto.~il browser mostra la pagina impaginata~il web server cerca index.html e lo invia}</li>
+<li>{1:MULTICHOICE:il browser legge l'HTML e chiede anche stile.css~il browser invia al web server la richiesta per index.html~il browser mostra la pagina impaginata~=il web server cerca index.html e lo invia#Corretto.}</li>
+<li>{1:MULTICHOICE:=il browser legge l'HTML e chiede anche stile.css#Corretto.~il browser invia al web server la richiesta per index.html~il browser mostra la pagina impaginata~il web server cerca index.html e lo invia}</li>
+<li>{1:MULTICHOICE:il browser legge l'HTML e chiede anche stile.css~il browser invia al web server la richiesta per index.html~=il browser mostra la pagina impaginata#Corretto.~il web server cerca index.html e lo invia}</li>
+</ol>
+=== question cloze
+=== name
+L1 - C1 - Scrivere: variabili, echo e if
+=== note
+Famiglia: scrittura. Il >= nella risposta si scrive così com'è.
+=== questiontext
+<p>Completa il codice: la pagina stampa «Omaggio: un segnalibro!» solo se i libri acquistati sono almeno 3.</p>
+[[codice php]]
+<?php
+{1:SHORTANSWER:=$}libri = 4;
+{1:SHORTANSWER:=if} ($libri {1:SHORTANSWER:=>=} 3) {
+    {1:SHORTANSWER:=echo} "<p>Omaggio: un segnalibro!</p>";
+}
+?>
+[[/codice]]
+=== question multichoice
+=== name
+L1 - B4 - Trova l'errore: UPDATE senza WHERE
+=== questiontext
+<p>Il gestore vuole abbassare a 12 euro il prezzo del solo libro <em>Il nome del vento</em>, e scrive:</p>
+[[codice sql]]
+UPDATE Libri SET Prezzo = 12.00;
+[[/codice]]
+<p>Che cosa succede?</p>
+=== answer 100
+Tutti i libri passano a 12.00 euro, perché manca la clausola WHERE
+=== feedback
+Esatto: senza WHERE l'UPDATE vale per tutti i record.
+=== answer 0
+MySQL segnala un errore di sintassi, perché UPDATE richiede sempre WHERE
+=== feedback
+No: la query è sintatticamente corretta, ed è proprio questo il pericolo.
+=== answer 0
+Viene modificato solo il primo record della tabella
+=== feedback
+No: SQL lavora su tutti i record che soddisfano la condizione, e qui la condizione non c'è.
+=== answer 0
+Non cambia nulla, perché non è indicato quale libro modificare
+=== feedback
+No: se non indichiamo quale libro, il DBMS li modifica tutti.
+=== question truefalse
+=== name
+L1 - A2 - WHERE e ORDER BY
+=== options
+correct: false
+=== questiontext
+<p>In una SELECT la clausola ORDER BY va scritta prima di WHERE.</p>
+=== feedback true
+No: prima si filtrano i record con WHERE, poi si ordinano con ORDER BY, e nella query le clausole compaiono in quest'ordine.
+=== feedback false
+Esatto: ORDER BY viene dopo WHERE, perché si ordinano i record già filtrati.
+=== question essay
+=== name
+L1 - B5 - Esercizio libero: le offerte
+=== options
+defaultgrade: 3
+=== questiontext
+<p>Nel database <strong>dblibreria</strong> scrivi in phpMyAdmin le query per:</p>
+<ol>
+<li>mostrare titolo e prezzo dei libri che costano meno di 10 euro, dal più economico;</li>
+<li>abbassare del 10% il prezzo dei libri che costano più di 15 euro.</li>
+</ol>
+<p>Prova le query, poi incollale qui, una sotto l'altra, con il numero del punto sopra ciascuna.</p>
+=== graderinfo
+<p>Punto 1: SELECT Titolo, Prezzo, WHERE Prezzo &lt; 10, ORDER BY Prezzo ASC.</p>
+<p>Punto 2: UPDATE con SET Prezzo = Prezzo * 0.9 e WHERE Prezzo &gt; 15.</p>

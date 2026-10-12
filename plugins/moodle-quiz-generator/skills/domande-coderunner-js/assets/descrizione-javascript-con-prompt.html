@@ -1,0 +1,39 @@
+<p><strong>Javascript (con prompt)</strong>: domande in cui lo studente scrive un programma JavaScript. Il codice viene eseguito con Node.js su Jobe. La funzione <span style="font-family: monospace;">prompt()</span> si usa come nel browser, ma legge i valori dallo standard input del test.</p>
+
+<p><strong>Input con prompt</strong></p>
+<p>Nel campo <em>Standard input</em> del test si scrive un valore per riga, nell'ordine in cui il programma li chiede. Il messaggio del prompt non compare nell'output. <span style="font-family: monospace;">prompt()</span> restituisce sempre testo: per fare calcoli serve <span style="font-family: monospace;">Number()</span>.</p>
+<p>Esempio di risposta:</p>
+<pre style="background-color: #333333; color: #eceff1; padding: 12px; border-radius: 4px; overflow-x: auto; margin: 8px 0; line-height: 1.5;">const n = Number(prompt("Inserisci un numero"));
+const m = Number(prompt("Inserisci un numero"));
+const somma = n + m;
+console.log(somma);</pre>
+<p>Per il test si scrive nel campo <em>Standard input</em>:</p>
+<pre style="background-color: #333333; color: #eceff1; padding: 12px; border-radius: 4px; overflow-x: auto; margin: 8px 0; line-height: 1.5;">4
+3</pre>
+<p>e nel campo <em>Expected output</em>: <span style="font-family: monospace;">7</span></p>
+<p>Se il programma chiede più valori di quelli forniti, <span style="font-family: monospace;">prompt()</span> restituisce <span style="font-family: monospace;">undefined</span>. Nei cicli che si fermano con un valore speciale (per esempio STOP), l'ultima riga dello standard input deve essere quel valore, altrimenti il programma non termina.</p>
+
+<p><strong>Codice del test</strong></p>
+<p>Il codice scritto nel campo <em>Test</em> viene eseguito <strong>dopo</strong> la risposta dello studente, quindi può chiamare le funzioni che lo studente ha scritto. Esempio: lo studente scrive una funzione <span style="font-family: monospace;">media(a, b)</span>; nel test si scrive <span style="font-family: monospace;">console.log(media(4, 6));</span> e come output atteso <span style="font-family: monospace;">5</span>.</p>
+
+<p><strong>Numeri casuali</strong></p>
+<p><span style="font-family: monospace;">Math.random()</span> restituisce, uno dopo l'altro, i valori di questa sequenza fissa:</p>
+<pre style="background-color: #333333; color: #eceff1; padding: 12px; border-radius: 4px; overflow-x: auto; margin: 8px 0; line-height: 1.5;">[ 0.15, 0.23, 0.52, 0.34, 0.75, 0.38, 0.62, 0.01, 0.29, 0.40,
+  0.92, 0.54, 0.42, 0.09, 0.10, 0.07, 0.88, 0.46, 0.01, 0.21,
+  0.17, 0.64, 0.06, 0.57, 0.25, 0.29, 0.81, 0.57, 0.02, 0.62,
+  0.03, 0.38, 0.64, 0.75, 0.22, 0.49, 0.89, 0.92, 0.13, 0.72 ]</pre>
+<p>Per avere valori diversi tra un test e l'altro, nel campo <em>Extra</em> del test si scrive la posizione da cui partire (predefinita 0; arrivati in fondo la sequenza ricomincia). Esempio: con <span style="font-family: monospace;">Math.floor(Math.random() * 6) + 1</span> due lanci danno 1 e 2 con Extra vuoto, 5 e 3 con Extra 4.</p>
+
+<p><strong>Parametri del template</strong> (campo <em>Template params</em>, in formato JSON)</p>
+<ul>
+<li><span style="font-family: monospace;">{"test_prima": true}</span>: il codice del test viene eseguito <strong>prima</strong> della risposta dello studente. Serve per preparare dati che lo studente usa. Esempio: nel test <span style="font-family: monospace;">let voti = [6, 8, 7];</span> e lo studente calcola la media dell'array <span style="font-family: monospace;">voti</span>.</li>
+<li><span style="font-family: monospace;">{"random": [0.5, 0.1, 0.9]}</span>: sostituisce la sequenza dei numeri casuali con quella indicata, di qualsiasi lunghezza. Il campo Extra funziona allo stesso modo.</li>
+</ul>
+
+<p><strong>Da ricordare</strong></p>
+<ul>
+<li>Node stampa un array come <span style="font-family: monospace;">[ 1, 2, 3 ]</span>, con gli spazi, in modo diverso dalla console del browser: conviene far stampare gli elementi con un ciclo o con <span style="font-family: monospace;">join()</span>.</li>
+<li><span style="font-family: monospace;">alert</span> e <span style="font-family: monospace;">document</span> non esistono in Node: il codice che li usa dà errore.</li>
+<li>I decimali si stampano come in JavaScript (<span style="font-family: monospace;">0.1 + 0.2</span> dà 0.30000000000000004): con <span style="font-family: monospace;">toFixed(2)</span> l'output è prevedibile.</li>
+<li>Il confronto con l'output atteso ignora maiuscole e differenze di spazi. Il punteggio è la somma dei test superati.</li>
+</ul>

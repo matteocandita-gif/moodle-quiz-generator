@@ -1,0 +1,372 @@
+{
+ "nome": "veterinario",
+ "titolo": "Ambulatorio veterinario",
+ "contesto": "Un ambulatorio veterinario della provincia di Bologna, con pronto soccorso aperto tutti i giorni, cura gli animali dei suoi clienti. Ogni animale ha un solo proprietario; l'animale viene registrato come paziente (DataRegistrazione) e poi visitato dai veterinari dell'ambulatorio (tabella Visite).",
+ "taglia": "piccolo",
+ "seme": 5103,
+ "righe": {
+  "Proprietari": 6,
+  "Animali": 10,
+  "Veterinari": 5,
+  "Visite": 20
+ },
+ "schema": [
+  "**Proprietari** (__IdProprietario__, Nome, Cognome, Citta, Telefono)",
+  "**Animali** (__IdAnimale__, Nome, Specie, Razza, DataNascita, DataRegistrazione, IdProprietario*)",
+  "**Veterinari** (__IdVeterinario__, Nome, Cognome, Specializzazione)",
+  "**Visite** (__IdVisita__, IdAnimale*, IdVeterinario*, Data, Motivo, Costo)"
+ ],
+ "schema_html": [
+  "<strong>Proprietari</strong> (<u>IdProprietario</u>, Nome, Cognome, Citta, Telefono)",
+  "<strong>Animali</strong> (<u>IdAnimale</u>, Nome, Specie, Razza, DataNascita, DataRegistrazione, IdProprietario*)",
+  "<strong>Veterinari</strong> (<u>IdVeterinario</u>, Nome, Cognome, Specializzazione)",
+  "<strong>Visite</strong> (<u>IdVisita</u>, IdAnimale*, IdVeterinario*, Data, Motivo, Costo)"
+ ],
+ "trappole": [
+  "tre animali (il quinto e gli ultimi due) non sono mai stati visitati, e alcuni gatti registrati nel 2025 hanno più visite: una JOIN inutile con Visite in una query sugli animali perde i primi e ripete i secondi",
+  "Animali.DataRegistrazione e Visite.Data sono date diverse: filtrare l'una al posto dell'altra cambia il risultato",
+  "gatti registrati esattamente il 2025-01-01 e il 2025-12-31 (e il 2024-12-31, il 2026-01-01): smascherano i confini dell'anno",
+  "tre animali senza visite (LEFT JOIN), l'ultimo veterinario non ha ancora visitato",
+  "due animali si chiamano «Luna»: raggruppare per nome dell'animale li fonde",
+  "il secondo e il penultimo proprietario sono omonimi, con un animale ciascuno: raggruppare per nome dà 2 animali e supera HAVING >= 2; i loro animali hanno 1 e 2 visite, delle quali una ciascuno in Medicina generale",
+  "alcuni animali hanno Razza NULL; i costi sono tondi (40.00, 45.00, 80.00…)"
+ ],
+ "file": [
+  "veterinario_piccolo.sql",
+  "veterinario_piccolo_mysql.sql",
+  "veterinario_piccolo.db",
+  "scheda.md"
+ ],
+ "tabelle": [
+  {
+   "nome": "Proprietari",
+   "colonne": [
+    {
+     "nome": "IdProprietario",
+     "tipo": "INT",
+     "vincoli": "PRIMARY KEY"
+    },
+    {
+     "nome": "Nome",
+     "tipo": "VARCHAR(40)",
+     "vincoli": "NOT NULL"
+    },
+    {
+     "nome": "Cognome",
+     "tipo": "VARCHAR(40)",
+     "vincoli": "NOT NULL"
+    },
+    {
+     "nome": "Citta",
+     "tipo": "VARCHAR(40)",
+     "vincoli": "NOT NULL"
+    },
+    {
+     "nome": "Telefono",
+     "tipo": "VARCHAR(15)",
+     "vincoli": "NOT NULL"
+    }
+   ],
+   "chiave": [
+    "IdProprietario"
+   ],
+   "esterne": [],
+   "righe": 6,
+   "esempi": [
+    [
+     "1",
+     "Elena",
+     "Orlando",
+     "Imola",
+     "382 1201130"
+    ],
+    [
+     "2",
+     "Camilla",
+     "Coppola",
+     "Bologna",
+     "384 4019446"
+    ],
+    [
+     "3",
+     "Gabriel",
+     "Sorrentino",
+     "Bologna",
+     "392 4430723"
+    ],
+    [
+     "4",
+     "Michele",
+     "Greco",
+     "Taranto",
+     "326 1773437"
+    ],
+    [
+     "5",
+     "Camilla",
+     "Coppola",
+     "Zola Predosa",
+     "370 3869411"
+    ]
+   ]
+  },
+  {
+   "nome": "Animali",
+   "colonne": [
+    {
+     "nome": "IdAnimale",
+     "tipo": "INT",
+     "vincoli": "PRIMARY KEY"
+    },
+    {
+     "nome": "Nome",
+     "tipo": "VARCHAR(30)",
+     "vincoli": "NOT NULL"
+    },
+    {
+     "nome": "Specie",
+     "tipo": "VARCHAR(20)",
+     "vincoli": "NOT NULL"
+    },
+    {
+     "nome": "Razza",
+     "tipo": "VARCHAR(40)",
+     "vincoli": ""
+    },
+    {
+     "nome": "DataNascita",
+     "tipo": "DATE",
+     "vincoli": "NOT NULL"
+    },
+    {
+     "nome": "DataRegistrazione",
+     "tipo": "DATE",
+     "vincoli": "NOT NULL"
+    },
+    {
+     "nome": "IdProprietario",
+     "tipo": "INT",
+     "vincoli": "NOT NULL"
+    }
+   ],
+   "chiave": [
+    "IdAnimale"
+   ],
+   "esterne": [
+    [
+     "IdProprietario",
+     "Proprietari",
+     "IdProprietario"
+    ]
+   ],
+   "righe": 10,
+   "esempi": [
+    [
+     "1",
+     "Luna",
+     "Gatto",
+     "Europeo",
+     "2018-11-22",
+     "2019-11-18",
+     "1"
+    ],
+    [
+     "2",
+     "Tigre",
+     "Gatto",
+     "Siamese",
+     "2018-09-05",
+     "2025-01-01",
+     "1"
+    ],
+    [
+     "3",
+     "Milo",
+     "Gatto",
+     "Siamese",
+     "2024-01-15",
+     "2025-12-31",
+     "1"
+    ],
+    [
+     "4",
+     "Kira",
+     "Gatto",
+     "Persiano",
+     "2014-09-13",
+     "2024-12-31",
+     "3"
+    ],
+    [
+     "5",
+     "Briciola",
+     "Gatto",
+     "Maine coon",
+     "2022-06-04",
+     "2026-01-01",
+     "3"
+    ]
+   ]
+  },
+  {
+   "nome": "Veterinari",
+   "colonne": [
+    {
+     "nome": "IdVeterinario",
+     "tipo": "INT",
+     "vincoli": "PRIMARY KEY"
+    },
+    {
+     "nome": "Nome",
+     "tipo": "VARCHAR(40)",
+     "vincoli": "NOT NULL"
+    },
+    {
+     "nome": "Cognome",
+     "tipo": "VARCHAR(40)",
+     "vincoli": "NOT NULL"
+    },
+    {
+     "nome": "Specializzazione",
+     "tipo": "VARCHAR(40)",
+     "vincoli": "NOT NULL"
+    }
+   ],
+   "chiave": [
+    "IdVeterinario"
+   ],
+   "esterne": [],
+   "righe": 5,
+   "esempi": [
+    [
+     "1",
+     "Angelo",
+     "Grandi",
+     "Medicina generale"
+    ],
+    [
+     "2",
+     "Thomas",
+     "Chen",
+     "Chirurgia"
+    ],
+    [
+     "3",
+     "Vincenzo",
+     "De Santis",
+     "Dermatologia"
+    ],
+    [
+     "4",
+     "Filippo",
+     "Monti",
+     "Cardiologia"
+    ],
+    [
+     "5",
+     "Rebecca",
+     "Ferraro",
+     "Medicina generale"
+    ]
+   ]
+  },
+  {
+   "nome": "Visite",
+   "colonne": [
+    {
+     "nome": "IdVisita",
+     "tipo": "INT",
+     "vincoli": "PRIMARY KEY"
+    },
+    {
+     "nome": "IdAnimale",
+     "tipo": "INT",
+     "vincoli": "NOT NULL"
+    },
+    {
+     "nome": "IdVeterinario",
+     "tipo": "INT",
+     "vincoli": "NOT NULL"
+    },
+    {
+     "nome": "Data",
+     "tipo": "DATE",
+     "vincoli": "NOT NULL"
+    },
+    {
+     "nome": "Motivo",
+     "tipo": "VARCHAR(30)",
+     "vincoli": "NOT NULL"
+    },
+    {
+     "nome": "Costo",
+     "tipo": "DECIMAL(6,2)",
+     "vincoli": "NOT NULL"
+    }
+   ],
+   "chiave": [
+    "IdVisita"
+   ],
+   "esterne": [
+    [
+     "IdAnimale",
+     "Animali",
+     "IdAnimale"
+    ],
+    [
+     "IdVeterinario",
+     "Veterinari",
+     "IdVeterinario"
+    ]
+   ],
+   "righe": 20,
+   "esempi": [
+    [
+     "1",
+     "1",
+     "3",
+     "2019-11-19",
+     "Controllo",
+     "40"
+    ],
+    [
+     "2",
+     "1",
+     "1",
+     "2019-11-27",
+     "Controllo",
+     "40"
+    ],
+    [
+     "3",
+     "1",
+     "1",
+     "2019-12-23",
+     "Controllo",
+     "40"
+    ],
+    [
+     "4",
+     "8",
+     "1",
+     "2020-06-24",
+     "Visita urgente",
+     "80"
+    ],
+    [
+     "5",
+     "1",
+     "1",
+     "2021-03-09",
+     "Controllo",
+     "40"
+    ]
+   ]
+  }
+ ],
+ "controlli": [
+  "una visita non precede la registrazione dell'animale",
+  "un animale è registrato dopo la nascita",
+  "il motivo della visita è coerente con la specializzazione"
+ ]
+}

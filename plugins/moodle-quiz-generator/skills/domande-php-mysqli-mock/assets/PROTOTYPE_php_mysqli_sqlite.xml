@@ -1,0 +1,624 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiz>
+  <question type="coderunner">
+    <name>
+      <text>PROTOTYPE_php_mysqli_sqlite</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Prototipo <span style="font-family: monospace;">php_mysqli_sqlite</span>: esegue il PHP dello studente con una facciata di mysqli simulata (funzioni, classi, controllo di server, utente, password e nome del database) e <strong>esegue davvero le query</strong> su un database SQLite, con il client <span style="font-family: monospace;">sqlite3</span> di Jobe, lo stesso delle domande SQL. Gli errori delle query sono quelli di SQLite, così come escono.</p>
+<p><strong>Campo Test</strong>: imposta gli eventuali dati del form e configura il database.</p>
+<pre style="background-color: #333333; color: #eceff1; padding: 12px; border-radius: 4px; overflow-x: auto; margin: 8px 0; line-height: 1.5;"><span style="color: #8fbcbb;">$_GET</span> = [<span style="color: #a3be8c;">'autore'</span> =&gt; <span style="color: #a3be8c;">'Calvino'</span>];
+FakeDB::configure([
+    <span style="color: #a3be8c;">'user'</span> =&gt; <span style="color: #a3be8c;">'root'</span>, <span style="color: #a3be8c;">'password'</span> =&gt; <span style="color: #a3be8c;">''</span>, <span style="color: #a3be8c;">'database'</span> =&gt; <span style="color: #a3be8c;">'dblibreria'</span>,
+    <span style="color: #a3be8c;">'schema'</span> =&gt; <span style="color: #a3be8c;">"CREATE TABLE Libri (ISBN VARCHAR(13) PRIMARY KEY, Titolo VARCHAR(100), Autore VARCHAR(50), Prezzo DECIMAL(5,2));
+                 INSERT INTO Libri VALUES ('9788806', 'Il barone rampante', 'Calvino', 12.00);"</span>,
+]);</pre>
+<p>Opzioni: <span style="font-family: monospace;">user</span>, <span style="font-family: monospace;">password</span>, <span style="font-family: monospace;">database</span>, <span style="font-family: monospace;">hosts</span>, <span style="font-family: monospace;">port</span> come nel prototipo php_mysqli_mock; <span style="font-family: monospace;">schema</span> (SQL che crea e popola il database) oppure <span style="font-family: monospace;">dbfile</span> (file .db allegato; se vuoto, l'unico .db allegato alla domanda); <span style="font-family: monospace;">foreignKeys</span> (predefinito true); <span style="font-family: monospace;">queries</span>, facoltativa, per forzare il risultato o il messaggio di una query precisa (stesso formato di php_mysqli_mock), che ha la precedenza su SQLite.</p>
+<p>Funzioni per i test: <span style="font-family: monospace;">FakeDB::rows($sql)</span> (righe di una SELECT sul database dopo lo script), <span style="font-family: monospace;">FakeDB::count($tabella)</span>, <span style="font-family: monospace;">FakeDB::executedQueries()</span>, <span style="font-family: monospace;">FakeDB::connectionClosed()</span>.</p>
+<p>Da ricordare: per una chiave AUTO_INCREMENT lo schema usa <span style="font-family: monospace;">Id INTEGER PRIMARY KEY AUTOINCREMENT</span>; i decimali escono come in SQLite (12, 9.5); <span style="font-family: monospace;">mysqli_real_escape_string</span> raddoppia l'apice, che vale sia in SQLite sia in MySQL. Requisiti su Jobe: client sqlite3, proc_open consentito, estensione mysqli non caricata. Il prototipo non è combinator.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>php_mysqli_sqlite</coderunnertype>
+    <prototypetype>2</prototypetype>
+    <allornothing>1</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>18</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload></answerpreload>
+    <globalextra></globalextra>
+    <useace>1</useace>
+    <resultcolumns>[["Prova", "extra"], ["Atteso", "expected"], ["Ottenuto", "got"]]</resultcolumns>
+    <template><![CDATA[<?php
+/* =====================================================================
+ * Prototipo php_mysqli_sqlite per CodeRunner (PHP)
+ * La facciata di mysqli (funzioni, classi, controllo delle credenziali) è
+ * simulata; le query vengono ESEGUITE DAVVERO su un database SQLite creato
+ * dal campo Test, con il client sqlite3 di Jobe (lo stesso delle domande SQL).
+ * Gli errori delle query sono quelli di SQLite, così come escono.
+ *
+ * REQUISITI su Jobe: client sqlite3 nel PATH; proc_open consentito in PHP;
+ * estensione PHP mysqli NON caricata (altrimenti "Cannot redeclare").
+ *
+ * Nota Twig: in questo codice non usare mai due graffe aperte di seguito,
+ * né una graffa seguita da cancelletto o percento.
+ * ===================================================================== */
+
+define('MYSQLI_ASSOC', 1);
+define('MYSQLI_NUM', 2);
+define('MYSQLI_BOTH', 3);
+define('MYSQLI_REPORT_OFF', 0);
+define('MYSQLI_REPORT_ERROR', 1);
+define('MYSQLI_REPORT_STRICT', 2);
+define('MYSQLI_REPORT_ALL', 255);
+
+class mysqli_sql_exception extends RuntimeException {}
+
+final class FakeDB
+{
+    const SEP = '#@FAKEDB-SEPARATORE@#';
+
+    // ---- configurazione (impostata dal campo Test con FakeDB::configure) ----
+    public static $hosts = ['localhost', '127.0.0.1'];
+    public static $port = null;          // null = accetta qualsiasi porta
+    public static $user = 'root';
+    public static $password = '';
+    public static $database = '';
+    public static $schema = '';          // SQL che crea e popola il database
+    public static $dbfile = '';          // file .db allegato; se vuoto, l'unico .db allegato alla domanda
+    public static $foreignKeys = true;   // PRAGMA foreign_keys = ON a ogni query
+    public static $queries = [];         // facoltativo: query (o /regex/) => risultato forzato
+    public static $exceptions = false;   // true = comportamento predefinito di PHP 8.1+
+    public static $sqlite = 'sqlite3';   // comando del client
+
+    // ---- stato interno ----
+    public static $file = null;
+    public static $log = [];
+    public static $connectErrno = 0;
+    public static $connectError = null;
+
+    public static function configure(array $config)
+    {
+        foreach ($config as $key => $value) {
+            if (!property_exists(self::class, $key) || in_array($key, ['file', 'log'], true)) {
+                throw new InvalidArgumentException("FakeDB: opzione sconosciuta '$key'");
+            }
+            self::${$key} = $value;
+        }
+        self::prepareDatabase();
+    }
+
+    // Crea il database di lavoro: copia del file allegato e/o esecuzione dello schema
+    private static function prepareDatabase()
+    {
+        self::$file = getcwd() . '/fakedb_lavoro.sqlite';
+        if (file_exists(self::$file)) {
+            unlink(self::$file);
+        }
+        $sorgente = self::$dbfile;
+        if ($sorgente === '') {                       // nessun file indicato: l'unico .db allegato, se c'è
+            $allegati = glob('*.db');
+            if (count($allegati) > 1) {
+                throw new RuntimeException("FakeDB: la domanda ha più file .db allegati, indica quale con 'dbfile'");
+            }
+            $sorgente = $allegati ? $allegati[0] : '';
+        }
+        if ($sorgente !== '') {
+            if (!copy($sorgente, self::$file)) {
+                throw new RuntimeException("FakeDB: file del database non trovato: " . $sorgente);
+            }
+        }
+        if (trim(self::$schema) !== '') {
+            $prefisso = self::$foreignKeys ? "PRAGMA foreign_keys = ON;\n" : '';
+            $esito = self::cli($prefisso . self::$schema . "\n;\n");
+            $errori = self::parseErrors($esito[1]);
+            if ($errori) {
+                throw new RuntimeException("FakeDB: errore nello schema del test: " . $errori[0][0]);
+            }
+        } elseif ($sorgente === '') {
+            touch(self::$file);
+        }
+    }
+
+    // Esegue uno script con il client sqlite3 sul database di lavoro: [stdout, stderr]
+    public static function cli($script)
+    {
+        $descrittori = [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
+        $processo = proc_open([self::$sqlite, self::$file], $descrittori, $pipes);
+        if (!is_resource($processo)) {
+            throw new RuntimeException('FakeDB: impossibile avviare ' . self::$sqlite);
+        }
+        fwrite($pipes[0], $script);
+        fclose($pipes[0]);
+        $uscita = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+        $errori = stream_get_contents($pipes[2]);
+        fclose($pipes[2]);
+        proc_close($processo);
+        return [$uscita, $errori];
+    }
+
+    // Righe "Parse error near line N: messaggio" -> [[messaggio, codice], ...]
+    public static function parseErrors($stderr)
+    {
+        $errori = [];
+        foreach (preg_split('/\R/', (string)$stderr) as $riga) {
+            if (preg_match('/^(?:Parse error|Runtime error|Error)(?: near line \d+)?: (.*?)(?: \((\d+)\))?$/', $riga, $m)) {
+                $errori[] = [$m[1], isset($m[2]) && $m[2] !== '' ? (int)$m[2] : 1];
+            }
+        }
+        return $errori;
+    }
+
+    // true se apici, virgolette e commenti sono tutti chiusi
+    private static function balanced($sql)
+    {
+        $n = strlen($sql);
+        $i = 0;
+        while ($i < $n) {
+            $c = $sql[$i];
+            if ($c === '-' && substr($sql, $i, 2) === '--') {
+                $j = strpos($sql, "\n", $i);
+                if ($j === false) {
+                    return true;
+                }
+                $i = $j + 1;
+                continue;
+            }
+            if ($c === '/' && substr($sql, $i, 2) === '/*') {
+                $j = strpos($sql, '*/', $i + 2);
+                if ($j === false) {
+                    return false;
+                }
+                $i = $j + 2;
+                continue;
+            }
+            if ($c === "'" || $c === '"' || $c === '`') {
+                $j = strpos($sql, $c, $i + 1);
+                if ($j === false) {
+                    return false;
+                }
+                $i = $j + 1;
+                continue;
+            }
+            $i++;
+        }
+        return true;
+    }
+
+    // Prima parola della query (select, insert, ...), saltando spazi e commenti
+    public static function verb($sql)
+    {
+        $s = preg_replace('#^(\s+|--[^\n]*\n?|/\*.*?\*/)*#s', '', (string)$sql);
+        return preg_match('/^([a-z]+)/i', $s, $m) ? strtolower($m[1]) : '';
+    }
+
+    private static function decodeRows($testo)
+    {
+        $testo = trim($testo);
+        if ($testo === '') {
+            return [];
+        }
+        $dati = json_decode($testo, true);
+        if (!is_array($dati)) {                       // più risultati: si tiene il primo
+            $pezzi = preg_split('/\]\s*\R\[/', $testo, 2);
+            $dati = json_decode($pezzi[0] . ']', true);
+        }
+        return is_array($dati) ? $dati : [];
+    }
+
+    /* Esegue una query dello studente.
+     * Restituisce ['error' => [messaggio, codice] o null, 'rows' => [...],
+     *              'changes' => n, 'id' => n] */
+    public static function execute($sql)
+    {
+        $script = ".mode json\n" . (self::$foreignKeys ? "PRAGMA foreign_keys = ON;\n" : '');
+        $chiusa = self::balanced($sql);
+        if ($chiusa) {
+            $script .= $sql . "\n;\n.print " . self::SEP . "\nSELECT changes() AS c, last_insert_rowid() AS i;\n";
+        } else {
+            $script .= $sql . "\n";                   // l'errore lo segnala sqlite3
+        }
+        list($uscita, $stderr) = self::cli($script);
+        $errori = self::parseErrors($stderr);
+        $parti = preg_split('/^' . preg_quote(self::SEP, '/') . '\s*$/m', $uscita, 2);
+        $meta = isset($parti[1]) ? self::decodeRows($parti[1]) : [];
+        return [
+            'error' => $errori ? $errori[0] : null,
+            'rows' => self::decodeRows($parti[0]),
+            'changes' => isset($meta[0]['c']) ? (int)$meta[0]['c'] : 0,
+            'id' => isset($meta[0]['i']) ? (int)$meta[0]['i'] : 0,
+        ];
+    }
+
+    // ---- funzioni di supporto per i test ----
+
+    // Righe di una SELECT sul database di lavoro (valori come stringhe)
+    public static function rows($sql)
+    {
+        $esito = self::execute($sql);
+        if ($esito['error']) {
+            throw new RuntimeException('FakeDB::rows: ' . $esito['error'][0]);
+        }
+        return array_map(function ($riga) {
+            return array_map(function ($v) {
+                return $v === null ? null : (string)$v;
+            }, $riga);
+        }, $esito['rows']);
+    }
+
+    public static function count($tabella)
+    {
+        $righe = self::rows("SELECT COUNT(*) AS n FROM $tabella");
+        return (int)$righe[0]['n'];
+    }
+
+    public static function normalize($sql)
+    {
+        $sql = str_replace('`', '', strtolower(trim((string)$sql)));
+        $sql = rtrim($sql, "; \t\r\n");
+        $sql = preg_replace('/\s+/', ' ', $sql);
+        return preg_replace('/\s*([,=()<>])\s*/', '$1', $sql);
+    }
+
+    // Risultato forzato dalla mappa 'queries', se la query vi compare
+    public static function lookup($sql)
+    {
+        $normalized = self::normalize($sql);
+        foreach (self::$queries as $pattern => $result) {
+            $pattern = (string)$pattern;
+            $isRegex = strlen($pattern) > 1 && $pattern[0] === '/';
+            $match = $isRegex
+                ? preg_match($pattern, $normalized) === 1
+                : self::normalize($pattern) === $normalized;
+            if ($match) {
+                return [true, $result];
+            }
+        }
+        return [false, null];
+    }
+
+    public static function checkConnection($host, $user, $password, $database, $port)
+    {
+        $host = $host ?? 'localhost';
+        $user = (string)$user;
+        $password = (string)$password;
+        $database = (string)$database;
+
+        if (!in_array($host, self::$hosts, true)) {
+            return [2002, "php_network_getaddresses: getaddrinfo for $host failed: Name or service not known"];
+        }
+        if (self::$port !== null && $port !== null && (int)$port !== (int)self::$port) {
+            return [2002, 'Connection refused'];
+        }
+        if ($user !== self::$user || $password !== self::$password) {
+            $usingPassword = $password === '' ? 'NO' : 'YES';
+            return [1045, "Access denied for user '$user'@'localhost' (using password: $usingPassword)"];
+        }
+        if ($database !== '' && $database !== self::$database) {
+            return [1049, "Unknown database '$database'"];
+        }
+        return null;
+    }
+
+    public static function executedQueries()
+    {
+        $out = [];
+        foreach (self::$log as $entry) {
+            if ($entry[0] === 'query') {
+                $out[] = $entry[1];
+            }
+        }
+        return $out;
+    }
+
+    public static function connectionClosed()
+    {
+        foreach (self::$log as $entry) {
+            if ($entry[0] === 'close') {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+class mysqli
+{
+    public $connect_errno = 0;
+    public $connect_error = null;
+    public $errno = 0;
+    public $error = '';
+    public $affected_rows = 0;
+    public $insert_id = 0;
+    private $db = '';
+    private $connected = false;
+    private $closed = false;
+
+    public function __construct($hostname = null, $username = null, $password = null,
+                                $database = '', $port = null, $socket = null)
+    {
+        FakeDB::$log[] = ['connect', $hostname, $username, $password, $database];
+        $error = FakeDB::checkConnection($hostname, $username, $password, $database, $port);
+        if ($error !== null) {
+            $this->connect_errno = $error[0];
+            $this->connect_error = $error[1];
+            FakeDB::$connectErrno = $error[0];
+            FakeDB::$connectError = $error[1];
+            if (FakeDB::$exceptions) {
+                throw new mysqli_sql_exception($error[1], $error[0]);
+            }
+            return;
+        }
+        FakeDB::$connectErrno = 0;
+        FakeDB::$connectError = null;
+        $this->connected = true;
+        $this->db = (string)$database;
+    }
+
+    private function ensureUsable()
+    {
+        if ($this->closed) {
+            throw new Error('mysqli object is already closed');
+        }
+        if (!$this->connected) {
+            throw new Error('mysqli object is not fully initialized');
+        }
+    }
+
+    private function fail($errno, $message)
+    {
+        $this->errno = $errno;
+        $this->error = $message;
+        if (FakeDB::$exceptions) {
+            throw new mysqli_sql_exception($message, $errno);
+        }
+        return false;
+    }
+
+    public function query($query)
+    {
+        $this->ensureUsable();
+        FakeDB::$log[] = ['query', $query];
+        $this->errno = 0;
+        $this->error = '';
+
+        if ($this->db === '') {
+            return $this->fail(1046, 'No database selected');
+        }
+
+        // 1. risultato forzato dal test, se previsto
+        list($found, $result) = FakeDB::lookup($query);
+        if ($found) {
+            if ($result === true) {
+                $this->affected_rows = 0;
+                return true;
+            }
+            if (is_int($result)) {
+                $this->affected_rows = $result;
+                return true;
+            }
+            if (is_array($result) && isset($result['error'])) {
+                return $this->fail($result['error'][0], $result['error'][1]);
+            }
+            if (is_array($result) && (isset($result['affected']) || isset($result['insert_id']))) {
+                $this->affected_rows = $result['affected'] ?? 0;
+                $this->insert_id = $result['insert_id'] ?? 0;
+                return true;
+            }
+            $res = new mysqli_result($result);
+            $this->affected_rows = $res->num_rows;
+            return $res;
+        }
+
+        // 2. esecuzione vera su SQLite
+        $esito = FakeDB::execute($query);
+        if ($esito['error'] !== null) {
+            return $this->fail($esito['error'][1], $esito['error'][0]);
+        }
+        $verbo = FakeDB::verb($query);
+        if (in_array($verbo, ['select', 'with', 'values', 'pragma', 'explain'], true)) {
+            $res = new mysqli_result($esito['rows']);
+            $this->affected_rows = $res->num_rows;
+            return $res;
+        }
+        $this->affected_rows = $esito['changes'];
+        if (in_array($verbo, ['insert', 'replace'], true)) {
+            $this->insert_id = $esito['id'];
+        }
+        return true;
+    }
+
+    public function select_db($database)
+    {
+        $this->ensureUsable();
+        if ($database !== FakeDB::$database) {
+            return $this->fail(1049, "Unknown database '$database'");
+        }
+        $this->db = $database;
+        return true;
+    }
+
+    public function set_charset($charset)
+    {
+        $this->ensureUsable();
+        return true;
+    }
+
+    public function real_escape_string($string)
+    {
+        $this->ensureUsable();
+        return str_replace("'", "''", (string)$string);   // '' vale sia in SQLite sia in MySQL
+    }
+
+    public function close()
+    {
+        $this->ensureUsable();
+        $this->closed = true;
+        FakeDB::$log[] = ['close'];
+        return true;
+    }
+}
+
+class mysqli_result implements IteratorAggregate
+{
+    public $num_rows = 0;
+    public $field_count = 0;
+    private $rows = [];
+    private $position = 0;
+
+    public function __construct(array $rows)
+    {
+        // Come il vero mysqli (query non preparate): tutti i valori arrivano come stringhe
+        foreach ($rows as $row) {
+            $this->rows[] = array_map(function ($v) {
+                return $v === null ? null : (string)$v;
+            }, $row);
+        }
+        $this->num_rows = count($this->rows);
+        $this->field_count = $this->num_rows ? count($this->rows[0]) : 0;
+    }
+
+    public function fetch_assoc()
+    {
+        return $this->position < $this->num_rows ? $this->rows[$this->position++] : null;
+    }
+
+    public function fetch_row()
+    {
+        $r = $this->fetch_assoc();
+        return $r === null ? null : array_values($r);
+    }
+
+    public function fetch_object()
+    {
+        $r = $this->fetch_assoc();
+        return $r === null ? null : (object)$r;
+    }
+
+    public function fetch_array($mode = MYSQLI_BOTH)
+    {
+        $r = $this->fetch_assoc();
+        if ($r === null || $mode === MYSQLI_ASSOC) {
+            return $r;
+        }
+        if ($mode === MYSQLI_NUM) {
+            return array_values($r);
+        }
+        $both = [];
+        $i = 0;
+        foreach ($r as $k => $v) {
+            $both[$i++] = $v;
+            $both[$k] = $v;
+        }
+        return $both;
+    }
+
+    public function fetch_all($mode = MYSQLI_NUM)
+    {
+        $all = [];
+        while (($r = $this->fetch_array($mode)) !== null) {
+            $all[] = $r;
+        }
+        return $all;
+    }
+
+    public function data_seek($offset)
+    {
+        if ($offset < 0 || $offset >= $this->num_rows) {
+            return false;
+        }
+        $this->position = $offset;
+        return true;
+    }
+
+    public function free() {}
+
+    public function getIterator(): Iterator
+    {
+        $rest = array_slice($this->rows, $this->position);
+        $this->position = $this->num_rows;
+        return new ArrayIterator($rest);
+    }
+}
+
+// ---- Stile procedurale (i type hint producono gli stessi TypeError del vero mysqli) ----
+function mysqli_connect($hostname = null, $username = null, $password = null,
+                        $database = '', $port = null, $socket = null)
+{
+    $conn = new mysqli($hostname, $username, $password, $database, $port, $socket);
+    return $conn->connect_errno ? false : $conn;
+}
+function mysqli_connect_errno() { return FakeDB::$connectErrno; }
+function mysqli_connect_error() { return FakeDB::$connectError; }
+function mysqli_query(mysqli $mysql, $query) { return $mysql->query($query); }
+function mysqli_error(mysqli $mysql) { return $mysql->error; }
+function mysqli_errno(mysqli $mysql) { return $mysql->errno; }
+function mysqli_select_db(mysqli $mysql, $database) { return $mysql->select_db($database); }
+function mysqli_set_charset(mysqli $mysql, $charset) { return $mysql->set_charset($charset); }
+function mysqli_real_escape_string(mysqli $mysql, $string) { return $mysql->real_escape_string($string); }
+function mysqli_affected_rows(mysqli $mysql) { return $mysql->affected_rows; }
+function mysqli_insert_id(mysqli $mysql) { return $mysql->insert_id; }
+function mysqli_close(mysqli $mysql) { return $mysql->close(); }
+function mysqli_fetch_assoc(mysqli_result $result) { return $result->fetch_assoc(); }
+function mysqli_fetch_row(mysqli_result $result) { return $result->fetch_row(); }
+function mysqli_fetch_object(mysqli_result $result) { return $result->fetch_object(); }
+function mysqli_fetch_array(mysqli_result $result, $mode = MYSQLI_BOTH) { return $result->fetch_array($mode); }
+function mysqli_fetch_all(mysqli_result $result, $mode = MYSQLI_NUM) { return $result->fetch_all($mode); }
+function mysqli_num_rows(mysqli_result $result) { return $result->num_rows; }
+function mysqli_num_fields(mysqli_result $result) { return $result->field_count; }
+function mysqli_data_seek(mysqli_result $result, $offset) { return $result->data_seek($offset); }
+function mysqli_free_result(mysqli_result $result) { $result->free(); }
+function mysqli_report($flags)
+{
+    FakeDB::$exceptions = (bool)($flags & MYSQLI_REPORT_STRICT);
+    return true;
+}
+
+/* ======================= fine del mock ======================= */
+
+{{ TEST.testcode }}
+?>
+{{ STUDENT_ANSWER }}
+]]></template>
+    <iscombinatortemplate>0</iscombinatortemplate>
+    <allowmultiplestdins>0</allowmultiplestdins>
+    <answer></answer>
+    <validateonsave>0</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language>php</language>
+    <acelang>php</acelang>
+    <sandbox></sandbox>
+    <grader>EqualityGrader</grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams></templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin>ace</uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+    </testcases>
+  </question>
+</quiz>

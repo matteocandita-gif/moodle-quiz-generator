@@ -1,0 +1,4709 @@
+{
+ "database": [
+  {
+   "nome": "veterinario",
+   "titolo": "Ambulatorio veterinario",
+   "contesto": "Un ambulatorio veterinario della provincia di Bologna, con pronto soccorso aperto tutti i giorni, cura gli animali dei suoi clienti. Ogni animale ha un solo proprietario; l'animale viene registrato come paziente (DataRegistrazione) e poi visitato dai veterinari dell'ambulatorio (tabella Visite).",
+   "taglie": [
+    {
+     "nome": "veterinario",
+     "titolo": "Ambulatorio veterinario",
+     "contesto": "Un ambulatorio veterinario della provincia di Bologna, con pronto soccorso aperto tutti i giorni, cura gli animali dei suoi clienti. Ogni animale ha un solo proprietario; l'animale viene registrato come paziente (DataRegistrazione) e poi visitato dai veterinari dell'ambulatorio (tabella Visite).",
+     "taglia": "piccolo",
+     "seme": 5103,
+     "righe": {
+      "Proprietari": 6,
+      "Animali": 10,
+      "Veterinari": 5,
+      "Visite": 20
+     },
+     "schema": [
+      "**Proprietari** (__IdProprietario__, Nome, Cognome, Citta, Telefono)",
+      "**Animali** (__IdAnimale__, Nome, Specie, Razza, DataNascita, DataRegistrazione, IdProprietario*)",
+      "**Veterinari** (__IdVeterinario__, Nome, Cognome, Specializzazione)",
+      "**Visite** (__IdVisita__, IdAnimale*, IdVeterinario*, Data, Motivo, Costo)"
+     ],
+     "schema_html": [
+      "<strong>Proprietari</strong> (<u>IdProprietario</u>, Nome, Cognome, Citta, Telefono)",
+      "<strong>Animali</strong> (<u>IdAnimale</u>, Nome, Specie, Razza, DataNascita, DataRegistrazione, IdProprietario*)",
+      "<strong>Veterinari</strong> (<u>IdVeterinario</u>, Nome, Cognome, Specializzazione)",
+      "<strong>Visite</strong> (<u>IdVisita</u>, IdAnimale*, IdVeterinario*, Data, Motivo, Costo)"
+     ],
+     "trappole": [
+      "tre animali (il quinto e gli ultimi due) non sono mai stati visitati, e alcuni gatti registrati nel 2025 hanno più visite: una JOIN inutile con Visite in una query sugli animali perde i primi e ripete i secondi",
+      "Animali.DataRegistrazione e Visite.Data sono date diverse: filtrare l'una al posto dell'altra cambia il risultato",
+      "gatti registrati esattamente il 2025-01-01 e il 2025-12-31 (e il 2024-12-31, il 2026-01-01): smascherano i confini dell'anno",
+      "tre animali senza visite (LEFT JOIN), l'ultimo veterinario non ha ancora visitato",
+      "due animali si chiamano «Luna»: raggruppare per nome dell'animale li fonde",
+      "il secondo e il penultimo proprietario sono omonimi, con un animale ciascuno: raggruppare per nome dà 2 animali e supera HAVING >= 2; i loro animali hanno 1 e 2 visite, delle quali una ciascuno in Medicina generale",
+      "alcuni animali hanno Razza NULL; i costi sono tondi (40.00, 45.00, 80.00…)"
+     ],
+     "file": [
+      "veterinario_piccolo.sql",
+      "veterinario_piccolo_mysql.sql",
+      "veterinario_piccolo.db",
+      "scheda.md"
+     ],
+     "tabelle": [
+      {
+       "nome": "Proprietari",
+       "colonne": [
+        {
+         "nome": "IdProprietario",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Citta",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Telefono",
+         "tipo": "VARCHAR(15)",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdProprietario"
+       ],
+       "esterne": [],
+       "righe": 6,
+       "esempi": [
+        [
+         "1",
+         "Elena",
+         "Orlando",
+         "Imola",
+         "382 1201130"
+        ],
+        [
+         "2",
+         "Camilla",
+         "Coppola",
+         "Bologna",
+         "384 4019446"
+        ],
+        [
+         "3",
+         "Gabriel",
+         "Sorrentino",
+         "Bologna",
+         "392 4430723"
+        ],
+        [
+         "4",
+         "Michele",
+         "Greco",
+         "Taranto",
+         "326 1773437"
+        ],
+        [
+         "5",
+         "Camilla",
+         "Coppola",
+         "Zola Predosa",
+         "370 3869411"
+        ]
+       ]
+      },
+      {
+       "nome": "Animali",
+       "colonne": [
+        {
+         "nome": "IdAnimale",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(30)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Specie",
+         "tipo": "VARCHAR(20)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Razza",
+         "tipo": "VARCHAR(40)",
+         "vincoli": ""
+        },
+        {
+         "nome": "DataNascita",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataRegistrazione",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "IdProprietario",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdAnimale"
+       ],
+       "esterne": [
+        [
+         "IdProprietario",
+         "Proprietari",
+         "IdProprietario"
+        ]
+       ],
+       "righe": 10,
+       "esempi": [
+        [
+         "1",
+         "Luna",
+         "Gatto",
+         "Europeo",
+         "2018-11-22",
+         "2019-11-18",
+         "1"
+        ],
+        [
+         "2",
+         "Tigre",
+         "Gatto",
+         "Siamese",
+         "2018-09-05",
+         "2025-01-01",
+         "1"
+        ],
+        [
+         "3",
+         "Milo",
+         "Gatto",
+         "Siamese",
+         "2024-01-15",
+         "2025-12-31",
+         "1"
+        ],
+        [
+         "4",
+         "Kira",
+         "Gatto",
+         "Persiano",
+         "2014-09-13",
+         "2024-12-31",
+         "3"
+        ],
+        [
+         "5",
+         "Briciola",
+         "Gatto",
+         "Maine coon",
+         "2022-06-04",
+         "2026-01-01",
+         "3"
+        ]
+       ]
+      },
+      {
+       "nome": "Veterinari",
+       "colonne": [
+        {
+         "nome": "IdVeterinario",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Specializzazione",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdVeterinario"
+       ],
+       "esterne": [],
+       "righe": 5,
+       "esempi": [
+        [
+         "1",
+         "Angelo",
+         "Grandi",
+         "Medicina generale"
+        ],
+        [
+         "2",
+         "Thomas",
+         "Chen",
+         "Chirurgia"
+        ],
+        [
+         "3",
+         "Vincenzo",
+         "De Santis",
+         "Dermatologia"
+        ],
+        [
+         "4",
+         "Filippo",
+         "Monti",
+         "Cardiologia"
+        ],
+        [
+         "5",
+         "Rebecca",
+         "Ferraro",
+         "Medicina generale"
+        ]
+       ]
+      },
+      {
+       "nome": "Visite",
+       "colonne": [
+        {
+         "nome": "IdVisita",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "IdAnimale",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "IdVeterinario",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Data",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Motivo",
+         "tipo": "VARCHAR(30)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Costo",
+         "tipo": "DECIMAL(6,2)",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdVisita"
+       ],
+       "esterne": [
+        [
+         "IdAnimale",
+         "Animali",
+         "IdAnimale"
+        ],
+        [
+         "IdVeterinario",
+         "Veterinari",
+         "IdVeterinario"
+        ]
+       ],
+       "righe": 20,
+       "esempi": [
+        [
+         "1",
+         "1",
+         "3",
+         "2019-11-19",
+         "Controllo",
+         "40"
+        ],
+        [
+         "2",
+         "1",
+         "1",
+         "2019-11-27",
+         "Controllo",
+         "40"
+        ],
+        [
+         "3",
+         "1",
+         "1",
+         "2019-12-23",
+         "Controllo",
+         "40"
+        ],
+        [
+         "4",
+         "8",
+         "1",
+         "2020-06-24",
+         "Visita urgente",
+         "80"
+        ],
+        [
+         "5",
+         "1",
+         "1",
+         "2021-03-09",
+         "Controllo",
+         "40"
+        ]
+       ]
+      }
+     ],
+     "controlli": [
+      "una visita non precede la registrazione dell'animale",
+      "un animale è registrato dopo la nascita",
+      "il motivo della visita è coerente con la specializzazione"
+     ],
+     "percorso": "database/veterinario/piccolo"
+    },
+    {
+     "nome": "veterinario",
+     "titolo": "Ambulatorio veterinario",
+     "contesto": "Un ambulatorio veterinario della provincia di Bologna, con pronto soccorso aperto tutti i giorni, cura gli animali dei suoi clienti. Ogni animale ha un solo proprietario; l'animale viene registrato come paziente (DataRegistrazione) e poi visitato dai veterinari dell'ambulatorio (tabella Visite).",
+     "taglia": "medio",
+     "seme": 5103,
+     "righe": {
+      "Proprietari": 14,
+      "Animali": 25,
+      "Veterinari": 7,
+      "Visite": 50
+     },
+     "schema": [
+      "**Proprietari** (__IdProprietario__, Nome, Cognome, Citta, Telefono)",
+      "**Animali** (__IdAnimale__, Nome, Specie, Razza, DataNascita, DataRegistrazione, IdProprietario*)",
+      "**Veterinari** (__IdVeterinario__, Nome, Cognome, Specializzazione)",
+      "**Visite** (__IdVisita__, IdAnimale*, IdVeterinario*, Data, Motivo, Costo)"
+     ],
+     "schema_html": [
+      "<strong>Proprietari</strong> (<u>IdProprietario</u>, Nome, Cognome, Citta, Telefono)",
+      "<strong>Animali</strong> (<u>IdAnimale</u>, Nome, Specie, Razza, DataNascita, DataRegistrazione, IdProprietario*)",
+      "<strong>Veterinari</strong> (<u>IdVeterinario</u>, Nome, Cognome, Specializzazione)",
+      "<strong>Visite</strong> (<u>IdVisita</u>, IdAnimale*, IdVeterinario*, Data, Motivo, Costo)"
+     ],
+     "trappole": [
+      "tre animali (il quinto e gli ultimi due) non sono mai stati visitati, e alcuni gatti registrati nel 2025 hanno più visite: una JOIN inutile con Visite in una query sugli animali perde i primi e ripete i secondi",
+      "Animali.DataRegistrazione e Visite.Data sono date diverse: filtrare l'una al posto dell'altra cambia il risultato",
+      "gatti registrati esattamente il 2025-01-01 e il 2025-12-31 (e il 2024-12-31, il 2026-01-01): smascherano i confini dell'anno",
+      "tre animali senza visite (LEFT JOIN), l'ultimo veterinario non ha ancora visitato",
+      "due animali si chiamano «Luna»: raggruppare per nome dell'animale li fonde",
+      "il secondo e il penultimo proprietario sono omonimi, con un animale ciascuno: raggruppare per nome dà 2 animali e supera HAVING >= 2; i loro animali hanno 1 e 2 visite, delle quali una ciascuno in Medicina generale",
+      "alcuni animali hanno Razza NULL; i costi sono tondi (40.00, 45.00, 80.00…)"
+     ],
+     "file": [
+      "veterinario_medio.sql",
+      "veterinario_medio_mysql.sql",
+      "veterinario_medio.db",
+      "scheda.md"
+     ],
+     "tabelle": [
+      {
+       "nome": "Proprietari",
+       "colonne": [
+        {
+         "nome": "IdProprietario",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Citta",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Telefono",
+         "tipo": "VARCHAR(15)",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdProprietario"
+       ],
+       "esterne": [],
+       "righe": 14,
+       "esempi": [
+        [
+         "1",
+         "Elena",
+         "Orlando",
+         "Imola",
+         "382 1201130"
+        ],
+        [
+         "2",
+         "Camilla",
+         "Coppola",
+         "Bologna",
+         "384 4019446"
+        ],
+        [
+         "3",
+         "Gabriel",
+         "Sorrentino",
+         "Bologna",
+         "392 4430723"
+        ],
+        [
+         "4",
+         "Michele",
+         "Greco",
+         "Taranto",
+         "326 1773437"
+        ],
+        [
+         "5",
+         "Benedetta",
+         "Bertolini",
+         "Pianoro",
+         "370 3869411"
+        ]
+       ]
+      },
+      {
+       "nome": "Animali",
+       "colonne": [
+        {
+         "nome": "IdAnimale",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(30)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Specie",
+         "tipo": "VARCHAR(20)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Razza",
+         "tipo": "VARCHAR(40)",
+         "vincoli": ""
+        },
+        {
+         "nome": "DataNascita",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataRegistrazione",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "IdProprietario",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdAnimale"
+       ],
+       "esterne": [
+        [
+         "IdProprietario",
+         "Proprietari",
+         "IdProprietario"
+        ]
+       ],
+       "righe": 25,
+       "esempi": [
+        [
+         "1",
+         "Luna",
+         "Gatto",
+         "Europeo",
+         "2012-03-08",
+         "2021-08-19",
+         "1"
+        ],
+        [
+         "2",
+         "Tigre",
+         "Gatto",
+         "Europeo",
+         "2016-11-05",
+         "2025-01-01",
+         "1"
+        ],
+        [
+         "3",
+         "Milo",
+         "Gatto",
+         "Siamese",
+         "2010-04-20",
+         "2025-12-31",
+         "1"
+        ],
+        [
+         "4",
+         "Kira",
+         "Gatto",
+         "Siamese",
+         "2019-09-23",
+         "2024-12-31",
+         "3"
+        ],
+        [
+         "5",
+         "Briciola",
+         "Gatto",
+         null,
+         "2021-05-17",
+         "2026-01-01",
+         "3"
+        ]
+       ]
+      },
+      {
+       "nome": "Veterinari",
+       "colonne": [
+        {
+         "nome": "IdVeterinario",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Specializzazione",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdVeterinario"
+       ],
+       "esterne": [],
+       "righe": 7,
+       "esempi": [
+        [
+         "1",
+         "Lucia",
+         "Negri",
+         "Medicina generale"
+        ],
+        [
+         "2",
+         "Luigi",
+         "Lodi",
+         "Chirurgia"
+        ],
+        [
+         "3",
+         "Asia",
+         "Pancaldi",
+         "Dermatologia"
+        ],
+        [
+         "4",
+         "Mattia",
+         "Grasso",
+         "Cardiologia"
+        ],
+        [
+         "5",
+         "Umberto",
+         "Colombo",
+         "Medicina generale"
+        ]
+       ]
+      },
+      {
+       "nome": "Visite",
+       "colonne": [
+        {
+         "nome": "IdVisita",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "IdAnimale",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "IdVeterinario",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Data",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Motivo",
+         "tipo": "VARCHAR(30)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Costo",
+         "tipo": "DECIMAL(6,2)",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdVisita"
+       ],
+       "esterne": [
+        [
+         "IdAnimale",
+         "Animali",
+         "IdAnimale"
+        ],
+        [
+         "IdVeterinario",
+         "Veterinari",
+         "IdVeterinario"
+        ]
+       ],
+       "righe": 50,
+       "esempi": [
+        [
+         "1",
+         "9",
+         "4",
+         "2019-10-14",
+         "Controllo",
+         "40"
+        ],
+        [
+         "2",
+         "1",
+         "1",
+         "2021-08-22",
+         "Visita urgente",
+         "80"
+        ],
+        [
+         "3",
+         "1",
+         "1",
+         "2021-09-05",
+         "Controllo",
+         "40"
+        ],
+        [
+         "4",
+         "1",
+         "1",
+         "2021-11-30",
+         "Visita urgente",
+         "80"
+        ],
+        [
+         "5",
+         "1",
+         "1",
+         "2022-02-14",
+         "Controllo",
+         "40"
+        ]
+       ]
+      }
+     ],
+     "controlli": [
+      "una visita non precede la registrazione dell'animale",
+      "un animale è registrato dopo la nascita",
+      "il motivo della visita è coerente con la specializzazione"
+     ],
+     "percorso": "database/veterinario/medio"
+    },
+    {
+     "nome": "veterinario",
+     "titolo": "Ambulatorio veterinario",
+     "contesto": "Un ambulatorio veterinario della provincia di Bologna, con pronto soccorso aperto tutti i giorni, cura gli animali dei suoi clienti. Ogni animale ha un solo proprietario; l'animale viene registrato come paziente (DataRegistrazione) e poi visitato dai veterinari dell'ambulatorio (tabella Visite).",
+     "taglia": "grande",
+     "seme": 5103,
+     "righe": {
+      "Proprietari": 50,
+      "Animali": 80,
+      "Veterinari": 10,
+      "Visite": 220
+     },
+     "schema": [
+      "**Proprietari** (__IdProprietario__, Nome, Cognome, Citta, Telefono)",
+      "**Animali** (__IdAnimale__, Nome, Specie, Razza, DataNascita, DataRegistrazione, IdProprietario*)",
+      "**Veterinari** (__IdVeterinario__, Nome, Cognome, Specializzazione)",
+      "**Visite** (__IdVisita__, IdAnimale*, IdVeterinario*, Data, Motivo, Costo)"
+     ],
+     "schema_html": [
+      "<strong>Proprietari</strong> (<u>IdProprietario</u>, Nome, Cognome, Citta, Telefono)",
+      "<strong>Animali</strong> (<u>IdAnimale</u>, Nome, Specie, Razza, DataNascita, DataRegistrazione, IdProprietario*)",
+      "<strong>Veterinari</strong> (<u>IdVeterinario</u>, Nome, Cognome, Specializzazione)",
+      "<strong>Visite</strong> (<u>IdVisita</u>, IdAnimale*, IdVeterinario*, Data, Motivo, Costo)"
+     ],
+     "trappole": [
+      "tre animali (il quinto e gli ultimi due) non sono mai stati visitati, e alcuni gatti registrati nel 2025 hanno più visite: una JOIN inutile con Visite in una query sugli animali perde i primi e ripete i secondi",
+      "Animali.DataRegistrazione e Visite.Data sono date diverse: filtrare l'una al posto dell'altra cambia il risultato",
+      "gatti registrati esattamente il 2025-01-01 e il 2025-12-31 (e il 2024-12-31, il 2026-01-01): smascherano i confini dell'anno",
+      "tre animali senza visite (LEFT JOIN), l'ultimo veterinario non ha ancora visitato",
+      "due animali si chiamano «Luna»: raggruppare per nome dell'animale li fonde",
+      "il secondo e il penultimo proprietario sono omonimi, con un animale ciascuno: raggruppare per nome dà 2 animali e supera HAVING >= 2; i loro animali hanno 1 e 2 visite, delle quali una ciascuno in Medicina generale",
+      "alcuni animali hanno Razza NULL; i costi sono tondi (40.00, 45.00, 80.00…)"
+     ],
+     "file": [
+      "veterinario_grande.sql",
+      "veterinario_grande_mysql.sql",
+      "veterinario_grande.db",
+      "scheda.md"
+     ],
+     "tabelle": [
+      {
+       "nome": "Proprietari",
+       "colonne": [
+        {
+         "nome": "IdProprietario",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Citta",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Telefono",
+         "tipo": "VARCHAR(15)",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdProprietario"
+       ],
+       "esterne": [],
+       "righe": 50,
+       "esempi": [
+        [
+         "1",
+         "Elena",
+         "Orlando",
+         "Imola",
+         "382 1201130"
+        ],
+        [
+         "2",
+         "Camilla",
+         "Coppola",
+         "Bologna",
+         "384 4019446"
+        ],
+        [
+         "3",
+         "Gabriel",
+         "Sorrentino",
+         "Bologna",
+         "392 4430723"
+        ],
+        [
+         "4",
+         "Michele",
+         "Greco",
+         "Taranto",
+         "326 1773437"
+        ],
+        [
+         "5",
+         "Benedetta",
+         "Bertolini",
+         "Pianoro",
+         "370 3869411"
+        ]
+       ]
+      },
+      {
+       "nome": "Animali",
+       "colonne": [
+        {
+         "nome": "IdAnimale",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(30)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Specie",
+         "tipo": "VARCHAR(20)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Razza",
+         "tipo": "VARCHAR(40)",
+         "vincoli": ""
+        },
+        {
+         "nome": "DataNascita",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataRegistrazione",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "IdProprietario",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdAnimale"
+       ],
+       "esterne": [
+        [
+         "IdProprietario",
+         "Proprietari",
+         "IdProprietario"
+        ]
+       ],
+       "righe": 80,
+       "esempi": [
+        [
+         "1",
+         "Luna",
+         "Gatto",
+         "Europeo",
+         "2021-09-03",
+         "2026-08-30",
+         "1"
+        ],
+        [
+         "2",
+         "Tigre",
+         "Gatto",
+         "Maine coon",
+         "2013-09-06",
+         "2025-01-01",
+         "1"
+        ],
+        [
+         "3",
+         "Milo",
+         "Gatto",
+         "Persiano",
+         "2025-09-29",
+         "2025-12-31",
+         "1"
+        ],
+        [
+         "4",
+         "Kira",
+         "Gatto",
+         "Europeo",
+         "2020-01-15",
+         "2024-12-31",
+         "3"
+        ],
+        [
+         "5",
+         "Briciola",
+         "Gatto",
+         "Europeo",
+         "2025-04-19",
+         "2026-01-01",
+         "3"
+        ]
+       ]
+      },
+      {
+       "nome": "Veterinari",
+       "colonne": [
+        {
+         "nome": "IdVeterinario",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Specializzazione",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdVeterinario"
+       ],
+       "esterne": [],
+       "righe": 10,
+       "esempi": [
+        [
+         "1",
+         "Roberto",
+         "Barbieri",
+         "Medicina generale"
+        ],
+        [
+         "2",
+         "Youssef",
+         "De Santis",
+         "Chirurgia"
+        ],
+        [
+         "3",
+         "Paolo",
+         "Tinti",
+         "Dermatologia"
+        ],
+        [
+         "4",
+         "Maria",
+         "Marchetti",
+         "Cardiologia"
+        ],
+        [
+         "5",
+         "Carlo",
+         "Sala",
+         "Medicina generale"
+        ]
+       ]
+      },
+      {
+       "nome": "Visite",
+       "colonne": [
+        {
+         "nome": "IdVisita",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "IdAnimale",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "IdVeterinario",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Data",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Motivo",
+         "tipo": "VARCHAR(30)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Costo",
+         "tipo": "DECIMAL(6,2)",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdVisita"
+       ],
+       "esterne": [
+        [
+         "IdAnimale",
+         "Animali",
+         "IdAnimale"
+        ],
+        [
+         "IdVeterinario",
+         "Veterinari",
+         "IdVeterinario"
+        ]
+       ],
+       "righe": 220,
+       "esempi": [
+        [
+         "1",
+         "33",
+         "6",
+         "2019-02-10",
+         "Estrazione",
+         "150"
+        ],
+        [
+         "2",
+         "33",
+         "3",
+         "2019-05-11",
+         "Visita dermatologica",
+         "70"
+        ],
+        [
+         "3",
+         "49",
+         "1",
+         "2019-11-13",
+         "Controllo",
+         "40"
+        ],
+        [
+         "4",
+         "49",
+         "1",
+         "2019-12-10",
+         "Visita urgente",
+         "80"
+        ],
+        [
+         "5",
+         "76",
+         "7",
+         "2019-12-21",
+         "Vaccinazione",
+         "45"
+        ]
+       ]
+      }
+     ],
+     "controlli": [
+      "una visita non precede la registrazione dell'animale",
+      "un animale è registrato dopo la nascita",
+      "il motivo della visita è coerente con la specializzazione"
+     ],
+     "percorso": "database/veterinario/grande"
+    }
+   ]
+  },
+  {
+   "nome": "biblioteca",
+   "titolo": "Biblioteca scolastica",
+   "contesto": "La biblioteca dell'istituto presta libri agli studenti. Ogni libro ha un solo autore; un prestito è aperto finché la data di restituzione è vuota.",
+   "taglie": [
+    {
+     "nome": "biblioteca",
+     "titolo": "Biblioteca scolastica",
+     "contesto": "La biblioteca dell'istituto presta libri agli studenti. Ogni libro ha un solo autore; un prestito è aperto finché la data di restituzione è vuota.",
+     "taglia": "piccolo",
+     "seme": 2026,
+     "righe": {
+      "Autori": 6,
+      "Libri": 10,
+      "Studenti": 8,
+      "Prestiti": 16
+     },
+     "schema": [
+      "**Autori** (__IdAutore__, Nome, Cognome, Nazionalita, AnnoNascita)",
+      "**Libri** (__ISBN__, Titolo, Genere, AnnoPubblicazione, Pagine, Copie, IdAutore*)",
+      "**Studenti** (__Matricola__, Nome, Cognome, Classe, Email)",
+      "**Prestiti** (__IdPrestito__, ISBN*, Matricola*, DataPrestito, DataRestituzione)"
+     ],
+     "schema_html": [
+      "<strong>Autori</strong> (<u>IdAutore</u>, Nome, Cognome, Nazionalita, AnnoNascita)",
+      "<strong>Libri</strong> (<u>ISBN</u>, Titolo, Genere, AnnoPubblicazione, Pagine, Copie, IdAutore*)",
+      "<strong>Studenti</strong> (<u>Matricola</u>, Nome, Cognome, Classe, Email)",
+      "<strong>Prestiti</strong> (<u>IdPrestito</u>, ISBN*, Matricola*, DataPrestito, DataRestituzione)"
+     ],
+     "trappole": [
+      "l'ultimo autore non ha libri: una JOIN interna lo perde, una LEFT JOIN lo mostra con NULL",
+      "l'ultimo libro non è mai stato prestato e il penultimo studente non ha prestiti",
+      "il primo e l'ultimo studente hanno lo stesso nome e cognome in classi diverse, e così il secondo e il terzultimo autore: raggruppare per nome invece che per chiave li fonde",
+      "i prestiti aperti hanno DataRestituzione NULL: «= NULL» non trova niente, COUNT(DataRestituzione) li salta",
+      "un prestito cade esattamente il 2026-01-01 (ancora aperto) e uno il 2026-01-31, un libro è del 2000: smascherano > al posto di >= sui confini dei mesi e degli anni",
+      "un libro ha Pagine NULL: SUM e AVG lo ignorano, COUNT(Pagine) lo salta",
+      "il genere Poesia ha esattamente 2 libri: smaschera HAVING COUNT(*) > 2 al posto di >= 2",
+      "«Amore di mezzanotte» e «Un amore lontano»: LIKE 'amore%' trova solo il primo, LIKE '%amore%' entrambi"
+     ],
+     "file": [
+      "biblioteca_piccolo.sql",
+      "biblioteca_piccolo_mysql.sql",
+      "biblioteca_piccolo.db",
+      "scheda.md"
+     ],
+     "tabelle": [
+      {
+       "nome": "Autori",
+       "colonne": [
+        {
+         "nome": "IdAutore",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Nazionalita",
+         "tipo": "VARCHAR(30)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "AnnoNascita",
+         "tipo": "INT",
+         "vincoli": ""
+        }
+       ],
+       "chiave": [
+        "IdAutore"
+       ],
+       "esterne": [],
+       "righe": 6,
+       "esempi": [
+        [
+         "1",
+         "Marta",
+         "Monari",
+         "Italiana",
+         "1933"
+        ],
+        [
+         "2",
+         "Bianca",
+         "Corazza",
+         "Italiana",
+         "1982"
+        ],
+        [
+         "3",
+         "Florencia",
+         "Gómez",
+         "Argentina",
+         "1930"
+        ],
+        [
+         "4",
+         "Bianca",
+         "Corazza",
+         "Italiana",
+         "1982"
+        ],
+        [
+         "5",
+         "Elena",
+         "Martínez",
+         "Spagnola",
+         "1964"
+        ]
+       ]
+      },
+      {
+       "nome": "Libri",
+       "colonne": [
+        {
+         "nome": "ISBN",
+         "tipo": "CHAR(13)",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Titolo",
+         "tipo": "VARCHAR(100)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Genere",
+         "tipo": "VARCHAR(20)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "AnnoPubblicazione",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Pagine",
+         "tipo": "INT",
+         "vincoli": ""
+        },
+        {
+         "nome": "Copie",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "IdAutore",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "ISBN"
+       ],
+       "esterne": [
+        [
+         "IdAutore",
+         "Autori",
+         "IdAutore"
+        ]
+       ],
+       "righe": 10,
+       "esempi": [
+        [
+         "9781327139357",
+         "Racconti della città",
+         "Fantasy",
+         "1989",
+         "467",
+         "2",
+         "3"
+        ],
+        [
+         "9786676307749",
+         "La lettera senza nome",
+         "Storico",
+         "2000",
+         "209",
+         "3",
+         "1"
+        ],
+        [
+         "9788698924284",
+         "Il ritorno",
+         "Giallo",
+         "2018",
+         null,
+         "1",
+         "4"
+        ],
+        [
+         "9783805002643",
+         "Amore di mezzanotte",
+         "Storico",
+         "2002",
+         "557",
+         "3",
+         "4"
+        ],
+        [
+         "9789911183700",
+         "Un amore lontano",
+         "Storico",
+         "2013",
+         "603",
+         "2",
+         "5"
+        ]
+       ]
+      },
+      {
+       "nome": "Studenti",
+       "colonne": [
+        {
+         "nome": "Matricola",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Classe",
+         "tipo": "VARCHAR(3)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Email",
+         "tipo": "VARCHAR(80)",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "Matricola"
+       ],
+       "esterne": [],
+       "righe": 8,
+       "esempi": [
+        [
+         "1001",
+         "Giulio",
+         "Silvestri",
+         "3A",
+         "giulio.silvestri@studenti.istituto.it"
+        ],
+        [
+         "1002",
+         "Mario",
+         "Costantini",
+         "3B",
+         "mario.costantini@studenti.istituto.it"
+        ],
+        [
+         "1003",
+         "Paolo",
+         "Govoni",
+         "5B",
+         "paolo.govoni83@studenti.istituto.it"
+        ],
+        [
+         "1004",
+         "Leonardo",
+         "Pancaldi",
+         "5A",
+         "leonardo.pancaldi@studenti.istituto.it"
+        ],
+        [
+         "1005",
+         "Mattia",
+         "Fontana",
+         "4B",
+         "mattia.fontana4@studenti.istituto.it"
+        ]
+       ]
+      },
+      {
+       "nome": "Prestiti",
+       "colonne": [
+        {
+         "nome": "IdPrestito",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "ISBN",
+         "tipo": "CHAR(13)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Matricola",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataPrestito",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataRestituzione",
+         "tipo": "DATE",
+         "vincoli": ""
+        }
+       ],
+       "chiave": [
+        "IdPrestito"
+       ],
+       "esterne": [
+        [
+         "ISBN",
+         "Libri",
+         "ISBN"
+        ],
+        [
+         "Matricola",
+         "Studenti",
+         "Matricola"
+        ]
+       ],
+       "righe": 16,
+       "esempi": [
+        [
+         "1",
+         "9783805002643",
+         "1002",
+         "2025-09-17",
+         null
+        ],
+        [
+         "2",
+         "9784717480361",
+         "1006",
+         "2025-09-25",
+         "2025-10-31"
+        ],
+        [
+         "3",
+         "9787080460787",
+         "1004",
+         "2025-10-02",
+         "2025-10-16"
+        ],
+        [
+         "4",
+         "9781327139357",
+         "1006",
+         "2025-10-09",
+         "2025-10-24"
+        ],
+        [
+         "5",
+         "9787080460787",
+         "1002",
+         "2025-11-10",
+         "2025-11-30"
+        ]
+       ]
+      }
+     ],
+     "controlli": [
+      "la restituzione non precede il prestito",
+      "i prestiti aperti di un libro non superano le copie",
+      "gli autori sono nati prima di pubblicare"
+     ],
+     "percorso": "database/biblioteca/piccolo"
+    },
+    {
+     "nome": "biblioteca",
+     "titolo": "Biblioteca scolastica",
+     "contesto": "La biblioteca dell'istituto presta libri agli studenti. Ogni libro ha un solo autore; un prestito è aperto finché la data di restituzione è vuota.",
+     "taglia": "medio",
+     "seme": 2026,
+     "righe": {
+      "Autori": 15,
+      "Libri": 40,
+      "Studenti": 30,
+      "Prestiti": 50
+     },
+     "schema": [
+      "**Autori** (__IdAutore__, Nome, Cognome, Nazionalita, AnnoNascita)",
+      "**Libri** (__ISBN__, Titolo, Genere, AnnoPubblicazione, Pagine, Copie, IdAutore*)",
+      "**Studenti** (__Matricola__, Nome, Cognome, Classe, Email)",
+      "**Prestiti** (__IdPrestito__, ISBN*, Matricola*, DataPrestito, DataRestituzione)"
+     ],
+     "schema_html": [
+      "<strong>Autori</strong> (<u>IdAutore</u>, Nome, Cognome, Nazionalita, AnnoNascita)",
+      "<strong>Libri</strong> (<u>ISBN</u>, Titolo, Genere, AnnoPubblicazione, Pagine, Copie, IdAutore*)",
+      "<strong>Studenti</strong> (<u>Matricola</u>, Nome, Cognome, Classe, Email)",
+      "<strong>Prestiti</strong> (<u>IdPrestito</u>, ISBN*, Matricola*, DataPrestito, DataRestituzione)"
+     ],
+     "trappole": [
+      "l'ultimo autore non ha libri: una JOIN interna lo perde, una LEFT JOIN lo mostra con NULL",
+      "l'ultimo libro non è mai stato prestato e il penultimo studente non ha prestiti",
+      "il primo e l'ultimo studente hanno lo stesso nome e cognome in classi diverse, e così il secondo e il terzultimo autore: raggruppare per nome invece che per chiave li fonde",
+      "i prestiti aperti hanno DataRestituzione NULL: «= NULL» non trova niente, COUNT(DataRestituzione) li salta",
+      "un prestito cade esattamente il 2026-01-01 (ancora aperto) e uno il 2026-01-31, un libro è del 2000: smascherano > al posto di >= sui confini dei mesi e degli anni",
+      "un libro ha Pagine NULL: SUM e AVG lo ignorano, COUNT(Pagine) lo salta",
+      "il genere Poesia ha esattamente 2 libri: smaschera HAVING COUNT(*) > 2 al posto di >= 2",
+      "«Amore di mezzanotte» e «Un amore lontano»: LIKE 'amore%' trova solo il primo, LIKE '%amore%' entrambi"
+     ],
+     "file": [
+      "biblioteca_medio.sql",
+      "biblioteca_medio_mysql.sql",
+      "biblioteca_medio.db",
+      "scheda.md"
+     ],
+     "tabelle": [
+      {
+       "nome": "Autori",
+       "colonne": [
+        {
+         "nome": "IdAutore",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Nazionalita",
+         "tipo": "VARCHAR(30)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "AnnoNascita",
+         "tipo": "INT",
+         "vincoli": ""
+        }
+       ],
+       "chiave": [
+        "IdAutore"
+       ],
+       "esterne": [],
+       "righe": 15,
+       "esempi": [
+        [
+         "1",
+         "Marta",
+         "Monari",
+         "Italiana",
+         "1933"
+        ],
+        [
+         "2",
+         "Bianca",
+         "Corazza",
+         "Italiana",
+         "1982"
+        ],
+        [
+         "3",
+         "Florencia",
+         "Gómez",
+         "Argentina",
+         "1930"
+        ],
+        [
+         "4",
+         "Rachele",
+         "Caruso",
+         "Italiana",
+         "1982"
+        ],
+        [
+         "5",
+         "Elena",
+         "Martínez",
+         "Spagnola",
+         "1964"
+        ]
+       ]
+      },
+      {
+       "nome": "Libri",
+       "colonne": [
+        {
+         "nome": "ISBN",
+         "tipo": "CHAR(13)",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Titolo",
+         "tipo": "VARCHAR(100)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Genere",
+         "tipo": "VARCHAR(20)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "AnnoPubblicazione",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Pagine",
+         "tipo": "INT",
+         "vincoli": ""
+        },
+        {
+         "nome": "Copie",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "IdAutore",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "ISBN"
+       ],
+       "esterne": [
+        [
+         "IdAutore",
+         "Autori",
+         "IdAutore"
+        ]
+       ],
+       "righe": 40,
+       "esempi": [
+        [
+         "9788421018738",
+         "Il silenzio perduto",
+         "Fantasy",
+         "1998",
+         "591",
+         "1",
+         "3"
+        ],
+        [
+         "9787843355507",
+         "Il silenzio",
+         "Saggio",
+         "2000",
+         "534",
+         "3",
+         "1"
+        ],
+        [
+         "9784717480361",
+         "Racconti della notte",
+         "Saggio",
+         "2015",
+         null,
+         "2",
+         "6"
+        ],
+        [
+         "9784037861054",
+         "Amore di mezzanotte",
+         "Storico",
+         "2004",
+         "362",
+         "2",
+         "14"
+        ],
+        [
+         "9784923573028",
+         "Un amore lontano",
+         "Romanzo",
+         "2017",
+         "104",
+         "1",
+         "14"
+        ]
+       ]
+      },
+      {
+       "nome": "Studenti",
+       "colonne": [
+        {
+         "nome": "Matricola",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Classe",
+         "tipo": "VARCHAR(3)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Email",
+         "tipo": "VARCHAR(80)",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "Matricola"
+       ],
+       "esterne": [],
+       "righe": 30,
+       "esempi": [
+        [
+         "1001",
+         "Alberto",
+         "Fabbri",
+         "4A",
+         "alberto.fabbri@studenti.istituto.it"
+        ],
+        [
+         "1002",
+         "Gabriele",
+         "Ricci",
+         "3A",
+         "gabriele.ricci@studenti.istituto.it"
+        ],
+        [
+         "1003",
+         "Stefano",
+         "Giordano",
+         "4A",
+         "stefano.giordano@studenti.istituto.it"
+        ],
+        [
+         "1004",
+         "Eleonora",
+         "Biagi",
+         "3B",
+         "eleonora.biagi@studenti.istituto.it"
+        ],
+        [
+         "1005",
+         "Fabio",
+         "Galli",
+         "4A",
+         "fabio.galli35@studenti.istituto.it"
+        ]
+       ]
+      },
+      {
+       "nome": "Prestiti",
+       "colonne": [
+        {
+         "nome": "IdPrestito",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "ISBN",
+         "tipo": "CHAR(13)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Matricola",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataPrestito",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataRestituzione",
+         "tipo": "DATE",
+         "vincoli": ""
+        }
+       ],
+       "chiave": [
+        "IdPrestito"
+       ],
+       "esterne": [
+        [
+         "ISBN",
+         "Libri",
+         "ISBN"
+        ],
+        [
+         "Matricola",
+         "Studenti",
+         "Matricola"
+        ]
+       ],
+       "righe": 50,
+       "esempi": [
+        [
+         "1",
+         "9784717480361",
+         "1016",
+         "2025-09-18",
+         "2025-10-13"
+        ],
+        [
+         "2",
+         "9785965912761",
+         "1016",
+         "2025-09-23",
+         "2025-10-09"
+        ],
+        [
+         "3",
+         "9786470912414",
+         "1005",
+         "2025-09-28",
+         "2025-10-06"
+        ],
+        [
+         "4",
+         "9788668757732",
+         "1002",
+         "2025-10-02",
+         "2025-10-24"
+        ],
+        [
+         "5",
+         "9785965912761",
+         "1024",
+         "2025-10-02",
+         "2025-10-13"
+        ]
+       ]
+      }
+     ],
+     "controlli": [
+      "la restituzione non precede il prestito",
+      "i prestiti aperti di un libro non superano le copie",
+      "gli autori sono nati prima di pubblicare"
+     ],
+     "percorso": "database/biblioteca/medio"
+    },
+    {
+     "nome": "biblioteca",
+     "titolo": "Biblioteca scolastica",
+     "contesto": "La biblioteca dell'istituto presta libri agli studenti. Ogni libro ha un solo autore; un prestito è aperto finché la data di restituzione è vuota.",
+     "taglia": "grande",
+     "seme": 2026,
+     "righe": {
+      "Autori": 40,
+      "Libri": 120,
+      "Studenti": 100,
+      "Prestiti": 300
+     },
+     "schema": [
+      "**Autori** (__IdAutore__, Nome, Cognome, Nazionalita, AnnoNascita)",
+      "**Libri** (__ISBN__, Titolo, Genere, AnnoPubblicazione, Pagine, Copie, IdAutore*)",
+      "**Studenti** (__Matricola__, Nome, Cognome, Classe, Email)",
+      "**Prestiti** (__IdPrestito__, ISBN*, Matricola*, DataPrestito, DataRestituzione)"
+     ],
+     "schema_html": [
+      "<strong>Autori</strong> (<u>IdAutore</u>, Nome, Cognome, Nazionalita, AnnoNascita)",
+      "<strong>Libri</strong> (<u>ISBN</u>, Titolo, Genere, AnnoPubblicazione, Pagine, Copie, IdAutore*)",
+      "<strong>Studenti</strong> (<u>Matricola</u>, Nome, Cognome, Classe, Email)",
+      "<strong>Prestiti</strong> (<u>IdPrestito</u>, ISBN*, Matricola*, DataPrestito, DataRestituzione)"
+     ],
+     "trappole": [
+      "l'ultimo autore non ha libri: una JOIN interna lo perde, una LEFT JOIN lo mostra con NULL",
+      "l'ultimo libro non è mai stato prestato e il penultimo studente non ha prestiti",
+      "il primo e l'ultimo studente hanno lo stesso nome e cognome in classi diverse, e così il secondo e il terzultimo autore: raggruppare per nome invece che per chiave li fonde",
+      "i prestiti aperti hanno DataRestituzione NULL: «= NULL» non trova niente, COUNT(DataRestituzione) li salta",
+      "un prestito cade esattamente il 2026-01-01 (ancora aperto) e uno il 2026-01-31, un libro è del 2000: smascherano > al posto di >= sui confini dei mesi e degli anni",
+      "un libro ha Pagine NULL: SUM e AVG lo ignorano, COUNT(Pagine) lo salta",
+      "il genere Poesia ha esattamente 2 libri: smaschera HAVING COUNT(*) > 2 al posto di >= 2",
+      "«Amore di mezzanotte» e «Un amore lontano»: LIKE 'amore%' trova solo il primo, LIKE '%amore%' entrambi"
+     ],
+     "file": [
+      "biblioteca_grande.sql",
+      "biblioteca_grande_mysql.sql",
+      "biblioteca_grande.db",
+      "scheda.md"
+     ],
+     "tabelle": [
+      {
+       "nome": "Autori",
+       "colonne": [
+        {
+         "nome": "IdAutore",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Nazionalita",
+         "tipo": "VARCHAR(30)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "AnnoNascita",
+         "tipo": "INT",
+         "vincoli": ""
+        }
+       ],
+       "chiave": [
+        "IdAutore"
+       ],
+       "esterne": [],
+       "righe": 40,
+       "esempi": [
+        [
+         "1",
+         "Marta",
+         "Monari",
+         "Italiana",
+         "1933"
+        ],
+        [
+         "2",
+         "Bianca",
+         "Corazza",
+         "Italiana",
+         "1982"
+        ],
+        [
+         "3",
+         "Florencia",
+         "Gómez",
+         "Argentina",
+         "1930"
+        ],
+        [
+         "4",
+         "Rachele",
+         "Caruso",
+         "Italiana",
+         "1982"
+        ],
+        [
+         "5",
+         "Elena",
+         "Martínez",
+         "Spagnola",
+         "1964"
+        ]
+       ]
+      },
+      {
+       "nome": "Libri",
+       "colonne": [
+        {
+         "nome": "ISBN",
+         "tipo": "CHAR(13)",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Titolo",
+         "tipo": "VARCHAR(100)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Genere",
+         "tipo": "VARCHAR(20)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "AnnoPubblicazione",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Pagine",
+         "tipo": "INT",
+         "vincoli": ""
+        },
+        {
+         "nome": "Copie",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "IdAutore",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "ISBN"
+       ],
+       "esterne": [
+        [
+         "IdAutore",
+         "Autori",
+         "IdAutore"
+        ]
+       ],
+       "righe": 120,
+       "esempi": [
+        [
+         "9780920544584",
+         "Il vento",
+         "Romanzo",
+         "1967",
+         "95",
+         "2",
+         "29"
+        ],
+        [
+         "9784411725007",
+         "Racconti della stazione",
+         "Fantasy",
+         "2000",
+         "250",
+         "3",
+         "1"
+        ],
+        [
+         "9783139494357",
+         "Il confine e il giardino",
+         "Saggio",
+         "2020",
+         null,
+         "2",
+         "18"
+        ],
+        [
+         "9781132637511",
+         "Amore di mezzanotte",
+         "Giallo",
+         "1968",
+         "536",
+         "1",
+         "36"
+        ],
+        [
+         "9782706201084",
+         "Un amore lontano",
+         "Fantasy",
+         "2021",
+         "608",
+         "2",
+         "12"
+        ]
+       ]
+      },
+      {
+       "nome": "Studenti",
+       "colonne": [
+        {
+         "nome": "Matricola",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Classe",
+         "tipo": "VARCHAR(3)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Email",
+         "tipo": "VARCHAR(80)",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "Matricola"
+       ],
+       "esterne": [],
+       "righe": 100,
+       "esempi": [
+        [
+         "1001",
+         "Silvia",
+         "Donati",
+         "5A",
+         "silvia.donati35@studenti.istituto.it"
+        ],
+        [
+         "1002",
+         "Bruno",
+         "Costantini",
+         "5B",
+         "bruno.costantini@studenti.istituto.it"
+        ],
+        [
+         "1003",
+         "Ioana",
+         "Govoni",
+         "5B",
+         "ioana.govoni10@studenti.istituto.it"
+        ],
+        [
+         "1004",
+         "Arianna",
+         "Vitali",
+         "4A",
+         "arianna.vitali@studenti.istituto.it"
+        ],
+        [
+         "1005",
+         "Manuel",
+         "Kaur",
+         "5B",
+         "manuel.kaur@studenti.istituto.it"
+        ]
+       ]
+      },
+      {
+       "nome": "Prestiti",
+       "colonne": [
+        {
+         "nome": "IdPrestito",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "ISBN",
+         "tipo": "CHAR(13)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Matricola",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataPrestito",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataRestituzione",
+         "tipo": "DATE",
+         "vincoli": ""
+        }
+       ],
+       "chiave": [
+        "IdPrestito"
+       ],
+       "esterne": [
+        [
+         "ISBN",
+         "Libri",
+         "ISBN"
+        ],
+        [
+         "Matricola",
+         "Studenti",
+         "Matricola"
+        ]
+       ],
+       "righe": 300,
+       "esempi": [
+        [
+         "1",
+         "9781894885055",
+         "1076",
+         "2025-09-16",
+         "2025-09-26"
+        ],
+        [
+         "2",
+         "9782556547010",
+         "1014",
+         "2025-09-16",
+         "2025-09-23"
+        ],
+        [
+         "3",
+         "9784681745585",
+         "1066",
+         "2025-09-18",
+         "2025-10-24"
+        ],
+        [
+         "4",
+         "9787072612309",
+         "1093",
+         "2025-09-20",
+         "2025-10-10"
+        ],
+        [
+         "5",
+         "9781599229892",
+         "1082",
+         "2025-09-20",
+         "2025-09-30"
+        ]
+       ]
+      }
+     ],
+     "controlli": [
+      "la restituzione non precede il prestito",
+      "i prestiti aperti di un libro non superano le copie",
+      "gli autori sono nati prima di pubblicare"
+     ],
+     "percorso": "database/biblioteca/grande"
+    }
+   ]
+  },
+  {
+   "nome": "cinema",
+   "titolo": "Cinema",
+   "contesto": "Un cinema di Bologna con tre sale vende i biglietti ai clienti con la tessera del cinema. Ogni film ha un solo regista; il cliente fa la tessera (DataTessera) e poi compra i biglietti (tabella Biglietti). Il prezzo dipende dall'orario: 16:00 6.50 euro, 18:30 7.50 euro, 21:00 9.00 euro.",
+   "taglie": [
+    {
+     "nome": "cinema",
+     "titolo": "Cinema",
+     "contesto": "Un cinema di Bologna con tre sale vende i biglietti ai clienti con la tessera del cinema. Ogni film ha un solo regista; il cliente fa la tessera (DataTessera) e poi compra i biglietti (tabella Biglietti). Il prezzo dipende dall'orario: 16:00 6.50 euro, 18:30 7.50 euro, 21:00 9.00 euro.",
+     "taglia": "piccolo",
+     "seme": 5102,
+     "righe": {
+      "Registi": 6,
+      "Film": 10,
+      "Clienti": 12,
+      "Biglietti": 20
+     },
+     "schema": [
+      "**Registi** (__IdRegista__, Nome, Cognome, Nazionalita, AnnoNascita)",
+      "**Film** (__IdFilm__, Titolo, Genere, Durata, AnnoUscita, IdRegista*)",
+      "**Clienti** (__IdCliente__, Nome, Cognome, DataNascita, Citta, Email, DataTessera)",
+      "**Biglietti** (__IdBiglietto__, IdFilm*, IdCliente*, DataProiezione, Ora, Sala, Prezzo)"
+     ],
+     "schema_html": [
+      "<strong>Registi</strong> (<u>IdRegista</u>, Nome, Cognome, Nazionalita, AnnoNascita)",
+      "<strong>Film</strong> (<u>IdFilm</u>, Titolo, Genere, Durata, AnnoUscita, IdRegista*)",
+      "<strong>Clienti</strong> (<u>IdCliente</u>, Nome, Cognome, DataNascita, Citta, Email, DataTessera)",
+      "<strong>Biglietti</strong> (<u>IdBiglietto</u>, IdFilm*, IdCliente*, DataProiezione, Ora, Sala, Prezzo)"
+     ],
+     "trappole": [
+      "tre clienti (il quinto e gli ultimi due) non hanno comprato biglietti, e alcuni clienti di Bologna ne hanno più d'uno: una JOIN inutile con Biglietti in una query sui clienti perde i primi e ripete i secondi",
+      "Clienti.DataTessera e Biglietti.DataProiezione sono date diverse: filtrare l'una al posto dell'altra cambia il risultato",
+      "clienti con la tessera fatta esattamente il 2025-01-01 e il 2025-12-31 (e il 2024-12-31, il 2026-01-01): smascherano i confini dell'anno",
+      "due film non hanno venduto biglietti (LEFT JOIN), l'ultimo regista non ha film",
+      "due film si intitolano «Il ritorno» (1998 e uno recente, registi diversi): raggruppare per titolo li fonde",
+      "il secondo e il penultimo regista sono omonimi, con un film ciascuno: raggruppare per nome dà 2 film e supera HAVING >= 2; i loro film hanno 1 e 2 biglietti di clienti di Bologna, insieme 3",
+      "il primo e il terzultimo cliente sono omonimi (Bologna e San Lazzaro di Savena)",
+      "alcuni clienti hanno Email NULL; i prezzi sono 6.50, 7.50 e 9.00 secondo l'orario"
+     ],
+     "file": [
+      "cinema_piccolo.sql",
+      "cinema_piccolo_mysql.sql",
+      "cinema_piccolo.db",
+      "scheda.md"
+     ],
+     "tabelle": [
+      {
+       "nome": "Registi",
+       "colonne": [
+        {
+         "nome": "IdRegista",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Nazionalita",
+         "tipo": "VARCHAR(30)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "AnnoNascita",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdRegista"
+       ],
+       "esterne": [],
+       "righe": 6,
+       "esempi": [
+        [
+         "1",
+         "Mario",
+         "Rinaldi",
+         "Italiana",
+         "1966"
+        ],
+        [
+         "2",
+         "Hannah",
+         "Müller",
+         "Tedesca",
+         "1954"
+        ],
+        [
+         "3",
+         "Martina",
+         "Guerra",
+         "Italiana",
+         "1954"
+        ],
+        [
+         "4",
+         "James",
+         "Evans",
+         "Inglese",
+         "1958"
+        ],
+        [
+         "5",
+         "Hannah",
+         "Müller",
+         "Tedesca",
+         "1962"
+        ]
+       ]
+      },
+      {
+       "nome": "Film",
+       "colonne": [
+        {
+         "nome": "IdFilm",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Titolo",
+         "tipo": "VARCHAR(60)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Genere",
+         "tipo": "VARCHAR(20)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Durata",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "AnnoUscita",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "IdRegista",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdFilm"
+       ],
+       "esterne": [
+        [
+         "IdRegista",
+         "Registi",
+         "IdRegista"
+        ]
+       ],
+       "righe": 10,
+       "esempi": [
+        [
+         "1",
+         "Il ritorno",
+         "Drammatico",
+         "126",
+         "2026",
+         "1"
+        ],
+        [
+         "2",
+         "La casa sul lago",
+         "Commedia",
+         "104",
+         "2026",
+         "1"
+        ],
+        [
+         "3",
+         "Ultima fermata",
+         "Avventura",
+         "100",
+         "2026",
+         "1"
+        ],
+        [
+         "4",
+         "Notte di luglio",
+         "Fantascienza",
+         "120",
+         "2025",
+         "3"
+        ],
+        [
+         "5",
+         "Le stelle di Marte",
+         "Thriller",
+         "104",
+         "2025",
+         "3"
+        ]
+       ]
+      },
+      {
+       "nome": "Clienti",
+       "colonne": [
+        {
+         "nome": "IdCliente",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataNascita",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Citta",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Email",
+         "tipo": "VARCHAR(80)",
+         "vincoli": ""
+        },
+        {
+         "nome": "DataTessera",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdCliente"
+       ],
+       "esterne": [],
+       "righe": 12,
+       "esempi": [
+        [
+         "1",
+         "Veronica",
+         "Venturi",
+         "1962-07-07",
+         "Bologna",
+         null,
+         "2023-03-14"
+        ],
+        [
+         "2",
+         "Francesca",
+         "Tinti",
+         "1986-07-15",
+         "Bologna",
+         "francesca.tinti20@outlook.it",
+         "2025-01-01"
+        ],
+        [
+         "3",
+         "Veronica",
+         "Corazza",
+         "1967-04-01",
+         "Bologna",
+         "veronica.corazza41@virgilio.it",
+         "2025-12-31"
+        ],
+        [
+         "4",
+         "Andrea",
+         "Bianchini",
+         "1993-02-14",
+         "Bologna",
+         null,
+         "2024-12-31"
+        ],
+        [
+         "5",
+         "Kevin",
+         "Piras",
+         "1976-10-14",
+         "Bologna",
+         "kevin.piras82@gmail.com",
+         "2026-01-01"
+        ]
+       ]
+      },
+      {
+       "nome": "Biglietti",
+       "colonne": [
+        {
+         "nome": "IdBiglietto",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "IdFilm",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "IdCliente",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataProiezione",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Ora",
+         "tipo": "CHAR(5)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Sala",
+         "tipo": "VARCHAR(10)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Prezzo",
+         "tipo": "DECIMAL(4,2)",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdBiglietto"
+       ],
+       "esterne": [
+        [
+         "IdFilm",
+         "Film",
+         "IdFilm"
+        ],
+        [
+         "IdCliente",
+         "Clienti",
+         "IdCliente"
+        ]
+       ],
+       "righe": 20,
+       "esempi": [
+        [
+         "1",
+         "7",
+         "1",
+         "2025-01-17",
+         "18:30",
+         "Sala 3",
+         "7.5"
+        ],
+        [
+         "2",
+         "4",
+         "1",
+         "2025-01-18",
+         "21:00",
+         "Sala 2",
+         "9"
+        ],
+        [
+         "3",
+         "5",
+         "8",
+         "2025-02-07",
+         "21:00",
+         "Sala 3",
+         "9"
+        ],
+        [
+         "4",
+         "5",
+         "10",
+         "2025-02-25",
+         "16:00",
+         "Sala 3",
+         "6.5"
+        ],
+        [
+         "5",
+         "9",
+         "2",
+         "2025-03-11",
+         "16:00",
+         "Sala 3",
+         "6.5"
+        ]
+       ]
+      }
+     ],
+     "controlli": [
+      "un biglietto non precede la tessera del cliente",
+      "un film non si proietta prima dell'anno di uscita",
+      "il prezzo dipende dall'orario",
+      "i registi hanno almeno 25 anni all'uscita del film"
+     ],
+     "percorso": "database/cinema/piccolo"
+    },
+    {
+     "nome": "cinema",
+     "titolo": "Cinema",
+     "contesto": "Un cinema di Bologna con tre sale vende i biglietti ai clienti con la tessera del cinema. Ogni film ha un solo regista; il cliente fa la tessera (DataTessera) e poi compra i biglietti (tabella Biglietti). Il prezzo dipende dall'orario: 16:00 6.50 euro, 18:30 7.50 euro, 21:00 9.00 euro.",
+     "taglia": "medio",
+     "seme": 5102,
+     "righe": {
+      "Registi": 9,
+      "Film": 18,
+      "Clienti": 30,
+      "Biglietti": 50
+     },
+     "schema": [
+      "**Registi** (__IdRegista__, Nome, Cognome, Nazionalita, AnnoNascita)",
+      "**Film** (__IdFilm__, Titolo, Genere, Durata, AnnoUscita, IdRegista*)",
+      "**Clienti** (__IdCliente__, Nome, Cognome, DataNascita, Citta, Email, DataTessera)",
+      "**Biglietti** (__IdBiglietto__, IdFilm*, IdCliente*, DataProiezione, Ora, Sala, Prezzo)"
+     ],
+     "schema_html": [
+      "<strong>Registi</strong> (<u>IdRegista</u>, Nome, Cognome, Nazionalita, AnnoNascita)",
+      "<strong>Film</strong> (<u>IdFilm</u>, Titolo, Genere, Durata, AnnoUscita, IdRegista*)",
+      "<strong>Clienti</strong> (<u>IdCliente</u>, Nome, Cognome, DataNascita, Citta, Email, DataTessera)",
+      "<strong>Biglietti</strong> (<u>IdBiglietto</u>, IdFilm*, IdCliente*, DataProiezione, Ora, Sala, Prezzo)"
+     ],
+     "trappole": [
+      "tre clienti (il quinto e gli ultimi due) non hanno comprato biglietti, e alcuni clienti di Bologna ne hanno più d'uno: una JOIN inutile con Biglietti in una query sui clienti perde i primi e ripete i secondi",
+      "Clienti.DataTessera e Biglietti.DataProiezione sono date diverse: filtrare l'una al posto dell'altra cambia il risultato",
+      "clienti con la tessera fatta esattamente il 2025-01-01 e il 2025-12-31 (e il 2024-12-31, il 2026-01-01): smascherano i confini dell'anno",
+      "due film non hanno venduto biglietti (LEFT JOIN), l'ultimo regista non ha film",
+      "due film si intitolano «Il ritorno» (1998 e uno recente, registi diversi): raggruppare per titolo li fonde",
+      "il secondo e il penultimo regista sono omonimi, con un film ciascuno: raggruppare per nome dà 2 film e supera HAVING >= 2; i loro film hanno 1 e 2 biglietti di clienti di Bologna, insieme 3",
+      "il primo e il terzultimo cliente sono omonimi (Bologna e San Lazzaro di Savena)",
+      "alcuni clienti hanno Email NULL; i prezzi sono 6.50, 7.50 e 9.00 secondo l'orario"
+     ],
+     "file": [
+      "cinema_medio.sql",
+      "cinema_medio_mysql.sql",
+      "cinema_medio.db",
+      "scheda.md"
+     ],
+     "tabelle": [
+      {
+       "nome": "Registi",
+       "colonne": [
+        {
+         "nome": "IdRegista",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Nazionalita",
+         "tipo": "VARCHAR(30)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "AnnoNascita",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdRegista"
+       ],
+       "esterne": [],
+       "righe": 9,
+       "esempi": [
+        [
+         "1",
+         "Mario",
+         "Rinaldi",
+         "Italiana",
+         "1966"
+        ],
+        [
+         "2",
+         "Hannah",
+         "Müller",
+         "Tedesca",
+         "1954"
+        ],
+        [
+         "3",
+         "Martina",
+         "Guerra",
+         "Italiana",
+         "1954"
+        ],
+        [
+         "4",
+         "James",
+         "Evans",
+         "Inglese",
+         "1958"
+        ],
+        [
+         "5",
+         "Isabel",
+         "Fernández",
+         "Spagnola",
+         "1962"
+        ]
+       ]
+      },
+      {
+       "nome": "Film",
+       "colonne": [
+        {
+         "nome": "IdFilm",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Titolo",
+         "tipo": "VARCHAR(60)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Genere",
+         "tipo": "VARCHAR(20)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Durata",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "AnnoUscita",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "IdRegista",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdFilm"
+       ],
+       "esterne": [
+        [
+         "IdRegista",
+         "Registi",
+         "IdRegista"
+        ]
+       ],
+       "righe": 18,
+       "esempi": [
+        [
+         "1",
+         "Il ritorno",
+         "Drammatico",
+         "104",
+         "2026",
+         "1"
+        ],
+        [
+         "2",
+         "La casa sul lago",
+         "Commedia",
+         "126",
+         "2025",
+         "1"
+        ],
+        [
+         "3",
+         "Ultima fermata",
+         "Avventura",
+         "126",
+         "2025",
+         "1"
+        ],
+        [
+         "4",
+         "Notte di luglio",
+         "Fantascienza",
+         "126",
+         "2025",
+         "3"
+        ],
+        [
+         "5",
+         "Le stelle di Marte",
+         "Thriller",
+         "126",
+         "2025",
+         "3"
+        ]
+       ]
+      },
+      {
+       "nome": "Clienti",
+       "colonne": [
+        {
+         "nome": "IdCliente",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataNascita",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Citta",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Email",
+         "tipo": "VARCHAR(80)",
+         "vincoli": ""
+        },
+        {
+         "nome": "DataTessera",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdCliente"
+       ],
+       "esterne": [],
+       "righe": 30,
+       "esempi": [
+        [
+         "1",
+         "Fabio",
+         "Montanari",
+         "1971-11-29",
+         "Bologna",
+         null,
+         "2025-01-20"
+        ],
+        [
+         "2",
+         "Ivan",
+         "Caruso",
+         "1957-01-10",
+         "Bologna",
+         null,
+         "2025-01-01"
+        ],
+        [
+         "3",
+         "Omar",
+         "Martini",
+         "1969-07-27",
+         "Bologna",
+         null,
+         "2025-12-31"
+        ],
+        [
+         "4",
+         "Simone",
+         "Grassi",
+         "1994-05-12",
+         "Bologna",
+         "simone.grassi@libero.it",
+         "2024-12-31"
+        ],
+        [
+         "5",
+         "Ambra",
+         "Battaglia",
+         "1953-07-01",
+         "Bologna",
+         "ambra.battaglia@gmail.com",
+         "2026-01-01"
+        ]
+       ]
+      },
+      {
+       "nome": "Biglietti",
+       "colonne": [
+        {
+         "nome": "IdBiglietto",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "IdFilm",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "IdCliente",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataProiezione",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Ora",
+         "tipo": "CHAR(5)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Sala",
+         "tipo": "VARCHAR(10)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Prezzo",
+         "tipo": "DECIMAL(4,2)",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdBiglietto"
+       ],
+       "esterne": [
+        [
+         "IdFilm",
+         "Film",
+         "IdFilm"
+        ],
+        [
+         "IdCliente",
+         "Clienti",
+         "IdCliente"
+        ]
+       ],
+       "righe": 50,
+       "esempi": [
+        [
+         "1",
+         "3",
+         "17",
+         "2025-01-20",
+         "21:00",
+         "Sala 3",
+         "9"
+        ],
+        [
+         "2",
+         "4",
+         "1",
+         "2025-01-23",
+         "16:00",
+         "Sala 1",
+         "6.5"
+        ],
+        [
+         "3",
+         "4",
+         "1",
+         "2025-01-23",
+         "18:30",
+         "Sala 2",
+         "7.5"
+        ],
+        [
+         "4",
+         "2",
+         "16",
+         "2025-01-27",
+         "18:30",
+         "Sala 1",
+         "7.5"
+        ],
+        [
+         "5",
+         "4",
+         "1",
+         "2025-01-29",
+         "16:00",
+         "Sala 1",
+         "6.5"
+        ]
+       ]
+      }
+     ],
+     "controlli": [
+      "un biglietto non precede la tessera del cliente",
+      "un film non si proietta prima dell'anno di uscita",
+      "il prezzo dipende dall'orario",
+      "i registi hanno almeno 25 anni all'uscita del film"
+     ],
+     "percorso": "database/cinema/medio"
+    },
+    {
+     "nome": "cinema",
+     "titolo": "Cinema",
+     "contesto": "Un cinema di Bologna con tre sale vende i biglietti ai clienti con la tessera del cinema. Ogni film ha un solo regista; il cliente fa la tessera (DataTessera) e poi compra i biglietti (tabella Biglietti). Il prezzo dipende dall'orario: 16:00 6.50 euro, 18:30 7.50 euro, 21:00 9.00 euro.",
+     "taglia": "grande",
+     "seme": 5102,
+     "righe": {
+      "Registi": 15,
+      "Film": 30,
+      "Clienti": 100,
+      "Biglietti": 220
+     },
+     "schema": [
+      "**Registi** (__IdRegista__, Nome, Cognome, Nazionalita, AnnoNascita)",
+      "**Film** (__IdFilm__, Titolo, Genere, Durata, AnnoUscita, IdRegista*)",
+      "**Clienti** (__IdCliente__, Nome, Cognome, DataNascita, Citta, Email, DataTessera)",
+      "**Biglietti** (__IdBiglietto__, IdFilm*, IdCliente*, DataProiezione, Ora, Sala, Prezzo)"
+     ],
+     "schema_html": [
+      "<strong>Registi</strong> (<u>IdRegista</u>, Nome, Cognome, Nazionalita, AnnoNascita)",
+      "<strong>Film</strong> (<u>IdFilm</u>, Titolo, Genere, Durata, AnnoUscita, IdRegista*)",
+      "<strong>Clienti</strong> (<u>IdCliente</u>, Nome, Cognome, DataNascita, Citta, Email, DataTessera)",
+      "<strong>Biglietti</strong> (<u>IdBiglietto</u>, IdFilm*, IdCliente*, DataProiezione, Ora, Sala, Prezzo)"
+     ],
+     "trappole": [
+      "tre clienti (il quinto e gli ultimi due) non hanno comprato biglietti, e alcuni clienti di Bologna ne hanno più d'uno: una JOIN inutile con Biglietti in una query sui clienti perde i primi e ripete i secondi",
+      "Clienti.DataTessera e Biglietti.DataProiezione sono date diverse: filtrare l'una al posto dell'altra cambia il risultato",
+      "clienti con la tessera fatta esattamente il 2025-01-01 e il 2025-12-31 (e il 2024-12-31, il 2026-01-01): smascherano i confini dell'anno",
+      "due film non hanno venduto biglietti (LEFT JOIN), l'ultimo regista non ha film",
+      "due film si intitolano «Il ritorno» (1998 e uno recente, registi diversi): raggruppare per titolo li fonde",
+      "il secondo e il penultimo regista sono omonimi, con un film ciascuno: raggruppare per nome dà 2 film e supera HAVING >= 2; i loro film hanno 1 e 2 biglietti di clienti di Bologna, insieme 3",
+      "il primo e il terzultimo cliente sono omonimi (Bologna e San Lazzaro di Savena)",
+      "alcuni clienti hanno Email NULL; i prezzi sono 6.50, 7.50 e 9.00 secondo l'orario"
+     ],
+     "file": [
+      "cinema_grande.sql",
+      "cinema_grande_mysql.sql",
+      "cinema_grande.db",
+      "scheda.md"
+     ],
+     "tabelle": [
+      {
+       "nome": "Registi",
+       "colonne": [
+        {
+         "nome": "IdRegista",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Nazionalita",
+         "tipo": "VARCHAR(30)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "AnnoNascita",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdRegista"
+       ],
+       "esterne": [],
+       "righe": 15,
+       "esempi": [
+        [
+         "1",
+         "Mario",
+         "Rinaldi",
+         "Italiana",
+         "1966"
+        ],
+        [
+         "2",
+         "Hannah",
+         "Müller",
+         "Tedesca",
+         "1954"
+        ],
+        [
+         "3",
+         "Martina",
+         "Guerra",
+         "Italiana",
+         "1954"
+        ],
+        [
+         "4",
+         "James",
+         "Evans",
+         "Inglese",
+         "1958"
+        ],
+        [
+         "5",
+         "Isabel",
+         "Fernández",
+         "Spagnola",
+         "1962"
+        ]
+       ]
+      },
+      {
+       "nome": "Film",
+       "colonne": [
+        {
+         "nome": "IdFilm",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Titolo",
+         "tipo": "VARCHAR(60)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Genere",
+         "tipo": "VARCHAR(20)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Durata",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "AnnoUscita",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "IdRegista",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdFilm"
+       ],
+       "esterne": [
+        [
+         "IdRegista",
+         "Registi",
+         "IdRegista"
+        ]
+       ],
+       "righe": 30,
+       "esempi": [
+        [
+         "1",
+         "Il ritorno",
+         "Drammatico",
+         "95",
+         "2025",
+         "1"
+        ],
+        [
+         "2",
+         "La casa sul lago",
+         "Commedia",
+         "88",
+         "2025",
+         "1"
+        ],
+        [
+         "3",
+         "Ultima fermata",
+         "Avventura",
+         "100",
+         "2026",
+         "1"
+        ],
+        [
+         "4",
+         "Notte di luglio",
+         "Fantascienza",
+         "100",
+         "2025",
+         "3"
+        ],
+        [
+         "5",
+         "Le stelle di Marte",
+         "Thriller",
+         "100",
+         "2026",
+         "3"
+        ]
+       ]
+      },
+      {
+       "nome": "Clienti",
+       "colonne": [
+        {
+         "nome": "IdCliente",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataNascita",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Citta",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Email",
+         "tipo": "VARCHAR(80)",
+         "vincoli": ""
+        },
+        {
+         "nome": "DataTessera",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdCliente"
+       ],
+       "esterne": [],
+       "righe": 100,
+       "esempi": [
+        [
+         "1",
+         "Edoardo",
+         "Martino",
+         "2000-03-19",
+         "Bologna",
+         "edoardo.martino91@libero.it",
+         "2023-10-05"
+        ],
+        [
+         "2",
+         "Francesco",
+         "Moretti",
+         "1998-03-15",
+         "Bologna",
+         "francesco.moretti@yahoo.it",
+         "2025-01-01"
+        ],
+        [
+         "3",
+         "Manuel",
+         "Monari",
+         "2006-03-14",
+         "Bologna",
+         "manuel.monari@gmail.com",
+         "2025-12-31"
+        ],
+        [
+         "4",
+         "Silvia",
+         "Poli",
+         "1955-04-23",
+         "Bologna",
+         "silvia.poli15@outlook.it",
+         "2024-12-31"
+        ],
+        [
+         "5",
+         "Benedetta",
+         "Sorrentino",
+         "1961-04-02",
+         "Bologna",
+         null,
+         "2026-01-01"
+        ]
+       ]
+      },
+      {
+       "nome": "Biglietti",
+       "colonne": [
+        {
+         "nome": "IdBiglietto",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "IdFilm",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "IdCliente",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataProiezione",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Ora",
+         "tipo": "CHAR(5)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Sala",
+         "tipo": "VARCHAR(10)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Prezzo",
+         "tipo": "DECIMAL(4,2)",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdBiglietto"
+       ],
+       "esterne": [
+        [
+         "IdFilm",
+         "Film",
+         "IdFilm"
+        ],
+        [
+         "IdCliente",
+         "Clienti",
+         "IdCliente"
+        ]
+       ],
+       "righe": 220,
+       "esempi": [
+        [
+         "1",
+         "9",
+         "15",
+         "2025-01-15",
+         "16:00",
+         "Sala 1",
+         "6.5"
+        ],
+        [
+         "2",
+         "9",
+         "64",
+         "2025-01-15",
+         "16:00",
+         "Sala 3",
+         "6.5"
+        ],
+        [
+         "3",
+         "1",
+         "82",
+         "2025-01-15",
+         "18:30",
+         "Sala 3",
+         "7.5"
+        ],
+        [
+         "4",
+         "24",
+         "12",
+         "2025-01-15",
+         "21:00",
+         "Sala 2",
+         "9"
+        ],
+        [
+         "5",
+         "18",
+         "90",
+         "2025-01-15",
+         "21:00",
+         "Sala 2",
+         "9"
+        ]
+       ]
+      }
+     ],
+     "controlli": [
+      "un biglietto non precede la tessera del cliente",
+      "un film non si proietta prima dell'anno di uscita",
+      "il prezzo dipende dall'orario",
+      "i registi hanno almeno 25 anni all'uscita del film"
+     ],
+     "percorso": "database/cinema/grande"
+    }
+   ]
+  },
+  {
+   "nome": "palestra",
+   "titolo": "Palestra",
+   "contesto": "Una palestra della provincia di Bologna organizza corsi tenuti dai suoi istruttori. Ogni corso ha un solo istruttore; un socio si iscrive alla palestra (DataIscrizione) e poi a uno o più corsi (tabella Iscrizioni). Un'iscrizione a un corso è attiva finché DataFine è vuota.",
+   "taglie": [
+    {
+     "nome": "palestra",
+     "titolo": "Palestra",
+     "contesto": "Una palestra della provincia di Bologna organizza corsi tenuti dai suoi istruttori. Ogni corso ha un solo istruttore; un socio si iscrive alla palestra (DataIscrizione) e poi a uno o più corsi (tabella Iscrizioni). Un'iscrizione a un corso è attiva finché DataFine è vuota.",
+     "taglia": "piccolo",
+     "seme": 5101,
+     "righe": {
+      "Istruttori": 6,
+      "Corsi": 10,
+      "Soci": 12,
+      "Iscrizioni": 20
+     },
+     "schema": [
+      "**Istruttori** (__IdIstruttore__, Nome, Cognome, Qualifica, DataAssunzione)",
+      "**Corsi** (__IdCorso__, Nome, Livello, Giorno, Orario, CostoMensile, PostiMax, IdIstruttore*)",
+      "**Soci** (__IdSocio__, Nome, Cognome, DataNascita, Citta, Telefono, DataIscrizione)",
+      "**Iscrizioni** (__IdIscrizione__, IdSocio*, IdCorso*, DataInizio, DataFine)"
+     ],
+     "schema_html": [
+      "<strong>Istruttori</strong> (<u>IdIstruttore</u>, Nome, Cognome, Qualifica, DataAssunzione)",
+      "<strong>Corsi</strong> (<u>IdCorso</u>, Nome, Livello, Giorno, Orario, CostoMensile, PostiMax, IdIstruttore*)",
+      "<strong>Soci</strong> (<u>IdSocio</u>, Nome, Cognome, DataNascita, Citta, Telefono, DataIscrizione)",
+      "<strong>Iscrizioni</strong> (<u>IdIscrizione</u>, IdSocio*, IdCorso*, DataInizio, DataFine)"
+     ],
+     "trappole": [
+      "tre soci (il quinto e gli ultimi due) non sono iscritti a nessun corso, e alcuni soci di Bologna hanno più iscrizioni: una JOIN inutile con Iscrizioni in una query sui soci perde i primi e ripete i secondi",
+      "Soci.DataIscrizione (iscrizione alla palestra) e Iscrizioni.DataInizio (iscrizione al corso) sono date diverse: filtrare l'una al posto dell'altra cambia il risultato",
+      "soci iscritti alla palestra esattamente il 2025-01-01 e il 2025-12-31 (e il 2024-12-31, il 2026-01-01): smascherano i confini dell'anno",
+      "due corsi non hanno iscritti (LEFT JOIN), l'ultimo istruttore, appena assunto, non ha corsi",
+      "due corsi «Yoga» (Base e Avanzato) e due «Pilates»: raggruppare per nome del corso li fonde",
+      "il secondo e il penultimo istruttore sono omonimi, con un corso ciascuno: raggruppare per nome dà 2 corsi e supera HAVING >= 2; i loro corsi hanno 1 e 2 iscrizioni attive di soci di Bologna, insieme 3",
+      "il primo e il terzultimo socio sono omonimi (Bologna e Casalecchio di Reno)",
+      "le iscrizioni attive hanno DataFine NULL: «= NULL» non trova niente, COUNT(DataFine) le salta",
+      "alcuni soci hanno Telefono NULL; un corso costa esattamente 50.00"
+     ],
+     "file": [
+      "palestra_piccolo.sql",
+      "palestra_piccolo_mysql.sql",
+      "palestra_piccolo.db",
+      "scheda.md"
+     ],
+     "tabelle": [
+      {
+       "nome": "Istruttori",
+       "colonne": [
+        {
+         "nome": "IdIstruttore",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Qualifica",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataAssunzione",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdIstruttore"
+       ],
+       "esterne": [],
+       "righe": 6,
+       "esempi": [
+        [
+         "1",
+         "Giulia",
+         "De Santis",
+         "Laurea in Scienze motorie",
+         "2021-07-25"
+        ],
+        [
+         "2",
+         "Erica",
+         "Costantini",
+         "Diploma ISEF",
+         "2022-11-10"
+        ],
+        [
+         "3",
+         "Tommaso",
+         "Villa",
+         "Istruttore federale",
+         "2022-05-16"
+        ],
+        [
+         "4",
+         "Giulia",
+         "Grasso",
+         "Laurea in Scienze motorie",
+         "2014-12-17"
+        ],
+        [
+         "5",
+         "Erica",
+         "Costantini",
+         "Personal trainer certificato",
+         "2017-06-05"
+        ]
+       ]
+      },
+      {
+       "nome": "Corsi",
+       "colonne": [
+        {
+         "nome": "IdCorso",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Livello",
+         "tipo": "VARCHAR(15)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Giorno",
+         "tipo": "VARCHAR(10)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Orario",
+         "tipo": "CHAR(5)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "CostoMensile",
+         "tipo": "DECIMAL(5,2)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "PostiMax",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "IdIstruttore",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdCorso"
+       ],
+       "esterne": [
+        [
+         "IdIstruttore",
+         "Istruttori",
+         "IdIstruttore"
+        ]
+       ],
+       "righe": 10,
+       "esempi": [
+        [
+         "1",
+         "Yoga",
+         "Base",
+         "Sabato",
+         "19:30",
+         "40",
+         "10",
+         "1"
+        ],
+        [
+         "2",
+         "Yoga",
+         "Avanzato",
+         "Martedì",
+         "18:30",
+         "30",
+         "12",
+         "1"
+        ],
+        [
+         "3",
+         "Pilates",
+         "Base",
+         "Venerdì",
+         "17:30",
+         "50",
+         "10",
+         "1"
+        ],
+        [
+         "4",
+         "Kickboxing",
+         "Base",
+         "Giovedì",
+         "17:30",
+         "42.5",
+         "15",
+         "3"
+        ],
+        [
+         "5",
+         "Ginnastica posturale",
+         "Intermedio",
+         "Giovedì",
+         "17:30",
+         "50",
+         "15",
+         "3"
+        ]
+       ]
+      },
+      {
+       "nome": "Soci",
+       "colonne": [
+        {
+         "nome": "IdSocio",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataNascita",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Citta",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Telefono",
+         "tipo": "VARCHAR(15)",
+         "vincoli": ""
+        },
+        {
+         "nome": "DataIscrizione",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdSocio"
+       ],
+       "esterne": [],
+       "righe": 12,
+       "esempi": [
+        [
+         "1",
+         "Fabio",
+         "D'Amico",
+         "1991-03-17",
+         "Bologna",
+         null,
+         "2024-10-31"
+        ],
+        [
+         "2",
+         "Samuele",
+         "De Santis",
+         "1984-04-06",
+         "Bologna",
+         "364 8740894",
+         "2025-01-01"
+        ],
+        [
+         "3",
+         "Camilla",
+         "Donati",
+         "1998-08-11",
+         "Bologna",
+         "395 7103905",
+         "2025-12-31"
+        ],
+        [
+         "4",
+         "Chiara",
+         "Villa",
+         "1974-04-20",
+         "Bologna",
+         "395 1096099",
+         "2024-12-31"
+        ],
+        [
+         "5",
+         "Riccardo",
+         "Esposito",
+         "1998-08-08",
+         "Bologna",
+         "396 0200040",
+         "2026-01-01"
+        ]
+       ]
+      },
+      {
+       "nome": "Iscrizioni",
+       "colonne": [
+        {
+         "nome": "IdIscrizione",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "IdSocio",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "IdCorso",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataInizio",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataFine",
+         "tipo": "DATE",
+         "vincoli": ""
+        }
+       ],
+       "chiave": [
+        "IdIscrizione"
+       ],
+       "esterne": [
+        [
+         "IdSocio",
+         "Soci",
+         "IdSocio"
+        ],
+        [
+         "IdCorso",
+         "Corsi",
+         "IdCorso"
+        ]
+       ],
+       "righe": 20,
+       "esempi": [
+        [
+         "1",
+         "7",
+         "4",
+         "2023-11-29",
+         null
+        ],
+        [
+         "2",
+         "7",
+         "7",
+         "2023-12-14",
+         null
+        ],
+        [
+         "3",
+         "7",
+         "3",
+         "2024-03-26",
+         null
+        ],
+        [
+         "4",
+         "1",
+         "6",
+         "2024-11-21",
+         null
+        ],
+        [
+         "5",
+         "1",
+         "4",
+         "2024-11-28",
+         null
+        ]
+       ]
+      }
+     ],
+     "controlli": [
+      "un'iscrizione a un corso non precede l'iscrizione alla palestra",
+      "la fine di un'iscrizione non precede l'inizio",
+      "nessun socio iscritto due volte allo stesso corso",
+      "le iscrizioni attive di un corso non superano i posti",
+      "i soci hanno almeno 16 anni all'iscrizione"
+     ],
+     "percorso": "database/palestra/piccolo"
+    },
+    {
+     "nome": "palestra",
+     "titolo": "Palestra",
+     "contesto": "Una palestra della provincia di Bologna organizza corsi tenuti dai suoi istruttori. Ogni corso ha un solo istruttore; un socio si iscrive alla palestra (DataIscrizione) e poi a uno o più corsi (tabella Iscrizioni). Un'iscrizione a un corso è attiva finché DataFine è vuota.",
+     "taglia": "medio",
+     "seme": 5101,
+     "righe": {
+      "Istruttori": 9,
+      "Corsi": 18,
+      "Soci": 30,
+      "Iscrizioni": 50
+     },
+     "schema": [
+      "**Istruttori** (__IdIstruttore__, Nome, Cognome, Qualifica, DataAssunzione)",
+      "**Corsi** (__IdCorso__, Nome, Livello, Giorno, Orario, CostoMensile, PostiMax, IdIstruttore*)",
+      "**Soci** (__IdSocio__, Nome, Cognome, DataNascita, Citta, Telefono, DataIscrizione)",
+      "**Iscrizioni** (__IdIscrizione__, IdSocio*, IdCorso*, DataInizio, DataFine)"
+     ],
+     "schema_html": [
+      "<strong>Istruttori</strong> (<u>IdIstruttore</u>, Nome, Cognome, Qualifica, DataAssunzione)",
+      "<strong>Corsi</strong> (<u>IdCorso</u>, Nome, Livello, Giorno, Orario, CostoMensile, PostiMax, IdIstruttore*)",
+      "<strong>Soci</strong> (<u>IdSocio</u>, Nome, Cognome, DataNascita, Citta, Telefono, DataIscrizione)",
+      "<strong>Iscrizioni</strong> (<u>IdIscrizione</u>, IdSocio*, IdCorso*, DataInizio, DataFine)"
+     ],
+     "trappole": [
+      "tre soci (il quinto e gli ultimi due) non sono iscritti a nessun corso, e alcuni soci di Bologna hanno più iscrizioni: una JOIN inutile con Iscrizioni in una query sui soci perde i primi e ripete i secondi",
+      "Soci.DataIscrizione (iscrizione alla palestra) e Iscrizioni.DataInizio (iscrizione al corso) sono date diverse: filtrare l'una al posto dell'altra cambia il risultato",
+      "soci iscritti alla palestra esattamente il 2025-01-01 e il 2025-12-31 (e il 2024-12-31, il 2026-01-01): smascherano i confini dell'anno",
+      "due corsi non hanno iscritti (LEFT JOIN), l'ultimo istruttore, appena assunto, non ha corsi",
+      "due corsi «Yoga» (Base e Avanzato) e due «Pilates»: raggruppare per nome del corso li fonde",
+      "il secondo e il penultimo istruttore sono omonimi, con un corso ciascuno: raggruppare per nome dà 2 corsi e supera HAVING >= 2; i loro corsi hanno 1 e 2 iscrizioni attive di soci di Bologna, insieme 3",
+      "il primo e il terzultimo socio sono omonimi (Bologna e Casalecchio di Reno)",
+      "le iscrizioni attive hanno DataFine NULL: «= NULL» non trova niente, COUNT(DataFine) le salta",
+      "alcuni soci hanno Telefono NULL; un corso costa esattamente 50.00"
+     ],
+     "file": [
+      "palestra_medio.sql",
+      "palestra_medio_mysql.sql",
+      "palestra_medio.db",
+      "scheda.md"
+     ],
+     "tabelle": [
+      {
+       "nome": "Istruttori",
+       "colonne": [
+        {
+         "nome": "IdIstruttore",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Qualifica",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataAssunzione",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdIstruttore"
+       ],
+       "esterne": [],
+       "righe": 9,
+       "esempi": [
+        [
+         "1",
+         "Giulia",
+         "De Santis",
+         "Laurea in Scienze motorie",
+         "2021-07-25"
+        ],
+        [
+         "2",
+         "Erica",
+         "Costantini",
+         "Diploma ISEF",
+         "2022-11-10"
+        ],
+        [
+         "3",
+         "Tommaso",
+         "Villa",
+         "Istruttore federale",
+         "2022-05-16"
+        ],
+        [
+         "4",
+         "Giulia",
+         "Grasso",
+         "Laurea in Scienze motorie",
+         "2014-12-17"
+        ],
+        [
+         "5",
+         "Giada",
+         "Hu",
+         "Personal trainer certificato",
+         "2017-06-05"
+        ]
+       ]
+      },
+      {
+       "nome": "Corsi",
+       "colonne": [
+        {
+         "nome": "IdCorso",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Livello",
+         "tipo": "VARCHAR(15)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Giorno",
+         "tipo": "VARCHAR(10)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Orario",
+         "tipo": "CHAR(5)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "CostoMensile",
+         "tipo": "DECIMAL(5,2)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "PostiMax",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "IdIstruttore",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdCorso"
+       ],
+       "esterne": [
+        [
+         "IdIstruttore",
+         "Istruttori",
+         "IdIstruttore"
+        ]
+       ],
+       "righe": 18,
+       "esempi": [
+        [
+         "1",
+         "Yoga",
+         "Base",
+         "Mercoledì",
+         "17:30",
+         "40",
+         "20",
+         "1"
+        ],
+        [
+         "2",
+         "Yoga",
+         "Avanzato",
+         "Sabato",
+         "20:30",
+         "30",
+         "15",
+         "1"
+        ],
+        [
+         "3",
+         "Pilates",
+         "Base",
+         "Giovedì",
+         "18:30",
+         "50",
+         "20",
+         "1"
+        ],
+        [
+         "4",
+         "Kickboxing",
+         "Base",
+         "Giovedì",
+         "19:30",
+         "42.5",
+         "10",
+         "3"
+        ],
+        [
+         "5",
+         "Ginnastica posturale",
+         "Base",
+         "Martedì",
+         "19:30",
+         "50",
+         "15",
+         "3"
+        ]
+       ]
+      },
+      {
+       "nome": "Soci",
+       "colonne": [
+        {
+         "nome": "IdSocio",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataNascita",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Citta",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Telefono",
+         "tipo": "VARCHAR(15)",
+         "vincoli": ""
+        },
+        {
+         "nome": "DataIscrizione",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdSocio"
+       ],
+       "esterne": [],
+       "righe": 30,
+       "esempi": [
+        [
+         "1",
+         "Chiara",
+         "Vitali",
+         "1998-08-08",
+         "Bologna",
+         "396 0200040",
+         "2026-06-25"
+        ],
+        [
+         "2",
+         "Chiara",
+         "Orlando",
+         "1971-09-23",
+         "Bologna",
+         "331 7317074",
+         "2025-01-01"
+        ],
+        [
+         "3",
+         "Maria",
+         "Monari",
+         "1994-09-20",
+         "Bologna",
+         "357 8092488",
+         "2025-12-31"
+        ],
+        [
+         "4",
+         "Noemi",
+         "Galli",
+         "1973-08-11",
+         "Bologna",
+         "345 1464208",
+         "2024-12-31"
+        ],
+        [
+         "5",
+         "Ivan",
+         "Biagi",
+         "2003-11-15",
+         "Bologna",
+         "382 8817525",
+         "2026-01-01"
+        ]
+       ]
+      },
+      {
+       "nome": "Iscrizioni",
+       "colonne": [
+        {
+         "nome": "IdIscrizione",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "IdSocio",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "IdCorso",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataInizio",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataFine",
+         "tipo": "DATE",
+         "vincoli": ""
+        }
+       ],
+       "chiave": [
+        "IdIscrizione"
+       ],
+       "esterne": [
+        [
+         "IdSocio",
+         "Soci",
+         "IdSocio"
+        ],
+        [
+         "IdCorso",
+         "Corsi",
+         "IdCorso"
+        ]
+       ],
+       "righe": 50,
+       "esempi": [
+        [
+         "1",
+         "8",
+         "7",
+         "2023-05-07",
+         null
+        ],
+        [
+         "2",
+         "21",
+         "8",
+         "2023-10-06",
+         null
+        ],
+        [
+         "3",
+         "21",
+         "13",
+         "2023-11-12",
+         null
+        ],
+        [
+         "4",
+         "20",
+         "11",
+         "2023-11-17",
+         null
+        ],
+        [
+         "5",
+         "7",
+         "3",
+         "2023-11-18",
+         null
+        ]
+       ]
+      }
+     ],
+     "controlli": [
+      "un'iscrizione a un corso non precede l'iscrizione alla palestra",
+      "la fine di un'iscrizione non precede l'inizio",
+      "nessun socio iscritto due volte allo stesso corso",
+      "le iscrizioni attive di un corso non superano i posti",
+      "i soci hanno almeno 16 anni all'iscrizione"
+     ],
+     "percorso": "database/palestra/medio"
+    },
+    {
+     "nome": "palestra",
+     "titolo": "Palestra",
+     "contesto": "Una palestra della provincia di Bologna organizza corsi tenuti dai suoi istruttori. Ogni corso ha un solo istruttore; un socio si iscrive alla palestra (DataIscrizione) e poi a uno o più corsi (tabella Iscrizioni). Un'iscrizione a un corso è attiva finché DataFine è vuota.",
+     "taglia": "grande",
+     "seme": 5101,
+     "righe": {
+      "Istruttori": 15,
+      "Corsi": 30,
+      "Soci": 100,
+      "Iscrizioni": 220
+     },
+     "schema": [
+      "**Istruttori** (__IdIstruttore__, Nome, Cognome, Qualifica, DataAssunzione)",
+      "**Corsi** (__IdCorso__, Nome, Livello, Giorno, Orario, CostoMensile, PostiMax, IdIstruttore*)",
+      "**Soci** (__IdSocio__, Nome, Cognome, DataNascita, Citta, Telefono, DataIscrizione)",
+      "**Iscrizioni** (__IdIscrizione__, IdSocio*, IdCorso*, DataInizio, DataFine)"
+     ],
+     "schema_html": [
+      "<strong>Istruttori</strong> (<u>IdIstruttore</u>, Nome, Cognome, Qualifica, DataAssunzione)",
+      "<strong>Corsi</strong> (<u>IdCorso</u>, Nome, Livello, Giorno, Orario, CostoMensile, PostiMax, IdIstruttore*)",
+      "<strong>Soci</strong> (<u>IdSocio</u>, Nome, Cognome, DataNascita, Citta, Telefono, DataIscrizione)",
+      "<strong>Iscrizioni</strong> (<u>IdIscrizione</u>, IdSocio*, IdCorso*, DataInizio, DataFine)"
+     ],
+     "trappole": [
+      "tre soci (il quinto e gli ultimi due) non sono iscritti a nessun corso, e alcuni soci di Bologna hanno più iscrizioni: una JOIN inutile con Iscrizioni in una query sui soci perde i primi e ripete i secondi",
+      "Soci.DataIscrizione (iscrizione alla palestra) e Iscrizioni.DataInizio (iscrizione al corso) sono date diverse: filtrare l'una al posto dell'altra cambia il risultato",
+      "soci iscritti alla palestra esattamente il 2025-01-01 e il 2025-12-31 (e il 2024-12-31, il 2026-01-01): smascherano i confini dell'anno",
+      "due corsi non hanno iscritti (LEFT JOIN), l'ultimo istruttore, appena assunto, non ha corsi",
+      "due corsi «Yoga» (Base e Avanzato) e due «Pilates»: raggruppare per nome del corso li fonde",
+      "il secondo e il penultimo istruttore sono omonimi, con un corso ciascuno: raggruppare per nome dà 2 corsi e supera HAVING >= 2; i loro corsi hanno 1 e 2 iscrizioni attive di soci di Bologna, insieme 3",
+      "il primo e il terzultimo socio sono omonimi (Bologna e Casalecchio di Reno)",
+      "le iscrizioni attive hanno DataFine NULL: «= NULL» non trova niente, COUNT(DataFine) le salta",
+      "alcuni soci hanno Telefono NULL; un corso costa esattamente 50.00"
+     ],
+     "file": [
+      "palestra_grande.sql",
+      "palestra_grande_mysql.sql",
+      "palestra_grande.db",
+      "scheda.md"
+     ],
+     "tabelle": [
+      {
+       "nome": "Istruttori",
+       "colonne": [
+        {
+         "nome": "IdIstruttore",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Qualifica",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataAssunzione",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdIstruttore"
+       ],
+       "esterne": [],
+       "righe": 15,
+       "esempi": [
+        [
+         "1",
+         "Giulia",
+         "De Santis",
+         "Laurea in Scienze motorie",
+         "2021-07-25"
+        ],
+        [
+         "2",
+         "Erica",
+         "Costantini",
+         "Diploma ISEF",
+         "2022-11-10"
+        ],
+        [
+         "3",
+         "Tommaso",
+         "Villa",
+         "Istruttore federale",
+         "2022-05-16"
+        ],
+        [
+         "4",
+         "Giulia",
+         "Grasso",
+         "Laurea in Scienze motorie",
+         "2014-12-17"
+        ],
+        [
+         "5",
+         "Giada",
+         "Hu",
+         "Personal trainer certificato",
+         "2017-06-05"
+        ]
+       ]
+      },
+      {
+       "nome": "Corsi",
+       "colonne": [
+        {
+         "nome": "IdCorso",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Livello",
+         "tipo": "VARCHAR(15)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Giorno",
+         "tipo": "VARCHAR(10)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Orario",
+         "tipo": "CHAR(5)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "CostoMensile",
+         "tipo": "DECIMAL(5,2)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "PostiMax",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "IdIstruttore",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdCorso"
+       ],
+       "esterne": [
+        [
+         "IdIstruttore",
+         "Istruttori",
+         "IdIstruttore"
+        ]
+       ],
+       "righe": 30,
+       "esempi": [
+        [
+         "1",
+         "Yoga",
+         "Base",
+         "Venerdì",
+         "12:30",
+         "40",
+         "20",
+         "1"
+        ],
+        [
+         "2",
+         "Yoga",
+         "Avanzato",
+         "Sabato",
+         "12:30",
+         "30",
+         "15",
+         "1"
+        ],
+        [
+         "3",
+         "Pilates",
+         "Base",
+         "Venerdì",
+         "20:30",
+         "50",
+         "12",
+         "1"
+        ],
+        [
+         "4",
+         "Kickboxing",
+         "Intermedio",
+         "Sabato",
+         "20:30",
+         "42.5",
+         "12",
+         "3"
+        ],
+        [
+         "5",
+         "Ginnastica posturale",
+         "Avanzato",
+         "Martedì",
+         "20:30",
+         "50",
+         "20",
+         "3"
+        ]
+       ]
+      },
+      {
+       "nome": "Soci",
+       "colonne": [
+        {
+         "nome": "IdSocio",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "Nome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Cognome",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataNascita",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Citta",
+         "tipo": "VARCHAR(40)",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "Telefono",
+         "tipo": "VARCHAR(15)",
+         "vincoli": ""
+        },
+        {
+         "nome": "DataIscrizione",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        }
+       ],
+       "chiave": [
+        "IdSocio"
+       ],
+       "esterne": [],
+       "righe": 100,
+       "esempi": [
+        [
+         "1",
+         "Alessandro",
+         "Musiani",
+         "1962-03-05",
+         "Bologna",
+         "398 1933748",
+         "2023-04-28"
+        ],
+        [
+         "2",
+         "Chiara",
+         "Cavazza",
+         "1965-02-08",
+         "Bologna",
+         "350 2244035",
+         "2025-01-01"
+        ],
+        [
+         "3",
+         "Noemi",
+         "Selmi",
+         "2004-03-02",
+         "Bologna",
+         "395 6827549",
+         "2025-12-31"
+        ],
+        [
+         "4",
+         "Stefano",
+         "Guerra",
+         "1985-10-02",
+         "Bologna",
+         "322 3217004",
+         "2024-12-31"
+        ],
+        [
+         "5",
+         "Andrei",
+         "Gatti",
+         "1988-11-20",
+         "Bologna",
+         "345 5769045",
+         "2026-01-01"
+        ]
+       ]
+      },
+      {
+       "nome": "Iscrizioni",
+       "colonne": [
+        {
+         "nome": "IdIscrizione",
+         "tipo": "INT",
+         "vincoli": "PRIMARY KEY"
+        },
+        {
+         "nome": "IdSocio",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "IdCorso",
+         "tipo": "INT",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataInizio",
+         "tipo": "DATE",
+         "vincoli": "NOT NULL"
+        },
+        {
+         "nome": "DataFine",
+         "tipo": "DATE",
+         "vincoli": ""
+        }
+       ],
+       "chiave": [
+        "IdIscrizione"
+       ],
+       "esterne": [
+        [
+         "IdSocio",
+         "Soci",
+         "IdSocio"
+        ],
+        [
+         "IdCorso",
+         "Corsi",
+         "IdCorso"
+        ]
+       ],
+       "righe": 220,
+       "esempi": [
+        [
+         "1",
+         "22",
+         "3",
+         "2023-02-21",
+         null
+        ],
+        [
+         "2",
+         "14",
+         "16",
+         "2023-02-27",
+         "2023-08-22"
+        ],
+        [
+         "3",
+         "81",
+         "23",
+         "2023-03-24",
+         null
+        ],
+        [
+         "4",
+         "16",
+         "14",
+         "2023-04-11",
+         "2023-11-13"
+        ],
+        [
+         "5",
+         "1",
+         "4",
+         "2023-05-07",
+         null
+        ]
+       ]
+      }
+     ],
+     "controlli": [
+      "un'iscrizione a un corso non precede l'iscrizione alla palestra",
+      "la fine di un'iscrizione non precede l'inizio",
+      "nessun socio iscritto due volte allo stesso corso",
+      "le iscrizioni attive di un corso non superano i posti",
+      "i soci hanno almeno 16 anni all'iscrizione"
+     ],
+     "percorso": "database/palestra/grande"
+    }
+   ]
+  }
+ ]
+}

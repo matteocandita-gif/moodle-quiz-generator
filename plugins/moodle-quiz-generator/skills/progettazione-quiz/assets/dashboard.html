@@ -1,0 +1,1618 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Bozze dei quiz Moodle</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Banco di lavoro a due viste (scaletta, dettaglio). Intestazione fissa con quiz e schede; contenuto a tutta larghezza.
+   Il foglio dello studente è l'unico elemento "carta" (bianco, bordo e fascia verde-petrolio); le note del docente stanno in un riquadro ambra. */
+:root{
+  --bg:#F3F6F5; --surface:#FFFFFF; --surface-2:#E9EFED; --line:#D3DCD9; --line-strong:#AEBDB9;
+  --fg:#16211E; --fg-2:#41524D; --fg-3:#5F706C;
+  --accent:#0C6A62; --accent-fg:#FFFFFF; --accent-soft:#D9EDE9; --accent-line:#8FC7BF;
+  --teacher:#FFF4D6; --teacher-line:#E3C873; --teacher-fg:#4A3A06;
+  --ok:#1E7A3C; --ok-soft:#DDF1E3; --warn:#8F5200; --warn-soft:#FFEFCF; --err:#B3261E; --err-soft:#FCE4E1; --info:#1D5CA3; --info-soft:#E1ECF8;
+  --code-bg:#EDF2F0; --focus:#0C6A62;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  --sans:'Public Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1614; --surface:#18221F; --surface-2:#202D29; --line:#2F403B; --line-strong:#4A625C;
+    --fg:#E7EFEC; --fg-2:#B5C5C0; --fg-3:#8FA49E;
+    --accent:#4DC2B2; --accent-fg:#04201B; --accent-soft:#143A35; --accent-line:#2E7A70;
+    --teacher:#352C10; --teacher-line:#7A6422; --teacher-fg:#F1DFA6;
+    --ok:#5CC283; --ok-soft:#173A25; --warn:#F0B35A; --warn-soft:#3C2B0E; --err:#FF8D84; --err-soft:#4A1C19; --info:#8DBBF0; --info-soft:#142E4A;
+    --code-bg:#111B18; --focus:#4DC2B2;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1614; --surface:#18221F; --surface-2:#202D29; --line:#2F403B; --line-strong:#4A625C;
+  --fg:#E7EFEC; --fg-2:#B5C5C0; --fg-3:#8FA49E;
+  --accent:#4DC2B2; --accent-fg:#04201B; --accent-soft:#143A35; --accent-line:#2E7A70;
+  --teacher:#352C10; --teacher-line:#7A6422; --teacher-fg:#F1DFA6;
+  --ok:#5CC283; --ok-soft:#173A25; --warn:#F0B35A; --warn-soft:#3C2B0E; --err:#FF8D84; --err-soft:#4A1C19; --info:#8DBBF0; --info-soft:#142E4A;
+  --code-bg:#111B18; --focus:#4DC2B2;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:14px/1.5 var(--sans);padding-inline:16px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+h1,h2,h3,h4,h5{margin:0;text-wrap:balance}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.ic{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.muted{color:var(--fg-3)}
+
+/* intestazione */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--bg);border-bottom:1px solid var(--line);margin-inline:-16px;padding:8px 16px 0}
+.top-row{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 20px;max-width:1400px;margin-inline:auto}
+.brand{font-size:15px;font-weight:700;letter-spacing:.01em;padding-bottom:9px}
+.qsel{display:flex;flex-direction:column;gap:2px;padding-bottom:6px;min-width:0}
+.qsel span{font-size:11px;color:var(--fg-3);letter-spacing:.04em;text-transform:uppercase}
+.tabs{display:flex;gap:2px;margin-left:auto}
+.tab{border:0;background:none;padding:9px 16px;border-bottom:3px solid transparent;font-weight:600;color:var(--fg-2)}
+.tab:hover{color:var(--fg)}
+.tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.wrap{max-width:1400px;margin-inline:auto;padding-block:18px 56px}
+.stack{display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+
+/* campi */
+.ctl{border:1px solid var(--line-strong);background:var(--surface);border-radius:6px;padding:6px 8px;min-width:0;max-width:100%}
+.fld{display:flex;flex-direction:column;gap:3px;min-width:0}
+.fld>span{font-size:12px;color:var(--fg-3)}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px 14px;align-items:end}
+.meta .wide{grid-column:span 2}
+.meta>*{min-width:0}.meta .ctl{width:100%}
+.cat{padding:6px 0;font-family:var(--mono);font-size:12.5px;overflow-wrap:anywhere}
+.btn{border:1px solid var(--line-strong);background:var(--surface);border-radius:6px;padding:6px 12px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.btn.primary:hover{filter:brightness(1.08);color:var(--accent-fg)}
+.btn.danger{border-color:var(--err);color:var(--err)}
+.btn.sm{padding:3px 9px;font-size:12.5px}
+
+/* tag di stato (testo + icona, mai solo colore) */
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:1px 8px;border-radius:99px;white-space:nowrap}
+.tag .ic{width:13px;height:13px}
+.tag.ok{background:var(--ok-soft);color:var(--ok)}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+.tag.err{background:var(--err-soft);color:var(--err)}
+.tag.info{background:var(--info-soft);color:var(--info)}
+.tag.plain{background:var(--surface-2);color:var(--fg-2)}
+
+/* riquadri numerici */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:0}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.kpi dt{color:var(--fg-3);font-size:12.5px}
+.kpi dd{margin:0}
+.kpi .v{font-size:28px;font-weight:600;line-height:1.15}
+.kpi .v small{font-size:14px;font-weight:500;color:var(--fg-3)}
+.kpi .s{font-size:12.5px;color:var(--fg-2)}
+.kpi .tag{align-self:flex-start;margin-top:4px}
+
+/* pannelli comprimibili */
+details.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px}
+details.panel>summary{cursor:pointer;padding:10px 14px;display:flex;align-items:center;gap:10px;font-weight:600;list-style:none;flex-wrap:wrap}
+details.panel>summary::-webkit-details-marker{display:none}
+details.panel>summary .chev{transition:transform .15s;margin-left:auto}
+details.panel[open]>summary .chev{transform:rotate(180deg)}
+.panel-body{padding:0 14px 14px;overflow-x:auto}
+.alist{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.al{display:flex;gap:10px;align-items:flex-start}
+.al .go{margin-left:auto;flex:none}
+.al p{margin:0;max-width:90ch}
+.alist-ok{margin:0;color:var(--fg-2)}
+textarea.note{width:100%;min-height:9em;resize:vertical;line-height:1.55}
+
+/* riepilogo per parte */
+.dist{width:100%;border-collapse:collapse}
+.dist th{font-size:12px;font-weight:600;color:var(--fg-3);text-align:left;padding:4px 8px 6px}
+.dist td{padding:7px 8px;border-top:1px solid var(--line);vertical-align:middle}
+.dist td:first-child{width:28%;min-width:150px}
+.mt{display:grid;grid-template-columns:minmax(80px,1fr) auto;gap:6px 12px;align-items:center}
+.meter{position:relative;height:10px;background:var(--accent-soft);border-radius:4px}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:0 4px 4px 0}
+.meter.off i{background:var(--warn)}
+.meter .tick{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--fg);transform:translateX(-1px)}
+.meter .band{position:absolute;top:-3px;bottom:-3px;border:2px solid var(--fg);border-top:0;border-bottom:0;opacity:.7}
+.mv{font-variant-numeric:tabular-nums;white-space:nowrap}
+.mv .off{color:var(--warn);font-weight:600;display:inline-flex;align-items:center;gap:3px;margin-left:6px}
+.legend{margin:8px 8px 0;font-size:12.5px;color:var(--fg-3)}
+
+/* tabella della scaletta */
+.tbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-bottom:8px}
+.tbar h2{font-size:16px}
+.tbar .sp{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.tw{position:relative;overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+table.sc{border-collapse:collapse;width:100%;min-width:1080px}
+.sc th{font-size:12px;font-weight:600;color:var(--fg-3);text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+.sc td{padding:6px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+.sc tr:last-child td{border-bottom:0}
+.sc tr.sec td{background:var(--surface-2);padding:6px 8px;vertical-align:middle}
+.secin{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px}
+.sec-name{font-weight:700;border:1px solid transparent;background:transparent;border-radius:5px;padding:3px 6px;min-width:12em}
+.sec-name:hover{border-color:var(--line-strong)}
+.sec-name:focus{border-color:var(--accent);background:var(--surface)}
+.secin .sum{color:var(--fg-3);font-size:12.5px}
+.secin .btn{margin-left:auto}
+.cell.tagc{margin-top:3px;font:11px/1.4 'JetBrains Mono',monospace;color:var(--fg-2);border-color:var(--line)}
+.cell{width:100%;border:1px solid transparent;background:transparent;border-radius:5px;padding:4px 6px;min-width:0}
+.cell:hover{border-color:var(--line-strong)}
+.cell:focus{border-color:var(--accent);background:var(--surface)}
+select.cell{border-color:var(--line)}
+select.cell.bad{border-color:var(--warn);color:var(--warn)}
+textarea.cell{resize:vertical;min-height:3.4em;font-size:13px;color:var(--fg-2);line-height:1.45;margin-top:2px}
+td.n .cell{text-align:right;font-variant-numeric:tabular-nums}
+.real{display:block;font-size:12px;color:var(--fg-3);padding:2px 6px}
+.sub{display:block;margin-top:4px}
+.sub span{display:block;font-size:11.5px;color:var(--fg-3);padding:0 6px}
+.acts{white-space:nowrap}
+.ib{border:1px solid transparent;background:none;border-radius:5px;padding:5px;color:var(--fg-2);display:inline-flex;align-items:center}
+.ib:hover{border-color:var(--line-strong);color:var(--accent)}
+.ib.danger:hover{color:var(--err);border-color:var(--err)}
+.ib.confirm{background:var(--err);color:#fff;border-color:var(--err);font-size:12px;font-weight:600;padding:5px 8px}
+.flash td{animation:flash 1.8s ease-out}
+@keyframes flash{from{background:var(--accent-soft)}to{background:transparent}}
+@media (prefers-reduced-motion:reduce){.flash td{animation:none;background:var(--accent-soft)}}
+
+/* dettaglio */
+.dt{display:grid;grid-template-columns:300px minmax(0,1fr);gap:20px;align-items:start}
+.dlist{background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:auto;max-height:calc(100vh - 150px)}
+.dsec{padding:8px 12px 4px;font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--fg-3);background:var(--surface-2);position:sticky;top:0}
+.ditem{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:6px;align-items:baseline;width:100%;text-align:left;border:0;border-left:3px solid transparent;background:none;padding:7px 12px 7px 9px}
+.ditem:hover{background:var(--surface-2)}
+.ditem[aria-current="true"]{background:var(--accent-soft);border-left-color:var(--accent)}
+.dpos{font-family:var(--mono);font-size:12px;color:var(--fg-3)}
+.dtit{overflow-wrap:anywhere}
+.dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--fg-3);display:inline-block}
+.dot.ok{background:var(--ok);border-color:var(--ok)}
+.dhead{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-bottom:10px}
+.dhead .sp{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.dnav{display:flex;align-items:center;gap:6px;color:var(--fg-2)}
+.dname{font-size:20px;font-weight:700;line-height:1.3;overflow-wrap:anywhere}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;background:var(--surface-2);color:var(--fg-2);padding:2px 10px;border-radius:99px}
+.chip b{color:var(--fg);font-weight:600}
+.nota{margin:8px 0 0;font-size:13px;color:var(--info);display:flex;gap:8px;align-items:flex-start}
+.banner{margin:12px 0 0;background:var(--info-soft);color:var(--info);border-radius:6px;padding:8px 12px;display:flex;gap:8px;align-items:flex-start;font-size:13px}
+.lb{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin:20px 0 6px}
+.lb.stu{color:var(--accent)}
+.lb.doc{color:var(--teacher-fg);background:var(--teacher);border:1px solid var(--teacher-line);border-bottom:0;border-radius:8px 8px 0 0;margin:20px 0 0;padding:7px 14px}
+.lb small{font-weight:500;letter-spacing:0;text-transform:none;font-size:12.5px}
+.sheet{display:grid;grid-template-columns:130px minmax(0,1fr);background:var(--surface);border:2px solid var(--accent);border-radius:8px;overflow:hidden}
+.sheet.page{grid-template-columns:minmax(0,1fr)}
+.sheet-info{background:var(--accent-soft);border-right:1px solid var(--accent-line);padding:12px;font-size:13px;display:flex;flex-direction:column;gap:3px}
+.sheet-info b{font-size:15px}
+.sheet-body{padding:16px 20px}
+.teacher{background:var(--teacher);border:1px solid var(--teacher-line);border-radius:0 0 8px 8px;padding:14px 20px;color:var(--teacher-fg)}
+.teacher code,.teacher pre.code{background:color-mix(in srgb,var(--teacher-fg) 9%,transparent);border-color:var(--teacher-line)}
+.teacher th,.teacher td{border-color:var(--teacher-line)}
+.empty-card{border:2px dashed var(--line-strong);border-radius:8px;padding:18px 20px;color:var(--fg-2);background:var(--surface)}
+.empty-card p{margin:0 0 .5em}
+.edit-grid{display:grid;gap:14px;margin-top:16px}
+.edit-grid textarea{width:100%;min-height:15em;font-family:var(--mono);font-size:13px;line-height:1.55;resize:vertical}
+.hint{font-size:12.5px;color:var(--fg-3);margin:0}
+
+/* testo in Markdown semplificato */
+.md>:last-child{margin-bottom:0}
+.md p{margin:0 0 .85em;max-width:75ch}
+.md h3,.md h4,.md h5{margin:1em 0 .4em;font-size:15px}
+.md ul,.md ol{margin:0 0 .85em;padding-left:1.4em;max-width:75ch}
+.md li{margin-bottom:.35em}
+.md ul.opts{list-style:none;padding-left:0}
+.md .box{--c:#6d9eeb;background:color-mix(in srgb,var(--c) 16%,var(--surface));border-left:5px solid var(--c);border-radius:4px;padding:10px 14px;margin:0 0 1em;max-width:75ch}
+.md .box .bt{font-weight:700;margin:0 0 6px;color:color-mix(in srgb,var(--c) 55%,var(--fg))}
+.md .box>:last-child{margin-bottom:0}
+.md .b-giallo{--c:#e0b11c}.md .b-verde{--c:#7fb267}.md .b-arancio{--c:#e69138}.md .b-rosso{--c:#e06666}.md .b-ignoto{--c:var(--err)}
+.slot.menu{min-width:3.4em}
+.slot.old{border-style:dashed;color:var(--warn)}
+.teacher .th{margin:14px 0 6px;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+.teacher .th:first-child{margin-top:0}
+.teacher .th small{font-weight:400;text-transform:none;letter-spacing:0}
+.teacher .kh{margin:0 0 4px}
+.teacher ol.kc{padding-left:1.6em}
+.teacher ol.kc>li{margin-bottom:8px}
+.teacher .kt{font-size:12.5px;opacity:.85}
+.teacher ul.kl{list-style:none;padding-left:0;margin:2px 0 6px}
+.teacher li.k{display:grid;grid-template-columns:76px minmax(0,1fr);gap:8px;margin-bottom:4px}
+.teacher .km{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;padding-top:2px;opacity:.7}
+.teacher li.k.ok .km{opacity:1;color:var(--ok)}
+.teacher li.k.neg .km{opacity:1;color:var(--err)}
+.teacher .kfb{display:block;font-size:13px;opacity:.85}
+.hint.conv summary{cursor:pointer}
+textarea.ctl.mono{font:12.5px/1.5 var(--mono)}
+.md .crbox{border-top:1px dashed var(--line-strong);margin-top:12px;padding-top:10px}
+.md .crl{margin:0 0 6px;font-size:13px;color:var(--fg-2)}
+.md .gap{display:inline-block;height:1.25em;vertical-align:-0.25em;border:1px solid var(--line-strong);border-bottom-width:2px;border-radius:3px;background:var(--surface)}
+.teacher .tbl table{font-size:12.5px}
+.hint.conv ul{margin:6px 0 0;padding-left:1.2em}
+.md li.opt{display:flex;gap:10px;align-items:flex-start}
+.md .rb,.md .cb{flex:none;width:16px;height:16px;margin-top:3px;border:2px solid var(--fg-3)}
+.md .rb{border-radius:50%}.md .cb{border-radius:3px}
+.md code{font:12.5px var(--mono);background:var(--code-bg);padding:1px 5px;border-radius:4px}
+.md pre.code{background:var(--code-bg);border:1px solid var(--line);border-radius:6px;padding:10px 14px;overflow-x:auto;margin:0 0 1em;font:13px/1.6 var(--mono)}
+.md pre.code code{background:none;padding:0;font:inherit}
+.md .tbl{overflow-x:auto;margin:0 0 1em}
+.md table{border-collapse:collapse}
+.md th,.md td{border:1px solid var(--line-strong);padding:5px 12px;text-align:left}
+.md th{background:color-mix(in srgb,var(--fg) 6%,transparent)}
+
+.empty{padding:40px 8px;text-align:center;color:var(--fg-2)}
+.empty h2{font-size:18px;margin-bottom:6px;color:var(--fg)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:8px;max-width:90vw;z-index:50}
+.toast.err{background:var(--err);color:#fff}
+
+@media (max-width:860px){
+  .dt{grid-template-columns:minmax(0,1fr)}
+  .dlist{max-height:240px}
+  .meta .wide{grid-column:auto}
+  .tabs{margin-left:0}
+}
+@media (max-width:560px){
+  .sheet{grid-template-columns:minmax(0,1fr)}
+  .sheet-info{border-right:0;border-bottom:1px solid var(--accent-line);flex-direction:row;flex-wrap:wrap;gap:3px 14px}
+  .sheet-body{padding:14px}
+}
+.hint{font-size:12px;color:var(--fg-2);margin-top:6px;max-width:34ch;line-height:1.35}
+.pill{display:inline-block;margin-left:6px;padding:0 6px;border-radius:10px;background:var(--warn-soft);color:var(--warn);font-size:11px;font-weight:600;white-space:nowrap}
+.dsum{padding:8px 12px;font-size:12.5px;color:var(--fg-2);display:flex;justify-content:space-between;gap:8px;align-items:center;border-bottom:1px solid var(--line)}
+.warnt{color:var(--warn)}
+.lnk{border:0;background:none;color:var(--accent);font-weight:600;text-decoration:underline;padding:0;cursor:pointer}
+.stline{margin:8px 0 0;font-size:13px;color:var(--fg-2)}
+.stline select{margin-left:6px;width:auto;display:inline-block}
+.stsel.riv,select.cell.riv{border-color:var(--warn);background:var(--warn-soft);color:var(--warn);font-weight:600}
+.rivbox{margin:12px 0 0;background:var(--warn-soft);color:var(--fg);border-left:5px solid var(--warn);border-radius:6px;padding:10px 14px}
+.rivbox .rivt{display:flex;gap:8px;align-items:center;color:var(--warn);margin-bottom:4px}
+.rivbox p{margin:0 0 10px;font-size:13.5px}
+.actrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.actrow .btn{white-space:nowrap}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.dbbox{display:grid;gap:12px}
+.dbit{border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:var(--surface-2);display:grid;gap:6px}
+.dbhead{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.dbhead input{font-family:var(--mono);font-weight:600;max-width:16em}
+.dbhead .muted{font-size:12.5px}
+.dbhead .ib{margin-left:auto}
+.dbit textarea{width:100%;min-height:12em;resize:vertical;font:12.5px/1.5 var(--mono)}
+.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.qcard{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;min-width:0}
+.qcard:hover{border-color:var(--accent)}
+.qct{font-weight:700;font-size:15px;overflow-wrap:anywhere}
+.qcm{font-size:12.5px;color:var(--fg-2);overflow-wrap:anywhere}
+.qcard .tag{margin-top:4px}
+.req{color:var(--err)}
+textarea.note.big{min-height:12em}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:13.5px}
+.chk input{margin-top:3px}
+.nerr{color:var(--err);display:flex;gap:6px;align-items:center;margin:0}
+.okbox{background:var(--ok-soft);border-left-color:var(--ok)}
+.okbox .rivt{color:var(--ok)}
+.infobox{background:var(--info-soft);border-left-color:var(--info)}
+.infobox .rivt{color:var(--info)}
+ol.welcome{margin:0 0 10px;padding-left:22px;font-size:13.5px}
+ol.welcome li{margin:4px 0}
+textarea.copia{width:100%;min-height:4em;margin-bottom:8px}
+.nform small{display:block;margin-top:2px}
+tr.grp td{background:color-mix(in srgb,var(--accent-soft) 35%,transparent)}
+tr.var td{background:var(--surface-2);border-bottom-color:var(--line)}
+.vtog{display:block;width:100%;text-align:left;border:0;background:none;color:var(--accent);font-size:12.5px;font-weight:600;padding:4px 6px;cursor:pointer;overflow-wrap:anywhere}
+.vtog:hover{text-decoration:underline}
+.vlet{display:inline-block;font:600 12.5px var(--mono);color:var(--fg-2);padding:6px 0 0 18px}
+.vstato{display:block;font-size:12.5px;color:var(--fg-2);padding:4px 6px}
+.vtabs{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
+.vtab{border:1px solid var(--line-strong);background:var(--surface);border-radius:99px;padding:3px 12px;font-size:13px;font-weight:600;color:var(--fg-2);display:inline-flex;align-items:center;gap:6px}
+.vtab[aria-current="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.vtab .dot{width:8px;height:8px}
+.vtab[aria-current="true"] .dot{border-color:var(--accent-fg)}
+.vtab[aria-current="true"] .dot.ok{background:var(--accent-fg)}
+.dvar{display:inline-flex;gap:3px;margin-left:6px;vertical-align:middle}
+.slot{display:inline-block;min-width:2.6em;text-align:center;padding:0 6px;border:1px solid var(--line-strong);border-bottom-width:2px;border-radius:4px;background:var(--surface-2);color:var(--fg-2);font:500 .85em/1.5 'JetBrains Mono',monospace}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17.2v.1"/></symbol>
+  <symbol id="i-err" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.1"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M6 14l6-6 6 6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M6 10l6 6 6-6"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24"><path d="M14 6l-6 6 6 6"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="M10 6l6 6-6 6"/></symbol>
+  <symbol id="i-open" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13M10 11v6M14 11v6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></symbol>
+  <symbol id="i-comment" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19z"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+</svg>
+
+<header class="top">
+  <div class="top-row">
+    <h1 class="brand">Bozze dei quiz</h1>
+    <label class="qsel"><span>Quiz</span><select id="quizSel" class="ctl" aria-label="Quiz"></select></label>
+    <nav class="tabs" role="tablist" aria-label="Vista">
+      <button class="tab" role="tab" id="tab-home" data-view="home">Tutti i quiz</button>
+      <button class="tab" role="tab" id="tab-scaletta" data-view="scaletta">Scaletta</button>
+      <button class="tab" role="tab" id="tab-dettaglio" data-view="dettaglio">Dettaglio</button>
+    </nav>
+  </div>
+</header>
+<main class="wrap" id="main"><p class="empty">Caricamento…</p></main>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ------------------------------------------------------------------ catalogo */
+// id, nome, gruppo, realizzazione, quiz in cui è prevista, flag (p = pagina non valutata, o = pagina propria, m = correzione a mano), prefisso del nome in Moodle
+const CAT_RAW=[
+ ["istruzioni","Istruzioni","Pagine","Descrizione","V VT","p",""],
+ ["comelavoriamo","Come lavoriamo oggi","Pagine","Descrizione","ED EP ER EDT","p",""],
+ ["paginablocco","Pagina del blocco","Pagine","Descrizione","ED ER EDT","p","Spiegazione"],
+ ["vf","Vero/falso","Concetti","Vero/falso","VT RT ED ER EDT","",""],
+ ["multipla","Risposta multipla (una giusta)","Concetti","Risposta multipla","VT RT ED ER EDT","",""],
+ ["crocette","Risposta multipla (più giuste)","Concetti","Risposta multipla","VT RT ED ER EDT","",""],
+ ["breve","Risposta breve","Concetti","Risposta breve","VT RT ED EDT","",""],
+ ["corrispondenza","Corrispondenza","Concetti","Corrispondenza","VT RT ED ER EDT","",""],
+ ["cloze_testo","Completamento di testo","Concetti","Cloze","VT RT ED ER EDT","",""],
+ ["ordine","Metti in ordine","Concetti","Cloze","VT RT ED EDT","",""],
+ ["teoria_aperta","Teoria a risposta aperta","Concetti","Aperta","V VT RT","om",""],
+ ["esempio_svolto","Esempio svolto da leggere","Lettura del codice","Cloze","ED ER","","Esempio svolto"],
+ ["tracciamento","Tracciamento","Lettura del codice","Cloze","V RT ED EP ER","","Tracciamento"],
+ ["lettura_output","Lettura dell'output","Lettura del codice","Cloze","V RT ED EP ER","","Tracciamento"],
+ ["trova_errore","Trova l'errore","Lettura del codice","Risposta multipla","V RT ED EP ER","","Trova l'errore"],
+ ["compl_campi","Completamento a campi","Completamento","Cloze","ED EP ER","","Completamento"],
+ ["guidato","Esempio guidato","Completamento","Cloze","ED ER","","Esempio guidato"],
+ ["compl_eseguito","Completamento eseguito","Completamento","CodeRunner JS (gapfiller)","ED EP ER","o","Completamento"],
+ ["scrittura_scheletro","Codice parziale","Completamento","CodeRunner JS, PHP","ED EP ER","o","Scrivere"],
+ ["debug_msg","Debug con messaggi","Debugging","CodeRunner JS, SQL, PHP","ED EP ER","o","Debug"],
+ ["debug_silenzioso","Debug silenzioso","Debugging","CodeRunner JS, SQL, PHP","ED EP ER","o","Debug"],
+ ["debug_motivazione","Debug con motivazione","Debugging","Aperta","V","om","Debug"],
+ ["prog_completo","Programma completo","Scrittura con correzione automatica","CodeRunner JS","V ED EP ER","o","Scrivere"],
+ ["funzione","Funzione","Scrittura con correzione automatica","CodeRunner JS","V ED EP ER","o","Scrivere"],
+ ["prog_dati","Programma su dati dati","Scrittura con correzione automatica","CodeRunner JS","ED EP ER","o","Scrivere"],
+ ["prog_random","Programma con valori casuali","Scrittura con correzione automatica","CodeRunner JS","ED EP","o","Scrivere"],
+ ["query","Query","Scrittura con correzione automatica","CodeRunner SQL","V ED EP ER","o","Scrivere"],
+ ["create_tabelle","Creazione di tabelle","Scrittura con correzione automatica","CodeRunner SQL","V ED EP","o","Scrivere"],
+ ["query_due_passi","Query in due passi","Scrittura con correzione automatica","CodeRunner SQL","ED EP","o","Scrivere"],
+ ["vincoli","Vincoli di integrità","Scrittura con correzione automatica","CodeRunner SQL","ED","o","Esercizio"],
+ ["pagina_php","Pagina PHP con database","Scrittura con correzione automatica","CodeRunner PHP","V ED EP ER","o","Scrivere"],
+ ["esercizio_libero","Esercizio libero","Altro","Aperta","V ED EP ER","om","Esercizio libero"],
+ ["libero_html","Esercizio HTML","Altro","CodeRunner HTML (senza test)","V ED EP ER","om","Esercizio libero"],
+ ["libero_css","Esercizio CSS","Altro","CodeRunner CSS (senza test)","V ED EP ER","om","Esercizio libero"],
+ ["campo_prova","Campo di prova","Altro","CodeRunner SQL","V EP","o","Campo di prova"]
+];
+const CATALOGO=CAT_RAW.map(function(a){return {id:a[0],nome:a[1],gruppo:a[2],real:a[3],uso:a[4].split(' '),pagina:a[5].indexOf('p')>=0,propria:a[5].indexOf('o')>=0,manuale:a[5].indexOf('m')>=0,pre:a[6]};});
+const CAT={};CATALOGO.forEach(function(c){CAT[c.id]=c;});
+
+/* ------------------------------------------------------------------ preset dei tipi di quiz */
+const BLOOM=[[1,"Ricordare","b1"],[2,"Comprendere","b2"],[3,"Applicare","b3"],[4,"Analizzare","b4"],[5,"Valutare / creare","b5"]];
+const SEQ_PARTI=[[0,"Apertura","pag"],[1,"Pagina del blocco","pag"],[3,"Esempio svolto","es"],[4,"Completamento","es"],[5,"Debugging","dbg"],[6,"Esercizio guidato","gui"],[7,"Esercizi finali","fin"]];
+const TIPI={
+ ED:{nome:"Esercitazione con spiegazione di dettaglio",p100:true,tempoRule:"margine",seq:true,parti:SEQ_PARTI,
+   gruppi:[{id:"pag",n:"Pagine",p:0,m:[10,15]},{id:"es",n:"Esempio svolto e completamento",p:20,m:15},{id:"dbg",n:"Debugging",p:25,m:15},{id:"gui",n:"Esercizio guidato",p:20,m:15},{id:"fin",n:"Esercizi finali",p:35,m:25}]},
+ EDT:{nome:"Esercitazione con spiegazione · solo teoria",p100:true,tempoRule:"margine",seq:false,cinque:true,parti:[[0,"Apertura","pag"],[1,"Pagina di spiegazione","pag"],[2,"Domande di comprensione","comp"]],
+   gruppi:[{id:"pag",n:"Pagine",p:0,m:null},{id:"comp",n:"Domande di comprensione",p:100,m:null}]},
+ V:{nome:"Verifica di programmazione",p100:true,tempoRule:"quota",seq:false,parti:[[1,"Base","base"],[2,"Avanzata","avz"]],
+   gruppi:[{id:"base",n:"Parte base",p:85,m:null},{id:"avz",n:"Parte avanzata",p:15,m:null}]},
+ VT:{nome:"Verifica teorica",p100:true,tempoRule:"quota",seq:false,parti:BLOOM,
+   gruppi:[{id:"b1",n:"Ricordare",p:20,m:null},{id:"b2",n:"Comprendere",p:30,m:null},{id:"b3",n:"Applicare",p:20,m:null},{id:"b4",n:"Analizzare",p:15,m:null},{id:"b5",n:"Valutare / creare",p:15,m:null}]},
+ RT:{nome:"Ripasso teorico (verifica formativa)",p100:false,tempoRule:"quota",seq:false,parti:BLOOM,
+   gruppi:BLOOM.map(function(b){return {id:b[2],n:b[1],p:null,m:null};})},
+ EP:{nome:"Esercitazione pratica",p100:false,tempoRule:"margine",seq:false,parti:[[1,"Richiamo breve","a"],[4,"Completamento","b"],[5,"Debugging","c"],[6,"Esercizio guidato","d"],[7,"Esercizi finali","e"]],
+   gruppi:[{id:"a",n:"Richiamo breve",p:null,m:null},{id:"b",n:"Completamento",p:null,m:null},{id:"c",n:"Debugging",p:null,m:null},{id:"d",n:"Esercizio guidato",p:null,m:null},{id:"e",n:"Esercizi finali",p:null,m:null}]},
+ ER:{nome:"Esercitazione complessiva di ripasso",p100:true,tempoRule:"margine",seq:true,parti:SEQ_PARTI,
+   gruppi:SEQ_PARTI.reduce(function(acc,p){if(!acc.some(function(g){return g.id===p[2];}))acc.push({id:p[2],n:p[1],p:null,m:null});return acc;},[])},
+ /* quiz importato da un backup Moodle: nessun preset, nessuna regola su punti, tempi e tipologie */
+ IMP:{nome:"Importato da Moodle (senza preset)",p100:false,tempoRule:"nessuna",seq:false,importato:true,parti:[[0,"Pagina","pag"],[1,"Domanda","dom"]],
+   gruppi:[{id:"pag",n:"Pagine",p:null,m:null},{id:"dom",n:"Domande",p:null,m:null}]}
+};
+/* tipologia prevista dal preset del quiz (nei quiz importati tutte) */
+function prevista(c,q){return !!(TIPI[q.tipoQuiz]&&TIPI[q.tipoQuiz].importato)||c.uso.indexOf(q.tipoQuiz)>=0;}
+/* tipi che si scelgono a mano: il tipo «importato» lo mette solo l'importazione */
+function tipiScelta(cur){return Object.keys(TIPI).filter(function(t){return !TIPI[t].importato||t===cur;});}
+const FASI=[["richiesta","Richiesta inviata"],["scaletta-revisione","Scaletta in revisione"],["scaletta-approvata","Scaletta approvata"],["dettaglio-revisione","Dettaglio in revisione"],["dettaglio-approvato","Dettaglio approvato"]];
+const NEXT={"scaletta-revisione":["scaletta-approvata","Approva la scaletta"],"scaletta-approvata":["dettaglio-revisione","Passa al dettaglio"],"dettaglio-revisione":["dettaglio-approvato","Approva il dettaglio"]};
+const STRUMENTO=[["","Non deciso"],["suggerito","Suggerito"],["non-nominato","Non nominato"],["na","Non applicabile"]];
+const SOSTEGNO=[["","Non deciso"],["quanti-dove","Quanti e dove"],["solo-quanti","Solo quanti"],["nulla","Nessuna indicazione"]];
+const PREV={"scaletta-approvata":"scaletta-revisione","dettaglio-revisione":"scaletta-approvata","dettaglio-approvato":"dettaglio-revisione"};
+function daRivedere(){return S.rows.filter(function(r){return r.stato==="da-rivedere";});}
+function mancanti(){return S.rows.filter(function(r){return !String(r.traccia||"").trim();}).length;}
+const STATO=[["proposta","Proposta"],["da-rivedere","Da rivedere"],["approvata","Approvata"]];
+
+/* ------------------------------------------------------------------ utilità */
+const esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
+const num=function(v){const n=Number(v);return isFinite(n)?n:0;};
+const f1=function(n){return String(Math.round(n*10)/10).replace(".",",");};
+const f2=function(n){return (Math.round(n*100)/100).toFixed(2).replace(".",",");};
+const $=function(s,r){return (r||document).querySelector(s);};
+const ico=function(n,cls){return '<svg class="ic'+(cls?" "+cls:"")+'" aria-hidden="true"><use href="#i-'+n+'"/></svg>';};
+const opts=function(list,val){return list.map(function(o){return '<option value="'+esc(o[0])+'"'+(String(o[0])===String(val==null?"":val)?" selected":"")+'>'+esc(o[1])+'</option>';}).join("");};
+const label=function(list,val){const f=list.find(function(o){return String(o[0])===String(val==null?"":val);});return f?f[1]:"";};
+
+/* ------------------------------------------------------------------ Markdown semplificato (tutto il testo viene prima escapato) */
+const CAMPO_RE=/\{(\d*):([A-Z_]+):((?:\\.|[^}\\])*)\}/g;
+const OPZ_RE=/^\s*([(\[])\s*(x)?\s*(-?\d+(?:[.,]\d+)?)?\s*%?\s*([)\]])\s+(.*)$/;
+/* corrispondenza: righe «elemento <-> corrispondenza»; senza elemento è una risposta in più */
+const COP_RE=/^\s*(.*?)\s*<->\s*(.*?)\s*$/;
+function isCop(l){return /<->/.test(l)&&COP_RE.test(l);}
+function coppieTraccia(src){
+  const out=[];let fence=false;
+  String(src||"").replace(/\r/g,"").split("\n").forEach(function(l){if(/^```/.test(l)){fence=!fence;return;}if(!fence&&isCop(l)){const m=l.match(COP_RE);out.push({sx:m[1],dx:m[2]});}});
+  return out;
+}
+const BOX_COL=["blu","giallo","verde","arancio","rosso"];
+function campiDi(src){const out=[];String(src||"").replace(CAMPO_RE,function(m,w,t,c){out.push({peso:w===""?1:Number(w),tipo:t,cont:c,raw:m});return m;});return out;}
+function opzioniCampo(c){
+  const parts=[];let cur="";
+  for(let i=0;i<c.length;i++){const ch=c[i];if(ch==="\\"&&i+1<c.length){cur+=c.slice(i,i+2);i++;continue;}if(ch==="~"){parts.push(cur);cur="";}else cur+=ch;}
+  parts.push(cur);
+  const un=function(x){return x.replace(/\\([}#~\\])/g,"$1");};
+  return parts.map(function(o){let fr=0;if(o.charAt(0)==="="){fr=100;o=o.slice(1);}else{const m=o.match(/^%(-?\d+(?:\.\d+)?)%/);if(m){fr=Number(m[1]);o=o.slice(m[0].length);}}
+    let k=-1;for(let i=0;i<o.length;i++){if(o[i]==="\\"){i++;continue;}if(o[i]==="#"){k=i;break;}}
+    let fb="";if(k>=0){fb=o.slice(k+1);o=o.slice(0,k);}
+    return {fr:fr,testo:un(o).trim(),fb:un(fb).trim()};});
+}
+/* gruppi di opzioni ( ) / [ ] fuori dai blocchi di codice, con le frazioni calcolate come in da_dashboard.py */
+function opzioniTraccia(src){
+  const L=String(src||"").replace(/\r/g,"").split("\n"),gr=[];let fence=false,cur=null;
+  L.forEach(function(ln){
+    if(/^```/.test(ln)){fence=!fence;cur=null;return;}
+    if(fence){cur=null;return;}
+    const m=ln.match(OPZ_RE);
+    if(m){if(!cur){cur=[];gr.push(cur);}cur.push({multi:m[1]==="[",giusta:!!m[2],perc:m[3]?Number(m[3].replace(",",".")):null,testo:m[5].trim(),fb:""});return;}
+    if(cur&&/^\s*>/.test(ln)){const t=ln.replace(/^\s*>\s?/,"").trim();cur[cur.length-1].fb=(cur[cur.length-1].fb+" "+t).trim();return;}
+    if(cur&&!ln.trim())return;
+    cur=null;
+  });
+  gr.forEach(function(o){
+    const giuste=o.filter(function(x){return x.giusta&&x.perc==null;}),ass=o.reduce(function(a,x){return a+(x.perc>0?x.perc:0);},0);
+    const multi=o.some(function(x){return x.multi;});
+    /* più risposte giuste: le sbagliate senza percentuale si dividono una penalità del -100% (se nessuna è scritta a mano) */
+    const sbagl=o.filter(function(x){return !x.giusta&&x.perc==null;}),scr=o.reduce(function(a,x){return a+(x.perc!=null&&x.perc<0?x.perc:0);},0),pen=multi&&sbagl.length&&scr>-100?(-100-scr)/sbagl.length:0;
+    o.forEach(function(x){x.fr=x.perc!=null?x.perc:(x.giusta?(multi?(100-ass)/(giuste.length||1):100):pen);});
+  });
+  return gr;
+}
+function md(src){
+  const campi=[];
+  const s=String(src||"").replace(/\r/g,"").replace(CAMPO_RE,function(m,w,t){campi.push(t);return "\u0001"+(campi.length-1)+"\u0001";});
+  return mdBlocchi(s.split("\n")).replace(/\u0001(\d+)\u0001/g,function(m,k){
+    const t=campi[Number(k)],menu=/^(MULTICHOICE|MC)/.test(t),n=Number(k)+1;
+    return '<span class="slot'+(menu?" menu":"")+'" title="'+(menu?"Menù a tendina":"Campo da completare")+'">'+n+(menu?" ▾":"")+"</span>";
+  }).replace(/\[\[(\d+)\]\]/g,'<span class="slot old" title="Segnaposto da trasformare in campo Cloze">$1</span>');
+}
+function mdBlocchi(L){
+  const out=[];let i=0;
+  const LI=/^\s*(?:[-*]|\d+[.)])\s+/,TB=/^\s*\|.*\|\s*$/,HD=/^(#{1,3})\s+(.*)$/,FN=/^```/,BX=/^:::(\w+)\s*(.*)$/;
+  const SEP=/^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/;
+  const fmt=function(x){return x.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>").replace(/__(.+?)__/g,"<u>$1</u>").replace(/(^|[^*\w])\*([^*\s][^*]*)\*(?![*\w])/g,"$1<em>$2</em>");};
+  const inl=function(t){let res="",last=0;t.replace(/`([^`\n]+)`/g,function(m,c,idx){res+=fmt(esc(t.slice(last,idx)))+"<code>"+esc(c)+"</code>";last=idx+m.length;return m;});return res+fmt(esc(t.slice(last)));};
+  const cells=function(l){return l.trim().replace(/^\|/,"").replace(/\|$/,"").split("|").map(function(c){return c.trim();});};
+  const stop=function(l){return !l.trim()||FN.test(l)||HD.test(l)||LI.test(l)||TB.test(l)||BX.test(l)||l.trim()===":::"||OPZ_RE.test(l)||isCop(l);};
+  while(i<L.length){
+    const ln=L[i];let m;
+    if(FN.test(ln)){const buf=[];i++;while(i<L.length&&!FN.test(L[i])){buf.push(L[i]);i++;}i++;out.push('<pre class="code"><code>'+esc(buf.join("\n"))+"</code></pre>");continue;}
+    if(!ln.trim()){i++;continue;}
+    if((m=ln.match(BX))){
+      const col=m[1],tit=m[2].trim(),buf=[];let lv=1;i++;
+      while(i<L.length){if(BX.test(L[i]))lv++;else if(L[i].trim()===":::"){lv--;if(!lv)break;}buf.push(L[i]);i++;}
+      i++;
+      out.push('<div class="box b-'+(BOX_COL.indexOf(col)>=0?col:"ignoto")+'">'+(tit?'<p class="bt">'+inl(tit)+"</p>":"")+mdBlocchi(buf)+"</div>");continue;
+    }
+    if((m=ln.match(HD))){const lv=m[1].length+2;out.push("<h"+lv+">"+inl(m[2])+"</h"+lv+">");i++;continue;}
+    if(TB.test(ln)&&i+1<L.length&&SEP.test(L[i+1])){
+      const head=cells(ln);i+=2;const body=[];
+      while(i<L.length&&TB.test(L[i])){body.push(cells(L[i]));i++;}
+      out.push('<div class="tbl"><table><thead><tr>'+head.map(function(c){return '<th scope="col">'+inl(c)+"</th>";}).join("")+"</tr></thead><tbody>"+
+        body.map(function(r){return "<tr>"+r.map(function(c){return "<td>"+inl(c)+"</td>";}).join("")+"</tr>";}).join("")+"</tbody></table></div>");
+      continue;
+    }
+    if(isCop(ln)){
+      const cp=[];
+      while(i<L.length&&(isCop(L[i])||(!L[i].trim()&&i+1<L.length&&isCop(L[i+1])))){if(L[i].trim()){const mm=L[i].match(COP_RE);cp.push({sx:mm[1],dx:mm[2]});}i++;}
+      const sx=cp.filter(function(c){return c.sx;}),extra=cp.length-sx.length;
+      out.push('<div class="tbl match"><table><tbody>'+sx.map(function(c){return "<tr><td>"+inl(c.sx)+'</td><td><span class="slot menu" title="Menù a tendina">Scegli… ▾</span></td></tr>';}).join("")+"</tbody></table></div>"+
+        '<p class="crl">Nel menù '+cp.length+" risposte, in ordine casuale"+(extra?" ("+extra+(extra===1?" in più, che non corrisponde a niente)":" in più, che non corrispondono a niente)"):"")+".</p>");
+      continue;
+    }
+    if(OPZ_RE.test(ln)){
+      const items=[];let multi=false;
+      while(i<L.length&&(OPZ_RE.test(L[i])||/^\s*>/.test(L[i])||(!L[i].trim()&&i+1<L.length&&OPZ_RE.test(L[i+1])))){
+        const mm=L[i].match(OPZ_RE);
+        if(mm){if(mm[1]==="[")multi=true;items.push('<li class="opt"><span class="'+(mm[1]==="["?"cb":"rb")+'" aria-hidden="true"></span><span>'+inl(mm[5])+"</span></li>");}
+        i++;
+      }
+      out.push('<ul class="opts" aria-label="'+(multi?"Scelte, anche più di una":"Scelte, una sola")+'">'+items.join("")+"</ul>");continue;
+    }
+    if(LI.test(ln)){
+      const ordered=/^\d/.test(ln.trim()),items=[];
+      while(i<L.length&&LI.test(L[i])){items.push("<li>"+inl(L[i].replace(/^\s*(?:[-*]|\d+[.)])\s+/,""))+"</li>");i++;}
+      out.push(ordered?"<ol>"+items.join("")+"</ol>":"<ul>"+items.join("")+"</ul>");continue;
+    }
+    const buf=[ln];i++;
+    while(i<L.length&&!stop(L[i])){buf.push(L[i]);i++;}
+    out.push("<p>"+buf.map(function(x){return inl(x.replace(/\s+$/,""));}).join("<br>")+"</p>");
+  }
+  return out.join("");
+}
+/* riquadro del docente: risposte e feedback ricavati dalla traccia */
+function nomeCampo(t){return /^(MULTICHOICE|MC)/.test(t)?"menù a tendina"+(/S$/.test(t)?" (opzioni mescolate)":" (ordine fisso)"):/^(NUMERICAL|NM)$/.test(t)?"numero":/_C$|^(SAC|MWC)$/.test(t)?"risposta breve (maiuscole contano)":"risposta breve";}
+function chiaveHTML(r){
+  const tr=String(r.traccia||""),out=[],cs=campiDi(tr),gr=opzioniTraccia(tr);
+  const voce=function(fr,testo,fb,code){const ok=fr>0;return '<li class="k'+(ok?" ok":"")+(fr<0?" neg":"")+'"><span class="km">'+(ok?(fr<100?f1(fr)+"%":"giusta"):(fr<0?f1(fr)+"%":"sbagliata"))+"</span><span>"+(code?"<code>"+esc(testo)+"</code>":md(testo).replace(/^<p>|<\/p>$/g,""))+(fb?'<span class="kfb">'+md(fb).replace(/^<p>|<\/p>$/g,"")+"</span>":"")+"</span></li>";};
+  if(cs.length){
+    const tot=cs.reduce(function(a,c){return a+c.peso;},0);
+    out.push('<p class="kh"><strong>Campi</strong> · '+cs.length+(cs.length===1?" campo, ":" campi, ")+f1(tot)+(tot===1?" punto":" punti")+" di peso</p><ol class=\"kc\">"+
+      cs.map(function(c){return "<li><span class=\"kt\">"+esc(nomeCampo(c.tipo))+(c.peso!==1?" · peso "+c.peso:"")+'</span><ul class="kl">'+opzioniCampo(c.cont).map(function(o){return voce(o.fr,o.testo,o.fb,true);}).join("")+"</ul></li>";}).join("")+"</ol>");
+  }
+  const cop=coppieTraccia(tr);
+  if(cop.length){
+    out.push('<p class="kh"><strong>Corrispondenze</strong> · '+cop.filter(function(c){return c.sx;}).length+' da abbinare</p><ul class="kl">'+
+      cop.map(function(c){return '<li class="k'+(c.sx?" ok":"")+'"><span class="km">'+(c.sx?"coppia":"in più")+"</span><span>"+(c.sx?md(c.sx).replace(/^<p>|<\/p>$/g,"")+" → ":"")+esc(c.dx)+"</span></li>";}).join("")+"</ul>");
+  }
+  gr.forEach(function(o){
+    const multi=o.some(function(x){return x.multi;});
+    out.push('<p class="kh"><strong>Opzioni</strong> · '+(multi?"più risposte giuste":"una sola risposta giusta")+'</p><ul class="kl">'+o.map(function(x){return voce(x.fr,x.testo,x.fb,false);}).join("")+"</ul>");
+  });
+  return out.join("");
+}
+/* controlli sulle convenzioni del formato di consegna, per riga */
+/* ------------------------------------------------------------------ CodeRunner: campo «Soluzione e test» */
+function isCR(c){return !!c&&/CodeRunner/.test(c.real);}
+const CR_WEB={libero_html:"html",libero_css:"css"};
+/* prototipo Moodle degli esercizi liberi: l'HTML usa php_con_test, che ha lo scratchpad (come da_dashboard.py) */
+const PROTO_WEB={html:"php_con_test",css:"css"};
+const CR_SQL=["query","create_tabelle","query_due_passi","vincoli","campo_prova"],CR_PHP=["pagina_php"];
+/* linguaggio di una riga CodeRunner, come in da_dashboard.py: tipologia, sezione === linguaggio,
+   altrimenti i test (SQL iniziano con «--» o con [[struttura]], JavaScript con «//») */
+function linguaggioCR(r,ss){
+  if(CR_WEB[r.tipologia])return CR_WEB[r.tipologia];
+  const lg=(ss||sezioniCR(r.coderunner)).find(function(x){return x.k==="linguaggio";});
+  if(lg&&(lg.t.trim()||lg.arg))return (lg.t.trim()||lg.arg).toLowerCase();
+  if(CR_SQL.indexOf(r.tipologia)>=0)return "sql";
+  if(CR_PHP.indexOf(r.tipologia)>=0)return "php";
+  const S2=ss||sezioniCR(r.coderunner);
+  if(S2.some(function(x){return (x.k==="answer"&&/^\s*<\?php/.test(x.t))||(x.k==="test"&&/\$_(GET|POST)\b|FakeDB::/.test(x.t));}))return "php";
+  const t=S2.find(function(x){return x.k==="test";});
+  if(t&&/^\s*(--|\[\[struttura)/.test(t.t))return "sql";
+  return "js";
+}
+/* database del quiz: campo «database», elenco di {nome, sql} (accetta anche un oggetto nome → sql) */
+function dbList(q){
+  const d=q&&q.database;if(!d)return [];
+  if(Array.isArray(d))return d.map(function(x){return {nome:String((x&&x.nome)||""),sql:String((x&&x.sql)||"")};});
+  if(typeof d==="string")return [{nome:"db",sql:d}];
+  return Object.keys(d).map(function(k){return {nome:k,sql:String(d[k]||"")};});
+}
+function tabelleDi(sql){const out=[];String(sql||"").replace(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?[`"\[]?(\w+)/gi,function(m,t){out.push(t);return m;});return out;}
+function righeDi(sql){let n=0;String(sql||"").replace(/INSERT\s+INTO[\s\S]*?VALUES([\s\S]*?);/gi,function(m,v){n+=(v.match(/\(/g)||[]).length;return m;});return n;}
+function deduciDati(ans){const a=String(ans||"").toUpperCase();if(/\bCREATE\s+TABLE\b/.test(a))return "vuoto";if(/\bINSERT\b/.test(a)&&!/\b(SELECT|UPDATE|DELETE)\b/.test(a))return "struttura";return "pieno";}
+const DATI={pieno:"tabelle e righe",struttura:"tabelle senza righe",vuoto:"nessuna tabella"};
+function dbDellaRiga(q,I){const L=dbList(q);if(I.opzioni.database)return I.opzioni.database;return L.length===1?L[0].nome:"";}
+function sezioniCR(src){
+  const out=[];let cur=null;
+  String(src||"").replace(/\r/g,"").split("\n").forEach(function(l){
+    const m=l.match(/^=== *(\w+)(?:\s+(.*))?$/);
+    if(m){cur={k:m[1].toLowerCase(),arg:(m[2]||"").trim(),v:[]};out.push(cur);}else if(cur)cur.v.push(l);
+  });
+  out.forEach(function(x){x.t=x.v.join("\n").replace(/^\n+|\n+$/g,"");});
+  return out;
+}
+function crInfo(r){
+  const ss=sezioniCR(r.coderunner),c=CAT[r.tipologia],I={opzioni:{},tests:[],answer:null,preload:null,code:null,linguaggio:null};
+  ss.forEach(function(x){
+    if(x.k==="test"){I.tests.push({hide:/HIDE/i.test(x.arg),code:x.t,stdin:"",extra:"",expected:"",descrizione:""});return;}
+    if((x.k==="stdin"||x.k==="extra"||x.k==="expected"||x.k==="descrizione")&&I.tests.length){I.tests[I.tests.length-1][x.k]=x.t;return;}
+    if(x.k==="options")x.t.split("\n").forEach(function(l){const m=l.match(/^\s*([\w]+)\s*:\s*(.*)$/);if(m)I.opzioni[m[1]]=m[2].trim();});
+    else if(x.k==="answer")I.answer=x.t;
+    else if(x.k==="preload")I.preload=x.t;
+    else if(x.k==="code")I.code=x.t;
+    else if(x.k==="linguaggio")I.linguaggio=x.t.trim()||x.arg;
+  });
+  I.lang=linguaggioCR(r,ss);
+  I.sql=I.lang==="sql";
+  I.php=I.lang==="php";
+  I.gap=!I.sql&&!I.php&&(r.tipologia==="compl_eseguito"||I.code!=null);
+  I.web=CR_WEB[r.tipologia]||null;
+  if(I.web)I.gap=false;
+  I.prototipo=I.web?PROTO_WEB[I.web]+(PROTO_WEB[I.web]==="php_con_test"?" (con lo scratchpad, senza test, correzione a mano)":" (senza test, correzione a mano)"):I.sql?"sql_salvemini (SQLite 3.46 su Jobe)":I.php?"php_mysqli_sqlite (PHP vero, query su SQLite)":I.gap?"Javascript (con gapfiller)":"Javascript (con prompt)";
+  I.spazi=I.code?(I.code.match(/\{\[\d+(?:-\d+)?\]\}/g)||[]).length:0;
+  I.risposte=I.answer!=null?I.answer.split("\n").filter(function(l){return l.trim()!=="";}):[];
+  return I;
+}
+function inCella(t){return String(t||"").trim()?"<code>"+esc(t).replace(/\n/g,"<br>")+"</code>":'<span class="muted">nessuno</span>';}
+function codiceHTML(t,gap){
+  let h=esc(t);
+  if(gap)h=h.replace(/\{\[(\d+)(?:-\d+)?\]\}/g,function(m,w){return '<span class="gap" style="min-width:'+Math.max(2,Math.min(30,Number(w)))*0.62+'em"></span>';});
+  return '<pre class="code"><code>'+h+"</code></pre>";
+}
+function crStudenteHTML(r){
+  const I=crInfo(r);if(!String(r.coderunner||"").trim())return "";
+  let h="";
+  if(I.gap&&I.code!=null)h+='<p class="crl">Codice da completare (le caselle sono gli spazi):</p>'+codiceHTML(I.code,true);
+  else if(I.preload)h+='<p class="crl">Nella casella della risposta, già scritto:</p>'+codiceHTML(I.preload,false);
+  else h+='<p class="crl">Casella della risposta: vuota.</p>';
+  if(I.php){
+    h+='<p class="crl muted">In fondo al testo si aggiunge da solo il riquadro «N.B. questa è una simulazione» (SQLite al posto di MySQL). Nei risultati lo studente vede la descrizione di ogni prova, non il suo codice.</p>';
+    return '<div class="crbox">'+h+"</div>";
+  }
+  if(I.sql){
+    if(I.opzioni.precheck==="1")h+='<p class="crl">Sotto la casella c\'è anche il pulsante <strong>Precheck</strong>: controlla solo la sintassi.</p>';
+    return '<div class="crbox">'+h+"</div>";
+  }
+  if(I.web)h+='<p class="crl muted">In Moodle, sotto la traccia, si aggiunge da solo il riquadro arancio «Attenzione al controllo automatico»: il pulsante salva il codice, non lo corregge'+(PROTO_WEB[I.web]==="php_con_test"?", e per vedere la pagina c'è l'area di prova (scratchpad)":"")+'.</p>';
+  const es=(I.opzioni.esempi||"primo");
+  const ex=I.tests.filter(function(t){return !t.hide;}).slice(0,es==="tutti"?99:es==="nessuno"?0:1);
+  if(ex.length)h+='<p class="crl">Per esempio:</p><div class="tbl"><table><thead><tr><th scope="col">Test</th><th scope="col">Input</th><th scope="col">Risultato atteso</th></tr></thead><tbody>'+
+    ex.map(function(t){return "<tr><td><code>"+esc(t.code).replace(/\n/g,"<br>")+"</code></td><td>"+inCella(t.stdin)+'</td><td class="muted">calcolato in parte 2 eseguendo la soluzione</td></tr>';}).join("")+"</tbody></table></div>";
+  return '<div class="crbox">'+h+"</div>";
+}
+function crDocenteHTML(r){
+  const I=crInfo(r);if(!String(r.coderunner||"").trim())return "";
+  const op=Object.keys(I.opzioni).map(function(k){return "<code>"+esc(k)+": "+esc(I.opzioni[k])+"</code>";}).join(" ");
+  let h='<p class="kh"><strong>Prototipo</strong> · '+esc(I.prototipo)+(op?" · "+op:"")+"</p>";
+  if(I.gap)h+='<p class="kh"><strong>Risposte degli spazi</strong> · una per spazio, in ordine</p><ol class="kc">'+I.risposte.map(function(x){return "<li><code>"+esc(x)+"</code></li>";}).join("")+"</ol>";
+  else if(I.answer!=null)h+='<p class="kh"><strong>Soluzione</strong></p>'+codiceHTML(I.answer,false);
+  if(I.web)return h;
+  if(I.php){
+    const nd=dbDellaRiga(S.quiz,I),db=dbList(S.quiz).find(function(x){return x.nome===nd;});
+    const norm=I.opzioni.normalizza!=="0";
+    h='<p class="kh"><strong>Database</strong> · '+(nd?"<code>"+esc(nd)+"</code>"+(db?" ("+esc(tabelleDi(db.sql).join(", "))+")":" <strong>non definito nel quiz</strong>"):"<strong>da scegliere</strong>")+" · nome da usare in <code>mysqli_connect</code>: <code>"+esc(nd||"?")+"</code></p>"+h;
+    if(I.preload)h+='<p class="kh"><strong>Codice di partenza</strong></p>'+codiceHTML(I.preload,false);
+    return h+'<p class="kh"><strong>Prove</strong> · '+I.tests.length+" <small>· output "+(norm?"normalizzato (spazi e a capo non contano)":"confrontato così com'è")+"; gli attesi non scritti li calcola la parte 2 eseguendo la soluzione</small></p>"+
+      '<div class="tbl"><table><thead><tr><th scope="col">#</th><th scope="col">Che cosa vede lo studente</th><th scope="col">Codice della prova</th><th scope="col">Atteso</th></tr></thead><tbody>'+
+      I.tests.map(function(t,k){return "<tr><td>"+(k+1)+(t.hide?" <small>nascosta</small>":"")+"</td><td>"+(t.descrizione?esc(t.descrizione):'<span class="muted">manca la descrizione</span>')+"</td><td><code>"+esc(t.code).replace(/\n/g,"<br>")+"</code></td><td>"+(t.expected?"<code>"+esc(t.expected).replace(/\n/g,"<br>")+"</code>":'<span class="muted">calcolato</span>')+"</td></tr>";}).join("")+"</tbody></table></div>";
+  }
+  if(I.sql){
+    const nd=dbDellaRiga(S.quiz,I),dati=I.opzioni.dati||deduciDati(I.answer),db=dbList(S.quiz).find(function(x){return x.nome===nd;});
+    h='<p class="kh"><strong>Database</strong> · '+(nd?"<code>"+esc(nd)+"</code>"+(db?" ("+esc(tabelleDi(db.sql).join(", "))+")":" <strong>non definito nel quiz</strong>"):"<strong>da scegliere</strong>")+" · "+esc(dati)+": "+esc(DATI[dati]||"")+(I.opzioni.dati?"":" <small>(dedotto dalla soluzione)</small>")+"</p>"+h;
+    return h+'<p class="kh"><strong>Test</strong> · '+I.tests.length+' <small>· gli output li calcola la parte 2 eseguendo la soluzione sul database</small></p><div class="tbl"><table><thead><tr><th scope="col">#</th><th scope="col">Codice del test</th><th scope="col">Extra</th></tr></thead><tbody>'+
+      I.tests.map(function(t,k){return "<tr><td>"+(k+1)+(t.hide?" <small>nascosto</small>":"")+"</td><td><code>"+esc(t.code).replace(/\n/g,"<br>")+"</code></td><td>"+(t.extra?"<code>"+esc(t.extra).replace(/\n/g,"<br>")+"</code>":"")+"</td></tr>";}).join("")+"</tbody></table></div>";
+  }
+  h+='<p class="kh"><strong>Test</strong> · '+I.tests.length+'</p><div class="tbl"><table><thead><tr><th scope="col">#</th><th scope="col">Codice del test</th><th scope="col">Input</th><th scope="col">Extra</th></tr></thead><tbody>'+
+    I.tests.map(function(t,k){return "<tr><td>"+(k+1)+(t.hide?" <small>nascosto</small>":"")+"</td><td><code>"+esc(t.code).replace(/\n/g,"<br>")+"</code></td><td>"+inCella(t.stdin)+"</td><td>"+esc(t.extra)+"</td></tr>";}).join("")+"</tbody></table></div>";
+  return h;
+}
+function controlliCR(q,r,add){
+  const c=CAT[r.tipologia],w=r.pos||"senza posizione";
+  if(!isCR(c))return;
+  if(!String(r.coderunner||"").trim()){if(String(r.traccia||"").trim())add("warn",w+": domanda CodeRunner senza «Soluzione e test».",r.id);return;}
+  const I=crInfo(r);
+  if(I.answer==null||!I.answer.trim())add("err",w+": manca la soluzione (=== answer).",r.id);
+  if(I.web){
+    sezioniCR(r.coderunner).forEach(function(x){if(["answer","preload","options","linguaggio"].indexOf(x.k)<0)add("err",w+": esercizio "+I.web.toUpperCase()+" senza test: la sezione === "+x.k+" non è prevista (solo answer, preload, options).",r.id);});
+    Object.keys(I.opzioni).forEach(function(k){if(["righe","colonne","answerboxlines","answerboxcolumns"].indexOf(k)<0)add("err",w+": opzione «"+k+"» non prevista (solo righe e colonne della casella).",r.id);});
+    if(!String(r.correzione||"").trim())add("warn",w+": esercizio a correzione manuale senza «Correzione»: criteri e punti vanno lì (in Moodle diventano il feedback generale).",r.id);
+    if(campiDi(r.traccia).length||opzioniTraccia(r.traccia).length)add("warn",w+": in una domanda CodeRunner la traccia non ha campi Cloze né opzioni.",r.id);
+    return;
+  }
+  if(I.php){
+    if(!I.tests.length)add("err",w+": nessuna prova (=== test).",r.id);
+    sezioniCR(r.coderunner).forEach(function(x){if(["answer","preload","test","descrizione","expected","options","linguaggio"].indexOf(x.k)<0)add("err",w+": nelle domande PHP la sezione === "+x.k+" non è prevista (answer, preload, test, descrizione, expected, options).",r.id);});
+    if(I.answer!=null&&!/^\s*<\?php/.test(I.answer))add("err",w+": la soluzione deve iniziare con <?php.",r.id);
+    if(I.preload&&!/^\s*<\?php/.test(I.preload))add("err",w+": il codice di partenza deve iniziare con <?php.",r.id);
+    if(I.tests.some(function(t){return !t.descrizione;}))add("warn",w+": ogni prova ha bisogno di === descrizione: è l'unica cosa che lo studente vede della prova.",r.id);
+    if(I.tests.length&&I.tests.length<3&&r.tipologia==="pagina_php")add("info",w+": "+I.tests.length+" prove: di norma 3 o 4 con dati del form diversi, almeno una con risultato vuoto o errore.",r.id);
+    const L=dbList(q);
+    if(L.length&&I.opzioni.database&&!L.some(function(x){return x.nome===I.opzioni.database;}))add("err",w+": database «"+I.opzioni.database+"» non definito nel quiz.",r.id);
+    if(L.length>1&&!I.opzioni.database)add("err",w+": il quiz ha più database: indica quale con «database: nome» in === options.",r.id);
+    const nd=dbDellaRiga(q,I);
+    if(nd&&I.answer&&!new RegExp("(mysqli_connect\\s*\\([^)]*|\\$nomedb\\s*=\\s*)[\"']"+nd.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"[\"']").test(I.answer)&&/mysqli_connect/.test(I.answer))add("warn",w+": la soluzione non si collega al database «"+nd+"» (nome da usare in $nomedb o in mysqli_connect).",r.id);
+    if(campiDi(r.traccia).length||opzioniTraccia(r.traccia).length)add("warn",w+": in una domanda CodeRunner la traccia non ha campi Cloze né opzioni.",r.id);
+    return;
+  }
+  if(I.sql){
+    if(!I.tests.length)add("err",w+": nessun test (=== test).",r.id);
+    sezioniCR(r.coderunner).forEach(function(x){if(["answer","preload","test","extra","expected","options","linguaggio"].indexOf(x.k)<0)add("err",w+": nelle domande SQL la sezione === "+x.k+" non è prevista (answer, preload, test, extra, expected, options).",r.id);});
+    if(I.tests.some(function(t){return !/^\s*(--|\[\[struttura)/.test(t.code);}))add("info",w+": ogni test inizia con un commento «-- …» che descrive che cosa si guarda (o con [[struttura Tabella]]).",r.id);
+    const L=dbList(q);
+    if(L.length){
+      if(I.opzioni.database&&!L.some(function(x){return x.nome===I.opzioni.database;}))add("err",w+": database «"+I.opzioni.database+"» non definito nel quiz (definiti: "+L.map(function(x){return x.nome;}).join(", ")+").",r.id);
+      if(!I.opzioni.database&&L.length>1)add("err",w+": il quiz ha più database: indica quale con «database: nome» in === options.",r.id);
+    }
+    if(I.opzioni.dati&&!DATI[I.opzioni.dati])add("err",w+": «dati: "+I.opzioni.dati+"» non valido (pieno, struttura, vuoto).",r.id);
+    const A=String(I.answer||"");
+    if(/^\s*SELECT\b/i.test(A)&&!/\bORDER\s+BY\b/i.test(A)&&!/\b(COUNT|SUM|AVG|MIN|MAX)\s*\(/i.test(A))add("info",w+": la soluzione è una SELECT senza ORDER BY: CodeRunner confronta le righe nell'ordine, quindi serve un ordinamento unico (senza pari merito), chiesto nella traccia solo dove fa parte del problema.",r.id);
+    if(/\bPRIMARY\s+KEY\s+AUTO_INCREMENT\b/i.test(A))add("warn",w+": PRIMARY KEY AUTO_INCREMENT in quest'ordine in SQLite è un errore di sintassi: AUTO_INCREMENT va prima di PRIMARY KEY.",r.id);
+    if(/\b(ENUM\s*\(|NOW\s*\(|CURDATE\s*\(|YEAR\s*\(|MONTH\s*\(|DATEDIFF\s*\(|TRUNCATE\s+TABLE|IF\s*\()/i.test(A))add("warn",w+": la soluzione usa un costrutto MySQL che SQLite non ha (ENUM, funzioni di data, TRUNCATE, IF): riformula la consegna.",r.id);
+    if(/\bCREATE\s+TABLE\b/i.test(A)&&I.tests.some(function(t){return /^\s*\.schema/m.test(t.code);}))add("err",w+": le CREATE si controllano con [[struttura Tabella]], mai con .schema.",r.id);
+    if(campiDi(r.traccia).length||opzioniTraccia(r.traccia).length)add("warn",w+": in una domanda CodeRunner la traccia non ha campi Cloze né opzioni.",r.id);
+    return;
+  }
+  if(!I.tests.length)add("err",w+": nessun test (=== test).",r.id);
+  else if(I.tests.length<3)add("info",w+": "+I.tests.length+(I.tests.length===1?" test":" test")+": di norma da tre a cinque, che coprano i rami del programma.",r.id);
+  if(I.tests.some(function(t){return !/^\s*\/\//.test(t.code);}))add("info",w+": ogni test inizia con un commento che descrive il caso (lo studente lo vede nei risultati).",r.id);
+  if(I.gap){
+    if(I.code==null)add("err",w+": completamento eseguito senza il codice con gli spazi (=== code).",r.id);
+    else if(I.spazi!==I.risposte.length)add("err",w+": "+I.spazi+(I.spazi===1?" spazio":" spazi")+" nel codice e "+I.risposte.length+(I.risposte.length===1?" risposta":" risposte")+": devono coincidere.",r.id);
+  }
+  if(/\b(alert|document)\s*[.(]/.test(I.answer||""))add("err",w+": la soluzione usa alert o document, che su Jobe non esistono: solo console.log.",r.id);
+  if(campiDi(r.traccia).length||opzioniTraccia(r.traccia).length)add("warn",w+": in una domanda CodeRunner la traccia non ha campi Cloze né opzioni.",r.id);
+}
+function controlliRiga(q,r,add){
+  controlliCR(q,r,add);
+  const c=CAT[r.tipologia],tr=String(r.traccia||""),w=r.pos||"senza posizione";
+  if(!c||!tr.trim())return;
+  const cs=campiDi(tr),gr=opzioniTraccia(tr),real=c.real;
+  if(/\[\[\d+\]\]/.test(tr))add("warn",w+": la traccia usa ancora i segnaposto [[n]]; i campi vanno scritti nella sintassi Cloze di Moodle.",r.id);
+  (tr.match(/^:::(\w+)/gm)||[]).forEach(function(x){const col=x.slice(3);if(BOX_COL.indexOf(col)<0)add("warn",w+": riquadro «"+col+"» sconosciuto (colori: "+BOX_COL.join(", ")+").",r.id);});
+  if(real==="Cloze"){
+    if(!cs.length&&!/\[\[\d+\]\]/.test(tr))add("warn",w+": è una Cloze ma la traccia non ha campi.",r.id);
+    if(gr.length)add("warn",w+": in una Cloze le scelte si scrivono come campo MULTICHOICE_S, non con ( ) o [ ].",r.id);
+    cs.forEach(function(f,k){
+      const n=k+1,op=opzioniCampo(f.cont);
+      if(/\\[\/"]/.test(f.cont))add("err",w+", campo "+n+": barra rovesciata davanti a / o \": nel tuo Moodle compare allo studente (si escapano solo } # ~).",r.id);
+      if(!op.some(function(o){return o.fr>0;}))add("err",w+", campo "+n+": nessuna risposta giusta (= o %100%).",r.id);
+      if(!/^(MULTICHOICE|MC)/.test(f.tipo)&&op.some(function(o){return /<[A-Za-z\/!]/.test(o.testo);}))add("err",w+", campo "+n+": la risposta contiene un tag, che Moodle leggerebbe come HTML. Nel campo va solo il nome del tag.",r.id);
+      if(/^(MULTICHOICE|MC)(_V|_H|V|H)?$/.test(f.tipo)&&cs.filter(function(g){return g.cont.split("~").length===f.cont.split("~").length;}).length===1)add("info",w+", campo "+n+": menù con ordine fisso; se non serve un ordine voluto usa MULTICHOICE_S.",r.id);
+    });
+    const peso=cs.reduce(function(a,f){return a+f.peso;},0);
+    if(q.tipoQuiz==="EDT"){if(cs.length&&Math.abs(peso*5-num(r.punti))>0.001)add("warn",w+": nella spiegazione solo teoria ogni campo vale 5 punti: "+cs.length+(cs.length===1?" campo":" campi")+" e "+f1(num(r.punti))+" punti.",r.id);}
+    else if(cs.length&&Math.abs(peso-num(r.punti))>0.001)add("info",w+": i campi pesano "+f1(peso)+" e la riga vale "+f1(num(r.punti))+" punti: nel quiz contano i punti della riga, il peso dei campi si riproporziona.",r.id);
+  }else if(["Risposta multipla","Vero/falso","Risposta breve"].indexOf(real)>=0){
+    if(!gr.length)add("warn",w+": mancano le opzioni, una per riga con ( ) o [ ] e (x) / [x] sulle giuste.",r.id);
+    else if(gr.length>1)add("warn",w+": ci sono "+gr.length+" gruppi di opzioni separati: ne serve uno solo.",r.id);
+    else if(!gr[0].some(function(x){return x.fr>0;}))add("err",w+": nessuna opzione è segnata come giusta con (x) o [x].",r.id);
+    if(gr.length&&real==="Risposta multipla"&&gr[0].some(function(x){return x.fr<100&&x.fr>0;})&&!gr[0].some(function(x){return x.multi;}))add("warn",w+": percentuali parziali con ( ): per più risposte giuste usa [ ].",r.id);
+    if(gr.length&&real==="Vero/falso"&&!(gr[0].some(function(x){return /^vero/i.test(x.testo);})&&gr[0].some(function(x){return /^falso/i.test(x.testo);})))add("warn",w+": vero/falso: servono le due opzioni «Vero» e «Falso».",r.id);
+    if(gr.length&&gr[0].some(function(x){return x.fr<=0&&!x.fb;}))add("info",w+": alcune opzioni sbagliate non hanno il feedback (riga «> …» sotto l'opzione).",r.id);
+    if(gr.length&&real==="Risposta multipla"&&gr[0].some(function(x){return x.multi;})){
+      const ng=gr[0].filter(function(x){return x.fr>0;}).length,ns=gr[0].filter(function(x){return x.fr<=0;}).length;
+      if(ng<2)add("warn",w+": con [ ] ci sono più risposte giuste, ma ne è segnata una sola: con una sola giusta usa ( ).",r.id);
+      const neg=gr[0].reduce(function(a,x){return a+(x.fr<0?x.fr:0);},0);
+      if(ns&&Math.abs(neg+100)>0.5)add("err",w+": più risposte giuste: le penalità delle sbagliate sommano "+f1(neg)+"%, devono fare −100% (chi spunta tutto deve prendere 0).",r.id);
+      if(!/selezion\w*\s+tutte/i.test(tr))add("info",w+": più risposte giuste: scrivi nella traccia «Seleziona tutte le risposte corrette» (l'istruzione standard di Moodle è nascosta).",r.id);
+    }
+    if(gr.length&&r.tipologia==="crocette"&&!gr[0].some(function(x){return x.multi;}))add("warn",w+": la tipologia è «più giuste», ma le opzioni sono scritte con ( ): usa [x] e [ ].",r.id);
+  }else if(real==="Aperta"){
+    if(!String(r.correzione||"").trim())add("warn",w+": domanda aperta senza «Correzione»: criteri e soluzione per chi corregge vanno lì.",r.id);
+  }else if(real==="Corrispondenza"){
+    const cop=coppieTraccia(tr),sx=cop.filter(function(c){return c.sx;});
+    if(!cop.length)add("warn",w+": corrispondenza senza righe «elemento <-> corrispondenza».",r.id);
+    else if(sx.length<2||cop.length<3)add("err",w+": servono almeno 2 elementi da abbinare e almeno 3 corrispondenze in tutto (le righe «<-> …» senza elemento sono risposte in più).",r.id);
+    if(cop.some(function(c){return !c.dx;}))add("err",w+": una riga «<->» non ha la corrispondenza a destra.",r.id);
+    if(cop.some(function(c){return /[`<]|\*\*/.test(c.dx);}))add("err",w+": a destra va testo semplice (compare in un menù): niente codice, tag o grassetto.",r.id);
+    const vs=sx.map(function(c){return c.sx;});if(vs.some(function(v,k){return vs.indexOf(v)!==k;}))add("err",w+": due righe hanno lo stesso elemento a sinistra.",r.id);
+    if(gr.length||cs.length)add("warn",w+": in una corrispondenza la traccia non ha campi Cloze né opzioni.",r.id);
+  }else if(real==="Descrizione"){
+    if(gr.length||cs.length)add("warn",w+": una pagina di spiegazione non può avere campi né opzioni.",r.id);
+  }
+}
+
+/* ------------------------------------------------------------------ stato */
+const S={db:null,comments:null,quizzes:[],quizId:null,quiz:null,rows:[],rowsFor:null,view:"home",sel:null,edit:null,
+  error:null,ready:false,avvisiOpen:true,noteOpen:true,dirty:{},del:null,confirmApprove:false,focusKey:null,unsubRows:null};
+const main=$("#main");
+const PREF="bozze-quiz-prefs";
+try{const p=JSON.parse(localStorage.getItem(PREF)||"{}");if(p.quizId)S.quizId=p.quizId;if(p.sel)S.sel=p.sel;}catch(e){}
+function persist(){try{localStorage.setItem(PREF,JSON.stringify({view:S.view,quizId:S.quizId,sel:S.sel}));}catch(e){}}
+function toast(msg,isErr){const t=$("#toast");t.textContent=msg;t.className="toast"+(isErr?" err":"");t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(function(){t.hidden=true;},4200);}
+
+const quizPath=function(){return "quiz/"+S.quizId;};
+const rowPath=function(id){return "quiz/"+S.quizId+"/domande/"+id;};
+const chains=new Map();
+function save(path,patch){
+  if(!S.db)return Promise.resolve();
+  const ref=S.db.doc(path);
+  const next=(chains.get(path)||Promise.resolve()).then(function(){return ref.update(patch);}).catch(function(e){toast("Salvataggio non riuscito"+(e&&e.code?" ("+e.code+")":"")+": la modifica non è stata registrata.",true);});
+  chains.set(path,next);return next;
+}
+
+/* ------------------------------------------------------------------ calcoli */
+function prefisso(q,r){const c=CAT[r.tipologia];if(!c)return "";if(r.tipologia==="paginablocco"&&(q.tipoQuiz==="RT"||q.tipoQuiz==="ER"))return "Ripasso";return c.pre;}
+function categoriaQuiz(q){const l=String(q.lezione||"").trim()||"?",g=q.argomento||q.titolo||"";return (/^\d/.test(l)||l==="?"?"Lezione "+l:l)+" - "+g;}
+function prefLezione(q){const l=String(q.lezione||"").trim()||"?";return /^\d/.test(l)||l==="?"?"L"+l:l;}
+function nomeMoodle(q,r){const pre=prefisso(q,r);return prefLezione(q)+" - "+(r.pos||"??")+" - "+(pre?pre+": ":"")+(r.titolo||"(senza titolo)");}
+/* verifiche ripetibili: righe con lo stesso tag = varianti di una posizione casuale; nei totali conta la prima */
+function tagDi(r){return String(r.tag||"").trim();}
+function gruppiTag(rows){const g={};rows.forEach(function(r){const t=tagDi(r).toLowerCase();if(t)(g[t]=g[t]||[]).push(r);});return g;}
+/* posizioni: una riga senza tag, o tutte le righe con lo stesso tag (le varianti), nell'ordine della scaletta */
+function unita(rows){
+  const out=[],per={};
+  rows.forEach(function(r){const t=tagDi(r).toLowerCase();if(!t){out.push({rows:[r],tag:"",id:r.id});return;}
+    if(per[t]){per[t].rows.push(r);return;}per[t]={rows:[r],tag:tagDi(r),id:r.id};out.push(per[t]);});
+  out.forEach(function(u){u.rows.sort(function(a,b){return lettera(a).localeCompare(lettera(b))||num(a.ordine)-num(b.ordine);});u.r=u.rows[0];u.var=u.tag&&true;});
+  return out;
+}
+function unitaDi(rows,id){return unita(rows).find(function(u){return u.rows.some(function(r){return r.id===id;});});}
+function lettera(r){const m=String(r.pos||"").match(/[a-z]$/);return m?m[0]:"";}
+function basePos(r){return String(r.pos||"").replace(/[a-z]$/,"");}
+function dbVariante(r){
+  const c=CAT[r.tipologia];
+  if(isCR(c)&&String(r.coderunner||"").trim()){const I=crInfo(r);if(I.opzioni.database)return I.opzioni.database;}
+  const m=String(r.sintesi||"").match(/^\s*\[([^\]]+)\]/);return m?m[1]:"";
+}
+function slug(t){return String(t||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").split("-").slice(0,3).join("-");}
+function tagProvvisorio(t){return /-nuova-/.test(String(t||""));}
+function tagPer(q,base,titolo){const cod=slug(String(q.lezione||"").trim()||S.quizId).replace(/-/g,"")||"quiz";return cod+"-"+base+(titolo?"-"+slug(titolo):"");}
+function contaRiga(rows,r){const t=tagDi(r).toLowerCase();if(!t)return true;return rows.find(function(x){return tagDi(x).toLowerCase()===t;})===r;}
+function usaTag(q,rows){return q.tipoQuiz==="V"||q.tipoQuiz==="VT"||rows.some(function(r){return tagDi(r);});}
+function calc(q,rows){
+  const P=TIPI[q.tipoQuiz]||TIPI.ED;
+  const tot={p:0,m:0,n:0,pag:0,man:0,manP:0};const gr={};
+  P.gruppi.forEach(function(g){gr[g.id]={g:g,p:0,m:0};});
+  gr.altro={g:{id:"altro",n:"Senza parte nel preset",p:null,m:null},p:0,m:0};
+  rows.forEach(function(r){
+    if(!contaRiga(rows,r))return;
+    const c=CAT[r.tipologia],p=num(r.punti),m=num(r.minuti);
+    tot.p+=p;tot.m+=m;if(c&&c.pagina)tot.pag++;else tot.n++;
+    if(c&&c.manuale){tot.man++;tot.manP+=p;}
+    const pt=P.parti.find(function(x){return x[0]===Number(r.parte);});
+    const a=gr[pt?pt[2]:"altro"];a.p+=p;a.m+=m;
+  });
+  return {P:P,tot:tot,gr:gr};
+}
+function avvisi(q,rows,C){
+  const P=C.P,tot=C.tot,gr=C.gr,out=[];
+  const add=function(sev,msg,id){out.push({sev:sev,msg:msg,id:id});};
+  if(!rows.length){add("info","Il quiz non ha ancora domande.");return out;}
+  const riv=rows.filter(function(r){return r.stato==="da-rivedere";});
+  if(riv.length)add("warn",(riv.length===1?"1 domanda è":riv.length+" domande sono")+" da rivedere: "+riv.map(function(r){return r.pos;}).join(", ")+". Aprile nel Dettaglio e approva o correggi.");
+  const seen={};rows.forEach(function(r){const n=nomeMoodle(q,r);(seen[n]=seen[n]||[]).push(r);});
+  Object.keys(seen).forEach(function(n){if(seen[n].length>1)add("err","Il nome «"+n+"» è ripetuto in "+seen[n].length+" domande: in Moodle i nomi devono essere unici.",seen[n][1].id);});
+  rows.forEach(function(r){
+    const c=CAT[r.tipologia],w=r.pos||"senza posizione";
+    if(!r.titolo)add("warn","La domanda "+w+" non ha il titolo.",r.id);
+    if(!c)add("warn","La domanda "+w+" non ha la tipologia.",r.id);
+    else if(!prevista(c,q))add("warn",w+": «"+c.nome+"» non è prevista per questo tipo di quiz ("+P.nome.toLowerCase()+").",r.id);
+    controlliRiga(q,r,add);
+  });
+  const nSql=rows.filter(function(r){return isCR(CAT[r.tipologia])&&String(r.coderunner||"").trim()&&["sql","php"].indexOf(linguaggioCR(r))>=0;}).length;
+  if(nSql&&!dbList(q).length)add("err","Il quiz ha "+nSql+(nSql===1?" domanda SQL o PHP":" domande SQL o PHP")+" ma nessun database: mettilo nel riquadro «Database del quiz» (dal catalogo «Database didattici»).");
+  dbList(q).forEach(function(d){if(!d.nome.trim()||/\s/.test(d.nome))add("err","Database «"+d.nome+"»: il nome non può essere vuoto né contenere spazi.");else if(!tabelleDi(d.sql).length)add("warn","Database «"+d.nome+"»: non trovo nessuna CREATE TABLE.");});
+  const GT=gruppiTag(rows);
+  Object.keys(GT).forEach(function(k){
+    const g=GT[k],nomi=g.map(function(r){return r.pos;}).join(", "),t=tagDi(g[0]);
+    ["punti","pag","sezione"].forEach(function(f,i){if(new Set(g.map(function(r){return String(r[f]==null?"":r[f]);})).size>1)add("err","Le varianti del tag «"+t+"» ("+nomi+") hanno "+["punti","pagine","sezioni"][i]+" diversi: devono essere uguali.",g[1].id);});
+    if(g.length<2)add("warn","Il tag «"+t+"» ha una sola variante ("+nomi+"): la posizione pescherà sempre la stessa domanda.",g[0].id);
+    if(new Set(g.map(function(r){return r.tipologia;})).size>1)add("info","Le varianti del tag «"+t+"» ("+nomi+") sono di tipologie diverse.",g[0].id);
+    if(new Set(g.map(function(r){return num(r.minuti);})).size>1)add("info","Le varianti del tag «"+t+"» ("+nomi+") hanno minuti diversi: nei totali conta la prima.",g[0].id);
+    const ix=g.map(function(r){return rows.indexOf(r);});if(ix[ix.length-1]-ix[0]+1!==g.length)add("warn","Le varianti del tag «"+t+"» ("+nomi+") non sono consecutive nella scaletta.",g[0].id);
+    if(/\s/.test(t))add("err","Il tag «"+t+"» contiene spazi: usa i trattini (es. rjs4-T1-assegnamento).",g[0].id);
+    g.forEach(function(r){const c=CAT[r.tipologia];if(c&&c.pagina)add("err",(r.pos||"")+": una pagina non può avere un tag (le pagine restano fisse).",r.id);});
+  });
+  if(Object.keys(GT).length)add("info","Verifica ripetibile: "+Object.keys(GT).length+" posizioni casuali per tag con "+Object.keys(GT).reduce(function(a,k){return a+GT[k].length;},0)+" varianti. Nei totali ogni posizione conta una volta.");
+  if(P.cinque){const no5=rows.filter(function(r){const p=num(r.punti);return p>0&&Math.abs(p/5-Math.round(p/5))>1e-9;});if(no5.length)add("warn","Punti non multipli di 5 in "+no5.map(function(r){return r.pos;}).join(", ")+": nella spiegazione solo teoria i punti vanno a multipli di 5.",no5[0].id);}
+  if(P.p100&&Math.abs(tot.p-100)>0.001)add(tot.p>100?"err":"warn","Il totale dei punti è "+f1(tot.p)+": dovrebbe essere 100.");
+  const T=num(q.tempo);
+  if(P.importato)add("info","Quiz importato da un backup Moodle: nessun preset, quindi nessuna regola su punti, tempi, parti e tipologie. Per applicarle scegli un tipo di quiz nei dati del quiz.");
+  else if(!T)add("warn","Il tempo disponibile non è impostato.");
+  else if(P.tempoRule==="quota"){
+    const k=tot.m/T;
+    if(k>0.85)add("warn","I tempi consigliati sommano "+tot.m+" minuti su "+T+": restano pochi minuti per provare il codice e rileggere (previsti circa i tre quarti, "+Math.round(T*0.75)+").");
+    else if(k<0.65)add("info","I tempi consigliati sommano "+tot.m+" minuti su "+T+": restano molti minuti liberi (previsti circa i tre quarti, "+Math.round(T*0.75)+").");
+  }else{
+    if(tot.m>T)add("err","I tempi sommano "+tot.m+" minuti: superano di "+(tot.m-T)+" i "+T+" disponibili.");
+    else if(T-tot.m<5)add("warn","Il margine è di "+(T-tot.m)+" minuti: ne servono almeno 5 per gli imprevisti.");
+  }
+  if(!String(q.lezione||"").trim())add("info","Il numero di lezione non è impostato: i nomi delle domande mostrano «L?».");
+  const byPag={};rows.forEach(function(r){if(contaRiga(rows,r))(byPag[r.pag]=byPag[r.pag]||[]).push(r);});
+  Object.keys(byPag).forEach(function(pg){const rs=byPag[pg];if(rs.length>1&&rs.some(function(r){return CAT[r.tipologia]&&CAT[r.tipologia].propria;}))add("warn","Pagina "+pg+": contiene "+rs.map(function(r){return r.pos||"?";}).join(", ")+", ma le domande di programmazione stanno su una pagina da sole.",rs[0].id);});
+  for(let i=1;i<rows.length;i++)if(num(rows[i].pag)<num(rows[i-1].pag)){add("warn","Il numero di pagina scende da "+rows[i-1].pag+" ("+rows[i-1].pos+") a "+rows[i].pag+" ("+rows[i].pos+").",rows[i].id);break;}
+  if(tot.man)add("info",tot.man+(tot.man===1?" domanda richiede":" domande richiedono")+" la correzione a mano ("+f1(tot.manP)+" punti).");
+  P.gruppi.forEach(function(g){
+    const a=gr[g.id],tp=target(g,"p"),tm=target(g,"m");
+    if(tp&&off(a.p,tp))add("warn",g.n+": "+f1(a.p)+" punti, l'obiettivo è "+tp.label+".");
+    if(tm&&off(a.m,tm))add("info",g.n+": "+f1(a.m)+" minuti, previsti "+tm.label+".");
+  });
+  if(P.seq){
+    [[5,"il debugging"],[6,"l'esercizio guidato"],[7,"l'esercizio finale"]].forEach(function(x){if(!rows.some(function(r){return Number(r.parte)===x[0];}))add("warn","Manca "+x[1]+".");});
+    const secs={};rows.forEach(function(r){(secs[r.sezione]=secs[r.sezione]||[]).push(r);});
+    Object.keys(secs).forEach(function(s){const rs=secs[s];const i4=rs.findIndex(function(r){return Number(r.parte)===4;}),i5=rs.findIndex(function(r){return Number(r.parte)===5;});if(i4>=0&&i5>=0&&i5<i4)add("warn",s+": il debugging ("+rs[i5].pos+") viene prima del completamento ("+rs[i4].pos+").",rs[i5].id);});
+    rows.forEach(function(r){if(Number(r.parte)===5&&r.tipologia&&["trova_errore","debug_msg","debug_silenzioso"].indexOf(r.tipologia)<0)add("warn",r.pos+": una domanda di debugging dovrebbe essere «Trova l'errore» o «Debug».",r.id);});
+    const SO={"quanti-dove":2,"solo-quanti":1,"nulla":0},deb=rows.filter(function(r){return Number(r.parte)===5;});
+    const noS=deb.filter(function(r){return !(r.sostegno in SO);});
+    if(noS.length)add("info","Sostegno non deciso per "+noS.map(function(r){return r.pos;}).join(", ")+".",noS[0].id);
+    const sq=deb.filter(function(r){return r.sostegno in SO;});
+    for(let i=1;i<sq.length;i++)if(SO[sq[i].sostegno]>SO[sq[i-1].sostegno]){add("warn","Il sostegno nel debugging cresce da "+sq[i-1].pos+" a "+sq[i].pos+": dovrebbe calare lungo la sequenza.",sq[i].id);break;}
+    const st=rows.filter(function(r){return [4,6,7].indexOf(Number(r.parte))>=0&&!r.strumento;});
+    if(st.length)add("info","Strumento non deciso per "+st.map(function(r){return r.pos;}).join(", ")+".",st[0].id);
+    const fin=rows.filter(function(r){return Number(r.parte)===7;});
+    if(fin.length>1&&fin.every(function(r){return r.strumento==="suggerito";}))add("info","Tutti gli esercizi finali suggeriscono lo strumento: nessuno chiede di sceglierlo da solo.",fin[fin.length-1].id);
+  }
+  const ord={err:0,warn:1,info:2};
+  return out.map(function(x,i){return {x:x,i:i};}).sort(function(a,b){return ord[a.x.sev]-ord[b.x.sev]||a.i-b.i;}).map(function(o){return o.x;});
+}
+/* obiettivo di una parte: {a,b,tol,label}; null se non definito */
+function target(g,k){
+  const v=g[k];if(v==null)return null;
+  if(Array.isArray(v))return {a:v[0],b:v[1],tol:0,label:v[0]+"–"+v[1]};
+  return k==="p"?{a:v,b:v,tol:4.99,label:String(v)}:{a:v,b:v,tol:5,label:"circa "+v};
+}
+function off(val,t){return val<t.a-t.tol-1e-9||val>t.b+t.tol+1e-9;}
+
+/* ------------------------------------------------------------------ viste */
+function renderHeader(){
+  const qs=$("#quizSel");
+  const opt=function(q){return '<option value="'+esc(q.id)+'"'+(q.id===S.quizId?" selected":"")+">"+esc(q.titolo||q.id)+"</option>";};
+  const att=S.quizzes.filter(function(q){return !q.archiviato;}),arc=S.quizzes.filter(function(q){return q.archiviato;});
+  qs.innerHTML=S.quizzes.length?att.map(opt).join("")+(arc.length?'<optgroup label="Archiviati ('+arc.length+')">'+arc.map(opt).join("")+"</optgroup>":""):"<option>Nessun quiz</option>";
+  qs.disabled=!S.quizzes.length;
+  ["home","scaletta","dettaglio"].forEach(function(v){$("#tab-"+v).setAttribute("aria-selected",(S.view===v||(v==="home"&&S.view==="nuovo"))?"true":"false");});
+}
+/* ------------------------------------------------------------------ vista iniziale e nuovo quiz */
+const VERSIONE_PAGINA="0.1.0";
+const PERCORSO_IMPOSTAZIONI="impostazioni/avvio";
+function triggerAvvio(){return S.imp&&typeof S.imp.trigger==="string"&&/^trig_[A-Za-z0-9]+$/.test(S.imp.trigger)?S.imp.trigger:"";}
+const CONNETTORE="Claude Code Remote";
+const CLASSI=[["","Scegli"],["terza","Terza"],["quarta","Quarta"],["quinta","Quinta"]];
+const LINGUAGGI=[["","Scegli"],["teoria","Teoria, senza codice"],["html-css","HTML e CSS"],["javascript","JavaScript"],["sql","SQL"],["php","PHP"],["misto","Misto"]];
+const DESCR_TIPO={ED:"Spiegazione dentro il quiz, poi esercizi guidati e finali: un'ora e mezza.",EDT:"Pagine di spiegazione seguite da domande di comprensione, senza codice.",V:"Verifica di programmazione con voto: parte base e parte avanzata.",VT:"Verifica di teoria con voto, per livelli di Bloom.",RT:"Ripasso di teoria senza voto: risposte e spiegazioni visibili subito.",EP:"Solo esercizi, senza spiegazione: tipica per casa.",ER:"Rispiega gli argomenti dell'anno prima, a inizio anno."};
+function nuovoVuoto(){return {tipoQuiz:"",titolo:"",lezione:"",classe:"",argomento:"",tempo:"",linguaggio:"",varianti:"1",avanzata:"",richiesta:"",materiale:false};}
+function faseLabel(f){return label(FASI,f)||"Senza fase";}
+function homeHTML(){
+  const att=S.quizzes.filter(function(q){return !q.archiviato;}),arc=S.quizzes.filter(function(q){return q.archiviato;});
+  const card=function(q){const P=TIPI[q.tipoQuiz];return '<button class="qcard" data-act="apri-quiz" data-id="'+esc(q.id)+'"><span class="qct">'+esc(q.titolo||q.id)+'</span><span class="qcm">'+esc(P?P.nome:"Tipo da scegliere")+(q.lezione?" · "+esc(q.lezione):"")+(q.tempo?" · "+esc(q.tempo)+" min":"")+'</span><span class="qcm">'+esc(q.argomento||"")+"</span>"+(q.fase==="richiesta"?tag("info","info",q.inLavorazione?"Claude sta scrivendo la scaletta":"In attesa della scaletta"):tag(q.fase==="dettaglio-approvato"?"ok":"plain",q.fase==="dettaglio-approvato"?"check":"info",faseLabel(q.fase)))+"</button>";};
+  return '<div class="stack"><div class="tbar"><h2>Quiz attivi</h2><div class="sp"><button class="btn primary" data-act="nuovo-quiz">'+ico("plus")+"Nuovo quiz</button></div></div>"+
+    (!S.quizzes.length?benvenutoHTML():att.length?'<div class="qgrid">'+att.map(card).join("")+"</div>":'<p class="muted">Nessun quiz attivo. Crea il primo con «Nuovo quiz».</p>')+
+    (arc.length?'<details class="panel"><summary>Archiviati ('+arc.length+")"+ico("chev","chev")+'</summary><div class="panel-body"><div class="qgrid">'+arc.map(card).join("")+"</div></div></details>":"")+impostazioniHTML()+"</div>";
+}
+function benvenutoHTML(){
+  return '<div class="rivbox infobox" role="status"><div class="rivt">'+ico("info")+'<strong>Benvenuto nella dashboard dei quiz</strong></div>'+
+    '<p>Qui prepari i quiz Moodle insieme a Claude. Il percorso:</p><ol class="welcome">'+
+    "<li><strong>Nuovo quiz</strong>: tipo, titolo, lezione, classe, argomento, tempo e la richiesta a parole. «Inizia» salva il quiz e avvia una sessione di Claude.</li>"+
+    "<li>Claude scrive la <strong>scaletta</strong>: la rivedi nella vista Scaletta, correggi o commenti, e la approvi.</li>"+
+    "<li>In chat chiedi a Claude di scrivere il <strong>dettaglio</strong> (tracce, correzioni, soluzioni e test): lo rivedi nella vista Dettaglio e lo approvi.</li>"+
+    "<li>Chiedi in chat di <strong>generare il quiz</strong>: ricevi il backup .mbz da ripristinare nel corso Moodle.</li></ol>"+
+    '<p class="muted">Un quiz già fatto in Moodle si porta qui dando a Claude il suo backup (.mbz, con «Includi file»).</p></div>';
+}
+function impostazioniHTML(){
+  const t=triggerAvvio();
+  return '<details class="panel" id="imp"'+(S.impOpen?" open":"")+'><summary>Impostazioni '+(t?tag("ok","check","avvio automatico attivo"):tag("plain","info","avvio automatico non configurato"))+ico("chev","chev")+'</summary><div class="panel-body">'+
+    "<p>«Inizia» avvia la sessione di Claude con un'attività programmata del tuo account, che Claude crea quando installa la dashboard. Senza, «Inizia» salva il quiz e ti dà una frase da incollare in chat.</p>"+
+    '<label class="fld wide"><span>Id dell\'attività «Avvia quiz dalla dashboard»</span><input class="ctl mono" id="impTrigger" value="'+esc(S.impBozza!=null?S.impBozza:t)+'" placeholder="trig_…" spellcheck="false"></label>'+
+    '<div class="actrow"><button class="btn" data-act="salva-imp">Salva</button><span class="hint">Versione della pagina '+esc(VERSIONE_PAGINA)+(S.imp&&S.imp.versione&&S.imp.versione!==VERSIONE_PAGINA?" · impostazioni scritte con la "+esc(S.imp.versione):"")+"</span></div></div></details>";
+}
+function nuovoHTML(){
+  const n=S.nuovo||(S.nuovo=nuovoVuoto()),ver=n.tipoQuiz==="V"||n.tipoQuiz==="VT";
+  const k=function(f){return 'data-nv="'+f+'" data-k="nv:'+f+'"';};
+  const fld=function(lbl,html,req,wide){return '<label class="fld'+(wide?" wide":"")+'"><span>'+lbl+(req?' <b class="req" aria-hidden="true">*</b>':"")+"</span>"+html+"</label>";};
+  const errs=S.nuovoErr||[];
+  const stato=S.avvio;
+  let h='<div class="stack"><div class="tbar"><h2>Nuovo quiz</h2><div class="sp"><button class="btn" data-act="annulla-nuovo">Annulla</button></div></div>';
+  if(stato&&stato.id){
+    h+=avvioHTML(stato);
+    return h+"</div>";
+  }
+  h+='<section class="meta nform" aria-label="Dati del nuovo quiz">'+
+    fld("Tipo di quiz",'<select class="ctl" '+k("tipoQuiz")+' aria-required="true">'+opts([["","Scegli"]].concat(tipiScelta("").map(function(t){return [t,TIPI[t].nome];})),n.tipoQuiz)+"</select>"+(n.tipoQuiz?'<small class="muted">'+esc(DESCR_TIPO[n.tipoQuiz]||"")+"</small>":""),true,true)+
+    fld("Titolo",'<input class="ctl" '+k("titolo")+' value="'+esc(n.titolo)+'" placeholder="Compare nel menù" aria-required="true">',true,true)+
+    fld("Lezione o codice",'<input class="ctl" '+k("lezione")+' value="'+esc(n.lezione)+'" placeholder="3, oppure V5R" aria-required="true">',true)+
+    fld("Classe",'<select class="ctl" '+k("classe")+' aria-required="true">'+opts(CLASSI,n.classe)+"</select>",true)+
+    fld("Argomento",'<input class="ctl" '+k("argomento")+' value="'+esc(n.argomento)+'" placeholder="Diventa la categoria in Moodle" aria-required="true">',true,true)+
+    fld("Tempo disponibile (minuti)",'<input class="ctl" type="number" min="1" '+k("tempo")+' value="'+esc(n.tempo)+'" aria-required="true">',true)+
+    fld("Linguaggio",'<select class="ctl" '+k("linguaggio")+">"+opts(LINGUAGGI,n.linguaggio)+"</select>",false)+
+    (ver?fld("Varianti per domanda",'<select class="ctl" '+k("varianti")+">"+opts([["1","Una (nessuna variante)"],["2","Due"],["3","Tre"]],n.varianti)+"</select>",false):"")+
+    (n.tipoQuiz==="V"?fld("Parte avanzata (per il 9 e il 10)",'<input class="ctl" '+k("avanzata")+' value="'+esc(n.avanzata)+'" placeholder="Gli argomenti: LEFT JOIN, GROUP BY e HAVING su tre tabelle…">',false,true):"")+
+    "</section>"+
+    '<label class="fld"><span>Richiesta <b class="req" aria-hidden="true">*</b> · scrivi come in chat che cosa vuoi, da dove partire, che cosa evitare</span><textarea class="ctl note big" '+k("richiesta")+' aria-required="true" placeholder="Per esempio: verifica di ripasso su SELECT, JOIN e GROUP BY, tre domande di teoria, una pagina PHP con form…">'+esc(n.richiesta)+"</textarea></label>"+
+    '<label class="chk"><input type="checkbox" '+k("materiale")+(n.materiale?" checked":"")+"> Ho dei file da allegare (manuale, esercitazioni svolte, backup): li allego in chat dopo l'avvio, e la sessione mi aspetta</label>"+
+    (errs.length?'<p class="nerr" role="alert">'+ico("warn")+"Mancano: "+esc(errs.join(", "))+".</p>":"")+
+    '<div class="actrow"><button class="btn primary" data-act="inizia"'+(S.inviando?" disabled":"")+">"+ico("open")+(S.inviando?"Invio in corso…":"Inizia")+'</button><span class="hint" style="max-width:60ch">Salva il quiz nella dashboard e avvia una sessione di Claude che scrive la scaletta. Le tracce si scrivono dopo, quando l\'hai approvata.</span></div></div>';
+  return h;
+}
+function testoAvvio(id,titolo){return "Avvia il quiz «"+titolo+"» (id "+id+") dalla dashboard «Bozze dei quiz»: segui progettazione-quiz fino alla scaletta.";}
+function avvioHTML(st){
+  const t=testoAvvio(st.id,st.titolo);
+  if(st.ok)return '<div class="rivbox okbox" role="status"><div class="rivt">'+ico("check")+"<strong>Sessione avviata</strong></div><p>Claude sta preparando la scaletta di «"+esc(st.titolo)+"» in una nuova sessione, che trovi tra le tue sessioni di Claude (ti arriva anche la notifica quando finisce). Le righe compaiono qui da sole: puoi aprire il quiz e aspettare."+(st.materiale?" Hai indicato dei file da allegare: aprila e allegali lì.":"")+'</p><div class="actrow"><button class="btn primary" data-act="apri-quiz" data-id="'+esc(st.id)+'">Apri il quiz</button></div></div>';
+  return '<div class="rivbox" role="status"><div class="rivt">'+ico("warn")+"<strong>Quiz salvato, sessione non avviata</strong></div><p>"+esc(st.motivo||"Non sono riuscito ad avviare la sessione da qui.")+" Copia questa frase e incollala in una chat con Claude: legge tutto dalla dashboard.</p>"+
+    '<textarea class="ctl mono copia" readonly id="testoAvvio">'+esc(t)+'</textarea><div class="actrow"><button class="btn primary" data-act="copia-avvio">Copia</button><button class="btn" data-act="riprova-avvio" data-id="'+esc(st.id)+'">Riprova ad avviare</button><button class="btn" data-act="apri-quiz" data-id="'+esc(st.id)+'">Apri il quiz</button></div></div>';
+}
+function richiestaHTML(q,rows){
+  if(!q.richiesta)return "";
+  const attesa=q.fase==="richiesta";
+  const st=S.avvio&&S.avvio.id===q.id&&!S.avvio.ok?S.avvio:null;
+  return '<details class="panel"'+(attesa?" open":"")+'><summary>Richiesta iniziale'+(attesa?" "+tag("info","info",q.inLavorazione?"Claude sta scrivendo la scaletta":"In attesa della scaletta"):"")+ico("chev","chev")+'</summary><div class="panel-body">'+
+    '<p class="muted">'+esc([q.classe&&("classe "+q.classe),q.linguaggio&&label(LINGUAGGI,q.linguaggio),q.varianti>1&&(q.varianti+" varianti"),q.avanzata&&("parte avanzata: "+q.avanzata),q.materiale&&"con file da allegare"].filter(Boolean).join(" · "))+"</p>"+
+    '<div class="md">'+md(q.richiesta)+"</div>"+
+    (attesa&&!rows.length?(st?avvioHTML(st):'<div class="actrow"><button class="btn" data-act="riprova-avvio" data-id="'+esc(q.id)+'">Avvia di nuovo la sessione</button><span class="hint" style="max-width:60ch">Se la scaletta non arriva entro qualche minuto, controlla la sessione tra le tue sessioni di Claude, oppure avviala di nuovo.</span></div>'):"")+
+    "</div></details>";
+}
+function idNuovo(n){
+  let b=(String(n.lezione||"").trim()+"-"+String(n.titolo||"")).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,40).replace(/-+$/,"")||"quiz";
+  let id=b,k=2;while(S.quizzes.some(function(q){return q.id===id;}))id=b+"-"+(k++);
+  return id;
+}
+async function avviaSessione(id,titolo,materiale){
+  let motivo="";
+  try{
+    const trig=triggerAvvio();
+    const mcp=trig?await window.claude.use("mcp"):null;
+    if(!trig)motivo="L'avvio automatico non è configurato in questa dashboard: chiedi a Claude di installarlo («installa la dashboard dei quiz»).";
+    else if(!mcp)motivo="Da questa vista la pagina non può usare il connettore Claude Code Remote.";
+    else{await mcp.callTool(CONNETTORE,"fire_trigger",{trigger_id:trig,text:"Quiz da avviare: "+id});
+      save("quiz/"+id,{avviato:new Date().toISOString()});
+      S.avvio={id:id,titolo:titolo,ok:true,materiale:materiale};S.inviando=false;render();return;}
+  }catch(e){
+    const c=e&&e.code;
+    motivo=c==="not_in_manifest"||c==="consent_required"||c==="approval_required"?"Il connettore Claude Code Remote non è stato autorizzato per questa pagina.":
+      c==="server_not_connected"||c==="needs_reauth"?"Il connettore Claude Code Remote non è collegato al tuo account (Impostazioni → Connettori).":
+      "Avvio non riuscito"+(c?" ("+c+")":"")+".";
+  }
+  S.avvio={id:id,titolo:titolo,ok:false,motivo:motivo,materiale:materiale};S.inviando=false;render();
+}
+async function inizia(){
+  const n=S.nuovo||nuovoVuoto(),manca=[];
+  if(!n.tipoQuiz)manca.push("tipo di quiz");if(!String(n.titolo).trim())manca.push("titolo");if(!String(n.lezione).trim())manca.push("lezione o codice");
+  if(!n.classe)manca.push("classe");if(!String(n.argomento).trim())manca.push("argomento");if(!(num(n.tempo)>0))manca.push("tempo");if(!String(n.richiesta).trim())manca.push("richiesta");
+  S.nuovoErr=manca;if(manca.length)return render();
+  if(!S.db)return;
+  S.inviando=true;render();
+  const id=idNuovo(n),ver=n.tipoQuiz==="V"||n.tipoQuiz==="VT";
+  const doc={titolo:String(n.titolo).trim(),tipoQuiz:n.tipoQuiz,lezione:String(n.lezione).trim(),classe:n.classe,argomento:String(n.argomento).trim(),tempo:num(n.tempo),
+    linguaggio:n.linguaggio||"",varianti:ver?Number(n.varianti)||1:1,avanzata:n.tipoQuiz==="V"?String(n.avanzata||"").trim():"",richiesta:String(n.richiesta).trim(),materiale:!!n.materiale,
+    fase:"richiesta",note:"",creato:new Date().toISOString()};
+  try{await S.db.doc("quiz/"+id).set(doc);}catch(e){S.inviando=false;toast("Non sono riuscito a salvare il quiz"+(e&&e.code?" ("+e.code+")":"")+".",true);return render();}
+  S.quizId=id;S.nuovo=null;S.nuovoErr=[];
+  avviaSessione(id,doc.titolo,doc.materiale);
+}
+function emptyHTML(){
+  return '<div class="empty"><h2>Nessun quiz ancora</h2><p>Chiedi a Claude in chat di preparare la scaletta di un quiz: comparirà qui, pronta da rivedere.</p></div>';
+}
+function errorHTML(){
+  return '<div class="empty"><h2>Dati non disponibili</h2><p>In questa vista la pagina non può leggere né salvare i dati dei quiz. Riaprila da claude.ai dopo aver effettuato l\'accesso.</p></div>';
+}
+function tag(kind,icon,text){return '<span class="tag '+kind+'">'+ico(icon)+esc(text)+"</span>";}
+
+function metaHTML(q){
+  const P=TIPI[q.tipoQuiz]||TIPI.ED;
+  const k=function(f){return 'data-q="'+f+'" data-k="q:'+f+'"';};
+  const nx=NEXT[q.fase];
+  const errs=S.avvCount?S.avvCount.err:0;
+  let btn="";
+  const manc=mancanti();
+  const nRiv=daRivedere().length;
+  const bloccato=q.fase==="dettaglio-revisione"&&(manc>0||nRiv>0);
+  if(nx&&bloccato)btn='<button class="btn primary" disabled aria-disabled="true">'+ico("check")+esc(nx[1])+"</button>";
+  else if(nx)btn='<button class="btn primary" data-act="approve">'+ico("check")+esc(S.confirmApprove&&errs?"Ci sono "+errs+(errs===1?" errore":" errori")+": "+nx[1].toLowerCase()+" comunque":nx[1])+"</button>";
+  else if(q.fase==="richiesta")btn='<span class="tag info">'+ico("info")+"In attesa della scaletta</span>";
+  else btn='<span class="tag ok">'+ico("check")+"Pronto per la parte tecnica</span>";
+  if(PREV[q.fase])btn+='<button class="ib" data-act="back" title="Torna alla fase precedente" aria-label="Torna alla fase precedente">'+ico("undo")+"</button>";
+  let hint={"scaletta-revisione":"Segna che la scaletta è a posto. Poi dimmelo in chat e scrivo le tracce.","scaletta-approvata":"Segna che si può passare alle tracce di dettaglio.","dettaglio-revisione":"Si abilita quando ogni domanda ha la traccia e nessuna è da rivedere. Approvando il dettaglio tutte le domande diventano «approvata».","dettaglio-approvato":"Le tracce sono approvate: si può passare alla parte tecnica."}[q.fase]||"";
+  if(q.fase==="dettaglio-revisione"&&!bloccato)hint="Ogni domanda ha la sua traccia: dopo averle riviste si può approvare il dettaglio, e tutte le domande diventano «approvata».";
+  if(bloccato&&manc>0)hint="Mancano "+manc+(manc===1?" traccia":" tracce")+" da scrivere: il dettaglio non si può ancora approvare.";
+  else if(bloccato)hint=nRiv+(nRiv===1?" domanda è":" domande sono")+" ancora da rivedere: approvale una per una nel Dettaglio.";
+  btn='<div class="actrow">'+btn+"</div>";
+  if(hint)btn+='<div class="hint">'+esc(hint)+"</div>";
+  return '<section class="meta" aria-label="Dati del quiz">'+
+    '<label class="fld"><span>Tipo di quiz</span><select class="ctl" '+k("tipoQuiz")+' aria-label="Tipo di quiz">'+opts(tipiScelta(q.tipoQuiz).map(function(t){return [t,TIPI[t].nome];}),q.tipoQuiz)+"</select></label>"+
+    '<label class="fld"><span>Lezione (numero, o codice della verifica)</span><input class="ctl" '+k("lezione")+' value="'+esc(q.lezione)+'" placeholder="3, oppure V5R" aria-label="Numero di lezione o codice della verifica"></label>'+
+    '<label class="fld wide"><span>Argomento</span><input class="ctl" '+k("argomento")+' value="'+esc(q.argomento)+'" aria-label="Argomento"></label>'+
+    '<label class="fld"><span>Tempo disponibile (minuti)</span><input class="ctl" type="number" min="0" data-t="n" '+k("tempo")+' value="'+esc(q.tempo)+'" aria-label="Tempo disponibile in minuti"></label>'+
+    '<label class="fld"><span>Fase</span><select class="ctl" '+k("fase")+' aria-label="Fase">'+opts(FASI,q.fase).replace('value="dettaglio-approvato"',mancanti()>0?'value="dettaglio-approvato" disabled':'value="dettaglio-approvato"')+"</select></label>"+
+    '<div class="fld wide"><span>Avanzamento</span><div>'+btn+"</div></div>"+
+    '<div class="fld wide"><span>Categoria in Moodle</span><div class="cat">'+esc(categoriaQuiz(q))+"</div></div>"+
+  "</section>";
+}
+function kpiHTML(q,C){
+  const P=C.P,t=C.tot,T=num(q.tempo);
+  let pTag,mTag;
+  if(!P.p100)pTag=tag("plain","info","Senza voto");
+  else pTag=Math.abs(t.p-100)<0.001?tag("ok","check","Totale corretto"):tag("warn","warn","Dovrebbe essere 100");
+  if(P.importato)mTag=tag("plain","info",T?"Limite del quiz":"Senza limite di tempo");
+  else if(!T)mTag=tag("warn","warn","Tempo non impostato");
+  else if(P.tempoRule==="quota"){const k=t.m/T;mTag=k>0.85||k<0.65?tag("warn","warn","Previsti circa "+Math.round(T*0.75)):tag("ok","check","Circa i tre quarti");}
+  else mTag=t.m>T?tag("err","err","Oltre di "+(t.m-T)+" min"):(T-t.m<5?tag("warn","warn","Margine di "+(T-t.m)+" min"):tag("ok","check","Margine di "+(T-t.m)+" min"));
+  return '<dl class="kpis" aria-label="Riepilogo">'+
+    '<div class="kpi"><dt>Punti assegnati</dt><dd class="v">'+f1(t.p)+(P.p100?' <small>/ 100</small>':"")+"</dd><dd>"+pTag+"</dd></div>"+
+    '<div class="kpi"><dt>Minuti consigliati</dt><dd class="v">'+f1(t.m)+(T?' <small>/ '+T+"</small>":"")+"</dd><dd>"+mTag+"</dd></div>"+
+    '<div class="kpi"><dt>Domande valutate</dt><dd class="v">'+t.n+'</dd><dd class="s">'+t.pag+(t.pag===1?" pagina":" pagine")+" di spiegazione</dd></div>"+
+    '<div class="kpi"><dt>Correzione a mano</dt><dd class="v">'+t.man+'</dd><dd class="s">'+f1(t.manP)+" punti</dd></div>"+
+  "</dl>";
+}
+function avvisiHTML(list){
+  const c={err:0,warn:0,info:0};list.forEach(function(a){c[a.sev]++;});
+  S.avvCount=c;
+  const sum=[];
+  if(c.err)sum.push(tag("err","err",c.err+(c.err===1?" errore":" errori")));
+  if(c.warn)sum.push(tag("warn","warn",c.warn+(c.warn===1?" attenzione":" attenzioni")));
+  if(c.info)sum.push(tag("info","info",c.info+(c.info===1?" nota":" note")));
+  if(!sum.length)sum.push(tag("ok","check","Tutto in regola"));
+  const names={err:"Errore",warn:"Attenzione",info:"Nota"},icons={err:"err",warn:"warn",info:"info"};
+  const body=list.length?'<ul class="alist">'+list.map(function(a){
+    return '<li class="al">'+tag(a.sev,icons[a.sev],names[a.sev])+"<p>"+esc(a.msg)+"</p>"+(a.id?'<button class="btn sm go" data-act="goto" data-id="'+esc(a.id)+'">Vai alla riga</button>':"")+"</li>";
+  }).join("")+"</ul>":'<p class="alist-ok">Nessun errore né avviso: la scaletta rispetta le regole del preset.</p>';
+  return '<details class="panel" id="avvisi"'+(S.avvisiOpen?" open":"")+'><summary>Avvisi del preset '+sum.join(" ")+ico("chev","chev")+'</summary><div class="panel-body">'+body+"</div></details>";
+}
+function meter(val,t,max,label){
+  const w=Math.max(0,Math.min(100,val/max*100)),o=t&&off(val,t);
+  let mark="";
+  if(t){mark=t.b>t.a+0.001?'<span class="band" style="left:'+(t.a/max*100)+"%;width:"+((t.b-t.a)/max*100)+'%"></span>':'<span class="tick" style="left:'+(t.a/max*100)+'%"></span>';}
+  let diff="";
+  if(o){const d=val>t.b?val-t.b:val-t.a;diff='<span class="off">'+ico("warn")+(d>0?"+":"")+f1(d)+"</span>";}
+  return '<div class="mt"><div class="meter'+(o?" off":"")+'" role="img" aria-label="'+esc(label)+'"><i style="width:'+w+'%"></i>'+mark+'</div><span class="mv">'+f1(val)+" / "+(t?esc(t.label):"–")+diff+"</span></div>";
+}
+function distHTML(q,C){
+  const T=num(q.tempo)||90,maxP=Math.max(100,C.tot.p),maxM=Math.max(T,C.tot.m);
+  const list=C.P.gruppi.map(function(g){return C.gr[g.id];});
+  if(C.gr.altro.p||C.gr.altro.m)list.push(C.gr.altro);
+  return '<details class="panel" id="dist" open><summary>Punti e minuti per parte'+ico("chev","chev")+'</summary><div class="panel-body"><table class="dist"><thead><tr><th scope="col">Parte</th><th scope="col">Punti (assegnati / obiettivo)</th><th scope="col">Minuti (assegnati / previsti)</th></tr></thead><tbody>'+
+    list.map(function(a){return "<tr><td>"+esc(a.g.n)+"</td><td>"+meter(a.p,target(a.g,"p"),maxP,a.g.n+": punti")+"</td><td>"+meter(a.m,target(a.g,"m"),maxM,a.g.n+": minuti")+"</td></tr>";}).join("")+
+  '</tbody></table><p class="legend">La barra scura segna l\'obiettivo del preset; se il valore se ne allontana compaiono un\'icona di attenzione e lo scarto.</p></div></details>';
+}
+function tipOptions(q,sel){
+  const groups={};CATALOGO.forEach(function(c){(groups[c.gruppo]=groups[c.gruppo]||[]).push(c);});
+  let h='<option value="">Scegli la tipologia</option>';
+  Object.keys(groups).forEach(function(g){h+='<optgroup label="'+esc(g)+'">'+groups[g].map(function(c){return '<option value="'+c.id+'"'+(c.id===sel?" selected":"")+">"+esc(c.nome)+(prevista(c,q)?"":" (non prevista)")+"</option>";}).join("")+"</optgroup>";});
+  return h;
+}
+function rowHTML(q,r,P,conTag){
+  const c=CAT[r.tipologia],bad=c&&!prevista(c,q);
+  const k=function(f){return 'data-id="'+esc(r.id)+'" data-f="'+f+'" data-k="'+esc(r.id)+":"+f+'"';};
+  const partiOpts=P.parti.map(function(p){return [p[0],p[0]+" · "+p[1]];});
+  if(!P.parti.some(function(p){return p[0]===Number(r.parte);}))partiOpts.push([r.parte,"Parte "+r.parte+" (non nel preset)"]);
+  const confirm=S.del===r.id;
+  return '<tr id="r-'+esc(r.id)+'">'+
+   '<td class="n"><input class="cell" type="number" min="1" data-t="n" '+k("pag")+' value="'+esc(r.pag)+'" aria-label="Pagina"></td>'+
+   '<td><input class="cell" '+k("pos")+' value="'+esc(r.pos)+'" aria-label="Posizione">'+"</td>"+
+   '<td><input class="cell" '+k("titolo")+' value="'+esc(r.titolo)+'" placeholder="Titolo" aria-label="Titolo"><textarea class="cell" '+k("sintesi")+' rows="3" placeholder="Che cosa chiede" aria-label="Che cosa chiede">'+esc(r.sintesi)+"</textarea>"+(conTag&&!(c&&c.pagina)?'<input class="cell tagc" '+k("tag")+' value="'+esc(r.tag||"")+'" placeholder="tag della posizione (verifiche ripetibili)" title="Le righe con lo stesso tag sono varianti della stessa posizione: il quiz ne pesca una a caso" aria-label="Tag della posizione">':"")+"</td>"+
+   '<td><select class="cell'+(bad?" bad":"")+'" '+k("tipologia")+' aria-label="Tipologia">'+tipOptions(q,r.tipologia)+"</select>"+(c?'<span class="real">'+esc(c.real)+(c.manuale?" · correzione a mano":"")+"</span>":"")+"</td>"+
+   '<td><select class="cell" '+k("parte")+' data-t="parte" aria-label="Parte">'+opts(partiOpts,r.parte)+"</select></td>"+
+   '<td class="n"><input class="cell" type="number" min="0" step="1" data-t="n" '+k("punti")+' value="'+esc(r.punti)+'" aria-label="Punti"></td>'+
+   '<td class="n"><input class="cell" type="number" min="0" step="1" data-t="n" '+k("minuti")+' value="'+esc(r.minuti)+'" aria-label="Minuti"></td>'+
+   '<td><select class="cell" '+k("strumento")+' aria-label="Strumento nella traccia">'+opts(STRUMENTO,r.strumento)+"</select>"+
+     (Number(r.parte)===5?'<span class="sub"><span>Sostegno</span><select class="cell" '+k("sostegno")+' aria-label="Sostegno nel debugging">'+opts(SOSTEGNO,r.sostegno)+"</select></span>":"")+"</td>"+
+   '<td><select class="cell'+(r.stato==="da-rivedere"?" riv":"")+'" '+k("stato")+' aria-label="Stato">'+opts(STATO,r.stato)+"</select></td>"+
+   '<td class="acts">'+
+     '<button class="ib" data-act="up" data-id="'+esc(r.id)+'" title="Sposta su" aria-label="Sposta su">'+ico("up")+"</button>"+
+     '<button class="ib" data-act="down" data-id="'+esc(r.id)+'" title="Sposta giù" aria-label="Sposta giù">'+ico("down")+"</button>"+
+     '<button class="ib" data-act="open" data-id="'+esc(r.id)+'" title="Apri il dettaglio" aria-label="Apri il dettaglio">'+ico("open")+"</button>"+
+     (confirm?'<button class="ib confirm" data-act="del" data-id="'+esc(r.id)+'">Conferma</button>':'<button class="ib danger" data-act="del" data-id="'+esc(r.id)+'" title="Elimina" aria-label="Elimina la domanda">'+ico("trash")+"</button>")+
+   "</td></tr>";
+}
+function statoVarianti(rs){
+  const n={};rs.forEach(function(r){n[r.stato||"proposta"]=(n[r.stato||"proposta"]||0)+1;});
+  return STATO.filter(function(s){return n[s[0]];}).map(function(s){const t=n[s[0]]+" "+s[1].toLowerCase();return s[0]==="da-rivedere"?'<span class="warnt">'+esc(t)+"</span>":esc(t);}).join(" · ");
+}
+function gruppoHTML(q,u,P){
+  const r=u.r,c=CAT[r.tipologia],bad=c&&!prevista(c,q),gid=u.id,aperto=!!(S.openG&&S.openG[gid]);
+  const k=function(f){return 'data-grp="'+esc(gid)+'" data-f="'+f+'" data-k="grp:'+esc(gid)+":"+f+'"';};
+  const partiOpts=P.parti.map(function(p){return [p[0],p[0]+" · "+p[1]];});
+  if(!P.parti.some(function(p){return p[0]===Number(r.parte);}))partiOpts.push([r.parte,"Parte "+r.parte+" (non nel preset)"]);
+  const elenco=u.rows.map(function(x){const d=dbVariante(x);return (lettera(x)||"?")+(d?" "+d:"");}).join(" · ");
+  const confirm=S.del===gid;
+  let h='<tr id="g-'+esc(gid)+'" class="grp">'+
+   '<td class="n"><input class="cell" type="number" min="1" data-t="n" '+k("pag")+' value="'+esc(r.pag)+'" aria-label="Pagina"></td>'+
+   '<td><input class="cell" '+k("pos")+' value="'+esc(basePos(r))+'" aria-label="Posizione (senza la lettera della variante)"></td>'+
+   '<td><input class="cell" '+k("titolo")+' value="'+esc(r.titolo)+'" placeholder="Titolo" aria-label="Titolo">'+
+     '<input class="cell tagc" '+k("tag")+' value="'+esc(u.tag)+'" title="Tag della posizione: le varianti lo condividono, il quiz ne pesca una a caso" aria-label="Tag della posizione">'+
+     '<button class="vtog" data-act="vtog" data-id="'+esc(gid)+'" aria-expanded="'+(aperto?"true":"false")+'">'+(aperto?"▾ ":"▸ ")+u.rows.length+(u.rows.length===1?" variante: ":" varianti: ")+esc(elenco)+"</button></td>"+
+   '<td><select class="cell'+(bad?" bad":"")+'" '+k("tipologia")+' aria-label="Tipologia">'+tipOptions(q,r.tipologia)+"</select>"+(c?'<span class="real">'+esc(c.real)+(c.manuale?" · correzione a mano":"")+"</span>":"")+"</td>"+
+   '<td><select class="cell" '+k("parte")+' data-t="parte" aria-label="Parte">'+opts(partiOpts,r.parte)+"</select></td>"+
+   '<td class="n"><input class="cell" type="number" min="0" step="1" data-t="n" '+k("punti")+' value="'+esc(r.punti)+'" aria-label="Punti"></td>'+
+   '<td class="n"><input class="cell" type="number" min="0" step="1" data-t="n" '+k("minuti")+' value="'+esc(r.minuti)+'" aria-label="Minuti"></td>'+
+   '<td><select class="cell" '+k("strumento")+' aria-label="Strumento nella traccia">'+opts(STRUMENTO,r.strumento)+"</select>"+
+     (Number(r.parte)===5?'<span class="sub"><span>Sostegno</span><select class="cell" '+k("sostegno")+' aria-label="Sostegno nel debugging">'+opts(SOSTEGNO,r.sostegno)+"</select></span>":"")+"</td>"+
+   '<td><span class="vstato">'+statoVarianti(u.rows)+"</span></td>"+
+   '<td class="acts">'+
+     '<button class="ib" data-act="up" data-id="'+esc(gid)+'" title="Sposta su" aria-label="Sposta su">'+ico("up")+"</button>"+
+     '<button class="ib" data-act="down" data-id="'+esc(gid)+'" title="Sposta giù" aria-label="Sposta giù">'+ico("down")+"</button>"+
+     '<button class="ib" data-act="open" data-id="'+esc(r.id)+'" title="Apri il dettaglio" aria-label="Apri il dettaglio">'+ico("open")+"</button>"+
+     (confirm?'<button class="ib confirm" data-act="delgrp" data-id="'+esc(gid)+'">Elimina tutte</button>':'<button class="ib danger" data-act="delgrp" data-id="'+esc(gid)+'" title="Elimina la domanda con tutte le varianti" aria-label="Elimina la domanda con tutte le varianti">'+ico("trash")+"</button>")+
+   "</td></tr>";
+  if(!aperto)return h;
+  u.rows.forEach(function(x){
+    const d=dbVariante(x),has=!!String(x.traccia||"").trim(),cv=S.del===x.id;
+    h+='<tr id="r-'+esc(x.id)+'" class="var"><td colspan="2"><span class="vlet">'+esc(x.pos||"?")+"</span></td>"+
+      '<td>'+(d?'<span class="real">'+esc(d)+"</span>":"")+'<textarea class="cell" data-id="'+esc(x.id)+'" data-f="sintesi" data-k="'+esc(x.id)+':sintesi" rows="2" placeholder="Che cosa chiede questa variante" aria-label="Che cosa chiede la variante '+esc(lettera(x))+'">'+esc(x.sintesi)+"</textarea></td>"+
+      '<td colspan="5"><span class="real">'+(has?"Traccia scritta":"Traccia da scrivere")+"</span></td>"+
+      '<td><select class="cell'+(x.stato==="da-rivedere"?" riv":"")+'" data-id="'+esc(x.id)+'" data-f="stato" data-k="'+esc(x.id)+':stato" aria-label="Stato della variante">'+opts(STATO,x.stato)+"</select></td>"+
+      '<td class="acts"><button class="ib" data-act="open" data-id="'+esc(x.id)+'" title="Apri la variante nel dettaglio" aria-label="Apri la variante nel dettaglio">'+ico("open")+"</button>"+
+      (cv?'<button class="ib confirm" data-act="delvar" data-id="'+esc(x.id)+'">Conferma</button>':'<button class="ib danger" data-act="delvar" data-id="'+esc(x.id)+'" title="Elimina questa variante" aria-label="Elimina questa variante">'+ico("trash")+"</button>")+
+      "</td></tr>";
+  });
+  h+='<tr class="var"><td colspan="2"></td><td colspan="8"><button class="btn sm" data-act="addvar" data-id="'+esc(gid)+'">'+ico("plus")+"Aggiungi variante</button></td></tr>";
+  return h;
+}
+function dbPanelHTML(q,rows){
+  const L=dbList(q),haSql=rows.some(function(r){return isCR(CAT[r.tipologia])&&["sql","php"].indexOf(linguaggioCR(r))>=0;});
+  if(!L.length&&!haSql)return "";
+  const usate={};rows.forEach(function(r){if(!(isCR(CAT[r.tipologia])&&["sql","php"].indexOf(linguaggioCR(r))>=0))return;const I=crInfo(r),n=dbDellaRiga(q,I);if(n)(usate[n]=usate[n]||[]).push(r.pos||"?");});
+  const items=L.map(function(d,i){
+    const t=tabelleDi(d.sql),n=righeDi(d.sql);
+    return '<div class="dbit"><div class="dbhead"><input class="ctl" data-db="'+i+'" data-dbf="nome" data-k="db:'+i+':nome" value="'+esc(d.nome)+'" aria-label="Nome del database" placeholder="nome">'+
+      '<span class="muted">'+(t.length?esc(t.join(", "))+" · "+n+(n===1?" riga":" righe")+" inserite":"nessuna tabella")+(usate[d.nome]?" · usato da "+esc(usate[d.nome].join(", ")):"")+"</span>"+
+      (S.delDb===i?'<button class="ib confirm" data-act="db-del" data-i="'+i+'">Conferma</button>':'<button class="ib danger" data-act="db-del" data-i="'+i+'" title="Elimina il database" aria-label="Elimina il database">'+ico("trash")+"</button>")+
+      '</div><textarea class="ctl" data-db="'+i+'" data-dbf="sql" data-k="db:'+i+':sql" spellcheck="false" aria-label="Script SQL del database">'+esc(d.sql)+"</textarea></div>";
+  }).join("");
+  return '<details class="panel" id="dbp"'+(S.dbOpen===false?"":" open")+'><summary>Database del quiz <span class="tag plain">'+L.length+(L.length===1?" database":" database")+"</span>"+ico("chev","chev")+'</summary><div class="panel-body dbbox">'+
+    '<p class="hint" style="max-width:none">Script SQL come in phpMyAdmin: CREATE TABLE e INSERT, di solito copiato dal catalogo «Database didattici». La parte 2 costruisce il file SQLite e lo allega a ogni domanda SQL e PHP; per le SQL, con le tabelle e le righe, con le sole tabelle o vuoto secondo la domanda («dati» nelle opzioni, altrimenti dedotto dalla soluzione). Con più database, ogni domanda dice quale usa con «database: nome» in === options.</p>'+
+    items+'<div><button class="btn sm" data-act="db-add">'+ico("plus")+"Aggiungi database</button></div></div></details>";
+}
+/* archiviare o eliminare il quiz: in fondo alla scaletta, chiuso, per non farlo per sbaglio */
+function gestioneHTML(q){
+  const conf=S.delQuiz===q.id,n=S.rows.length;
+  return '<details class="panel" id="gestione"'+(S.gestOpen?" open":"")+'><summary>Archivia o elimina il quiz'+ico("chev","chev")+'</summary><div class="panel-body dbbox">'+
+    '<p class="hint" style="max-width:none">Archiviare toglie il quiz dall\'elenco dei quiz attivi (resta in fondo al menù, tra gli archiviati) e si può annullare. Eliminare cancella dal database il quiz e tutte le sue '+n+(n===1?" riga":" righe")+': non si può annullare. Prima di eliminare un quiz che serve ancora, chiedi a Claude di salvarne una copia.</p>'+
+    '<div class="actrow">'+(q.archiviato?'<button class="btn" data-act="riattiva">'+ico("undo")+"Riattiva</button>":'<button class="btn" data-act="archivia">'+ico("lock")+"Archivia</button>")+
+    (conf?'<button class="btn danger" data-act="elimina-quiz"'+(S.deleting?" disabled":"")+">"+ico("trash")+(S.deleting?"Eliminazione in corso…":"Conferma: elimina «"+esc(q.titolo||q.id)+"» e le sue righe")+"</button>":'<button class="btn danger" data-act="elimina-quiz">'+ico("trash")+"Elimina definitivamente</button>")+
+    "</div></div></details>";
+}
+async function eliminaQuiz(){
+  const id=S.quizId;if(!S.db||!id)return;
+  S.deleting=true;render();
+  try{
+    const snap=await S.db.collection("quiz/"+id+"/domande").get();
+    for(const d of snap.docs){await S.db.doc("quiz/"+id+"/domande/"+d.id).delete();}
+    await S.db.doc("quiz/"+id).delete();
+    const t=(S.quizzes.find(function(q){return q.id===id;})||{}).titolo||id;
+    S.delQuiz=null;S.deleting=false;S.sel=null;S.edit=null;S.dirty={};
+    toast("Quiz «"+t+"» eliminato.");
+  }catch(e){S.deleting=false;toast("Eliminazione non riuscita"+(e&&e.code?" ("+e.code+")":"")+": alcune righe potrebbero essere già state cancellate.",true);render();}
+}
+function scalettaHTML(){
+  const q=S.quiz,rows=S.rows,C=calc(q,rows),av=avvisi(q,rows,C);
+  let tbody="",last=null;
+  const secTot={};rows.forEach(function(r){const s=secTot[r.sezione]=secTot[r.sezione]||{p:0,m:0,n:0};if(!contaRiga(rows,r))return;s.p+=num(r.punti);s.m+=num(r.minuti);s.n++;});
+  unita(rows).forEach(function(u){
+    const r=u.r;
+    if(r.sezione!==last){
+      last=r.sezione;const s=secTot[last];
+      tbody+='<tr class="sec"><td colspan="10"><div class="secin"><input class="sec-name" data-sec="'+esc(last)+'" data-k="sec:'+esc(last)+'" value="'+esc(last)+'" aria-label="Nome della sezione"><span class="sum">'+s.n+(s.n===1?" domanda":" domande")+" · "+f1(s.p)+" punti · "+f1(s.m)+' min</span><button class="btn sm" data-act="add" data-sec="'+esc(last)+'">'+ico("plus")+"Aggiungi domanda</button></div></td></tr>";
+    }
+    tbody+=u.tag?gruppoHTML(q,u,C.P):rowHTML(q,r,C.P,usaTag(q,rows));
+  });
+  const arcBan=q.archiviato?'<div class="rivbox" role="status"><div class="rivt">'+ico("lock")+'<strong>Quiz archiviato</strong></div><p>Non compare più tra i quiz attivi del menù, ma resta nel database finché non lo elimini.</p><div><button class="btn" data-act="riattiva">'+ico("undo")+"Riattiva il quiz</button></div></div>":"";
+  return '<div class="stack">'+arcBan+richiestaHTML(q,rows)+metaHTML(q)+kpiHTML(q,C)+avvisiHTML(av)+distHTML(q,C)+dbPanelHTML(q,rows)+
+    '<section aria-label="Scaletta"><div class="tbar"><h2>Scaletta ('+(function(){const U=unita(rows),nv=U.filter(function(u){return u.tag;}).length;return U.length+(U.length===1?" riga":" righe")+(nv?", di cui "+nv+" con varianti":"");})()+')</h2><div class="sp"><button class="btn sm" data-act="renumber" title="Numera le pagine in sequenza, tenendo insieme le domande che ne condividono una">Rinumera le pagine</button><button class="btn sm" data-act="addsec">'+ico("plus")+"Aggiungi sezione</button></div></div>"+
+    '<div class="tw" tabindex="0" role="region" aria-label="Tabella della scaletta"><table class="sc"><colgroup><col style="width:64px"><col style="width:68px"><col style="width:330px"><col style="width:210px"><col style="width:170px"><col style="width:70px"><col style="width:70px"><col style="width:160px"><col style="width:130px"><col style="width:150px"></colgroup>'+
+    '<thead><tr><th scope="col">Pag.</th><th scope="col">Pos.</th><th scope="col">Titolo e che cosa chiede</th><th scope="col">Tipologia</th><th scope="col">Parte</th><th scope="col">Punti</th><th scope="col">Min.</th><th scope="col">Strumento nella traccia</th><th scope="col">Stato</th><th scope="col"><span class="sr">Azioni</span></th></tr></thead><tbody>'+tbody+"</tbody></table></div></section>"+
+    '<details class="panel" id="note"'+(S.noteOpen?" open":"")+'><summary>Note sul quiz'+ico("chev","chev")+'</summary><div class="panel-body"><textarea id="noteBox" class="ctl note" data-q="note" data-k="q:note" aria-label="Note sul quiz">'+esc(q.note)+"</textarea></div></details>"+gestioneHTML(q)+
+  "</div>";
+}
+
+/* dettaglio */
+function dettaglioHTML(){
+  const q=S.quiz,rows=S.rows;
+  if(!rows.length)return '<div class="empty"><h2>Nessuna domanda</h2><p>Il quiz non ha ancora righe nella scaletta.</p></div>';
+  const r=rows.find(function(x){return x.id===S.sel;})||rows[0];S.sel=r.id;
+  const U=unita(rows),uSel=U.find(function(u){return u.rows.indexOf(r)>=0;}),idx=U.indexOf(uSel),nums={};let n=0;
+  const numTag={};rows.forEach(function(x){const c=CAT[x.tipologia];if(c&&c.pagina)return;const t=tagDi(x).toLowerCase();if(t&&numTag[t]){nums[x.id]=numTag[t];return;}n++;nums[x.id]=n;if(t)numTag[t]=n;});
+  let list="",last=null;
+  U.forEach(function(u){
+    const x=u.r,cur=u===uSel;
+    if(x.sezione!==last){last=x.sezione;list+='<div class="dsec">'+esc(last)+"</div>";}
+    const riv=u.rows.some(function(y){return y.stato==="da-rivedere";});
+    if(S.soloRiv&&daRivedere().length&&!riv&&!cur)return;
+    const dest=cur?r:(u.rows.find(function(y){return y.stato==="da-rivedere";})&&S.soloRiv?u.rows.find(function(y){return y.stato==="da-rivedere";}):x);
+    const scritte=u.rows.filter(function(y){return String(y.traccia||"").trim();}).length;
+    const dots=u.tag?'<span class="dvar" title="'+scritte+" tracce scritte su "+u.rows.length+'">'+u.rows.map(function(y){return '<span class="dot'+(String(y.traccia||"").trim()?" ok":"")+'"></span>';}).join("")+"</span>":'<span class="dot'+(scritte?" ok":"")+'" title="'+(scritte?"Traccia scritta":"Traccia da scrivere")+'"></span>';
+    list+='<button class="ditem" data-act="sel" data-id="'+esc(dest.id)+'"'+(cur?' aria-current="true"':"")+'><span class="dpos">'+esc(u.tag?basePos(x):x.pos)+'</span><span class="dtit">'+esc(x.titolo||"(senza titolo)")+(riv?' <span class="pill">Da rivedere</span>':"")+"</span>"+dots+'<span class="sr">'+(u.tag?scritte+" tracce scritte su "+u.rows.length+" varianti":(scritte?"traccia scritta":"traccia da scrivere"))+"</span></button>";
+  });
+  const c=CAT[r.tipologia],P=TIPI[q.tipoQuiz]||TIPI.ED,pt=P.parti.find(function(p){return p[0]===Number(r.parte);});
+  const chips=['<span class="chip">Pagina <b>'+esc(r.pag)+"</b></span>"];
+  chips.push('<span class="chip"><b>'+esc(c?c.nome:"Tipologia da scegliere")+"</b>"+(c?" · "+esc(c.real):"")+"</span>");
+  if(pt)chips.push('<span class="chip">Parte <b>'+esc(pt[1])+"</b></span>");
+  if(!(c&&c.pagina)){chips.push('<span class="chip"><b>'+f1(num(r.punti))+"</b> punti</span>");}
+  if(tagDi(r)){const g=gruppiTag(S.rows)[tagDi(r).toLowerCase()]||[r];chips.push('<span class="chip">Tag <b>'+esc(tagDi(r))+"</b> · variante "+(g.indexOf(r)+1)+" di "+g.length+"</span>");}
+  chips.push('<span class="chip"><b>'+f1(num(r.minuti))+"</b> min</span>");
+  if(r.strumento)chips.push('<span class="chip">Strumento: <b>'+esc(label(STRUMENTO,r.strumento).toLowerCase())+"</b></span>");
+  if(Number(r.parte)===5&&r.sostegno)chips.push('<span class="chip">Sostegno: <b>'+esc(label(SOSTEGNO,r.sostegno).toLowerCase())+"</b></span>");
+  const hasT=!!String(r.traccia||"").trim(),hasC=!!String(r.correzione||"").trim(),hasN=!!String(r.docente||"").trim(),hasD=hasC||hasN,editing=S.edit&&S.edit.id===r.id;
+  let body="";
+  if(editing){
+    body='<div class="edit-grid"><label class="fld"><span>Traccia: quello che vede lo studente</span><textarea class="ctl" data-draft="traccia" data-k="draft:traccia" aria-label="Traccia">'+esc(S.edit.traccia)+'</textarea></label>'+
+      '<label class="fld"><span>Correzione: va in Moodle (criteri, mezzo punto e soluzione per le domande aperte; feedback generale per le altre)</span><textarea class="ctl" data-draft="correzione" data-k="draft:correzione" aria-label="Correzione">'+esc(S.edit.correzione)+"</textarea></label>"+
+      ((isCR(c)||String(S.edit.coderunner||"").trim())?'<label class="fld"><span>Soluzione e test (CodeRunner): sezioni === options, === preload o === code, === answer, === test con === stdin e === extra; gli output li calcola la parte 2. SQL: === options (database, dati, precheck), === preload, === answer, === test «-- commento» o [[struttura Tabella]], === extra; il database sta nel riquadro «Database del quiz» della scaletta. PHP: === options, === preload, === answer (con <?php), === test con i dati del form ($_GET o $_POST) seguito da === descrizione (quello che vede lo studente) ed eventualmente === expected; disclaimer, normalizzazione e FakeDB::configure si aggiungono da soli. Esercizi HTML e CSS: solo === answer, === preload e === options (righe: N)</span><textarea class="ctl mono" data-draft="coderunner" data-k="draft:coderunner" aria-label="Soluzione e test">'+esc(S.edit.coderunner)+"</textarea></label>":"")+
+      '<label class="fld"><span>Note interne: il ragionamento sulla domanda, non escono dalla dashboard</span><textarea class="ctl" data-draft="docente" data-k="draft:docente" aria-label="Note interne">'+esc(S.edit.docente)+"</textarea></label>"+
+      '<details class="hint conv"><summary>Convenzioni della traccia</summary><ul>'+
+        '<li>**grassetto**, __sottolineato__ (chiave primaria negli schemi), `codice`, blocchi di codice tra tre apici inversi, elenchi con «-» o «1.», tabelle con «|», titoli con «#» e «##». Ogni a capo dentro un paragrafo resta un a capo (utile per gli schemi relazionali, una relazione per riga); la riga vuota apre un nuovo paragrafo.</li>'+
+        '<li>Riquadri: una riga «:::blu Titolo», il contenuto, una riga «:::». Colori: blu, giallo, verde, arancio, rosso.</li>'+
+        '<li>Scelte: una per riga, «(x)» la giusta e «( )» le sbagliate; con più giuste (anche un «trova l\'errore» con più errori) «[x]» e «[ ]», un\'opzione per affermazione: le sbagliate si dividono da sole una penalità del −100% (penalità scritte a mano, «[ -50%]»: le altre si dividono quello che manca) e la traccia dice «Seleziona tutte le risposte corrette». Il feedback va nella riga sotto, rientrata, che inizia con «>».</li>'+
+        '<li>Campi Cloze nella sintassi di Moodle, per esempio {1:SHORTANSWER:=h1} o {1:MULTICHOICE_S:=giusta#Feedback~sbagliata#Feedback}. Si escapano solo } # ~.</li>'+
+        '</ul></details>'+
+      '<div><button class="btn primary" data-act="save-edit">'+ico("check")+'Salva</button> <button class="btn" data-act="cancel-edit">Annulla</button></div></div>';
+  }else if(!hasT&&!hasD){
+    body='<div class="empty-card" style="margin-top:20px"><p><strong>La traccia non è ancora scritta.</strong> Si scrive dopo l\'approvazione della scaletta.</p>'+(r.sintesi?'<p>Nella scaletta: '+esc(r.sintesi)+"</p>":"")+"</div>";
+  }else{
+    const pageType=c&&c.pagina;
+    body='<div class="lb stu">'+ico("eye")+'Quello che vede lo studente <small>('+(pageType?"pagina di spiegazione":"come comparirà nel quiz")+")</small></div>";
+    if(hasT){
+      body+='<section class="sheet'+(pageType?" page":"")+'" id="q-'+esc(r.id)+'" aria-label="Foglio dello studente">'+
+        (pageType?"":'<div class="sheet-info"><b>Domanda '+(nums[r.id]||"")+"</b><span>Risposta non ancora data</span><span>Punteggio max.: "+f2(num(r.punti))+"</span><span>Pagina "+esc(r.pag)+"</span></div>")+
+        '<div class="sheet-body md">'+md(r.traccia)+(isCR(c)?crStudenteHTML(r):"")+"</div></section>";
+    }else body+='<div class="empty-card"><p>La traccia per lo studente non è ancora scritta.</p></div>';
+    const key=(hasT?chiaveHTML(r):"")+(isCR(c)?crDocenteHTML(r):"");
+    if(key||hasD)body+='<div class="lb doc">'+ico("lock")+'Solo per il docente <small>· lo studente non lo vede</small></div><section class="teacher md" aria-label="Note per il docente">'+
+      (key?'<h4 class="th">Risposte e feedback <small>· vanno in Moodle</small></h4>'+key:"")+
+      (hasC?'<h4 class="th">Correzione <small>· va in Moodle</small></h4>'+md(r.correzione):"")+
+      (hasN?'<h4 class="th">Note interne <small>· non escono dalla dashboard</small></h4>'+md(r.docente):"")+"</section>";
+  }
+  const banner=q.fase==="scaletta-revisione"?'<div class="banner">'+ico("info")+"<span>La scaletta è ancora in revisione: le tracce complete si scrivono dopo l'approvazione. Quelle che vedi qui sono bozze di prova.</span></div>":"";
+  const riv=daRivedere().length;
+  const sum='<div class="dsum"><span>'+(riv?'<b class="warnt">'+riv+(riv===1?" da rivedere":" da rivedere")+"</b> · ":"")+rows.filter(function(x){return String(x.traccia||"").trim();}).length+" tracce su "+rows.length+'</span>'+(riv?'<button class="lnk" data-act="solo-riv">'+(S.soloRiv?"Mostra tutte":"Solo da rivedere")+"</button>":"")+"</div>";
+  return '<div class="dt"><nav class="dlist" aria-label="Domande del quiz">'+sum+list+"</nav><article>"+
+    '<div class="dhead"><div class="dnav"><button class="ib" data-act="prev" aria-label="Domanda precedente"'+(idx===0?" disabled":"")+">"+ico("left")+"</button><span>"+(idx+1)+" di "+U.length+'</span><button class="ib" data-act="next" aria-label="Domanda successiva"'+(idx===U.length-1?" disabled":"")+">"+ico("right")+"</button></div>"+
+    '<div class="sp">'+(editing?"":'<button class="btn" data-act="edit">'+ico("pencil")+"Modifica</button>")+(S.comments?'<button class="btn" data-act="comment">'+ico("comment")+"Commenta</button>":"")+"</div></div>"+
+    '<h2 class="dname">'+esc(nomeMoodle(q,r))+"</h2>"+
+    (uSel&&uSel.tag?'<div class="vtabs" role="tablist" aria-label="Varianti">'+uSel.rows.map(function(y){const d=dbVariante(y),has=!!String(y.traccia||"").trim();return '<button class="vtab" role="tab" data-act="sel" data-id="'+esc(y.id)+'"'+(y.id===r.id?' aria-current="true" aria-selected="true"':' aria-selected="false"')+'><span class="dot'+(has?" ok":"")+'"></span>'+esc(lettera(y)||"?")+(d?" · "+esc(d):"")+(y.stato==="da-rivedere"?" !":"")+"</button>";}).join("")+"</div>":"")+
+    '<div class="chips">'+chips.join("")+"</div>"+
+    '<div class="stline"><label>Stato <select class="cell stsel'+(r.stato==="da-rivedere"?" riv":"")+'" data-id="'+esc(r.id)+'" data-f="stato" data-k="'+esc(r.id)+':stato" aria-label="Stato della domanda">'+opts(STATO,r.stato)+"</select></label></div>"+
+    (r.stato==="da-rivedere"?'<div class="rivbox" role="status"><div class="rivt">'+ico("warn")+"<strong>Da rivedere</strong></div>"+(r.nota?"<p>"+esc(r.nota).replace(/`([^`]+)`/g,"<code>$1</code>")+"</p>":"<p>Questa domanda è stata segnata «da rivedere».</p>")+'<div><button class="btn primary" data-act="approva-riga" data-id="'+esc(r.id)+'">'+ico("check")+'Approva questa domanda</button> <span class="hint">Se invece vuoi cambiarla, usa «Modifica» o scrivimelo in chat.</span></div></div>':(r.nota?'<p class="nota">'+ico("info")+"<span>"+esc(r.nota).replace(/`([^`]+)`/g,"<code>$1</code>")+"</span></p>":""))+banner+body+"</article></div>";
+}
+
+/* ------------------------------------------------------------------ render */
+function render(){
+  const a=document.activeElement;let fk=null,ss=null,se=null;
+  if(a&&main.contains(a)&&a.dataset&&a.dataset.k){fk=a.dataset.k;try{ss=a.selectionStart;se=a.selectionEnd;}catch(e){}}
+  renderHeader();
+  if(S.error)main.innerHTML=errorHTML();
+  else if(!S.ready)main.innerHTML='<p class="empty">Caricamento…</p>';
+  else if(S.view==="home")main.innerHTML=homeHTML();
+  else if(S.view==="nuovo")main.innerHTML=nuovoHTML();
+  else if(!S.quiz)main.innerHTML=emptyHTML();
+  else if(S.rowsFor!==S.quizId)main.innerHTML='<p class="empty">Caricamento…</p>';
+  else main.innerHTML=S.view==="scaletta"?scalettaHTML():dettaglioHTML();
+  const all=[].slice.call(main.querySelectorAll("[data-k]"));
+  all.forEach(function(x){if(Object.prototype.hasOwnProperty.call(S.dirty,x.dataset.k)&&x.value!==S.dirty[x.dataset.k])x.value=S.dirty[x.dataset.k];});
+  const want=S.focusKey||fk;
+  if(want){const t=all.find(function(x){return x.dataset.k===want;});if(t){t.focus();if(!S.focusKey&&ss!=null){try{t.setSelectionRange(ss,se);}catch(e){}}}S.focusKey=null;}
+  const sa=$("#avvisi");if(sa)sa.addEventListener("toggle",function(){S.avvisiOpen=sa.open;});
+  const sn=$("#note");if(sn)sn.addEventListener("toggle",function(){S.noteOpen=sn.open;});
+  const sd=$("#dbp");if(sd)sd.addEventListener("toggle",function(){S.dbOpen=sd.open;});
+  const sg=$("#gestione");if(sg)sg.addEventListener("toggle",function(){S.gestOpen=sg.open;});
+  const si=$("#imp");if(si)si.addEventListener("toggle",function(){S.impOpen=si.open;});
+  const st=$("#impTrigger");if(st)st.addEventListener("input",function(){S.impBozza=st.value;});
+  persist();
+}
+
+/* ------------------------------------------------------------------ azioni */
+function approvaRighe(){let n=0;S.rows.forEach(function(r){if(r.stato!=="approvata"){n++;save(rowPath(r.id),{stato:"approvata"});}});if(n)toast("Dettaglio approvato: "+n+(n===1?" domanda segnata «approvata».":" domande segnate «approvata»."));}
+function riapriScaletta(motivo){
+  const q=S.quiz;if(!q||!q.fase||q.fase==="scaletta-revisione")return;
+  save(quizPath(),{fase:"scaletta-revisione"});
+  toast(motivo+": la scaletta torna in revisione e va approvata di nuovo.");
+}
+function move(id,dir){
+  const U=unita(S.rows),i=U.findIndex(function(u){return u.id===id||u.rows.some(function(r){return r.id===id;});}),j=i+dir;
+  if(i<0||j<0||j>=U.length)return;
+  const ordini=S.rows.map(function(r){return num(r.ordine);}).sort(function(a,b){return a-b;});
+  const sez=U[j].r.sezione!==U[i].r.sezione?U[j].r.sezione:null;
+  const tmp=U[i];U[i]=U[j];U[j]=tmp;
+  let k=0;
+  U.forEach(function(u){u.rows.slice().sort(function(a,b){return num(a.ordine)-num(b.ordine);}).forEach(function(r){
+    const o=ordini[k++],pa={};if(num(r.ordine)!==o)pa.ordine=o;
+    if(sez!==null&&u===tmp&&r.sezione!==sez)pa.sezione=sez;
+    if(Object.keys(pa).length)save(rowPath(r.id),pa);});});
+  riapriScaletta("Hai spostato una domanda");
+  S.focusKey=null;
+}
+function ordineDopo(rs,ultimo,n){
+  const sorted=rs.slice().sort(function(a,b){return num(a.ordine)-num(b.ordine);}),i=sorted.indexOf(ultimo),next=i>=0?sorted[i+1]:null;
+  const a=ultimo?num(ultimo.ordine):(sorted.length?num(sorted[sorted.length-1].ordine):0);
+  const step=next?(num(next.ordine)-a)/(n+1):10;
+  const out=[];for(let k=1;k<=n;k++)out.push(a+step*k);return out;
+}
+const CAMPI_COMUNI=["sezione","pag","titolo","tipologia","parte","punti","minuti","strumento","sostegno","tag"];
+function riga0(){return {pos:"",sintesi:"",stato:"proposta",traccia:"",correzione:"",coderunner:"",docente:"",nota:""};}
+function addVariant(gid){
+  if(!S.db)return;
+  const u=unitaDi(S.rows,gid);if(!u)return;
+  const lett=u.rows.map(lettera).filter(Boolean).sort(),nl=lett.length?String.fromCharCode(lett[lett.length-1].charCodeAt(0)+1):"a";
+  const ultimo=u.rows.slice().sort(function(a,b){return num(a.ordine)-num(b.ordine);}).pop();
+  const o=ordineDopo(S.rows,ultimo,1)[0],d=riga0();
+  CAMPI_COMUNI.forEach(function(f){d[f]=u.r[f]==null?"":u.r[f];});
+  d.ordine=o;d.pos=basePos(u.r)+nl;
+  const ref=S.db.collection("quiz/"+S.quizId+"/domande").doc();
+  S.openG=S.openG||{};S.openG[gid]=true;S.focusKey=ref.id+":sintesi";
+  ref.set(d).then(function(){toast("Variante "+d.pos+" aggiunta.");}).catch(function(){S.focusKey=null;toast("Non sono riuscito ad aggiungere la variante.",true);});
+}
+function salvaGruppo(gid,f,v){
+  const u=unitaDi(S.rows,gid);if(!u)return;
+  if(f==="pos"){
+    const base=String(v).trim().replace(/[a-z]$/,"");
+    const nt=tagProvvisorio(u.tag)&&base?tagPer(S.quiz,base,u.r.titolo):null;
+    u.rows.forEach(function(r){const pa={pos:base+lettera(r)};if(nt)pa.tag=nt;save(rowPath(r.id),pa);});return;
+  }
+  if(f==="tag")v=String(v).trim();
+  const pa={};pa[f]=v;
+  if(f==="titolo"&&tagProvvisorio(u.tag)&&basePos(u.r))pa.tag=tagPer(S.quiz,basePos(u.r),v);
+  u.rows.forEach(function(r){save(rowPath(r.id),pa);});
+}
+function addPosizione(sec,nv){
+  const rs=S.rows,inSec=rs.filter(function(r){return r.sezione===sec;}),last=inSec.slice().sort(function(a,b){return num(a.ordine)-num(b.ordine);}).pop();
+  const prev=last||rs[rs.length-1],ordini=ordineDopo(rs,last||null,nv);
+  const tag=slug(String(S.quiz.lezione||"").trim()||S.quizId).replace(/-/g,"")+"-nuova-"+Math.random().toString(36).slice(2,6);
+  const refs=[];
+  const lavori=ordini.map(function(o,k){
+    const ref=S.db.collection("quiz/"+S.quizId+"/domande").doc();refs.push(ref);
+    const d=riga0();d.ordine=o;d.sezione=sec;d.pos=String.fromCharCode(97+k);d.pag=(prev?num(prev.pag):0)+1;d.titolo="";d.tipologia="";d.parte=prev?prev.parte:1;
+    d.punti=0;d.minuti=0;d.strumento="";d.sostegno="";d.tag=tag;
+    return ref.set(d);
+  });
+  S.focusKey="grp:"+refs[0].id+":titolo";
+  Promise.all(lavori).then(function(){riapriScaletta("Hai aggiunto una domanda con "+nv+" varianti");}).catch(function(){S.focusKey=null;toast("Non sono riuscito ad aggiungere la domanda.",true);});
+}
+function removeRow(id){if(!S.db)return;S.db.doc(rowPath(id)).delete().then(function(){riapriScaletta("Hai eliminato una domanda");}).catch(function(){toast("Eliminazione non riuscita.",true);});}
+function addRow(sec){
+  if(!S.db)return;
+  const GT=gruppiTag(S.rows),nv=Object.keys(GT).reduce(function(m,k){return Math.max(m,GT[k].length);},0);
+  if(nv>1)return addPosizione(sec,nv);
+  const rs=S.rows,inSec=rs.filter(function(r){return r.sezione===sec;}),last=inSec[inSec.length-1];
+  const li=last?rs.indexOf(last):-1,next=li>=0?rs[li+1]:null;
+  const ordine=last?(next?(last.ordine+next.ordine)/2:last.ordine+10):((rs.length?rs[rs.length-1].ordine:0)+10);
+  const ref=S.db.collection("quiz/"+S.quizId+"/domande").doc();
+  const prev=last||rs[rs.length-1];
+  S.focusKey=ref.id+":titolo";
+  ref.set({ordine:ordine,sezione:sec,pos:"",pag:(prev?num(prev.pag):0)+1,titolo:"",sintesi:"",tipologia:"",parte:prev?prev.parte:4,punti:0,minuti:0,strumento:"",sostegno:"",stato:"proposta",traccia:"",correzione:"",coderunner:"",docente:"",nota:""})
+    .then(function(){riapriScaletta("Hai aggiunto una domanda");}).catch(function(){S.focusKey=null;toast("Non sono riuscito ad aggiungere la domanda.",true);});
+}
+function renumber(){
+  const map={};let n=0;
+  S.rows.forEach(function(r){if(!(r.pag in map))map[r.pag]=++n;});
+  let c=0;S.rows.forEach(function(r){if(map[r.pag]!==r.pag){c++;save(rowPath(r.id),{pag:map[r.pag]});}});
+  toast(c?"Pagine rinumerate: "+c+(c===1?" riga cambiata.":" righe cambiate."):"Le pagine sono già in sequenza.");
+}
+function gotoRow(id){
+  S.view="scaletta";
+  const u=unitaDi(S.rows,id);if(u&&u.tag){S.openG=S.openG||{};S.openG[u.id]=true;}
+  render();
+  const tr=document.getElementById("r-"+id)||(u?document.getElementById("g-"+u.id):null);if(!tr)return;
+  tr.scrollIntoView({block:"center"});tr.classList.add("flash");setTimeout(function(){tr.classList.remove("flash");},1900);
+}
+function stepSel(d){
+  const U=unita(S.rows),i=U.findIndex(function(u){return u.rows.some(function(r){return r.id===S.sel;});}),j=i+d;
+  if(i<0||j<0||j>=U.length)return;
+  const cur=S.rows.find(function(r){return r.id===S.sel;}),l=cur?lettera(cur):"";
+  const t=U[j].rows.find(function(r){return l&&lettera(r)===l;})||U[j].r;
+  S.sel=t.id;S.edit=null;render();
+}
+function act(a,d){
+  switch(a){
+    case "up":return move(d.id,-1);
+    case "down":return move(d.id,1);
+    case "del":
+      if(S.del===d.id){S.del=null;return removeRow(d.id);}
+      S.del=d.id;clearTimeout(S.delT);S.delT=setTimeout(function(){S.del=null;render();},4000);return render();
+    case "nuovo-quiz":S.view="nuovo";S.avvio=null;S.nuovo=S.nuovo||nuovoVuoto();render();window.scrollTo(0,0);return;
+    case "annulla-nuovo":S.view="home";S.nuovo=null;S.nuovoErr=[];S.avvio=null;render();return;
+    case "apri-quiz":S.quizId=d.id;S.sel=null;S.edit=null;S.dirty={};S.view="scaletta";if(S.avvio&&S.avvio.ok)S.avvio=null;selectQuiz();render();window.scrollTo(0,0);return;
+    case "inizia":if(!S.inviando)inizia();return;
+    case "salva-imp":{const el=document.getElementById("impTrigger");if(!el||!S.db)return;const v=el.value.trim();
+      if(v&&!/^trig_[A-Za-z0-9]+$/.test(v)){toast("L'id deve cominciare con trig_ ed essere fatto solo di lettere e cifre.",true);return;}
+      const doc=Object.assign({},S.imp||{});doc.trigger=v;
+      S.db.doc(PERCORSO_IMPOSTAZIONI).set(doc).then(function(){S.impBozza=null;toast(v?"Avvio automatico salvato.":"Avvio automatico tolto.");},function(e){toast("Non sono riuscito a salvare"+(e&&e.code?" ("+e.code+")":"")+".",true);});return;}
+    case "riprova-avvio":{const q=S.quizzes.find(function(x){return x.id===d.id;});if(!q)return;S.inviando=true;avviaSessione(q.id,q.titolo||q.id,!!q.materiale);return;}
+    case "copia-avvio":{const ta=document.getElementById("testoAvvio");if(!ta)return;const ok=function(){toast("Frase copiata: incollala in una chat con Claude.");};
+      try{navigator.clipboard.writeText(ta.value).then(ok,function(){ta.select();toast("Copia non permessa qui: la frase è selezionata, premi Ctrl+C.");});}catch(e){ta.select();toast("La frase è selezionata: premi Ctrl+C.");}return;}
+    case "vtog":S.openG=S.openG||{};S.openG[d.id]=!S.openG[d.id];return render();
+    case "addvar":return addVariant(d.id);
+    case "delvar":
+      if(S.del===d.id){S.del=null;return void S.db.doc(rowPath(d.id)).delete().then(function(){toast("Variante eliminata.");}).catch(function(){toast("Eliminazione non riuscita.",true);});}
+      S.del=d.id;clearTimeout(S.delT);S.delT=setTimeout(function(){S.del=null;render();},4000);return render();
+    case "delgrp":{
+      const u=unitaDi(S.rows,d.id);if(!u)return;
+      if(S.del===d.id){S.del=null;Promise.all(u.rows.map(function(r){return S.db.doc(rowPath(r.id)).delete();})).then(function(){riapriScaletta("Hai eliminato una domanda");}).catch(function(){toast("Eliminazione non riuscita.",true);});return;}
+      S.del=d.id;clearTimeout(S.delT);S.delT=setTimeout(function(){S.del=null;render();},4000);return render();
+    }
+    case "open":S.sel=d.id;S.view="dettaglio";S.edit=null;render();window.scrollTo(0,0);return;
+    case "add":return addRow(d.sec);
+    case "addsec":return addRow("Nuova sezione");
+    case "renumber":return renumber();
+    case "db-add":{const L=dbList(S.quiz);let n="db"+(L.length+1);while(L.some(function(x){return x.nome===n;}))n+="b";L.push({nome:n,sql:""});S.focusKey="db:"+(L.length-1)+":sql";return void save(quizPath(),{database:L});}
+    case "db-del":{const i=Number(d.i);if(S.delDb===i){S.delDb=null;const L=dbList(S.quiz);L.splice(i,1);Object.keys(S.dirty).forEach(function(k){if(/^db:/.test(k))delete S.dirty[k];});return void save(quizPath(),{database:L});}
+      S.delDb=i;clearTimeout(S.delDbT);S.delDbT=setTimeout(function(){S.delDb=null;render();},4000);return render();}
+    case "goto":return gotoRow(d.id);
+    case "sel":S.sel=d.id;S.edit=null;render();return;
+    case "solo-riv":{S.soloRiv=!S.soloRiv;if(S.soloRiv){const cur=S.rows.find(function(x){return x.id===S.sel;});if(!cur||cur.stato!=="da-rivedere"){const f=daRivedere()[0];if(f)S.sel=f.id;}}S.edit=null;render();return;}
+    case "approva-riga":{const nx=daRivedere().filter(function(x){return x.id!==d.id;})[0];save(rowPath(d.id),{stato:"approvata"});if(nx&&S.soloRiv){S.sel=nx.id;}return;}
+    case "prev":return stepSel(-1);
+    case "next":return stepSel(1);
+    case "edit":{const r=S.rows.find(function(x){return x.id===S.sel;});if(!r)return;S.edit={id:r.id,traccia:r.traccia||"",correzione:r.correzione||"",coderunner:r.coderunner||"",docente:r.docente||""};render();return;}
+    case "cancel-edit":S.edit=null;["traccia","correzione","coderunner","docente"].forEach(function(k){delete S.dirty["draft:"+k];});render();return;
+    case "save-edit":{
+      const e=S.edit;if(!e)return;
+      const pat={traccia:e.traccia,correzione:e.correzione,docente:e.docente};
+      const rr=S.rows.find(function(x){return x.id===e.id;});
+      if(String(e.coderunner||"")!==String((rr&&rr.coderunner)||""))pat.coderunner=e.coderunner;
+      save(rowPath(e.id),pat);
+      S.edit=null;["traccia","correzione","coderunner","docente"].forEach(function(k){delete S.dirty["draft:"+k];});render();return;
+    }
+    case "comment":{
+      const el=document.getElementById("q-"+S.sel)||$(".dname");
+      if(!S.comments||!el)return;
+      Promise.resolve(S.comments.openComposer({element:el})).then(function(r){if(r&&r.opened===false)toast("Chiudi il commento aperto prima di avviarne un altro.");}).catch(function(){toast("Da questa vista non è possibile commentare.",true);});
+      return;
+    }
+    case "approve":{
+      const q=S.quiz,nx=q&&NEXT[q.fase];if(!nx)return;
+      if(q.fase==="dettaglio-revisione"&&mancanti()>0){toast("Mancano ancora delle tracce: il dettaglio non si può approvare.",true);return;}
+      const errs=S.avvCount?S.avvCount.err:0;
+      if(errs&&!S.confirmApprove){S.confirmApprove=true;clearTimeout(S.apT);S.apT=setTimeout(function(){S.confirmApprove=false;render();},5000);return render();}
+      S.confirmApprove=false;save(quizPath(),{fase:nx[0]});if(nx[0]==="dettaglio-approvato")approvaRighe();return;
+    }
+    case "archivia":save(quizPath(),{archiviato:true}).then(function(){toast("Quiz archiviato: lo trovi in fondo al menù, tra gli archiviati.");});return;
+    case "riattiva":save(quizPath(),{archiviato:false});return;
+    case "elimina-quiz":
+      if(S.deleting)return;
+      if(S.delQuiz===S.quizId){return void eliminaQuiz();}
+      S.delQuiz=S.quizId;clearTimeout(S.delQT);S.delQT=setTimeout(function(){S.delQuiz=null;render();},6000);
+      S.gestOpen=true;
+      return render();
+    case "back":{
+      const q=S.quiz,pv=q&&PREV[q.fase];if(!pv)return;
+      save(quizPath(),{fase:pv});return;
+    }
+  }
+}
+main.addEventListener("click",function(e){const b=e.target.closest("[data-act]");if(b&&main.contains(b))act(b.dataset.act,b.dataset);});
+main.addEventListener("input",function(e){
+  const t=e.target;
+  if(t.dataset.draft&&S.edit){S.edit[t.dataset.draft]=t.value;return;}
+  if(t.dataset.nv){S.nuovo[t.dataset.nv]=t.type==="checkbox"?t.checked:t.value;if(t.dataset.nv==="tipoQuiz"){render();}return;}
+  if(t.dataset.k)S.dirty[t.dataset.k]=t.value;
+});
+main.addEventListener("change",function(e){
+  const t=e.target;
+  if(t.dataset.grp){
+    let v=t.value;
+    if(t.dataset.t==="n")v=Math.max(0,num(v));
+    if(t.dataset.t==="parte")v=Number(v);
+    delete S.dirty[t.dataset.k];
+    return void salvaGruppo(t.dataset.grp,t.dataset.f,v);
+  }
+  if(t.dataset.f&&t.dataset.id){
+    let v=t.value;
+    if(t.dataset.t==="n")v=Math.max(0,num(v));
+    if(t.dataset.t==="parte")v=Number(v);
+    delete S.dirty[t.dataset.k];
+    return void save(rowPath(t.dataset.id),(function(){const o={};o[t.dataset.f]=v;return o;})());
+  }
+  if(t.dataset.db!==undefined){
+    const L=dbList(S.quiz),i=Number(t.dataset.db);if(!L[i])return;
+    L[i][t.dataset.dbf]=t.dataset.dbf==="nome"?t.value.trim():t.value;
+    delete S.dirty[t.dataset.k];
+    return void save(quizPath(),{database:L});
+  }
+  if(t.dataset.q){
+    let v=t.value;if(t.dataset.t==="n")v=Math.max(0,num(v));
+    delete S.dirty[t.dataset.k];
+    if(t.dataset.q==="fase"&&v==="dettaglio-approvato")approvaRighe();
+    return void save(quizPath(),(function(){const o={};o[t.dataset.q]=v;return o;})());
+  }
+  if(t.dataset.sec!==undefined){
+    const old=t.dataset.sec,nv=t.value.trim()||old;delete S.dirty[t.dataset.k];
+    if(nv!==old)S.rows.filter(function(r){return r.sezione===old;}).forEach(function(r){save(rowPath(r.id),{sezione:nv});});
+  }
+});
+$("#quizSel").addEventListener("change",function(e){S.quizId=e.target.value;if(S.view==="home"||S.view==="nuovo")S.view="scaletta";S.sel=null;S.edit=null;S.dirty={};selectQuiz();render();});
+document.querySelector(".tabs").addEventListener("click",function(e){const b=e.target.closest("[data-view]");if(!b)return;S.view=b.dataset.view;S.edit=null;render();window.scrollTo(0,0);});
+
+/* ------------------------------------------------------------------ dati */
+function selectQuiz(){
+  S.quiz=S.quizzes.find(function(q){return q.id===S.quizId;})||null;
+  if(S.rowsFor===S.quizId||!S.db||!S.quiz)return;
+  if(S.unsubRows){S.unsubRows();S.unsubRows=null;}
+  S.rows=[];S.rowsFor=null;
+  const id=S.quizId;
+  S.unsubRows=S.db.collection("quiz/"+id+"/domande").onSnapshot(function(snap){
+    if(S.quizId!==id)return;
+    S.rows=snap.docs.map(function(d){const o=Object.assign({},d.data()||{});o.id=d.id;return o;}).sort(function(a,b){return num(a.ordine)-num(b.ordine);});
+    S.rowsFor=id;render();
+  },function(err){if(err&&err.code==="revoked"){S.error="revoked";}else toast("Non riesco a leggere le domande del quiz.",true);render();});
+}
+async function init(){
+  render();
+  let db=null;
+  try{db=window.claude&&window.claude.use?await window.claude.use("db"):null;}catch(e){db=null;}
+  if(!db){S.error="nodb";render();return;}
+  S.db=db;
+  db.doc(PERCORSO_IMPOSTAZIONI).onSnapshot(function(snap){S.imp=snap.exists?Object.assign({},snap.data()||{}):{};render();},function(){S.imp={};render();});
+  db.collection("quiz").onSnapshot(function(snap){
+    S.quizzes=snap.docs.map(function(d){const o=Object.assign({},d.data()||{});o.id=d.id;return o;}).sort(function(a,b){return String(a.titolo||a.id).localeCompare(String(b.titolo||b.id),"it");});
+    if(!S.quizzes.some(function(q){return q.id===S.quizId;})){const a=S.quizzes.find(function(q){return !q.archiviato;})||S.quizzes[0];S.quizId=a?a.id:null;}
+    S.ready=true;selectQuiz();render();
+  },function(err){if(err&&err.code==="revoked")S.error="revoked";else toast("Non riesco a leggere i quiz.",true);render();});
+  try{const c=await window.claude.use("comments");if(c&&c.openComposer){S.comments=c;render();}}catch(e){}
+}
+init();
+})();
+</script>
+
+</body></html>

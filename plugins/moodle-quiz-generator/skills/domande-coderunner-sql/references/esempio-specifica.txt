@@ -1,0 +1,136 @@
+=== category
+Esempi domande-coderunner-sql
+=== database libreria
+CREATE TABLE Editori (
+    IdEditore INT PRIMARY KEY,
+    Nome VARCHAR(50) NOT NULL,
+    Citta VARCHAR(30)
+);
+CREATE TABLE Libri (
+    ISBN CHAR(13) PRIMARY KEY,
+    Titolo VARCHAR(100) NOT NULL,
+    Autore VARCHAR(50) NOT NULL,
+    Prezzo DECIMAL(6,2),
+    IdEditore INT,
+    FOREIGN KEY (IdEditore) REFERENCES Editori(IdEditore)
+);
+INSERT INTO Editori VALUES (1, 'Einaudi', 'Torino'), (2, 'Mondadori', 'Milano'), (3, 'Feltrinelli', 'Milano');
+INSERT INTO Libri VALUES
+ ('9788806219', 'Il barone rampante', 'Calvino', 11.00, 1),
+ ('9788806220', 'Le città invisibili', 'Calvino', 9.00, 1),
+ ('9788804668', 'Il fu Mattia Pascal', 'Pirandello', 9.50, 2),
+ ('9788807900', 'Uno, nessuno e centomila', 'Pirandello', 11.00, 3),
+ ('9788804712', 'Il nome della rosa', 'Eco', 14.50, 2);
+
+=== question
+=== name
+L5 - B1 - Scrivere: i libri sotto i 10 euro
+=== note
+SELECT su una tabella: il test non aggiunge niente, si confronta il risultato.
+=== questiontext
+<p>Nel database della <strong>Libreria Pagina 42</strong> la tabella <strong>Libri</strong> ha la struttura</p>
+<p>Libri (<u>ISBN</u>, Titolo, Autore, Prezzo, IdEditore*)</p>
+<p>Scrivi la query che mostra <strong>titolo e prezzo</strong> dei libri che costano <strong>meno di 10 euro</strong>, dal più economico al più caro.</p>
+=== answer
+SELECT Titolo, Prezzo
+FROM Libri
+WHERE Prezzo < 10
+ORDER BY Prezzo;
+=== test
+-- il risultato della tua query
+
+=== question
+=== name
+L5 - B2 - Scrivere: libri ed editori di Milano
+=== questiontext
+<p>Schema:</p>
+<p>Editori (<u>IdEditore</u>, Nome, Citta)<br>Libri (<u>ISBN</u>, Titolo, Autore, Prezzo, IdEditore*)</p>
+<p>Scrivi la query che mostra il <strong>titolo</strong> di ogni libro e il <strong>nome</strong> del suo editore, solo per gli editori di <strong>Milano</strong>, in ordine di titolo.</p>
+=== answer
+SELECT L.Titolo, E.Nome
+FROM Libri L INNER JOIN Editori E ON L.IdEditore = E.IdEditore
+WHERE E.Citta = 'Milano'
+ORDER BY L.Titolo;
+=== test
+-- il risultato della tua query
+
+=== question
+=== name
+L5 - C1 - Scrivere: un nuovo editore
+=== note
+INSERT nella tabella padre: database con le tabelle vuote (dedotto). Test: SELECT * sullo stato finale.
+=== questiontext
+<p>Inserisci nella tabella <strong>Editori</strong> (<u>IdEditore</u>, Nome, Citta) l'editore <strong>Adelphi</strong>, con codice 4, che ha sede a <strong>Milano</strong>.</p>
+=== answer
+INSERT INTO Editori (IdEditore, Nome, Citta) VALUES (4, 'Adelphi', 'Milano');
+=== test
+SELECT * FROM Editori;
+
+=== question
+=== name
+L5 - C2 - Scrivere: sconto sui libri di Calvino
+=== questiontext
+<p>La libreria sconta di <strong>1 euro</strong> tutti i libri di <strong>Calvino</strong>. Scrivi l'istruzione che aggiorna i prezzi.</p>
+=== answer
+UPDATE Libri SET Prezzo = Prezzo - 1 WHERE Autore = 'Calvino';
+=== test
+SELECT Titolo, Prezzo FROM Libri ORDER BY Titolo;
+
+=== question
+=== name
+L5 - D1 - Scrivere: la tabella Recensioni
+=== options
+precheck: 1
+dati: pieno
+=== note
+CREATE da verifica: controllo di sintassi visibile, struttura controllata nei test nascosti.
+=== questiontext
+<p>Crea la tabella <strong>Recensioni</strong> con i campi:</p>
+<ul>
+<li><strong>IdRecensione</strong>: intero, chiave primaria;</li>
+<li><strong>Voto</strong>: intero, obbligatorio;</li>
+<li><strong>Testo</strong>: testo fino a 500 caratteri;</li>
+<li><strong>ISBN</strong>: 13 caratteri, obbligatorio, chiave esterna verso Libri.</li>
+</ul>
+<p>La tabella Libri esiste già: Libri (<u>ISBN</u>, Titolo, Autore, Prezzo, IdEditore*). Con il pulsante <em>Precheck</em> controlli solo la sintassi.</p>
+=== answer
+CREATE TABLE Recensioni (
+    IdRecensione INT PRIMARY KEY,
+    Voto INT NOT NULL,
+    Testo VARCHAR(500),
+    ISBN CHAR(13) NOT NULL,
+    FOREIGN KEY (ISBN) REFERENCES Libri(ISBN)
+);
+=== test HIDE
+[[struttura Recensioni]]
+
+=== question
+=== name
+L5 - E1 - Debug: i libri di un editore
+=== note
+Due errori legati ai concetti: nome di tabella sbagliato, JOIN sui campi sbagliati.
+=== questiontext
+<p>La query dovrebbe mostrare titolo e autore dei libri pubblicati da <strong>Einaudi</strong>, ma contiene <strong>due errori</strong>. Eseguila, leggi il primo messaggio, correggi e riprova.</p>
+=== preload
+SELECT L.Titolo, L.Autore
+FROM Libro L INNER JOIN Editori E ON L.ISBN = E.IdEditore
+WHERE E.Nome = 'Einaudi';
+=== answer
+SELECT L.Titolo, L.Autore
+FROM Libri L INNER JOIN Editori E ON L.IdEditore = E.IdEditore
+WHERE E.Nome = 'Einaudi';
+=== test
+-- il risultato della tua query
+
+=== question
+=== name
+L5 - F1 - Vincoli: cancellare un editore con dei libri
+=== note
+La risposta attesa è l'errore: lo studente impara provocandolo.
+=== questiontext
+<p>Prova a cancellare dalla tabella <strong>Editori</strong> l'editore <strong>Einaudi</strong> (codice 1), che ha dei libri in catalogo. Scrivi l'istruzione, eseguila e osserva che cosa risponde il DBMS.</p>
+=== answer
+DELETE FROM Editori WHERE IdEditore = 1;
+=== test
+-- che cosa risponde il DBMS?
+SELECT COUNT(*) AS editori FROM Editori;

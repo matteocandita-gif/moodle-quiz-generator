@@ -1,0 +1,14 @@
+{
+  "name": "moodle-quiz-generator",
+  "description": "Skill per preparare quiz Moodle di informatica (esercitazioni e verifiche, con domande CodeRunner) con la dashboard «Bozze dei quiz»",
+  "owner": {
+    "name": "Matteo Candita"
+  },
+  "plugins": [
+    {
+      "name": "moodle-quiz-generator",
+      "source": "./plugins/moodle-quiz-generator",
+      "description": "Dalla richiesta al quiz Moodle: scaletta e tracce nella dashboard, poi Moodle XML e backup .mbz"
+    }
+  ]
+}

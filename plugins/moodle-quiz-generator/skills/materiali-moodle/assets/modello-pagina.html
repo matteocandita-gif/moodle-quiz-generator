@@ -1,0 +1,90 @@
+<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 900px; margin: 0 auto; color: #333333; line-height: 1.6;">
+<h1 style="color: #2c3e50; border-bottom: 3px solid #e74c3c; padding-bottom: 10px;">Blocco B - Leggere dal database</h1>
+<p>La pagina <span style="font-family: monospace;">catalogo.php</span> legge i libri dal database <strong>dblibreria</strong> e li mostra in una tabella. Il codice segue sempre <strong>cinque fasi</strong>.</p>
+
+<h2 style="color: #c0392b; margin-top: 30px;">Obiettivi</h2>
+<ul style="background-color: #fdf2e9; padding: 16px 40px; border-radius: 8px; border-left: 5px solid #e74c3c;">
+<li>Riconoscere le cinque fasi di una pagina che legge dal database.</li>
+<li>Capire che cosa restituisce <span style="font-family: monospace;">mysqli_fetch_array</span> a ogni chiamata.</li>
+</ul>
+
+<h2 style="color: #c0392b; margin-top: 30px;">Le cinque fasi</h2>
+<div style="background-color: #c9daf8; border-left: 5px solid #6d9eeb; padding: 12px 16px; border-radius: 4px; margin: 0 0 16px;">
+<p style="margin: 0 0 6px; color: #1c4587;"><strong>Che cos'è il risultato di una query</strong></p>
+<p style="margin: 0;">Quando PHP esegue una SELECT, il DBMS restituisce un <strong>risultato</strong>: un insieme di righe che PHP legge una alla volta, dalla prima all'ultima.</p>
+</div>
+<table style="border-collapse: collapse; margin: 8px 0 16px;">
+<thead>
+<tr><th style="border: 1px solid #999999; padding: 4px 8px; background-color: #eeeeee; text-align: left;">Fase</th><th style="border: 1px solid #999999; padding: 4px 8px; background-color: #eeeeee; text-align: left;">Funzione</th></tr>
+</thead>
+<tbody>
+<tr><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;">1. Connessione</td><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;"><span style="font-family: monospace;">mysqli_connect</span></td></tr>
+<tr><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;">2. Scrittura della query</td><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;">una stringa</td></tr>
+<tr><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;">3. Esecuzione</td><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;"><span style="font-family: monospace;">mysqli_query</span></td></tr>
+<tr><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;">4. Chiusura</td><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;"><span style="font-family: monospace;">mysqli_close</span></td></tr>
+<tr><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;">5. Elaborazione</td><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;"><span style="font-family: monospace;">mysqli_fetch_array</span> in un while</td></tr>
+</tbody>
+</table>
+
+<div style="background-color: #fff2cc; border-left: 5px solid #f1c232; padding: 12px 16px; border-radius: 4px; margin: 0 0 16px;">
+<p style="margin: 0 0 6px; color: #7f6000;"><strong>Esempio svolto - catalogo.php</strong></p>
+[[codice php]]
+<?php
+mysqli_report(MYSQLI_REPORT_OFF);
+
+// 1. Connessione
+$host = "127.0.0.1"; 
+$username = "root"; 
+$password = ""; 
+$nomedb = "dblibreria";
+$connessione = mysqli_connect($host, $username, $password, $nomedb)
+    or die("Connessione non riuscita: " . mysqli_connect_error());
+
+// 2. Scrittura della query
+$query = "SELECT Titolo, Prezzo FROM Libri ORDER BY Titolo";
+
+// 3. Esecuzione
+$risultato = mysqli_query($connessione, $query)
+    or die("Errore nella query: " . mysqli_error($connessione));
+
+// 4. Chiusura
+mysqli_close($connessione);
+
+// 5. Elaborazione
+if (mysqli_num_rows($risultato) == 0) {
+    echo "<p>Nessun libro trovato</p>";
+} else {
+    while ($riga = mysqli_fetch_array($risultato)) {
+        echo "<p>" . $riga["Titolo"] . " - " . $riga["Prezzo"] . " euro</p>";
+    }
+}
+?>
+[[/codice]]
+<p style="margin: 0;"><span style="font-family: monospace;">mysqli_fetch_array</span> restituisce <strong>una riga alla volta</strong>; quando le righe sono finite restituisce false e il while si ferma. Senza il while vedremmo solo la prima riga.</p>
+</div>
+
+<div style="background-color: #f9cb9c; border-left: 5px solid #e69138; padding: 12px 16px; border-radius: 4px; margin: 0 0 16px;">
+<p style="margin: 0 0 6px; color: #783f04;"><strong>N.B. su or die</strong></p>
+<p style="margin: 0;"><span style="font-family: monospace;">or die</span> ferma la pagina con un messaggio se qualcosa va storto. È un modo semplice per imparare: un sito vero gestisce gli errori in un altro modo e non mostra mai i messaggi del DBMS agli utenti.</p>
+</div>
+
+<div style="background-color: #fff2cc; border-left: 5px solid #f1c232; padding: 12px 16px; border-radius: 4px; margin: 0 0 16px;">
+<p style="margin: 0 0 6px; color: #7f6000;"><strong>Guardalo in azione</strong></p>
+<p style="margin: 0;">Nel sito <a href="https://salvemini.synology.me/webdemo/7-mysqli.html" target="_blank" rel="noopener">Il web dietro le quinte</a> seguite la <strong>tappa 7</strong>: lo stesso schema, riga per riga, con il valore delle variabili.</p>
+</div>
+
+<div style="background-color: #d9ead3; border-left: 5px solid #93c47d; padding: 12px 16px; border-radius: 4px; margin: 0 0 16px;">
+<p style="margin: 0 0 6px; color: #274e13;"><strong>Da rileggere sul manuale</strong></p>
+<p style="margin: 0;">Il capitolo su PHP e database, in particolare le cinque fasi.</p>
+</div>
+
+<div style="background-color: #f9cb9c; border-left: 5px solid #e69138; padding: 12px 16px; border-radius: 4px; margin: 0 0 16px;">
+<p style="margin: 0 0 6px; color: #783f04;"><strong>Prima di andare avanti</strong></p>
+<p style="margin: 0 0 6px;">Dopo aver letto, dovete saper rispondere a queste tre domande:</p>
+<ol style="margin: 0;">
+<li>Quali sono le cinque fasi di una pagina che legge dal database?</li>
+<li>Che cosa restituisce mysqli_fetch_array a ogni chiamata, e quando si ferma il while?</li>
+<li>A che cosa serve mysqli_num_rows nell'esempio?</li>
+</ol>
+</div>
+</div>
