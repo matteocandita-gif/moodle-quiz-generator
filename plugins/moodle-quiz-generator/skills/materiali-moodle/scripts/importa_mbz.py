@@ -71,7 +71,7 @@ PREFISSI = {  # prefisso del nome -> tipologie possibili (la prima è quella pre
     "Esercizio": ["vincoli"], "Campo di prova": ["campo_prova"],
 }
 PAGINE = {"istruzioni", "comelavoriamo", "paginablocco"}
-NOME_RE = re.compile(r"^(?P<lez>L\d+|[A-Z][A-Z0-9]*\d[A-Z0-9]*) - (?P<pos>[0-9A-Z]{1,3}[a-z]?) - (?P<resto>.+)$")
+NOME_RE = re.compile(r"^(?P<lez>L\d+|[A-Z][A-Z0-9]*\d[A-Z0-9]*|\d[A-Z][A-Z0-9]*) - (?P<pos>[0-9A-Z]{1,3}[a-z]?) - (?P<resto>.+)$")
 NORMALIZZA_INIZIO = "// ---- output normalizzato: spazi e a capo dello studente non contano ----"
 CONFIGURA_RE = re.compile(r"\n?FakeDB::configure\(\['user' => 'root', 'password' => '', 'database' => '([^']*)'\]\);\s*$")
 STRUTTURA_RE = re.compile(
@@ -1008,7 +1008,7 @@ def importa(bk, cartella_quiz, qz, qid=None):
         for _, q in v["versioni"]:
             cat_di[id(q)] = bk.categorie.get(v["categoria"], {}).get("nome", "")
     cat = next((cat_di.get(id(d["usata"][1]), "") for s in slot for d in s["domande"]), "")
-    m = re.match(r"^(?:Lezione\s+\S+\s+-\s+|[A-Z][A-Z0-9]*\d[A-Z0-9]*\s+-\s+|\d+\s*-\s*)(.+)$", cat)
+    m = re.match(r"^(?:Lezione\s+\S+\s+-\s+|[A-Z][A-Z0-9]*\d[A-Z0-9]*\s+-\s+|\d[A-Z][A-Z0-9]*\s+-\s+|\d+\s*-\s*)(.+)$", cat)
     argomento = m.group(1) if m else (cat or nome_quiz)
 
     righe, rapporto, n = [], [], 0

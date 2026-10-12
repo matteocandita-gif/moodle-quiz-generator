@@ -6,6 +6,7 @@ Ogni preset ha otto voci: scopo, progressione, tipologie, regole sulle tracce, p
 
 | Sigla | Tipo | Impostazioni dell'.mbz |
 |---|---|---|
+| LIB | Libero (senza preset) | scelte nel modulo (`presetMbz`) |
 | ED | Esercitazione con spiegazione di dettaglio | esercitazione |
 | EDT | Esercitazione con spiegazione, solo teoria | esercitazione |
 | V | Verifica di programmazione (sottotipi: ripasso, dettaglio) | verifica |
@@ -20,6 +21,12 @@ Impostazioni dell'.mbz, verificate su backup reali del Moodle della scuola (5.2)
 - **verifica**: feedback differito, un tentativo, tempo pari al tempo del quiz, durante la prova si vede solo il tentativo e il punteggio massimo; feedback, punteggi e risposte giuste si aprono dopo, alla restituzione, cambiando le opzioni di revisione del quiz (ricordalo nel messaggio di consegna).
 
 Voto del quiz: 10, sufficienza 6, salvo indicazione diversa nel quiz della dashboard.
+
+## LIB · Libero (senza preset)
+
+- **Scopo**: un quiz che non rientra negli altri tipi, o per cui l'utente non vuole regole prefissate. È il primo tipo del modulo «Nuovo quiz».
+- **Regole**: nessun preset. Tipologie, numero di domande, parti, punti, tempi e struttura vengono solo dalla `richiesta` del quiz; dove la richiesta non dice niente, scegli tu in modo ragionevole e scrivilo nelle `note`. Valgono comunque le regole generali di questa skill (domande di comprensione, tracce, convenzioni, pagine del quiz) e, per una verifica di programmazione, `verifiche-programmazione`. La dashboard non controlla punti, tempi, parti né tipologie: ammette tutte quelle del catalogo; usa le parti 0 (pagina) e 1 (domanda).
+- **Impostazioni dell'.mbz**: le sceglie l'utente nel modulo, nel campo `presetMbz` del quiz (`esercitazione` o `verifica`, di norma `esercitazione`).
 
 ## ED · Esercitazione con spiegazione di dettaglio
 

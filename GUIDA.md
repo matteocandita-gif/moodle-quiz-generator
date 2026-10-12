@@ -6,7 +6,7 @@ Si lavora in due posti: la **dashboard** «Bozze dei quiz» (una pagina tua, pri
 
 ## Creare un quiz
 
-1. Nella dashboard premi **Nuovo quiz** e compila il modulo. La richiesta scrivila come la scriveresti in chat: che cosa vuoi, da che cosa partire, che cosa evitare. Se hai materiale da dare (pagine del manuale, esercitazioni già svolte), spunta la casella dei file.
+1. Nella dashboard premi **Nuovo quiz** e compila il modulo. Il primo tipo, **Libero (senza preset)**, non ha regole prefissate: decide tutto la richiesta, e scegli tu se in Moodle si comporta come esercitazione o come verifica. Gli altri tipi li descrive il riquadro «Come scegliere il tipo di quiz», sotto i campi. Lezione o codice sono facoltativi: se li lasci vuoti, il quiz riceve un codice di tre caratteri che comincia con la classe (per esempio 4K7), che dà il nome alle domande e alla categoria in Moodle. La richiesta scrivila come la scriveresti in chat: che cosa vuoi, da che cosa partire, che cosa evitare. Se hai materiale da dare (pagine del manuale, esercitazioni già svolte), spunta la casella dei file.
 2. Premi **Inizia**. Claude scrive la scaletta in una sessione a parte, che trovi tra le tue sessioni; le righe compaiono nella dashboard da sole. Se hai spuntato i file, apri quella sessione e allegali lì.
    Se «Inizia» ti dà una frase da copiare, incollala in una chat: succede quando l'avvio automatico non è configurato o il connettore non è autorizzato.
 3. Puoi anche partire dalla chat: «prepariamo un'esercitazione sulle JOIN per le quarte, un'ora e mezza».

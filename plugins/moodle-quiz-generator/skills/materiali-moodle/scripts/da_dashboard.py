@@ -30,7 +30,7 @@ Si ferma con l'elenco degli errori se una riga non rispetta le convenzioni.
                     scritte: la variante «a» si genera subito, la «b» e la «c» quando servono (recupero).
 
 Nomi e categoria: con una lezione numerica «L<lezione> - <pos> - …» e «Lezione <lezione> - <argomento>»;
-con una lezione non numerica (le verifiche, per esempio «V5R») «V5R - <pos> - …» e «V5R - <argomento>».
+con una lezione non numerica (le verifiche, per esempio «V5R», o un codice automatico come «4K7») «V5R - <pos> - …» e «V5R - <argomento>».
 """
 import glob
 import json
@@ -279,13 +279,13 @@ def nome_moodle(quiz, r):
 def prefisso_lezione(quiz):
     """«L3» per una lezione numerica; il codice così com'è per le verifiche senza lezione («V5R»)."""
     lez = str(quiz.get("lezione") or "").strip() or "?"
-    return ("L" + lez) if lez[:1].isdigit() or lez == "?" else lez
+    return ("L" + lez) if lez.isdigit() or lez == "?" else lez
 
 
 def categoria_quiz(quiz):
     lez = str(quiz.get("lezione") or "").strip() or "?"
     arg = quiz.get("argomento") or quiz.get("titolo") or ""
-    return ("Lezione %s - %s" % (lez, arg)) if lez[:1].isdigit() or lez == "?" else ("%s - %s" % (lez, arg))
+    return ("Lezione %s - %s" % (lez, arg)) if lez.isdigit() or lez == "?" else ("%s - %s" % (lez, arg))
 
 
 def numero(x):

@@ -2,6 +2,13 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz»: Claude propone di aggiornarla, e i quiz salvati restano.
 
+## 0.2.0 — 12/10/2026
+
+- **Dashboard** 0.2.0: nel modulo «Nuovo quiz» il primo tipo è «Libero (senza preset)», senza regole su tipi, quantità, punti e tempi, con la scelta del comportamento in Moodle (esercitazione o verifica).
+- **Dashboard**: riquadro «Come scegliere il tipo di quiz» con la descrizione di ogni tipo.
+- **Dashboard**: lezione o codice facoltativi; se mancano, il quiz riceve un codice di tre caratteri che comincia con la classe (per esempio 4K7).
+- Un codice che comincia con una cifra non è più preso per un numero di lezione: «Lezione N» solo per i numeri.
+
 ## 0.1.1 — 12/10/2026
 
 - Claude risponde sempre in italiano, anche quando un comando o una skill si avvia dal menù (l'app aggiunge da sola una frase in inglese).

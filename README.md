@@ -34,7 +34,7 @@ flowchart LR
   F --> G["Ripristino<br/>nel corso Moodle"]
 ```
 
-1. **Nuovo quiz.** Nella dashboard: tipo di quiz, titolo, lezione o codice della verifica, classe, argomento, tempo e la richiesta a parole. «Inizia» avvia una sessione di Claude che scrive la scaletta.
+1. **Nuovo quiz.** Nella dashboard: tipo di quiz, titolo, classe, argomento, tempo e la richiesta a parole; lezione o codice sono facoltativi. «Inizia» avvia una sessione di Claude che scrive la scaletta.
 2. **Scaletta.** Una riga per pagina o domanda, con tipologia, punti, minuti e pagina del quiz. La rivedi nella vista Scaletta, correggi, commenti, approvi.
 3. **Dettaglio.** In chat chiedi a Claude di scrivere il dettaglio: il testo di ogni domanda come lo vedrà lo studente, la correzione, le soluzioni e i test delle CodeRunner. Lo rivedi nella vista Dettaglio e lo approvi.
 4. **Generazione.** In chat: «genera il quiz». Ricevi il backup `.mbz` (e, se serve, il Moodle XML delle domande).
@@ -46,6 +46,7 @@ La guida per l'uso di tutti i giorni è in [GUIDA.md](GUIDA.md).
 
 | Sigla | Tipo | In breve |
 |---|---|---|
+| LIB | Libero (senza preset) | Nessuna regola prefissata: tipi, numero di domande, punti e tempi li decide la richiesta |
 | ED | Esercitazione con spiegazione | Spiegazione dentro il quiz, poi esercizi guidati e finali |
 | EDT | Esercitazione con spiegazione, solo teoria | Pagine di spiegazione seguite da domande di comprensione, senza codice |
 | V | Verifica di programmazione | Con voto: parte base e parte avanzata, varianti per tag |
