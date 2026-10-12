@@ -390,6 +390,7 @@ const CAT_RAW=[
  ["vincoli","Vincoli di integrità","Scrittura con correzione automatica","CodeRunner SQL","ED","o","Esercizio"],
  ["pagina_php","Pagina PHP con database","Scrittura con correzione automatica","CodeRunner PHP","V ED EP ER","o","Scrivere"],
  ["esercizio_libero","Esercizio libero","Altro","Aperta","V ED EP ER","om","Esercizio libero"],
+ ["consegna_file","Consegna di un file","Altro","Aperta","V ED EP ER","om","Consegna"],
  ["libero_html","Esercizio HTML","Altro","CodeRunner HTML (senza test)","V ED EP ER","om","Esercizio libero"],
  ["libero_css","Esercizio CSS","Altro","CodeRunner CSS (senza test)","V ED EP ER","om","Esercizio libero"],
  ["campo_prova","Campo di prova","Altro","CodeRunner SQL","V EP","o","Campo di prova"]
@@ -951,7 +952,7 @@ function renderHeader(){
   ["home","scaletta","dettaglio"].forEach(function(v){$("#tab-"+v).setAttribute("aria-selected",(S.view===v||(v==="home"&&S.view==="nuovo"))?"true":"false");});
 }
 /* ------------------------------------------------------------------ vista iniziale e nuovo quiz */
-const VERSIONE_PAGINA="0.3.0";
+const VERSIONE_PAGINA="0.3.1";
 const PERCORSO_IMPOSTAZIONI="impostazioni/avvio";
 function triggerAvvio(){return S.imp&&typeof S.imp.trigger==="string"&&/^trig_[A-Za-z0-9]+$/.test(S.imp.trigger)?S.imp.trigger:"";}
 const CONNETTORE="Claude Code Remote";
@@ -1358,7 +1359,7 @@ function dettaglioHTML(){
     if(hasT){
       body+='<section class="sheet'+(pageType?" page":"")+'" id="q-'+esc(r.id)+'" aria-label="Foglio dello studente">'+
         (pageType?"":'<div class="sheet-info"><b>Domanda '+(nums[r.id]||"")+"</b><span>Risposta non ancora data</span><span>Punteggio max.: "+f2(num(r.punti))+"</span><span>Pagina "+esc(r.pag)+"</span></div>")+
-        '<div class="sheet-body md">'+md(r.traccia)+(isCR(c)?crStudenteHTML(r):"")+"</div></section>";
+        '<div class="sheet-body md">'+md(r.traccia)+(isCR(c)?crStudenteHTML(r):"")+(r.tipologia==="consegna_file"?'<div class="crbox"><p class="crl">Sotto la traccia lo studente trova solo la casella per caricare il file (un file .html, .htm o .css), senza campo di testo.</p></div>':"")+"</div></section>";
     }else body+='<div class="empty-card"><p>La traccia per lo studente non è ancora scritta.</p></div>';
     const key=(hasT?chiaveHTML(r):"")+(isCR(c)?crDocenteHTML(r):"");
     if(key||hasD)body+='<div class="lb doc">'+ico("lock")+'Solo per il docente <small>· lo studente non lo vede</small></div><section class="teacher md" aria-label="Note per il docente">'+

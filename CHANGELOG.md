@@ -2,6 +2,12 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz»: Claude propone di aggiornarla, e i quiz salvati restano.
 
+## 0.3.1 — 12/10/2026
+
+- Nuova tipologia **Consegna di un file** (`consegna_file`): domanda aperta senza testo, con un file da caricare (.html, .htm, .css). Serve a verificare che gli studenti abbiano creato davvero il file, per esempio la pagina dell'esempio svolto.
+- **Dashboard** 0.3.1: la tipologia nel catalogo e nel dettaglio.
+- L'importazione da un backup riconosce le domande aperte con solo il file da caricare.
+
 ## 0.3.0 — 12/10/2026
 
 - **Dashboard** 0.3.0: scelta «Esercizi HTML» nei dati del quiz e nel modulo «Nuovo quiz» (con linguaggio HTML e CSS): **con anteprima** (prototipo `php_con_test`, con l'area di prova) o **senza anteprima** (prototipo `html`: il campo serve solo a incollare il codice scritto nell'editor e provato nel browser). Il dettaglio mostra il prototipo scelto.

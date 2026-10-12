@@ -53,7 +53,11 @@ CATALOGO = {
     "lettura_output": ("cloze", "Tracciamento"), "trova_errore": ("multichoice", "Trova l'errore"),
     "compl_campi": ("cloze", "Completamento"), "guidato": ("cloze", "Esempio guidato"),
     "debug_motivazione": ("essay", "Debug"), "esercizio_libero": ("essay", "Esercizio libero"),
+    "consegna_file": ("essay", "Consegna"),
 }
+# consegna di un file: domanda aperta senza testo da scrivere, con un file da caricare (correzione a mano)
+CONSEGNA_FILE = {"responseformat": "noinline", "responserequired": "0", "attachments": "1",
+                 "attachmentsrequired": "1", "filetypeslist": ".html .htm .css"}
 CODERUNNER = {"compl_eseguito", "scrittura_scheletro", "debug_msg", "debug_silenzioso", "prog_completo",
               "funzione", "prog_dati", "prog_random", "query", "create_tabelle", "query_due_passi",
               "vincoli", "pagina_php", "campo_prova", "libero_html", "libero_css"}
@@ -742,6 +746,8 @@ def domanda(quiz, r):
         if opz:
             raise ValueError("opzioni ( ) / [ ] in una domanda aperta")
         opzioni["defaultgrade"] = punti
+        if r.get("tipologia") == "consegna_file":
+            opzioni.update(CONSEGNA_FILE)
     if opzioni:
         s += ["=== options"] + ["%s: %s" % kv for kv in opzioni.items()]
     note = (r.get("docente") or "").strip()

@@ -151,6 +151,10 @@ Tipologie `libero_html` e `libero_css`: esercizi liberi a correzione manuale con
 
 In Moodle la domanda ha un solo test fittizio che si aspetta «codice salvato!» (`php_con_test`) o «codice salvato» (`html` e `css`): al controllo dà pieni punti, e il punteggio vero lo mette il docente correggendo a mano. Con `php_con_test` (non con `html`) risposta e codice di partenza sono nel formato JSON dello scratchpad (`{"answer_code":[…],"test_code":[""],"show_hide":[""],"prefix_ans":["1"]}`): lo scrive `da_dashboard.py`, nella dashboard si scrive solo il codice.
 
+## Consegna di un file
+
+Tipologia `consegna_file`: domanda aperta (essay) senza campo di testo, con un solo file da caricare, obbligatorio, di tipo `.html`, `.htm` o `.css` (le impostazioni le mette `da_dashboard.py`). `traccia`: il file da preparare, con il nome e i requisiti, e come caricarlo; `correzione`: i criteri per chi corregge (in Moodle le informazioni per chi corregge). Si usa per verificare che lo studente abbia creato davvero un file, per esempio la pagina dell'esempio svolto.
+
 ## Verifiche ripetibili (domande casuali per tag)
 
 Le varianti di una posizione sono righe con lo stesso `tag` (un tag per posizione, unico nel sito, per esempio `rjs4-T1-assegnamento`; niente spazi) e la posizione con la lettera della variante (`T1a`, `T1b`, …). Le varianti hanno **stessi punti, pagina e sezione** (errore se no), di norma la stessa tipologia e gli stessi minuti, e stanno di seguito nella scaletta. Le pagine (istruzioni) non hanno tag e restano fisse. Nella dashboard le varianti di una posizione si vedono come una riga sola (dettaglio in `dashboard.md`).

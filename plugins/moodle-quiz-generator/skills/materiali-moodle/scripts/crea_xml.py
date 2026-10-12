@@ -50,7 +50,7 @@ PREDEFINITI = {
     "shortanswer": {"defaultgrade": "1", "penalty": "0.3333333", "usecase": "0"},
     "essay": {"defaultgrade": "1", "penalty": "0", "responseformat": "plain",
               "responserequired": "1", "responsefieldlines": "25",
-              "attachments": "0", "attachmentsrequired": "0"},
+              "attachments": "0", "attachmentsrequired": "0", "filetypeslist": ""},
     "description": {},
 }
 
@@ -233,9 +233,9 @@ def genera_domanda(d):
                  "    <minwordlimit>0</minwordlimit>\n    <maxwordlimit>0</maxwordlimit>\n"
                  "    <attachments>%s</attachments>\n"
                  "    <attachmentsrequired>%s</attachmentsrequired>\n"
-                 "    <maxbytes>0</maxbytes>\n    <filetypeslist></filetypeslist>\n"
+                 "    <maxbytes>0</maxbytes>\n    <filetypeslist>%s</filetypeslist>\n"
                  % (o["responseformat"], o["responserequired"], o["responsefieldlines"],
-                    o["attachments"], o["attachmentsrequired"]))
+                    o["attachments"], o["attachmentsrequired"], o["filetypeslist"]))
         x.append(_testo("graderinfo", d.campi.get("graderinfo", "")))
         x.append(_testo("responsetemplate", d.campi.get("responsetemplate", "")))
     x.append("  </question>\n\n")

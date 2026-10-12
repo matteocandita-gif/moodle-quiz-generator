@@ -648,6 +648,8 @@ class Importatore:
                     conv.perdi("feedback generale della domanda aperta (c'erano anche le informazioni per chi corregge: "
                                "il feedback generale non è stato importato)")
             r["tipologia"] = {"Debug": "debug_motivazione", "Esercizio libero": "esercizio_libero"}.get(prefisso, "teoria_aperta")
+            if tx(opz(q, "essay"), "responseformat") == "noinline" and tx(opz(q, "essay"), "attachments", "0") not in ("0", ""):
+                r["tipologia"] = "consegna_file"     # solo un file da caricare, nessun testo
         elif tipo == "coderunner":
             r.update(self.coderunner(q, prefisso, conv, avvisi))
             r["correzione"] = conv.markdown(gf)
