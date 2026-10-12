@@ -292,6 +292,9 @@ class Convertitore:
         if t == "table":
             return self.tabella(n)
         if t == "div":
+            an = self.anteprima(n)
+            if an:
+                return an
             box = self.riquadro(n)
             if box:
                 return box
@@ -302,6 +305,24 @@ class Convertitore:
             s = self.pulisci_paragrafo(self.inline(n))
             return [s] if s else []
         return self.blocchi(n)
+
+    def anteprima(self, n):
+        """Snippet con l'anteprima accanto (```html anteprima di da_dashboard.py): un div flex con il codice
+        e un riquadro «Nel browser» che ripete l'HTML interpretato. Torna il blocco di codice con «anteprima»."""
+        if "flex" not in stile(n):
+            return None
+        figli = [f for f in n.figli if not (isinstance(f, str) and not f.strip())]
+        if len(figli) != 2 or any(isinstance(f, str) or f.tag != "div" for f in figli):
+            return None
+        primo = [f for f in figli[1].figli if not (isinstance(f, str) and not f.strip())]
+        if not primo or isinstance(primo[0], str) or primo[0].tag != "p" or \
+                re.sub(r"\s+", " ", primo[0].testo()).strip() != "Nel browser":
+            return None
+        codice = self.blocchi(figli[0])
+        if len(codice) != 1 or not codice[0].startswith("```"):
+            return None
+        intestazione, resto = codice[0].split("\n", 1)
+        return ["%s anteprima\n%s" % (intestazione if intestazione != "```" else "```html", resto)]
 
     def riquadro(self, n):
         m = re.search(r"background-color:\s*(#[0-9a-f]{6})", stile(n))
@@ -1291,6 +1312,10 @@ def norm_campo(campo, v):
     if campo == "coderunner":                  # l'ordine delle opzioni non conta
         s = re.sub(r"(=== options\n)([\s\S]*?)(?=\n=== |\Z)",
                    lambda m: m.group(1) + "\n".join(sorted(l for l in m.group(2).split("\n") if l.strip())), s)
+    if campo == "coderunner" and not re.search(r"^=== (test|extra|descrizione)\b", s, re.M):
+        # senza prove (esercizi HTML e CSS) le sezioni sono indipendenti: answer, preload e options in qualunque ordine
+        parti = re.split(r"(?m)^(?==== )", s.strip())
+        s = "\n".join(sorted(p.strip("\n") for p in parti if p.strip()))
     s = re.sub(r"\n{3,}", "\n\n", s)
     return s.strip()
 
