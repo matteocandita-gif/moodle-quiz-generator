@@ -250,7 +250,17 @@ def html_blocchi(bl, in_box=False, pagina=False):
             out.append('<%s style="%s">\n%s\n</%s>' % (tipo, LISTS, "\n".join("<li>%s</li>" % inl(x) for x in dati), tipo))
         elif tipo == "code":
             lang, codice = dati
-            out.append("[[codice %s]]\n%s\n[[/codice]]" % (lang, codice.strip("\n")))
+            if re.search(r"\banteprima\b", lang):
+                # ```html anteprima: il codice e, accanto, il risultato nel browser (l'HTML stesso, interpretato da Moodle)
+                lingua = lang.replace("anteprima", "").strip() or "html"
+                out.append('<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; margin: 8px 0 16px;">\n'
+                           '<div style="flex: 1 1 260px; min-width: 0;">\n[[codice %s]]\n%s\n[[/codice]]\n</div>\n'
+                           '<div style="flex: 1 1 200px; min-width: 0; border: 1px solid #999999; border-radius: 4px; '
+                           'background-color: #ffffff; padding: 8px 14px;">\n'
+                           '<p style="margin: 0 0 6px; font-size: 0.85em; color: #666666;"><strong>Nel browser</strong></p>\n%s\n</div>\n</div>'
+                           % (lingua, codice.strip("\n"), codice.strip("\n")))
+            else:
+                out.append("[[codice %s]]\n%s\n[[/codice]]" % (lang, codice.strip("\n")))
         elif tipo == "table":
             head, rows = dati
             h = "<tr>" + "".join('<th style="%s">%s</th>' % (TH, inl(c)) for c in head) + "</tr>"

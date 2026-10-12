@@ -41,7 +41,7 @@ Quiz: `database` (solo con domande SQL, vedi sotto); `lezione` e `argomento` dan
 
 ## Convenzioni della traccia
 
-- Markdown: paragrafi (ogni a capo dentro un paragrafo resta un a capo, `<br>`; la riga vuota apre un nuovo paragrafo: così lo schema relazionale si scrive una relazione per riga, senza righe vuote in mezzo), `**grassetto**`, `*corsivo*`, `__sottolineato__` (la chiave primaria negli schemi delle tabelle), `` `codice` ``, blocchi di codice tra tre apici inversi con il linguaggio (```` ```html ````), elenchi `-` e `1.`, tabelle con `|`, titoli `#` e `##`.
+- Markdown: paragrafi (ogni a capo dentro un paragrafo resta un a capo, `<br>`; la riga vuota apre un nuovo paragrafo: così lo schema relazionale si scrive una relazione per riga, senza righe vuote in mezzo), `**grassetto**`, `*corsivo*`, `__sottolineato__` (la chiave primaria negli schemi delle tabelle), `` `codice` ``, blocchi di codice tra tre apici inversi con il linguaggio (```` ```html ````; con ```` ```html anteprima ```` accanto al codice compare il risultato nel browser, l'HTML stesso interpretato: solo per snippet brevi di tag della lezione, senza script né stili), elenchi `-` e `1.`, tabelle con `|`, titoli `#` e `##`.
 - **Pagine** (tipologie della famiglia «Pagine»): scritte già nella forma finale, in seconda persona plurale. `#` è il titolo della pagina. Riquadri:
   ```
   :::giallo Esempio svolto

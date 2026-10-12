@@ -2,6 +2,11 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz»: Claude propone di aggiornarla, e i quiz salvati restano.
 
+## 0.3.4 — 12/10/2026
+
+- Snippet HTML con l'anteprima accanto: un blocco ```` ```html anteprima ```` mostra il codice e, a fianco, come lo mostra il browser (nella dashboard e in Moodle). Regola didattica in `progettazione-quiz`: nella pagina di teoria la prima volta che compaiono tag con un effetto da capire (liste, tabelle), mai nell'esempio svolto.
+- **Dashboard** 0.3.4: anteprima degli snippet nel Dettaglio.
+
 ## 0.3.3 — 12/10/2026
 
 - **Dashboard** 0.3.3: nel Dettaglio l'elenco delle domande non torna più in cima a ogni clic e la domanda scelta resta visibile; l'elenco resta fermo mentre la domanda scorre e occupa tutta l'altezza visibile della finestra (ha una sua barra solo se è più lungo); scegliendo una domanda, la pagina risale all'inizio della domanda.
