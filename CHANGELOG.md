@@ -2,6 +2,12 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz»: Claude propone di aggiornarla, e i quiz salvati restano.
 
+## 0.3.5 — 12/10/2026
+
+- Nomi delle domande in Moodle: se il titolo comincia già con un prefisso («Trova l'errore: …», «Consegna: …», «Esempio svolto: …»), il generatore non lo ripete più.
+- Regola in `progettazione-quiz`: il codice HTML di tracce, correzioni e soluzioni si scrive indentato di 4 spazi.
+- **Dashboard** 0.3.5: la pagina riapre dove era stata lasciata, nello stesso browser: vista (tutti i quiz, scaletta, dettaglio), quiz, domanda scelta nel dettaglio e posizione di scorrimento.
+
 ## 0.3.4 — 12/10/2026
 
 - Snippet HTML con l'anteprima accanto: un blocco ```` ```html anteprima ```` mostra il codice e, a fianco, come lo mostra il browser (nella dashboard e in Moodle). Regola didattica in `progettazione-quiz`: nella pagina di teoria la prima volta che compaiono tag con un effetto da capire (liste, tabelle), mai nell'esempio svolto.

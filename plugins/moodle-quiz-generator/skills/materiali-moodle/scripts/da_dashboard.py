@@ -300,7 +300,12 @@ def nome_moodle(quiz, r):
     tipo, pre = CATALOGO.get(r.get("tipologia"), ("", PREFISSI_CR.get(r.get("tipologia"), "")))
     if r.get("tipologia") == "paginablocco" and quiz.get("tipoQuiz") in TIPI_RIPASSO:
         pre = "Ripasso"
-    return "%s - %s - %s%s" % (prefisso_lezione(quiz), r.get("pos") or "??", pre + ": " if pre else "", r.get("titolo") or "")
+    titolo = (r.get("titolo") or "").strip()
+    # un titolo che comincia già con un prefisso («Trova l'errore: …», «Esempio svolto: …») non lo ripete
+    noti = {v[1] for v in CATALOGO.values() if v[1]} | set(PREFISSI_CR.values()) | {"Ripasso"}
+    if any(titolo.lower().startswith(n.lower() + ":") for n in noti if n):
+        pre = ""
+    return "%s - %s - %s%s" % (prefisso_lezione(quiz), r.get("pos") or "??", pre + ": " if pre else "", titolo)
 
 
 def prefisso_lezione(quiz):

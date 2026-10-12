@@ -831,8 +831,13 @@ const S={db:null,comments:null,quizzes:[],quizId:null,quiz:null,rows:[],rowsFor:
   error:null,ready:false,avvisiOpen:true,noteOpen:true,dirty:{},del:null,confirmApprove:false,focusKey:null,unsubRows:null};
 const main=$("#main");
 const PREF="bozze-quiz-prefs";
-try{const p=JSON.parse(localStorage.getItem(PREF)||"{}");if(p.quizId)S.quizId=p.quizId;if(p.sel)S.sel=p.sel;}catch(e){}
-function persist(){try{localStorage.setItem(PREF,JSON.stringify({view:S.view,quizId:S.quizId,sel:S.sel}));}catch(e){}}
+/* la pagina riapre dove era stata lasciata (in questo browser): vista, quiz, domanda del dettaglio, posizione di scorrimento */
+try{const p=JSON.parse(localStorage.getItem(PREF)||"{}");if(p.quizId)S.quizId=p.quizId;if(p.sel)S.sel=p.sel;
+  if(["home","scaletta","dettaglio"].indexOf(p.view)>=0)S.view=p.view;
+  if(p.y>0&&p.yView===S.view)S.restoreY=p.y;}catch(e){}
+function persist(){if(S.restoreY!=null)return;try{localStorage.setItem(PREF,JSON.stringify({view:S.view,quizId:S.quizId,sel:S.sel,y:Math.round(window.scrollY),yView:S.view}));}catch(e){}}
+let persistT=null;
+window.addEventListener("scroll",function(){clearTimeout(persistT);persistT=setTimeout(persist,300);},{passive:true});
 function toast(msg,isErr){const t=$("#toast");t.textContent=msg;t.className="toast"+(isErr?" err":"");t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(function(){t.hidden=true;},4200);}
 
 const quizPath=function(){return "quiz/"+S.quizId;};
@@ -980,7 +985,7 @@ function renderHeader(){
   ["home","scaletta","dettaglio"].forEach(function(v){$("#tab-"+v).setAttribute("aria-selected",(S.view===v||(v==="home"&&S.view==="nuovo"))?"true":"false");});
 }
 /* ------------------------------------------------------------------ vista iniziale e nuovo quiz */
-const VERSIONE_PAGINA="0.3.4";
+const VERSIONE_PAGINA="0.3.5";
 const PERCORSO_IMPOSTAZIONI="impostazioni/avvio";
 function triggerAvvio(){return S.imp&&typeof S.imp.trigger==="string"&&/^trig_[A-Za-z0-9]+$/.test(S.imp.trigger)?S.imp.trigger:"";}
 const CONNETTORE="Claude Code Remote";
@@ -1437,6 +1442,9 @@ function render(){
   else if(S.rowsFor!==S.quizId)main.innerHTML='<p class="empty">Caricamento…</p>';
   else main.innerHTML=S.view==="scaletta"?scalettaHTML():dettaglioHTML();
   /* l'elenco del dettaglio non torna in cima a ogni clic: si conserva lo scorrimento, e la domanda scelta resta visibile */
+  /* dopo il primo caricamento dei dati si torna alla posizione di scorrimento salvata */
+  if(S.restoreY!=null&&S.ready&&(S.view==="home"||(S.quiz&&S.rowsFor===S.quizId))){const y=S.restoreY;S.restoreY=null;requestAnimationFrame(function(){window.scrollTo(0,y);});}
+  else if(S.restoreY!=null&&S.ready&&!S.quiz&&S.view!=="home"){S.restoreY=null;}
   const dl=main.querySelector(".dlist");
   if(dl){if(listaTop!=null)dl.scrollTop=listaTop;mostraCorrente(dl);}
   const all=[].slice.call(main.querySelectorAll("[data-k]"));
