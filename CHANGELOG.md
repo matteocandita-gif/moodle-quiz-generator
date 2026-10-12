@@ -2,6 +2,10 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz»: Claude propone di aggiornarla, e i quiz salvati restano.
 
+## 0.3.3 — 12/10/2026
+
+- **Dashboard** 0.3.3: nel Dettaglio l'elenco delle domande non torna più in cima a ogni clic e la domanda scelta resta visibile; l'elenco resta fermo mentre la domanda scorre e occupa tutta l'altezza visibile della finestra (ha una sua barra solo se è più lungo); scegliendo una domanda, la pagina risale all'inizio della domanda.
+
 ## 0.3.2 — 12/10/2026
 
 - **Dashboard** 0.3.2: una pagina di spiegazione può stare sulla stessa pagina del quiz di una domanda complessa (per esempio i passi da seguire e la consegna del file): l'avviso «le domande di programmazione stanno su una pagina da sole» conta solo le domande.
