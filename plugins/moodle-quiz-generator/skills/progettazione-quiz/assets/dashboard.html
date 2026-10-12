@@ -578,6 +578,9 @@ function isCR(c){return !!c&&/CodeRunner/.test(c.real);}
 const CR_WEB={libero_html:"html",libero_css:"css"};
 /* prototipo Moodle degli esercizi liberi: l'HTML usa php_con_test, che ha lo scratchpad (come da_dashboard.py) */
 const PROTO_WEB={html:"php_con_test",css:"css"};
+/* esercizi HTML: con anteprima (php_con_test, scratchpad) o senza (prototipo html), scelto nei dati del quiz */
+const PROTO_HTML=[["php_con_test","Con anteprima: area di prova sotto la risposta (php_con_test)"],["html","Senza anteprima: solo il campo dove incollare il codice (prototipo html)"]];
+function protoWeb(web,q){q=q||S.quiz;if(web==="html"&&q&&q.prototipoHtml==="html")return "html";return PROTO_WEB[web];}
 const CR_SQL=["query","create_tabelle","query_due_passi","vincoli","campo_prova"],CR_PHP=["pagina_php"];
 /* linguaggio di una riga CodeRunner, come in da_dashboard.py: tipologia, sezione === linguaggio,
    altrimenti i test (SQL iniziano con «--» o con [[struttura]], JavaScript con «//») */
@@ -631,7 +634,7 @@ function crInfo(r){
   I.gap=!I.sql&&!I.php&&(r.tipologia==="compl_eseguito"||I.code!=null);
   I.web=CR_WEB[r.tipologia]||null;
   if(I.web)I.gap=false;
-  I.prototipo=I.web?PROTO_WEB[I.web]+(PROTO_WEB[I.web]==="php_con_test"?" (con lo scratchpad, senza test, correzione a mano)":" (senza test, correzione a mano)"):I.sql?"sql_salvemini (SQLite 3.46 su Jobe)":I.php?"php_mysqli_sqlite (PHP vero, query su SQLite)":I.gap?"Javascript (con gapfiller)":"Javascript (con prompt)";
+  I.prototipo=I.web?protoWeb(I.web)+(protoWeb(I.web)==="php_con_test"?" (con lo scratchpad, senza test, correzione a mano)":" (senza test, correzione a mano)"):I.sql?"sql_salvemini (SQLite 3.46 su Jobe)":I.php?"php_mysqli_sqlite (PHP vero, query su SQLite)":I.gap?"Javascript (con gapfiller)":"Javascript (con prompt)";
   I.spazi=I.code?(I.code.match(/\{\[\d+(?:-\d+)?\]\}/g)||[]).length:0;
   I.risposte=I.answer!=null?I.answer.split("\n").filter(function(l){return l.trim()!=="";}):[];
   return I;
@@ -656,7 +659,7 @@ function crStudenteHTML(r){
     if(I.opzioni.precheck==="1")h+='<p class="crl">Sotto la casella c\'è anche il pulsante <strong>Precheck</strong>: controlla solo la sintassi.</p>';
     return '<div class="crbox">'+h+"</div>";
   }
-  if(I.web)h+='<p class="crl muted">In Moodle, sotto la traccia, si aggiunge da solo il riquadro arancio «Attenzione al controllo automatico»: il pulsante salva il codice, non lo corregge'+(PROTO_WEB[I.web]==="php_con_test"?", e per vedere la pagina c'è l'area di prova (scratchpad)":"")+'.</p>';
+  if(I.web)h+='<p class="crl muted">In Moodle, sotto la traccia, si aggiunge da solo il riquadro arancio «Attenzione al controllo automatico»: il pulsante salva il codice, non lo corregge'+(protoWeb(I.web)==="php_con_test"?", e per vedere la pagina c'è l'area di prova (scratchpad)":": la pagina si prova aprendo il file nel browser")+'.</p>';
   const es=(I.opzioni.esempi||"primo");
   const ex=I.tests.filter(function(t){return !t.hide;}).slice(0,es==="tutti"?99:es==="nessuno"?0:1);
   if(ex.length)h+='<p class="crl">Per esempio:</p><div class="tbl"><table><thead><tr><th scope="col">Test</th><th scope="col">Input</th><th scope="col">Risultato atteso</th></tr></thead><tbody>'+
@@ -948,7 +951,7 @@ function renderHeader(){
   ["home","scaletta","dettaglio"].forEach(function(v){$("#tab-"+v).setAttribute("aria-selected",(S.view===v||(v==="home"&&S.view==="nuovo"))?"true":"false");});
 }
 /* ------------------------------------------------------------------ vista iniziale e nuovo quiz */
-const VERSIONE_PAGINA="0.2.0";
+const VERSIONE_PAGINA="0.3.0";
 const PERCORSO_IMPOSTAZIONI="impostazioni/avvio";
 function triggerAvvio(){return S.imp&&typeof S.imp.trigger==="string"&&/^trig_[A-Za-z0-9]+$/.test(S.imp.trigger)?S.imp.trigger:"";}
 const CONNETTORE="Claude Code Remote";
@@ -977,7 +980,7 @@ function codiceCasuale(classe){
   do{c=cifra+L[Math.floor(Math.random()*L.length)]+A[Math.floor(Math.random()*A.length)];k++;}while(usati.indexOf(c)>=0&&k<200);
   return c;
 }
-function nuovoVuoto(){return {tipoQuiz:"",titolo:"",lezione:"",classe:"",argomento:"",tempo:"",linguaggio:"",varianti:"1",avanzata:"",richiesta:"",materiale:false,presetMbz:"esercitazione"};}
+function nuovoVuoto(){return {tipoQuiz:"",titolo:"",lezione:"",classe:"",argomento:"",tempo:"",linguaggio:"",varianti:"1",avanzata:"",richiesta:"",materiale:false,presetMbz:"esercitazione",prototipoHtml:"php_con_test"};}
 function faseLabel(f){return label(FASI,f)||"Senza fase";}
 function homeHTML(){
   const att=S.quizzes.filter(function(q){return !q.archiviato;}),arc=S.quizzes.filter(function(q){return q.archiviato;});
@@ -1022,6 +1025,7 @@ function nuovoHTML(){
     fld("Tempo disponibile (minuti)",'<input class="ctl" type="number" min="1" '+k("tempo")+' value="'+esc(n.tempo)+'" aria-required="true">',true)+
     fld("Linguaggio",'<select class="ctl" '+k("linguaggio")+">"+opts(LINGUAGGI,n.linguaggio)+"</select>",false)+
     (n.tipoQuiz==="LIB"?fld("In Moodle si comporta come",'<select class="ctl" '+k("presetMbz")+">"+opts([["esercitazione","Esercitazione: feedback subito, tentativi illimitati"],["verifica","Verifica: un tentativo, feedback alla restituzione"]],n.presetMbz||"esercitazione")+"</select>",false,true):"")+
+    (n.linguaggio==="html-css"?fld("Esercizi HTML",'<select class="ctl" '+k("prototipoHtml")+">"+opts(PROTO_HTML,n.prototipoHtml||"php_con_test")+"</select>",false,true):"")+
     (ver?fld("Varianti per domanda",'<select class="ctl" '+k("varianti")+">"+opts([["1","Una (nessuna variante)"],["2","Due"],["3","Tre"]],n.varianti)+"</select>",false):"")+
     (n.tipoQuiz==="V"?fld("Parte avanzata (per il 9 e il 10)",'<input class="ctl" '+k("avanzata")+' value="'+esc(n.avanzata)+'" placeholder="Gli argomenti: LEFT JOIN, GROUP BY e HAVING su tre tabelle…">',false,true):"")+
     "</section>"+guidaTipiHTML(n.tipoQuiz)+
@@ -1084,6 +1088,7 @@ async function inizia(){
     linguaggio:n.linguaggio||"",varianti:ver?Number(n.varianti)||1:1,avanzata:n.tipoQuiz==="V"?String(n.avanzata||"").trim():"",richiesta:String(n.richiesta).trim(),materiale:!!n.materiale,
     fase:"richiesta",note:"",creato:new Date().toISOString()};
   if(n.tipoQuiz==="LIB")doc.presetMbz=n.presetMbz==="verifica"?"verifica":"esercitazione";
+  if(n.linguaggio==="html-css")doc.prototipoHtml=n.prototipoHtml==="html"?"html":"php_con_test";
   try{await S.db.doc("quiz/"+id).set(doc);}catch(e){S.inviando=false;toast("Non sono riuscito a salvare il quiz"+(e&&e.code?" ("+e.code+")":"")+".",true);return render();}
   S.quizId=id;S.nuovo=null;S.nuovoErr=[];
   avviaSessione(id,doc.titolo,doc.materiale);
@@ -1122,6 +1127,7 @@ function metaHTML(q){
     '<label class="fld wide"><span>Argomento</span><input class="ctl" '+k("argomento")+' value="'+esc(q.argomento)+'" aria-label="Argomento"></label>'+
     '<label class="fld"><span>Tempo disponibile (minuti)</span><input class="ctl" type="number" min="0" data-t="n" '+k("tempo")+' value="'+esc(q.tempo)+'" aria-label="Tempo disponibile in minuti"></label>'+
     '<label class="fld"><span>Fase</span><select class="ctl" '+k("fase")+' aria-label="Fase">'+opts(FASI,q.fase).replace('value="dettaglio-approvato"',mancanti()>0?'value="dettaglio-approvato" disabled':'value="dettaglio-approvato"')+"</select></label>"+
+    (q.linguaggio==="html-css"||q.prototipoHtml||S.rows.some(function(r){return r.tipologia==="libero_html";})?'<label class="fld wide"><span>Esercizi HTML</span><select class="ctl" '+k("prototipoHtml")+' aria-label="Esercizi HTML">'+opts(PROTO_HTML,q.prototipoHtml||"php_con_test")+"</select></label>":"")+
     '<div class="fld wide"><span>Avanzamento</span><div>'+btn+"</div></div>"+
     '<div class="fld wide"><span>Categoria in Moodle</span><div class="cat">'+esc(categoriaQuiz(q))+"</div></div>"+
   "</section>";
@@ -1582,7 +1588,7 @@ main.addEventListener("click",function(e){const b=e.target.closest("[data-act]")
 main.addEventListener("input",function(e){
   const t=e.target;
   if(t.dataset.draft&&S.edit){S.edit[t.dataset.draft]=t.value;return;}
-  if(t.dataset.nv){S.nuovo[t.dataset.nv]=t.type==="checkbox"?t.checked:t.value;if(t.dataset.nv==="tipoQuiz"){render();}return;}
+  if(t.dataset.nv){S.nuovo[t.dataset.nv]=t.type==="checkbox"?t.checked:t.value;if(t.dataset.nv==="tipoQuiz"||t.dataset.nv==="linguaggio"){render();}return;}
   if(t.dataset.k)S.dirty[t.dataset.k]=t.value;
 });
 main.addEventListener("change",function(e){

@@ -572,6 +572,7 @@ class Importatore:
         self.bk = bk
         self.db = {}           # impronta -> {nome, sql, percorso}
         self.nomi_db = {}      # nome -> impronta
+        self.proto_html = set()  # prototipi degli esercizi HTML trovati (php_con_test, html)
 
     # --- database allegati
     def database_di(self, q):
@@ -834,6 +835,8 @@ class Importatore:
                     return s
             if tl == "php_con_test":
                 answer, preload = dal_json(answer), dal_json(preload)
+            if tl != "css":
+                self.proto_html.add(tl)
             for k, v, nome in (("answerboxlines", "18", "righe"), ("answerboxcolumns", "100", "colonne")):
                 if tx(o, k, v) not in (v, ""):
                     opzioni.append("%s: %s" % (nome, tx(o, k)))
@@ -1101,6 +1104,11 @@ def importa(bk, cartella_quiz, qz, qid=None):
     }
     if dbs:
         quiz["database"] = dbs
+    if imp.proto_html == {"html"}:
+        quiz["prototipoHtml"] = "html"     # esercizi HTML senza anteprima (prototipo html)
+    elif len(imp.proto_html) > 1:
+        rapporto.append("- Esercizi HTML con prototipi diversi (php_con_test e html): il quiz resta «con anteprima» "
+                        "(php_con_test); per generarli tutti con il prototipo html scegli «senza anteprima» nei dati del quiz.")
     qid = qid or slug_id(nome_quiz)
     return qid, quiz, righe, rapporto, imp, mancano_db
 

@@ -2,6 +2,12 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz»: Claude propone di aggiornarla, e i quiz salvati restano.
 
+## 0.3.0 — 12/10/2026
+
+- **Dashboard** 0.3.0: scelta «Esercizi HTML» nei dati del quiz e nel modulo «Nuovo quiz» (con linguaggio HTML e CSS): **con anteprima** (prototipo `php_con_test`, con l'area di prova) o **senza anteprima** (prototipo `html`: il campo serve solo a incollare il codice scritto nell'editor e provato nel browser). Il dettaglio mostra il prototipo scelto.
+- La generazione del quiz usa il prototipo scelto (campo `prototipoHtml`); senza scelta resta `php_con_test`.
+- L'importazione da un backup riconosce gli esercizi HTML con il prototipo `html` e imposta il quiz «senza anteprima».
+
 ## 0.2.0 — 12/10/2026
 
 - **Dashboard** 0.2.0: nel modulo «Nuovo quiz» il primo tipo è «Libero (senza preset)», senza regole su tipi, quantità, punti e tempi, con la scelta del comportamento in Moodle (esercitazione o verifica).

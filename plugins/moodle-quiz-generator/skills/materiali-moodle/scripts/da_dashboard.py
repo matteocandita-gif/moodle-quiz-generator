@@ -59,9 +59,22 @@ CODERUNNER = {"compl_eseguito", "scrittura_scheletro", "debug_msg", "debug_silen
               "vincoli", "pagina_php", "campo_prova", "libero_html", "libero_css"}
 # esercizi liberi con l'editor di CodeRunner (prototipi html e css): nessun test, correzione manuale
 CR_WEB = {"libero_html": "html", "libero_css": "css"}
-# prototipo Moodle di ogni esercizio libero: l'HTML usa php_con_test, che ha lo scratchpad (lo studente prova
-# il codice e vede la pagina interpretata); risposta e codice di partenza nel formato JSON dello scratchpad
+# prototipo Moodle di ogni esercizio libero. L'HTML lo sceglie il quiz (campo prototipoHtml): di norma php_con_test,
+# che ha lo scratchpad (lo studente prova il codice e vede la pagina interpretata; risposta e codice di partenza nel
+# formato JSON dello scratchpad); «html» per gli esercizi senza anteprima, in cui il campo serve solo a incollare il
+# codice scritto in un editor e provato nel browser.
 PROTOTIPO_WEB = {"libero_html": "php_con_test", "libero_css": "css"}
+PROTOTIPI_HTML = ("php_con_test", "html")
+
+
+def prototipo_web(quiz, tipologia):
+    """Prototipo CodeRunner di un esercizio libero HTML o CSS, secondo il campo prototipoHtml del quiz."""
+    if tipologia == "libero_html":
+        p = (quiz.get("prototipoHtml") or "php_con_test").strip()
+        if p not in PROTOTIPI_HTML:
+            raise ValueError("prototipoHtml '%s' non previsto (solo php_con_test o html)" % p)
+        return p
+    return PROTOTIPO_WEB[tipologia]
 # prefissi del nome per le tipologie CodeRunner (come nel catalogo della dashboard)
 PREFISSI_CR = {"compl_eseguito": "Completamento", "scrittura_scheletro": "Scrivere", "debug_msg": "Debug",
                "debug_silenzioso": "Debug", "prog_completo": "Scrivere", "funzione": "Scrivere",
@@ -536,7 +549,8 @@ OPZIONI_WEB = {"answerboxlines": "18", "answerboxcolumns": "100"}
 def domanda_web(quiz, r):
     """Domanda CodeRunner html o css senza test (esercizio libero a correzione manuale), già in Moodle XML.
     Struttura copiata dalle domande dell'utente: un solo test fittizio che si aspetta «codice salvato»
-    («codice salvato!» nel prototipo php_con_test, che l'utente usa per l'HTML perché ha lo scratchpad)."""
+    («codice salvato!» nel prototipo php_con_test, che l'utente usa per l'HTML con anteprima perché ha lo scratchpad;
+    «codice salvato» nei prototipi html, per l'HTML senza anteprima, e css)."""
     sez = sezioni_cr(r.get("coderunner"))
     val = {n: c for n, _, c in sez}
     for n in val:
@@ -550,7 +564,8 @@ def domanda_web(quiz, r):
         raise ValueError("traccia vuota")
     if CAMPO_RE.search(tr) or any(t == "opzioni" for t, _ in leggi_blocchi(tr)):
         raise ValueError("in una domanda CodeRunner la traccia non ha campi Cloze né opzioni")
-    scratch = PROTOTIPO_WEB[r["tipologia"]] == "php_con_test"
+    proto = prototipo_web(quiz, r["tipologia"])
+    scratch = proto == "php_con_test"
     if "controllo automatico" not in tr.lower():
         tr = tr.rstrip() + "\n\n" + (AVVISO_SCRATCHPAD if scratch else AVVISO_WEB)
     testo = espandi_codice(html_blocchi(leggi_blocchi(tr)))
@@ -572,7 +587,7 @@ def domanda_web(quiz, r):
          '    <questiontext format="html">\n      <text>%s</text>\n    </questiontext>\n' % cdata(testo),
          '    <generalfeedback format="html">\n      <text>%s</text>\n    </generalfeedback>\n' % (cdata(gf) if gf else ""),
          t("defaultgrade", punti), t("penalty", "0.0000000"), t("hidden", "0"), t("idnumber", ""),
-         t("coderunnertype", PROTOTIPO_WEB[r["tipologia"]]), t("prototypetype", "0"), t("allornothing", "1"),
+         t("coderunnertype", proto), t("prototypetype", "0"), t("allornothing", "1"),
          t("penaltyregime", "0"), t("precheck", "0"), t("hidecheck", "0"), t("showsource", "0"),
          t("answerboxlines", opz["answerboxlines"]), t("answerboxcolumns", opz["answerboxcolumns"]),
          t("answerpreload", cdata(json_scratchpad(val.get("preload", "").strip("\n"), "1")) if scratch
