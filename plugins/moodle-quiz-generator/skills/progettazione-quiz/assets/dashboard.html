@@ -506,7 +506,7 @@ function md(src){
   }).replace(/\[\[(\d+)\]\]/g,'<span class="slot old" title="Segnaposto da trasformare in campo Cloze">$1</span>');
 }
 /* anteprima di uno snippet HTML: solo i tag della lezione, senza script, stili né eventi */
-const AN_TAG=["h1","h2","h3","h4","h5","h6","p","strong","em","b","i","u","br","ul","ol","li","table","caption","thead","tbody","tr","th","td","span","div"],AN_ATTR=["colspan","rowspan","border"];
+const AN_TAG=["h1","h2","h3","h4","h5","h6","p","strong","em","b","i","u","br","ul","ol","li","table","caption","thead","tbody","tr","th","td","span","div","a"],AN_ATTR=["colspan","rowspan","border"];
 function anteprimaHTML(src){
   let doc;try{doc=new DOMParser().parseFromString("<body>"+src+"</body>","text/html");}catch(e){return esc(src);}
   const out=document.createElement("div");
@@ -517,6 +517,7 @@ function anteprimaHTML(src){
     if(["script","style","iframe","object","embed","img","link","meta","title","head"].indexOf(t)>=0)return;
     if(AN_TAG.indexOf(t)<0){copia(n,a);return;}
     const e=document.createElement(t);
+    if(t==="a")e.setAttribute("style","color:#0645ad;text-decoration:underline;cursor:default");
     AN_ATTR.forEach(function(k){const v=n.getAttribute(k);if(v!=null&&/^\d{1,2}$/.test(v))e.setAttribute(k,v);});
     a.appendChild(e);copia(n,e);
   });})(doc.body,out);
@@ -602,6 +603,7 @@ function chiaveHTML(r){
 }
 /* controlli sulle convenzioni del formato di consegna, per riga */
 /* ------------------------------------------------------------------ CodeRunner: campo «Soluzione e test» */
+function tipiConsegna(r){let t="";sezioniCR(r.coderunner).forEach(function(x){if(x.k!=="options")return;String(x.t||"").split("\n").forEach(function(l){const m=/^\s*tipi\s*:\s*(.+)$/i.exec(l);if(m)t=m[1].trim();});});if(!t)return ".html, .htm o .css";const a=t.toLowerCase().split(/[\s,;]+/).filter(Boolean).map(function(x){return x.charAt(0)==="."?x:"."+x;});return a.length>1?a.slice(0,-1).join(", ")+" o "+a[a.length-1]:a[0];}
 function isCR(c){return !!c&&/CodeRunner/.test(c.real);}
 const CR_WEB={libero_html:"html",libero_css:"css"};
 /* prototipo Moodle degli esercizi liberi: l'HTML usa php_con_test, che ha lo scratchpad (come da_dashboard.py) */
@@ -985,7 +987,7 @@ function renderHeader(){
   ["home","scaletta","dettaglio"].forEach(function(v){$("#tab-"+v).setAttribute("aria-selected",(S.view===v||(v==="home"&&S.view==="nuovo"))?"true":"false");});
 }
 /* ------------------------------------------------------------------ vista iniziale e nuovo quiz */
-const VERSIONE_PAGINA="0.3.5";
+const VERSIONE_PAGINA="0.3.6";
 const PERCORSO_IMPOSTAZIONI="impostazioni/avvio";
 function triggerAvvio(){return S.imp&&typeof S.imp.trigger==="string"&&/^trig_[A-Za-z0-9]+$/.test(S.imp.trigger)?S.imp.trigger:"";}
 const CONNETTORE="Claude Code Remote";
@@ -1156,6 +1158,7 @@ function metaHTML(q){
   btn='<div class="actrow">'+btn+"</div>";
   if(hint)btn+='<div class="hint">'+esc(hint)+"</div>";
   return '<section class="meta" aria-label="Dati del quiz">'+
+    '<label class="fld wide"><span>Nome del quiz (menù e attività in Moodle)</span><input class="ctl" '+k("titolo")+' value="'+esc(q.titolo)+'" aria-label="Nome del quiz"></label>'+
     '<label class="fld"><span>Tipo di quiz</span><select class="ctl" '+k("tipoQuiz")+' aria-label="Tipo di quiz">'+opts(tipiScelta(q.tipoQuiz).map(function(t){return [t,TIPI[t].nome];}),q.tipoQuiz)+"</select></label>"+
     '<label class="fld"><span>Lezione (numero, o codice della verifica)</span><input class="ctl" '+k("lezione")+' value="'+esc(q.lezione)+'" placeholder="3, oppure V5R" aria-label="Numero di lezione o codice della verifica"></label>'+
     '<label class="fld wide"><span>Argomento</span><input class="ctl" '+k("argomento")+' value="'+esc(q.argomento)+'" aria-label="Argomento"></label>'+
@@ -1375,7 +1378,7 @@ function dettaglioHTML(){
   if(editing){
     body='<div class="edit-grid"><label class="fld"><span>Traccia: quello che vede lo studente</span><textarea class="ctl" data-draft="traccia" data-k="draft:traccia" aria-label="Traccia">'+esc(S.edit.traccia)+'</textarea></label>'+
       '<label class="fld"><span>Correzione: va in Moodle (criteri, mezzo punto e soluzione per le domande aperte; feedback generale per le altre)</span><textarea class="ctl" data-draft="correzione" data-k="draft:correzione" aria-label="Correzione">'+esc(S.edit.correzione)+"</textarea></label>"+
-      ((isCR(c)||String(S.edit.coderunner||"").trim())?'<label class="fld"><span>Soluzione e test (CodeRunner): sezioni === options, === preload o === code, === answer, === test con === stdin e === extra; gli output li calcola la parte 2. SQL: === options (database, dati, precheck), === preload, === answer, === test «-- commento» o [[struttura Tabella]], === extra; il database sta nel riquadro «Database del quiz» della scaletta. PHP: === options, === preload, === answer (con <?php), === test con i dati del form ($_GET o $_POST) seguito da === descrizione (quello che vede lo studente) ed eventualmente === expected; disclaimer, normalizzazione e FakeDB::configure si aggiungono da soli. Esercizi HTML e CSS: solo === answer, === preload e === options (righe: N)</span><textarea class="ctl mono" data-draft="coderunner" data-k="draft:coderunner" aria-label="Soluzione e test">'+esc(S.edit.coderunner)+"</textarea></label>":"")+
+      ((c&&c.id==="consegna_file")?'<label class="fld"><span>Opzioni della consegna: === options con «tipi: .zip» (uno o più tipi di file, separati da spazi). Vuoto: .html, .htm o .css</span><textarea class="ctl mono" data-draft="coderunner" data-k="draft:coderunner" aria-label="Opzioni della consegna">'+esc(S.edit.coderunner)+"</textarea></label>":(isCR(c)||String(S.edit.coderunner||"").trim())?'<label class="fld"><span>Soluzione e test (CodeRunner): sezioni === options, === preload o === code, === answer, === test con === stdin e === extra; gli output li calcola la parte 2. SQL: === options (database, dati, precheck), === preload, === answer, === test «-- commento» o [[struttura Tabella]], === extra; il database sta nel riquadro «Database del quiz» della scaletta. PHP: === options, === preload, === answer (con <?php), === test con i dati del form ($_GET o $_POST) seguito da === descrizione (quello che vede lo studente) ed eventualmente === expected; disclaimer, normalizzazione e FakeDB::configure si aggiungono da soli. Esercizi HTML e CSS: solo === answer, === preload e === options (righe: N)</span><textarea class="ctl mono" data-draft="coderunner" data-k="draft:coderunner" aria-label="Soluzione e test">'+esc(S.edit.coderunner)+"</textarea></label>":"")+
       '<label class="fld"><span>Note interne: il ragionamento sulla domanda, non escono dalla dashboard</span><textarea class="ctl" data-draft="docente" data-k="draft:docente" aria-label="Note interne">'+esc(S.edit.docente)+"</textarea></label>"+
       '<details class="hint conv"><summary>Convenzioni della traccia</summary><ul>'+
         '<li>**grassetto**, __sottolineato__ (chiave primaria negli schemi), `codice`, blocchi di codice tra tre apici inversi, elenchi con «-» o «1.», tabelle con «|», titoli con «#» e «##». Ogni a capo dentro un paragrafo resta un a capo (utile per gli schemi relazionali, una relazione per riga); la riga vuota apre un nuovo paragrafo.</li>'+
@@ -1392,7 +1395,7 @@ function dettaglioHTML(){
     if(hasT){
       body+='<section class="sheet'+(pageType?" page":"")+'" id="q-'+esc(r.id)+'" aria-label="Foglio dello studente">'+
         (pageType?"":'<div class="sheet-info"><b>Domanda '+(nums[r.id]||"")+"</b><span>Risposta non ancora data</span><span>Punteggio max.: "+f2(num(r.punti))+"</span><span>Pagina "+esc(r.pag)+"</span></div>")+
-        '<div class="sheet-body md">'+md(r.traccia)+(isCR(c)?crStudenteHTML(r):"")+(r.tipologia==="consegna_file"?'<div class="crbox"><p class="crl">Sotto la traccia lo studente trova solo la casella per caricare il file (un file .html, .htm o .css), senza campo di testo.</p></div>':"")+"</div></section>";
+        '<div class="sheet-body md">'+md(r.traccia)+(isCR(c)?crStudenteHTML(r):"")+(r.tipologia==="consegna_file"?'<div class="crbox"><p class="crl">Sotto la traccia lo studente trova solo la casella per caricare il file (un file '+esc(tipiConsegna(r))+'), senza campo di testo.</p></div>':"")+"</div></section>";
     }else body+='<div class="empty-card"><p>La traccia per lo studente non è ancora scritta.</p></div>';
     const key=(hasT?chiaveHTML(r):"")+(isCR(c)?crDocenteHTML(r):"");
     if(key||hasD)body+='<div class="lb doc">'+ico("lock")+'Solo per il docente <small>· lo studente non lo vede</small></div><section class="teacher md" aria-label="Note per il docente">'+

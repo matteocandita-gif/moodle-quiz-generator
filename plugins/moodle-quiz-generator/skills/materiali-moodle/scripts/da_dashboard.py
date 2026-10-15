@@ -337,6 +337,22 @@ def sezioni_cr(testo):
     return [(n, a, "\n".join(c).strip("\n")) for n, a, c in out]
 
 
+def tipi_consegna(r):
+    """Tipi di file della «Consegna di un file» scelti nella riga: «tipi: .zip» (o «.html .css») in === options
+    del campo «Soluzione e test». Vuoto: i tipi predefiniti (.html .htm .css)."""
+    for n, _, c in sezioni_cr(r.get("coderunner")):
+        if n != "options":
+            continue
+        for ln in c.split("\n"):
+            k, _, v = ln.partition(":")
+            if k.strip().lower() == "tipi":
+                tipi = [t if t.startswith(".") else "." + t for t in re.split(r"[\s,;]+", v.strip().lower()) if t]
+                if not tipi or any(not re.fullmatch(r"\.[a-z0-9]{1,8}", t) for t in tipi):
+                    raise ValueError("tipi di file non validi in === options: «%s» (es. «tipi: .zip»)" % v.strip())
+                return " ".join(tipi)
+    return ""
+
+
 def linguaggio_cr(r):
     if r.get("tipologia") in CR_WEB:
         return CR_WEB[r["tipologia"]]
@@ -763,6 +779,9 @@ def domanda(quiz, r):
         opzioni["defaultgrade"] = punti
         if r.get("tipologia") == "consegna_file":
             opzioni.update(CONSEGNA_FILE)
+            tipi = tipi_consegna(r)
+            if tipi:
+                opzioni["filetypeslist"] = tipi
     if opzioni:
         s += ["=== options"] + ["%s: %s" % kv for kv in opzioni.items()]
     note = (r.get("docente") or "").strip()
