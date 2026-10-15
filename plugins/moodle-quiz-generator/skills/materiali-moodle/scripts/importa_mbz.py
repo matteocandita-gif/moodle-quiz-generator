@@ -68,7 +68,7 @@ PREFISSI = {  # prefisso del nome -> tipologie possibili (la prima è quella pre
     "Esercizio libero": ["esercizio_libero", "libero_html", "libero_css"],
     "Scrivere": ["prog_completo", "funzione", "prog_dati", "prog_random", "query", "create_tabelle",
                  "query_due_passi", "pagina_php", "scrittura_scheletro"],
-    "Esercizio": ["vincoli"], "Campo di prova": ["campo_prova"],
+    "Esercizio": ["vincoli"], "Campo di prova": ["campo_prova"], "Consegna": ["consegna_file"],
 }
 PAGINE = {"istruzioni", "comelavoriamo", "paginablocco"}
 NOME_RE = re.compile(r"^(?P<lez>L\d+|[A-Z][A-Z0-9]*\d[A-Z0-9]*|\d[A-Z][A-Z0-9]*) - (?P<pos>[0-9A-Z]{1,3}[a-z]?) - (?P<resto>.+)$")
@@ -671,6 +671,11 @@ class Importatore:
             r["tipologia"] = {"Debug": "debug_motivazione", "Esercizio libero": "esercizio_libero"}.get(prefisso, "teoria_aperta")
             if tx(opz(q, "essay"), "responseformat") == "noinline" and tx(opz(q, "essay"), "attachments", "0") not in ("0", ""):
                 r["tipologia"] = "consegna_file"     # solo un file da caricare, nessun testo
+                # tipi di file diversi da quelli predefiniti (.html .htm .css): tornano come «tipi: …» in === options
+                tipi = [t if t.startswith(".") else "." + t for t in
+                        re.split(r"[\s,;]+", tx(opz(q, "essay"), "filetypeslist").strip().lower()) if t]
+                if tipi and sorted(tipi) != sorted([".html", ".htm", ".css"]):
+                    r["coderunner"] = "=== options\ntipi: " + " ".join(tipi)
         elif tipo == "coderunner":
             r.update(self.coderunner(q, prefisso, conv, avvisi))
             r["correzione"] = conv.markdown(gf)
@@ -1312,6 +1317,9 @@ def norm_campo(campo, v):
     if campo == "coderunner":                  # l'ordine delle opzioni non conta
         s = re.sub(r"(=== options\n)([\s\S]*?)(?=\n=== |\Z)",
                    lambda m: m.group(1) + "\n".join(sorted(l for l in m.group(2).split("\n") if l.strip())), s)
+    if campo == "coderunner":                  # tipi di file della consegna: «zip», «.zip», «.ZIP» sono lo stesso
+        s = re.sub(r"(?im)^tipi\s*:\s*(.*)$", lambda m: "tipi: " + " ".join(
+            t if t.startswith(".") else "." + t for t in re.split(r"[\s,;]+", m.group(1).strip().lower()) if t), s)
     if campo == "coderunner" and not re.search(r"^=== (test|extra|descrizione)\b", s, re.M):
         # senza prove (esercizi HTML e CSS) le sezioni sono indipendenti: answer, preload e options in qualunque ordine
         parti = re.split(r"(?m)^(?==== )", s.strip())

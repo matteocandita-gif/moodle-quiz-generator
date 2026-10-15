@@ -5,6 +5,7 @@ Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Da
 ## 0.3.7 — 15/10/2026
 
 - «Consegna di un file»: i tipi di file si scelgono riga per riga, con «tipi: .zip» in === options (per esempio la cartella di un sito compressa); senza, restano .html, .htm e .css.
+- Importazione da Moodle: la consegna di un file riporta i suoi tipi di file («tipi: .zip») e il titolo senza il prefisso «Consegna:»; nel confronto «zip» e «.zip» sono lo stesso tipo.
 - **Dashboard** 0.3.6: nel Dettaglio la consegna di un file ha il campo «Opzioni della consegna» e il foglio dello studente dice quali file si caricano; nell'anteprima degli snippet i link si vedono come link (senza portare altrove); nei dati del quiz, nella Scaletta, si può cambiare il nome del quiz (quello del menù e dell'attività in Moodle).
 
 ## 0.3.6 — 12/10/2026
