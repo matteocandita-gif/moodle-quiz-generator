@@ -111,6 +111,12 @@ def formato(el, tag):
 
 # ---------------------------------------------------------------- lettura delle domande
 
+def mimetype_di(nome):
+    est = os.path.splitext(nome or "")[1].lower()
+    return {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif",
+            ".svg": "image/svg+xml", ".webp": "image/webp"}.get(est, "document/unknown")
+
+
 def leggi_domande(percorso):
     radice = ET.parse(percorso).getroot()
     categoria, domande = None, []
@@ -144,8 +150,10 @@ class Banca:
         self.tag_id = {}
         self.tag_entry = {}
         self._tag_xml = ""
-        # file allegati alle domande CodeRunner (database SQL): (id domanda, nome, contenuto)
+        # file delle domande: (id domanda, nome, contenuto, componente, area, mimetype); le immagini
+        # del testo (question/questiontext) e i database allegati alle CodeRunner (qtype_coderunner/datafile)
         self.file_domande = []
+        self._file_testo = set()
         self._qid_corrente = None
 
     def stamp(self):
@@ -220,6 +228,13 @@ class Banca:
         entry_id, qid = self.entry(), self.qid()
         self._qid_corrente = qid
         self.id_per_nome[nome] = entry_id
+        # immagini del testo: <file> dentro <questiontext> nel Moodle XML (riferite con @@PLUGINFILE@@/nome)
+        qt = q.find("questiontext")
+        self._file_testo = set()
+        for f in (qt.findall("file") if qt is not None else []):
+            self._file_testo.add(id(f))
+            dati = base64.b64decode("".join((f.text or "").split()))
+            self.file_domande.append((qid, f.get("name"), dati, "question", "questiontext", mimetype_di(f.get("name"))))
         self._tag_xml = ""
         for t in q.findall("tags/tag"):
             raw = (t.findtext("text") or "").strip()
@@ -340,8 +355,11 @@ class Banca:
 
     def _plugin_coderunner(self, q, nome):
         for f in q.findall(".//file"):
+            if id(f) in self._file_testo:
+                continue
             dati = base64.b64decode("".join((f.text or "").split()))
-            self.file_domande.append((self._qid_corrente, f.get("name"), dati))
+            self.file_domande.append((self._qid_corrente, f.get("name"), dati, "qtype_coderunner", "datafile",
+                                      "document/unknown"))
         opz = []
         for c in self.CR_CAMPI:
             v = q.findtext(c)
@@ -772,22 +790,22 @@ def main():
     </question_category>
   </question_categoryref>
 </inforef>"""
-    # file allegati (database SQL delle domande CodeRunner): voci in files.xml + contenuto in files/xx/hash
+    # file delle domande (immagini del testo, database delle CodeRunner): voci in files.xml + contenuto in files/xx/hash
     import hashlib
     CON_FILE = 1 if banca.file_domande else 0
     blob = {}
     fx = ""
     fid = 99801
-    for qid_f, nome_f, dati_f in banca.file_domande:
+    for qid_f, nome_f, dati_f, comp_f, area_f, mime_f in banca.file_domande:
         h = hashlib.sha1(dati_f).hexdigest()
         blob["files/%s/%s" % (h[:2], h)] = dati_f
-        for fn, hh, sz, mt in ((nome_f, h, len(dati_f), "document/unknown"),
+        for fn, hh, sz, mt in ((nome_f, h, len(dati_f), mime_f),
                                (".", "da39a3ee5e6b4b0d3255bfef95601890afd80709", 0, NULL)):
             fx += f"""  <file id="{fid}">
     <contenthash>{hh}</contenthash>
     <contextid>{ctx}</contextid>
-    <component>qtype_coderunner</component>
-    <filearea>datafile</filearea>
+    <component>{comp_f}</component>
+    <filearea>{area_f}</filearea>
     <itemid>{qid_f}</itemid>
     <filepath>/</filepath>
     <filename>{x(fn)}</filename>

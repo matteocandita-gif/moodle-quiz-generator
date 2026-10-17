@@ -3,7 +3,7 @@
 
 Uso:
     python3 genera_quiz.py EXPORT QUIZ_ID USCITA [--js=CARTELLA] [--sql=CARTELLA] [--php=CARTELLA] [--nome=BASE]
-                           [--salta-coderunner] [--varianti=a[,b...]]
+                           [--salta-coderunner] [--varianti=a[,b...]] [--immagini=CARTELLA]
 
 EXPORT, QUIZ_ID, USCITA  come per da_dashboard.py
 --js=CARTELLA   cartella scripts/ della skill domande-coderunner-js (serve se il quiz ha righe
@@ -11,7 +11,9 @@ EXPORT, QUIZ_ID, USCITA  come per da_dashboard.py
 --sql=CARTELLA  cartella scripts/ della skill domande-coderunner-sql (righe CodeRunner SQL);
                 se manca la cerca accanto a materiali-moodle
 --php=CARTELLA  cartella scripts/ della skill domande-php-mysqli-mock (righe CodeRunner PHP)
---nome=BASE     nome dei file prodotti (predefinito: quiz)
+--nome=BASE     nome dei file prodotti (predefinito: quiz); / e \\ diventano -
+--immagini=CARTELLA  cartella con le immagini citate nelle tracce come ![testo](nome.png): vengono
+                incorporate nell'XML (allega_immagini.py) e quindi nell'.mbz; obbligatoria se ce ne sono
 --varianti=a    verifiche ripetibili: genera solo le varianti indicate (lettera finale della posizione);
                 le righe senza tag restano tutte (vedi da_dashboard.py)
 
@@ -24,7 +26,7 @@ Esegue, nella cartella dove sta (insieme agli script di materiali-moodle):
       crea_xml.py --verifica della skill PHP -> parti/coderunner-php.xml
   3b. crea_xml.py della skill SQL -> parti/coderunner-sql.xml (costruisce i database, calcola gli output
      con l'emulatore di sqlite3 e allega il database a ogni domanda)
-  4. unisci_xml.py              -> BASE.xml (poi i tag delle varianti, se ci sono)
+  4. unisci_xml.py              -> BASE.xml (poi i tag delle varianti e le immagini, se ci sono)
   5. controlla_xml.py
   6. crea_mbz.py                -> BASE.mbz (solo se non mancano righe: con --salta-coderunner no)
 Si ferma al primo passo che fallisce e ne mostra l'output.
@@ -95,7 +97,7 @@ def main():
     export, qid, usc = a
     opz = dict(x[2:].split("=", 1) for x in sys.argv[1:] if x.startswith("--") and "=" in x)
     salta = "--salta-coderunner" in sys.argv
-    base = opz.get("nome", "quiz")
+    base = re.sub(r"[/\\]", "-", opz.get("nome", "quiz"))
     parti = os.path.join(usc, "parti")
     os.makedirs(parti, exist_ok=True)
 
@@ -145,6 +147,10 @@ def main():
     if os.path.exists(ptag):
         print("== tag delle varianti")
         print(metti_tag(finale, json.load(open(ptag, encoding="utf-8"))))
+    if "@@PLUGINFILE@@" in open(finale, encoding="utf-8").read():
+        if not opz.get("immagini"):
+            raise SystemExit("Le tracce citano delle immagini: indica la cartella che le contiene con --immagini=")
+        esegui([os.path.join(QUI, "allega_immagini.py"), finale, opz["immagini"]], "immagini")
     esegui([os.path.join(QUI, "controlla_xml.py"), finale], "controllo")
     if salta:
         print("== .mbz non creato: mancano le righe CodeRunner lasciate fuori. Uniscile all'XML e lancia crea_mbz.py.")

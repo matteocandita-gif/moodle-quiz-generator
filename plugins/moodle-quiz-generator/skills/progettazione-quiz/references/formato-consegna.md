@@ -5,7 +5,7 @@ La parte 2 non riceve un file a parte: legge il database della dashboard «Bozze
 ```
 ArtifactData get   quiz <id>          out_dir=EXPORT     (quiz)
 ArtifactData list  quiz/<id>/domande  out_dir=EXPORT     (righe)
-python3 genera_quiz.py EXPORT <id> USCITA --nome="<nome del file>" [--varianti=a]
+python3 genera_quiz.py EXPORT <id> USCITA --nome="<nome del file>" [--varianti=a] [--immagini=CARTELLA]
 ```
 
 `--varianti=a` (o `a,b`) converte solo le varianti indicate delle verifiche ripetibili: si usa quando la variante a è completa e le altre hanno solo la sintesi (si fanno dopo, quando l'utente le chiede). Le righe senza tag restano tutte; lo script elenca le righe lasciate fuori.
@@ -42,6 +42,7 @@ Quiz: `database` (solo con domande SQL, vedi sotto); `lezione` e `argomento` dan
 ## Convenzioni della traccia
 
 - Markdown: paragrafi (ogni a capo dentro un paragrafo resta un a capo, `<br>`; la riga vuota apre un nuovo paragrafo: così lo schema relazionale si scrive una relazione per riga, senza righe vuote in mezzo), `**grassetto**`, `*corsivo*`, `__sottolineato__` (la chiave primaria negli schemi delle tabelle), `` `codice` ``, blocchi di codice tra tre apici inversi con il linguaggio (```` ```html ````; con ```` ```html anteprima ```` accanto al codice compare il risultato nel browser, l'HTML stesso interpretato: solo per snippet brevi di tag della lezione, senza script né stili), elenchi `-` e `1.`, tabelle con `|`, titoli `#` e `##`.
+- **Immagini**: `![testo alternativo](nome.png)`, anche in una riga a sé o dentro un riquadro, solo nel testo della domanda o della pagina (non nelle opzioni, nei feedback, nella correzione né nei campi Cloze). Si scrive solo il nome del file, senza cartella: le immagini di un quiz stanno tutte in una cartella, indicata nelle `note` del quiz e passata a `genera_quiz.py --immagini=CARTELLA`. Il testo alternativo descrive l'immagine. `da_dashboard.py` la scrive come `<img src="@@PLUGINFILE@@/nome.png">` (larghezza al massimo quella della pagina), `allega_immagini.py` incorpora il file nell'XML e `crea_mbz.py` lo mette nel backup. Nella dashboard l'immagine compare come testo. Per le domande sui diagrammi si disegnano immagini nuove nello stile delle figure del libro, con contesti diversi da quelli delle pagine.
 - **Pagine** (tipologie della famiglia «Pagine»): scritte già nella forma finale, in seconda persona plurale. `#` è il titolo della pagina. Riquadri:
   ```
   :::giallo Esempio svolto
@@ -165,7 +166,7 @@ In parte 2 tutte le varianti vanno nella banca del quiz con il loro tag (`genera
 
 `leggi_mbz.py BACKUP.mbz --quiz` mostra la struttura di ogni quiz del backup (di un corso o di una sola attività): tempo, punteggio, sezioni, e per ogni slot pagina, punti e domanda (nome, versione, banca) oppure, per le domande casuali, i tag e la categoria da cui pesca e le domande che corrispondono. Serve per controllare un quiz modificato in Moodle (per esempio la copia PDP): `--domande TESTO` mostra il testo delle domande delle categorie che contengono TESTO (ultima versione). Senza opzioni: sezioni, attività e banche.
 
-`importa_mbz.py` fa il percorso inverso di `da_dashboard.py`: dal backup di un quiz ricava quiz e righe della dashboard, con traccia, correzione e «Soluzione e test» in queste convenzioni (HTML → Markdown, opzioni, campi Cloze, corrispondenze, CodeRunner JavaScript, SQL, PHP, HTML e CSS, database SQLite allegati → script del quiz, domande casuali → varianti con il tag). Con `--confronta` confronta il backup con un quiz della dashboard e riporta le modifiche fatte in Moodle. Uso e casi in `dashboard.md` («Importare un quiz da un backup»). Provato: andata e ritorno della V5R (dashboard → .mbz → dashboard) senza differenze; un quiz vecchio di 30 domande importato e rigenerato con gli stessi output attesi delle 19 CodeRunner SQL. Non torna uguale: le immagini (la dashboard non le gestisce), i colori del testo, gli a capo dentro le opzioni (diventano « / »), il feedback generale delle domande aperte (diventa la correzione).
+`importa_mbz.py` fa il percorso inverso di `da_dashboard.py`: dal backup di un quiz ricava quiz e righe della dashboard, con traccia, correzione e «Soluzione e test» in queste convenzioni (HTML → Markdown, opzioni, campi Cloze, corrispondenze, CodeRunner JavaScript, SQL, PHP, HTML e CSS, database SQLite allegati → script del quiz, domande casuali → varianti con il tag). Con `--confronta` confronta il backup con un quiz della dashboard e riporta le modifiche fatte in Moodle. Uso e casi in `dashboard.md` («Importare un quiz da un backup»). Provato: andata e ritorno della V5R (dashboard → .mbz → dashboard) senza differenze; un quiz vecchio di 30 domande importato e rigenerato con gli stessi output attesi delle 19 CodeRunner SQL. Non torna uguale: le immagini (`importa_mbz.py` non le riporta nella traccia come `![…](…)`), i colori del testo, gli a capo dentro le opzioni (diventano « / »), il feedback generale delle domande aperte (diventa la correzione).
 
 ## Prefissi dei nomi
 

@@ -36,6 +36,7 @@ import glob
 import json
 import os
 import re
+import urllib.parse
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -110,14 +111,31 @@ def esc(s):
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
+IMG_RE = re.compile(r"!\[([^\]]*)\]\(([^)\s]+)\)")
+
+
+def img_html(alt, nome):
+    """![testo alternativo](nome.png) -> immagine del testo della domanda. Il file lo incorpora nell'XML
+    allega_immagini.py (cartella --immagini di genera_quiz.py); nell'XML si riferisce con @@PLUGINFILE@@."""
+    if "/" in nome or "\\" in nome:
+        raise ValueError("immagine «%s»: scrivere solo il nome del file, senza cartella" % nome)
+    return ('<img src="@@PLUGINFILE@@/%s" alt="%s" style="max-width: 100%%; height: auto;">'
+            % (urllib.parse.quote(nome), esc(alt).replace('"', "&quot;")))
+
+
 def inl(t):
-    """Testo in linea: `codice`, **grassetto**, *corsivo*. I campi Cloze restano così come sono."""
+    """Testo in linea: `codice`, **grassetto**, *corsivo*, ![immagine](file.png). I campi Cloze restano così come sono."""
     campi = []
 
     def tieni(m):
         campi.append(m.group(0))
         return "\x00%d\x00" % (len(campi) - 1)
+
+    def tieni_img(m):
+        campi.append(img_html(m.group(1), m.group(2)))
+        return "\x00%d\x00" % (len(campi) - 1)
     t = CAMPO_RE.sub(tieni, t)
+    t = IMG_RE.sub(tieni_img, t)
     out = ""
     for p in re.split(r"(`[^`]+`)", t):
         if len(p) > 2 and p[0] == "`" and p[-1] == "`":

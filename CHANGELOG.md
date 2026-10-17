@@ -2,6 +2,14 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz»: Claude propone di aggiornarla, e i quiz salvati restano.
 
+## 0.3.8 — 17/10/2026
+
+- Immagini nelle tracce: nel testo di pagine e domande si scrive `![testo alternativo](nome.png)` e in Moodle diventa un'immagine, larga al massimo quanto la pagina. Le immagini di un quiz stanno tutte in una cartella, indicata nelle note del quiz e passata alla generazione con `--immagini=CARTELLA`.
+- Nuovo `allega_immagini.py`: incorpora le immagini nel Moodle XML e si ferma se ne manca una; `crea_mbz.py` le mette nel backup insieme ai database delle domande SQL e PHP. Provato con un ripristino reale (quiz 5PR, 11 immagini).
+- `genera_quiz.py`: una `/` nel nome del quiz (per esempio «E/R») non blocca più la generazione.
+- Regola in `progettazione-quiz`: nelle pagine le figure del libro; nelle domande che chiedono di leggere un diagramma, immagini nuove disegnate nello stile del libro, con contesti diversi da quelli delle pagine.
+- Nella dashboard le immagini compaiono ancora come testo.
+
 ## 0.3.7 — 15/10/2026
 
 - «Consegna di un file»: i tipi di file si scelgono riga per riga, con «tipi: .zip» in === options (per esempio la cartella di un sito compressa); senza, restano .html, .htm e .css.
