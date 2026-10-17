@@ -2,6 +2,16 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz»: Claude propone di aggiornarla, e i quiz salvati restano.
 
+## 0.4.0 — 17/10/2026
+
+La skill **diagrammi-er** diventa la skill della progettazione: dalla stessa descrizione testuale (file `.er`) quattro moduli indipendenti, e si produce solo ciò che serve (per un quiz basta il diagramma).
+
+- **Diagramma**: gerarchie ISA (linea a T con la freccia verso la generalizzazione e la classificazione tra parentesi); attributi delle associazioni anche ai lati del rombo; le posizioni sulla griglia servono solo al diagramma.
+- **Schema relazionale** (`schema_relazionale.py`): le regole di traduzione del libro (1 a N, 1 a 1, N a N, entità deboli, ricorsive) e le tre strategie per le gerarchie (tutto su, tutto giù, lasciare tutto), con gli avvisi dove il libro le sconsiglia; formato del libro o delle tracce dei quiz. Nomi delle chiavi esterne con la regola dell'autore: mai un nome generico come Codice o Id ripetuto così com'è (Codice_compagnia, Codice_veicolo).
+- **Documentazione** (`documentazione.py`): ipotesi aggiuntive, tabelle delle entità (NOME, SINONIMI, DESCRIZIONE, ATTRIBUTO, TIPO DI DATO, VINCOLI) e delle associazioni (con i vincoli anche qui), vincoli non esprimibili; gerarchie con «Generalizzazione di…» e «Specializzazione di…».
+- **Soluzione completa** (`soluzione.py`): traccia, ipotesi, diagramma, documentazione e schema in un file solo, in HTML (predefinito, con il diagramma dentro il file) o in Word; Markdown per il libro. La traccia si scrive nella descrizione, nel blocco `traccia:`.
+- Esempi nuovi: `hotel.er` (soluzione completa dalla traccia del libro) e `veicoli.er` (gerarchia con associazioni «su» e «giù»).
+
 ## 0.3.9 — 17/10/2026
 
 - Nuova skill **diagrammi-er**: disegna diagrammi E/R nella notazione del libro (entità, associazioni, attributi a pallino, chiave semplice e composta, entità deboli, associazioni ricorsive, cardinalità) da una descrizione testuale breve. Produce il file `.drawio`, da aprire e ritoccare in draw.io, e il PNG; dopo un ritocco il PNG si rifà dal `.drawio` con `drawio_png.py`. Colori fissi per i diagrammi nuovi: entità azzurre, associazioni bianche. Entità al singolare: lo script avvisa quando un nome o il verbo di un'associazione sembrano plurali, e quando una linea arriva sul lato degli attributi. Gerarchie ISA e associazioni tra tre entità non sono ancora gestite.

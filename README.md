@@ -68,11 +68,11 @@ Le regole didattiche (punti, tempi, struttura delle verifiche, stile delle doman
 | `domande-coderunner-sql` | Domande CodeRunner SQL, con il database SQLite allegato |
 | `domande-php-mysqli-mock` | Domande CodeRunner PHP con database simulato |
 | `database-didattici` | Database di prova coerenti in tre taglie, per CodeRunner e phpMyAdmin, con un catalogo |
-| `diagrammi-er` | Diagrammi E/R nella notazione del libro, da una descrizione testuale: file draw.io da ritoccare e immagine PNG |
+| `diagrammi-er` | Progettazione nella notazione del libro, da una descrizione testuale: diagramma E/R (file draw.io e PNG), schema relazionale, documentazione, soluzione completa in HTML o Word |
 
 Il comando `installa-dashboard` installa o aggiorna la dashboard.
 
-Le skill si usano anche da sole, fuori dalla dashboard: «una Cloze sulle JOIN», «un esercizio sui cicli while da correggere in automatico», «un database con tre tabelle per una lezione in phpMyAdmin», «disegna lo schema E/R della biblioteca».
+Le skill si usano anche da sole, fuori dalla dashboard: «una Cloze sulle JOIN», «un esercizio sui cicli while da correggere in automatico», «un database con tre tabelle per una lezione in phpMyAdmin», «disegna lo schema E/R della biblioteca», «risolvi questa traccia di progettazione».
 
 ## Autore e licenza
 
