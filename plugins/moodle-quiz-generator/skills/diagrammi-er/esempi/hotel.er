@@ -1,0 +1,49 @@
+# Dal libro, paragrafo 3.3 (Esempio completo di documentazione): la traccia dell'hotel, risolta dalla skill
+titolo: Hotel: prenotazioni delle camere
+
+traccia:
+    Un hotel desidera realizzare un sistema informativo per la gestione delle prenotazioni delle proprie camere. Il sistema deve consentire di registrare le informazioni sui **clienti**, sulle **camere** e sulle **prenotazioni** effettuate.
+    Ogni cliente è identificato da un codice e sono registrati i suoi dati anagrafici e di contatto. Le camere sono identificate da un numero e si distinguono per **tipologia** (singola, doppia o suite) e **prezzo per notte**.
+    Ogni prenotazione è identificata da un codice univoco e comprende le informazioni sulla **data di inizio**, **data di fine**, **stato della prenotazione** (confermata, annullata, in attesa) e **metodo di pagamento** (contanti, carta, bonifico o online).
+    Una prenotazione è effettuata da un solo cliente ma può includere **una o più stanze** ed è possibile indicare **il numero di ospiti** che occuperà per ogni stanza.
+
+ipotesi: Come dati del cliente salviamo nome, cognome e indirizzo email per il contatto
+ipotesi: Ipotizziamo che il numero di camera sia univoco all'interno dell'hotel
+ipotesi: Un cliente può essere registrato anche se non ha ancora prenotazioni
+vincolo: La stessa camera non può essere prenotata negli stessi giorni all'interno di più prenotazioni
+vincolo: Il numero di ospiti di una camera non può superare i posti della sua tipologia (1 per la singola, 2 per la doppia…)
+
+entita Cliente @ 0 0
+    sinistra: *CodCliente, Nome, Cognome, Email
+    descrizione: Clienti registrati nel sistema
+    sinonimi: Utente
+    tipo CodCliente: Testo fisso; lunghezza 8
+    tipo Nome: Testo; lunghezza ≤ 30
+    tipo Cognome: Testo; lunghezza ≤ 30
+    tipo Email: Testo
+
+entita Prenotazione @ 1.5 0
+    sopra: *CodPrenotazione, DataInizio, DataFine
+    destra: Stato, MetodoPagamento
+    descrizione: Le prenotazioni delle camere effettuate dai clienti
+    tipo CodPrenotazione: Testo fisso; lunghezza 10
+    tipo DataInizio: Data
+    tipo DataFine: Data; ≥ DataInizio
+    tipo Stato: Elenco; valori ammessi: {Confermata, Annullata, InAttesa}
+    tipo MetodoPagamento: Elenco; valori ammessi: {Contanti, Carta, Bonifico, Online}
+
+entita Camera @ 1.5 1.4
+    destra: *NumeroCamera, Tipo, PrezzoNotte
+    descrizione: Le camere disponibili nell'hotel
+    sinonimi: Stanza
+    tipo NumeroCamera: Intero; valore > 0
+    tipo Tipo: Elenco; valori ammessi: {Singola, Doppia, Suite}
+    tipo PrezzoNotte: Decimale; valore > 0
+
+associazione effettua: Cliente (0,N) -- Prenotazione (1,1)
+    descrizione: Collega ogni prenotazione al cliente che l'ha effettuata
+
+associazione comprende: Prenotazione (1,N) -- Camera (0,N)
+    destra: NumOspiti
+    descrizione: Collega le prenotazioni alle camere incluse
+    tipo NumOspiti: Intero; valore ≥ 1

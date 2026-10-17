@@ -44,6 +44,7 @@ import sys
 QUI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, QUI)
 from drawio_png import disegna, font, leggi_modello  # noqa: E402
+from modello_er import leggi, specializzazioni, etichetta_gerarchia  # noqa: E402
 
 COLORI = {
     "azzurro": ("#dae8fc", "#6c8ebf"),
@@ -68,84 +69,7 @@ def lw(t, fs=FS):
     return font(fs).getlength(t)
 
 
-# ---------------------------------------------------------------- lettura della descrizione
-
-class Errore(Exception):
-    pass
-
-
-def leggi(testo):
-    diag = {"titolo": "Diagramma E/R", "colori": {"entita": "azzurro", "associazioni": "bianco"},
-            "griglia": (250, 170), "entita": {}, "associazioni": []}
-    corrente = None
-    for n, riga in enumerate(testo.splitlines(), 1):
-        if not riga.strip() or riga.strip().startswith("#"):
-            continue
-        rientrata = riga[:1] in (" ", "\t")
-        r = riga.strip()
-        try:
-            if not rientrata:
-                corrente = None
-                m = re.match(r"(titolo|colori|griglia)\s*:\s*(.*)$", r, re.I)
-                if m:
-                    k, v = m.group(1).lower(), m.group(2).strip()
-                    if k == "titolo":
-                        diag["titolo"] = v
-                    elif k == "griglia":
-                        a, b = v.split()
-                        diag["griglia"] = (float(a), float(b))
-                    else:
-                        for parte in v.replace(",", " ").split():
-                            kk, vv = parte.split("=")
-                            kk = {"entità": "entita"}.get(kk.lower(), kk.lower())
-                            if kk not in ("entita", "associazioni") or vv.lower() not in COLORI:
-                                raise Errore("colori: si scrive entita=… associazioni=… con %s" % ", ".join(COLORI))
-                            diag["colori"][kk] = vv.lower()
-                    continue
-                m = re.match(r"entit[aà]\s+(.+?)\s*@\s*(-?[\d.]+)\s+(-?[\d.]+)\s*$", r, re.I)
-                if m:
-                    nome = m.group(1).strip().strip('"')
-                    if nome in diag["entita"]:
-                        raise Errore("entità «%s» scritta due volte" % nome)
-                    corrente = {"tipo": "entita", "nome": nome, "pos": (float(m.group(2)), float(m.group(3))),
-                                "attr": {}, "deboli": []}
-                    diag["entita"][nome] = corrente
-                    continue
-                m = re.match(r"associazione\s+(.+?)\s*:\s*(.+?)\s*\(([^)]*)\)\s*--\s*(.+?)\s*\(([^)]*)\)"
-                             r"\s*(?:@\s*(.+))?$", r, re.I)
-                if m:
-                    pos = (m.group(6) or "").strip()
-                    corrente = {"tipo": "associazione", "nome": m.group(1).strip().strip('"'),
-                                "e1": m.group(2).strip().strip('"'), "c1": m.group(3).strip(),
-                                "e2": m.group(4).strip().strip('"'), "c2": m.group(5).strip(),
-                                "pos": pos, "attr": {}}
-                    diag["associazioni"].append(corrente)
-                    continue
-                raise Errore("riga non riconosciuta")
-            if corrente is None:
-                raise Errore("riga rientrata fuori da un'entità o da un'associazione")
-            m = re.match(r"(sopra|sotto|sinistra|destra)\s*:\s*(.*)$", r, re.I)
-            if m:
-                lato = m.group(1).lower()
-                if corrente["tipo"] == "associazione" and lato not in ("sopra", "sotto"):
-                    raise Errore("gli attributi di un'associazione vanno sopra o sotto il rombo")
-                corrente["attr"][lato] = [a.strip() for a in m.group(2).split(",") if a.strip()]
-                continue
-            m = re.match(r"identificata da\s*:\s*(.*)$", r, re.I)
-            if m and corrente["tipo"] == "entita":
-                corrente["deboli"] = [a.strip() for a in m.group(1).split(",") if a.strip()]
-                continue
-            raise Errore("riga non riconosciuta")
-        except Errore as e:
-            raise SystemExit("ERRORE riga %d: %s\n    %s" % (n, e, riga))
-        except ValueError:
-            raise SystemExit("ERRORE riga %d: valori non validi\n    %s" % (n, riga))
-    for a in diag["associazioni"]:
-        for e in (a["e1"], a["e2"]):
-            if e not in diag["entita"]:
-                raise SystemExit("ERRORE: l'associazione «%s» cita l'entità «%s», che non c'è" % (a["nome"], e))
-    return diag
-
+# ---------------------------------------------------------------- lettura della descrizione: modello_er.py
 
 # ---------------------------------------------------------------- celle draw.io
 
@@ -268,6 +192,10 @@ def dimensioni_entita(e):
 
 def impagina(diag):
     gx, gy = diag["griglia"]
+    senza = [e["nome"] for e in diag["entita"].values() if e["pos"] is None]
+    if senza:
+        raise SystemExit("ERRORE: per il diagramma ogni entità ha bisogno della posizione (entita NOME @ COLONNA "
+                         "RIGA): manca a %s" % ", ".join(senza))
     for e in diag["entita"].values():
         w, h = dimensioni_entita(e)
         c, r = e["pos"]
@@ -337,6 +265,13 @@ def controlla_lati(diag):
         for nome_e in (a["e1"], a["e2"]):
             (ex, ey), _, _ = collegamento(diag["entita"][nome_e], a["centro"], a["dim"])
             usati[nome_e].append((nomi_lato[(ex, ey)], a["nome"]))
+    for g in diag["gerarchie"]:
+        _, gy0, _, gh = diag["entita"][g["gen"]]["box"]
+        for sp in g["spec"]:
+            _, sy0, _, sh = diag["entita"][sp]["box"]
+            sotto = sy0 > gy0
+            usati[g["gen"]].append(("sotto" if sotto else "sopra", "gerarchia"))
+            usati[sp].append(("sopra" if sotto else "sotto", "gerarchia"))
     avvisi = []
     for nome, lati in usati.items():
         e = diag["entita"][nome]
@@ -347,7 +282,7 @@ def controlla_lati(diag):
             if lato in e["attr"] and not gomito:
                 avvisi.append("«%s»: la linea di «%s» arriva %s, dove ci sono gli attributi: spostali su un altro lato"
                               % (nome, nome_a, {"sopra": "sopra", "sotto": "sotto"}.get(lato, "a " + lato)))
-            if lato in visti and visti[lato] != nome_a:
+            if lato in visti and visti[lato] != nome_a and "gerarchia" not in (visti[lato], nome_a):
                 avvisi.append("«%s»: le linee di «%s» e «%s» arrivano sullo stesso lato (%s): sposta un'entità o un "
                               "rombo" % (nome, visti[lato], nome_a, lato))
             visti.setdefault(lato, nome_a)
@@ -396,30 +331,40 @@ def costruisci(diag):
             for lato, nomi in a["attr"].items():
                 k = len(nomi)
                 for i, nome in enumerate(nomi):
-                    fx = 0.5 if k == 1 else 0.3 + 0.4 * i / (k - 1)
-                    # punto sul perimetro del rombo
-                    off = abs(fx - 0.5) * 2
-                    fy = (0.5 - 0.5 * (1 - off)) if lato == "sopra" else (0.5 + 0.5 * (1 - off))
-                    px, py = cx - rw / 2 + fx * rw, cy - rh / 2 + fy * rh
-                    pc = (px, py - GAMBO_V) if lato == "sopra" else (px, py + GAMBO_V)
+                    nome = nome.lstrip("*")
                     l = lw(nome)
-                    et = (pc[0] - l / 2 - 2, pc[1] - R - 18, l + 4, 16, "center", "bottom") if lato == "sopra" \
-                        else (pc[0] - l / 2 - 2, pc[1] + R + 1, l + 4, 16, "center", "top")
-                    pezzi.append((nome, fx, fy, pc, et))
+                    if lato in ("sopra", "sotto"):
+                        fx = 0.5 if k == 1 else 0.3 + 0.4 * i / (k - 1)
+                        # punto sul perimetro del rombo
+                        off = abs(fx - 0.5) * 2
+                        fy = (0.5 - 0.5 * (1 - off)) if lato == "sopra" else (0.5 + 0.5 * (1 - off))
+                        px, py = cx - rw / 2 + fx * rw, cy - rh / 2 + fy * rh
+                        pc = (px, py - GAMBO_V) if lato == "sopra" else (px, py + GAMBO_V)
+                        et = (pc[0] - l / 2 - 2, pc[1] - R - 18, l + 4, 16, "center", "bottom") if lato == "sopra" \
+                            else (pc[0] - l / 2 - 2, pc[1] + R + 1, l + 4, 16, "center", "top")
+                    else:
+                        fy = 0.5 if k == 1 else 0.35 + 0.3 * i / (k - 1)
+                        fx = abs(fy - 0.5) if lato == "sinistra" else 1 - abs(fy - 0.5)
+                        px, py = cx - rw / 2 + fx * rw, cy - rh / 2 + fy * rh
+                        pc = (px - GAMBO_O, py) if lato == "sinistra" else (px + GAMBO_O, py)
+                        et = (pc[0] - R - 3 - l - 4, pc[1] - 8, l + 4, 16, "right", "middle") if lato == "sinistra" \
+                            else (pc[0] + R + 3, pc[1] - 8, l + 4, 16, "left", "middle")
+                    pezzi.append((nome, fx, fy, pc, et, lato))
             xs = [a["box"][0], a["box"][0] + rw] + [p[4][0] for p in pezzi] + [p[4][0] + p[4][2] for p in pezzi]
             ys = [a["box"][1], a["box"][1] + rh] + [p[4][1] for p in pezzi] + [p[4][1] + p[4][3] for p in pezzi]
             gx0, gy0 = min(xs), min(ys)
             M.vertice(gruppo, "", "group;", gx0, gy0, max(xs) - gx0, max(ys) - gy0, ordine=1)
             M.vertice(rid, a["nome"], st_forma("rhombus;", ca, "fontSize=%d;" % FS),
                       a["box"][0] - gx0, a["box"][1] - gy0, rw, rh, parent=gruppo, ordine=2)
-            for nome, fx, fy, pc, et in pezzi:
+            for nome, fx, fy, pc, et, lato in pezzi:
                 pid, lid, tid = M.nuovo_id("p"), M.nuovo_id("l"), M.nuovo_id("t")
                 M.vertice(pid, "", "ellipse;html=1;aspect=fixed;fillColor=#ffffff;strokeColor=#000000;",
                           pc[0] - R - gx0, pc[1] - R - gy0, 2 * R, 2 * R, parent=gruppo, ordine=3)
-                M.linea(lid, ST_LINEA + "exitX=%s;exitY=%s;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=%s;"
-                        "entryDx=0;entryDy=0;" % (n(fx), n(fy), 1 if et[5] == "bottom" else 0),
+                entra = {"sopra": (0.5, 1), "sotto": (0.5, 0), "sinistra": (1, 0.5), "destra": (0, 0.5)}[lato]
+                M.linea(lid, ST_LINEA + "exitX=%s;exitY=%s;exitDx=0;exitDy=0;exitPerimeter=0;entryX=%s;entryY=%s;"
+                        "entryDx=0;entryDy=0;" % (n(fx), n(fy), n(entra[0]), n(entra[1])),
                         source=rid, target=pid, parent=gruppo)
-                M.vertice(tid, nome, ST_TESTO + "align=center;verticalAlign=%s;" % et[5],
+                M.vertice(tid, nome, ST_TESTO + "align=%s;verticalAlign=%s;" % (et[4], et[5]),
                           et[0] - gx0, et[1] - gy0, et[2], et[3], parent=gruppo, ordine=4)
         else:
             M.vertice(rid, a["nome"], st_forma("rhombus;", ca, "fontSize=%d;" % FS), *a["box"], ordine=2)
@@ -436,7 +381,7 @@ def costruisci(diag):
                 for lato in LATI if lato in e["attr"]}
         chiavi = [(lato, p) for lato, ps in attr.items() for p in ps if p["chiave"]]
         lati_chiave = {lato for lato, _ in chiavi}
-        if not chiavi:
+        if not chiavi and nome not in specializzazioni(diag):
             print("AVVISO: l'entità «%s» non ha la chiave primaria (* davanti all'attributo)" % nome)
         if len(lati_chiave) > 1:
             raise SystemExit("ERRORE: «%s»: gli attributi della chiave composta vanno sullo stesso lato" % nome)
@@ -557,6 +502,41 @@ def costruisci(diag):
             M.linea(M.nuovo_id("l"), ST_LINEA + "exitX=%s;exitY=%s;exitDx=0;exitDy=0;exitPerimeter=0;entryX=%s;"
                     "entryY=%s;entryDx=0;entryDy=0;" % (n(exx), n(exy), n(enx), n(eny)),
                     source=id_ent[nome_e], target=rid, figli=cx_[1], **cx_[0])
+    # gerarchie ISA: dalle specializzazioni una linea a T che sale alla generalizzazione, con la freccia
+    for g in diag["gerarchie"]:
+        gen = diag["entita"][g["gen"]]
+        gx0, gy0, gw, gh = gen["box"]
+        gcx = gx0 + gw / 2
+        specs = [diag["entita"][s_] for s_ in g["spec"]]
+        sotto = all(sp["box"][1] > gy0 for sp in specs)
+        if sotto:
+            bordo_g = gy0 + gh
+            bordo_s = min(sp["box"][1] for sp in specs)
+        else:
+            bordo_g = gy0
+            bordo_s = max(sp["box"][1] + sp["box"][3] for sp in specs)
+        ymid = (bordo_g + bordo_s) / 2
+        if abs(bordo_s - bordo_g) < 50:
+            print("AVVISO: la gerarchia di «%s» ha le specializzazioni troppo vicine: allontanale" % g["gen"])
+        etichetta = etichetta_gerarchia(g)
+        for i, sp in enumerate(specs):
+            sx0, sy0, sw, sh = sp["box"]
+            scx = sx0 + sw / 2
+            punti = [] if abs(scx - gcx) < 1 else [(scx, ymid), (gcx, ymid)]
+            lung = abs(ymid - (sy0 if sotto else sy0 + sh)) + abs(scx - gcx) + abs(bordo_g - ymid)
+            figli = ""
+            if i == 0:
+                frac = 1 - 2 * min(18, abs(bordo_g - ymid) / 2) / max(lung, 1)
+                figli = card_xml(M, "", 0, (0, 0))[1]
+                lid = M.nuovo_id("c")
+                figli = ('<mxCell id="%s" value="%s" style="%s" vertex="1" connectable="0" parent="__LINEA__">'
+                         '<mxGeometry x="%s" relative="1" as="geometry"><mxPoint x="%s" y="0" as="offset"/>'
+                         '</mxGeometry></mxCell>' % (lid, etichetta, ST_CARD + "align=left;", n(frac),
+                                                     n(8 + lw(etichetta) / 2)))
+            M.linea(M.nuovo_id("l"), "endArrow=block;endFill=1;endSize=10;html=1;rounded=0;strokeColor=#000000;"
+                    "exitX=0.5;exitY=%s;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=%s;entryDx=0;"
+                    "entryDy=0;" % (0 if sotto else 1, 1 if sotto else 0),
+                    source=id_ent[sp["nome"]], target=id_ent[g["gen"]], punti=punti, figli=figli)
     return M.xml(diag["titolo"])
 
 
@@ -564,6 +544,8 @@ def card_xml(M, testo, x, offset):
     """Etichetta della cardinalità come figlia della linea (si sposta con lei in draw.io)."""
     if not testo:
         return {}, ""
+    if isinstance(testo, tuple):
+        testo = "(%s,%s)" % testo
     t = testo if testo.startswith("(") else "(%s)" % testo
     lid = M.nuovo_id("c")
     # l'id della linea non è ancora noto: si usa un segnaposto sostituito da linea()

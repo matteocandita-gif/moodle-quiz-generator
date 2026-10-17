@@ -9,7 +9,8 @@ cardinalità cambiati, attributi aggiunti copiando quelli che ci sono) e lo dise
 coordinate. Riconosce le forme che usa disegna_er.py:
 
   - rettangolo (entità), rombo (associazione), cerchio (pallino di un attributo), testo, gruppo;
-  - linee senza frecce, con punti intermedi; la fine «oval» piena (il pallino della chiave composta);
+  - linee senza frecce, con punti intermedi; la fine «oval» piena (il pallino della chiave composta) e
+    la freccia piena «block» (gerarchie ISA);
   - etichette delle linee (le cardinalità).
 
 Una forma diversa (un'immagine, una freccia, una forma di libreria) non viene ignorata in silenzio:
@@ -291,7 +292,7 @@ def disegna(modello, scala=1.0, forza=False):
                 elementi.append((f, c))
         elif c.edge:
             frecce = [c.st.get(k) for k in ("startArrow", "endArrow")]
-            if c.st.get("endArrow") is None or any(f not in (None, "none", "oval") for f in frecce):
+            if c.st.get("endArrow") is None or any(f not in (None, "none", "oval", "block") for f in frecce):
                 # in draw.io una linea senza endArrow ha la freccia classica
                 sconosciute.append("%s (linea con una freccia: in questa notazione le linee non hanno frecce)" % c.id)
             elementi.append(("linea", c))
@@ -376,7 +377,17 @@ def disegna(modello, scala=1.0, forza=False):
         pts = [T(*p) for p in percorso_linea(celle, c)]
         col = colore(c.st.get("strokeColor"), "#000000")
         d.line(pts, fill=col, width=spess(c), joint="curve")
-        for estremo, chiave in ((pts[-1], "endArrow"), (pts[0], "startArrow")):
+        for estremo, prima, chiave in ((pts[-1], pts[-2], "endArrow"), (pts[0], pts[1], "startArrow")):
+            if c.st.get(chiave) == "block":
+                # freccia piena (gerarchie ISA): triangolo con la punta sull'estremo
+                lung = float(c.st.get("endSize" if chiave == "endArrow" else "startSize") or 6) * s
+                dx, dy = estremo[0] - prima[0], estremo[1] - prima[1]
+                l = math.hypot(dx, dy) or 1
+                ux, uy = dx / l, dy / l
+                bx, by = estremo[0] - ux * lung, estremo[1] - uy * lung
+                mezza = lung * 0.45
+                d.polygon([estremo, (bx - uy * mezza, by + ux * mezza), (bx + uy * mezza, by - ux * mezza)],
+                          fill=col, outline=col)
             if c.st.get(chiave) == "oval":
                 r = float(c.st.get("endSize" if chiave == "endArrow" else "startSize") or 6) / 2 * s
                 piena = c.st.get("endFill" if chiave == "endArrow" else "startFill", "1") != "0"

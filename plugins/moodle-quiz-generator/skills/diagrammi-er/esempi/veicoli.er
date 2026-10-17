@@ -1,0 +1,19 @@
+# Dal libro, paragrafo 3.4.3 (Esempi notevoli): gerarchia con associazione «su» e «giù»
+titolo: Noleggio veicoli
+entita Veicolo @ 1 0
+    sinistra: *Codice, Marca, Modello, Anno
+entita Compagnia assicurativa @ 2.5 0
+    sotto: *Codice, Nome
+entita Auto @ 0.4 1.1
+    sinistra: Num_porte, Alimentazione
+entita Moto @ 1.6 1.1
+    destra: Cilindrata
+entita Conducente @ 0.4 2.2
+    sinistra: *Cod_f, Nome, Cognome
+
+gerarchia Veicolo: Auto, Moto (t,e)
+    traduzione: lasciare tutto
+
+associazione assicurato: Veicolo (1,1) -- Compagnia assicurativa (1,N)
+    sotto: Tariffa
+associazione con: Auto (0,1) -- Conducente (1,N)

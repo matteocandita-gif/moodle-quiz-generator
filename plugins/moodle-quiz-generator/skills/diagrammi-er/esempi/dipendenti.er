@@ -6,3 +6,4 @@ entita Dipendente @ 0 0
     sopra: Ruolo
 
 associazione Capo di: Dipendente (1,1) -- Dipendente (1,N)
+    chiave esterna: id_capo
