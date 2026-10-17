@@ -160,4 +160,5 @@ Per correggere: estrai le domande da modificare nella specifica, correggi, rigen
 | CodeRunner SQL (SQLite) | `domande-coderunner-sql` |
 | CodeRunner PHP con database simulato | `domande-php-mysqli-mock` |
 | Database di prova (catalogo, creazione, controllo delle query) | `database-didattici` |
+| Diagrammi E/R (immagini per pagine e domande) | `diagrammi-er` |
 | Capitoli del libro di testo | `libro-sia` |

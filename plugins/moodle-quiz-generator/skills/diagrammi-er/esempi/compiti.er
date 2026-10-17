@@ -1,0 +1,15 @@
+# Dal libro, paragrafo 3.4.1 (figura image55): Compito è un'entità debole
+titolo: Compiti in classe
+
+entita Alunno @ 0 0
+    sopra: *cod_f
+    sotto: Nome, Cognome
+entita Compito @ 1.2 0
+    sopra: Voto
+    sotto: *Data
+    identificata da: fa, in
+entita Materia @ 2.4 0
+    sopra: *Nome, Ore_settimanali
+
+associazione fa: Alunno (1,N) -- Compito (1,1)
+associazione in: Compito (1,1) -- Materia (1,N)

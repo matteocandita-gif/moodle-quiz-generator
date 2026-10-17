@@ -1,0 +1,8 @@
+# Dal libro, paragrafo 3.4.2 (figura image38): associazione ricorsiva 1 a N
+titolo: Dipendenti e capi
+
+entita Dipendente @ 0 0
+    sinistra: *Id, Nome, Cognome
+    sopra: Ruolo
+
+associazione Capo di: Dipendente (1,1) -- Dipendente (1,N)

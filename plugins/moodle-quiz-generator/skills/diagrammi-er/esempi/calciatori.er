@@ -1,0 +1,15 @@
+# Dal libro, capitolo 3 (figura image422)
+titolo: Calciatori e squadre
+
+entita Calciatore @ 0 0
+    sinistra: *IDCalciatore, Nome, Cognome
+entita Squadra @ 2 0
+    sopra: *Nome, Citta, PosizioneCampionato
+entita Ruolo @ 0 1.4
+    sotto: *CodRuolo, Nome
+entita Allenatore @ 2 1.4
+    sotto: *CodAllenatore, DataNascita, Nome, Cognome
+
+associazione gioca in: Calciatore (1,1) -- Squadra (1,N)
+associazione ricopre: Calciatore (1,N) -- Ruolo (1,N)
+associazione ha: Squadra (1,1) -- Allenatore (0,1)

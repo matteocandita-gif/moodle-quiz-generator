@@ -2,6 +2,11 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz»: Claude propone di aggiornarla, e i quiz salvati restano.
 
+## 0.3.9 — 17/10/2026
+
+- Nuova skill **diagrammi-er**: disegna diagrammi E/R nella notazione del libro (entità, associazioni, attributi a pallino, chiave semplice e composta, entità deboli, associazioni ricorsive, cardinalità) da una descrizione testuale breve. Produce il file `.drawio`, da aprire e ritoccare in draw.io, e il PNG; dopo un ritocco il PNG si rifà dal `.drawio` con `drawio_png.py`. Colori fissi per i diagrammi nuovi: entità azzurre, associazioni bianche. Entità al singolare: lo script avvisa quando un nome o il verbo di un'associazione sembrano plurali, e quando una linea arriva sul lato degli attributi. Gerarchie ISA e associazioni tra tre entità non sono ancora gestite.
+- `progettazione-quiz` e `materiali-moodle`: le domande e le pagine con un diagramma E/R usano la nuova skill, con la descrizione nelle note interne della domanda.
+
 ## 0.3.8 — 17/10/2026
 
 - Immagini nelle tracce: nel testo di pagine e domande si scrive `![testo alternativo](nome.png)` e in Moodle diventa un'immagine, larga al massimo quanto la pagina. Le immagini di un quiz stanno tutte in una cartella, indicata nelle note del quiz e passata alla generazione con `--immagini=CARTELLA`.
