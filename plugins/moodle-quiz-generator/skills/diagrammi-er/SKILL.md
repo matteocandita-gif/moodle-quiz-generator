@@ -63,7 +63,7 @@ Servono Python 3 e Pillow (più python-docx per il file Word); per il testo dei 
 
 ## Il processo
 
-1. **Dalla traccia al modello** (se si parte da una traccia). Copia la traccia nel blocco `traccia:` della descrizione, così entra nella soluzione. La progettazione concettuale la fai tu: entità, attributi, chiavi, associazioni con cardinalità, gerarchie. Ogni scelta che la traccia non impone diventa un'**ipotesi aggiuntiva** (riga `ipotesi:`), e i vincoli che il diagramma non può esprimere diventano righe `vincolo:`. Nomi delle entità al singolare anche se la traccia parla al plurale.
+1. **Dalla traccia al modello** (se si parte da una traccia). Copia la traccia nel blocco `traccia:` della descrizione, così entra nella soluzione. La progettazione concettuale la fai tu: entità, attributi, chiavi, associazioni con cardinalità, gerarchie. Niente associazioni ternarie né attributi multipli (vedi «Strumenti che non si usano»). Ogni scelta che la traccia non impone diventa un'**ipotesi aggiuntiva** (riga `ipotesi:`), e i vincoli che il diagramma non può esprimere diventano righe `vincolo:`. Nomi delle entità al singolare anche se la traccia parla al plurale.
 2. **La descrizione.** Scrivi il file `.er` (formato in `references/descrizione.md`) con solo le righe che servono ai moduli richiesti; parti dall'esempio più vicino in `esempi/`.
 3. **Genera** con lo script del modulo (o `soluzione.py --parti=…`). Leggi NOTE e AVVISI: plurali calcolati, nomi di default delle chiavi esterne nelle ricorsive, lato della chiave esterna in un 1 a 1, strategie sconsigliate, tipi o descrizioni mancanti, nomi che sembrano plurali, linee sul lato degli attributi. Dove una scelta automatica non va, correggi la descrizione (`plurale:`, `chiave esterna:`, `tabella:`, `chiave esterna in:`, `traduzione:`) e rigenera.
 4. **Guarda il PNG** con lo strumento di lettura delle immagini prima di consegnarlo: etichette che si toccano, linee su un testo. Correggi posizioni e lati e rigenera.
@@ -75,6 +75,9 @@ Servono Python 3 e Pillow (più python-docx per il file Word); per il testo dei 
 - **Libro** (`libro-sia`): per una figura nuova `--scala=2`; il `.drawio` resta accanto alle immagini per i ritocchi; la documentazione e lo schema in formato libro sono già Markdown.
 - **Verifiche su carta e soluzioni**: soluzione completa o solo le parti che servono; per la stampa `--scala=2`.
 
-## Che cosa non fa (ancora)
+## Strumenti che non si usano
 
-Le associazioni tra tre entità (ternarie) non sono gestite: se servono, disegna il resto con lo script e aggiungile in draw.io, esportando poi il PNG da draw.io.
+Per scelta dell'utente, nei modelli E/R (soluzioni, quiz, libro, verifiche) non si usano mai **associazioni ternarie** (o con più entità) né **attributi multipli** (multivalore), anche se molti manuali li presentano: vanno comunque ristrutturati prima del passaggio al modello relazionale.
+
+- **Legame tra tre entità** (per esempio docente, materia e classe): si fa un'entità al posto dell'associazione (Incarico), collegata a ciascuna delle tre entità con un'associazione 1 a N, con una sua chiave e i suoi attributi; la scelta va in un'ipotesi aggiuntiva. **Mai tre associazioni binarie tra le entità**: non sono equivalenti e perdono l'informazione su chi è legato a chi (sapere che un docente insegna in una classe e una materia non dice quale materia in quale classe).
+- **Attributo con più valori** (più telefoni, più email): diventa un'entità collegata con un'associazione 1 a N. Lo script rifiuta una cardinalità diversa da (0,1) su un attributo.
