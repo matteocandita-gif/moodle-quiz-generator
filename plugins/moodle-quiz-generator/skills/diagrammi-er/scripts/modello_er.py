@@ -71,13 +71,14 @@ def lista_attributi(v):
 
 def nuova_entita(nome, pos):
     return {"tipo": "entita", "nome": nome, "pos": pos, "attr": {}, "ordine": [], "deboli": [],
-            "descrizione": "", "sinonimi": "", "plurale": "", "tipi": {}, "opzionali": set()}
+            "descrizione": "", "sinonimi": "", "plurale": "", "tipi": {}, "opzionali": set(),
+            "larghezza": 0}
 
 
 def leggi(testo):
     m_ = {"titolo": "Diagramma E/R", "colori": {"entita": "azzurro", "associazioni": "bianco"},
           "griglia": (250, 170), "entita": {}, "associazioni": [], "gerarchie": [],
-          "ipotesi": [], "vincoli": [], "traccia": []}
+          "ipotesi": [], "vincoli": [], "traccia": [], "query": []}
     corrente = None
     for n, riga in enumerate(testo.splitlines(), 1):
         if not riga.strip() or riga.strip().startswith("#"):
@@ -93,6 +94,12 @@ def leggi(testo):
                     if m.group(1).strip():
                         m_["traccia"].append(m.group(1).strip())
                     corrente = {"tipo": "traccia"}
+                    continue
+                m = re.match(r"query\s*:\s*(.*)$", r, re.I)
+                if m:
+                    # una query SQL della soluzione: la richiesta sulla riga, il codice sulle righe rientrate sotto
+                    corrente = {"tipo": "query", "titolo": m.group(1).strip(), "sql": [], "rientro": None}
+                    m_["query"].append(corrente)
                     continue
                 m = re.match(r"(titolo|colori|griglia|ipotesi|vincolo)\s*:\s*(.*)$", r, re.I)
                 if m:
@@ -145,10 +152,16 @@ def leggi(testo):
                                  "(t,ne), (nt,e) o (nt,ne)")
                 raise Errore("riga non riconosciuta")
             if corrente is None:
-                raise Errore("riga rientrata fuori da un'entità, un'associazione, una gerarchia o la traccia")
+                raise Errore("riga rientrata fuori da un'entità, un'associazione, una gerarchia, la traccia o una query")
             tipo = corrente["tipo"]
             if tipo == "traccia":
                 m_["traccia"].append(r)
+                continue
+            if tipo == "query":
+                # il codice conserva i rientri interni: si toglie solo quello della prima riga
+                if corrente["rientro"] is None:
+                    corrente["rientro"] = len(riga) - len(riga.lstrip())
+                corrente["sql"].append(riga[min(corrente["rientro"], len(riga) - len(riga.lstrip())):].rstrip())
                 continue
             m = re.match(r"(sopra|sotto|sinistra|destra|attributi)\s*:\s*(.*)$", r, re.I)
             if m and tipo in ("entita", "associazione"):
@@ -164,6 +177,11 @@ def leggi(testo):
             if m and tipo in ("entita", "associazione"):
                 parti = m.group(2).split(";", 1)
                 corrente["tipi"][m.group(1).strip()] = (parti[0].strip(), parti[1].strip() if len(parti) > 1 else "")
+                continue
+            m = re.match(r"larghezza\s*:\s*([\d.]+)\s*$", r, re.I)
+            if m and tipo == "entita":
+                # solo per il diagramma: larghezza minima del rettangolo, in pixel (lati con più linee)
+                corrente["larghezza"] = float(m.group(1))
                 continue
             m = re.match(r"(descrizione|sinonimi|plurale|identificata da|chiave esterna in|chiave esterna|"
                          r"chiavi esterne|tabella|traduzione|campo tipo)\s*:\s*(.*)$", r, re.I)

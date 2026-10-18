@@ -40,6 +40,7 @@ associazione con: Auto (0,1) -- Conducente (1,N)
 | `griglia: L A` | D | larghezza di una colonna e altezza di una riga, in pixel (predefinite 250 e 170) |
 | `ipotesi: …` | Doc | un'ipotesi aggiuntiva; una riga per ipotesi |
 | `vincolo: …` | Doc | un vincolo non esprimibile; una riga per vincolo |
+| `query: RICHIESTA` | soluzione | una query SQL della soluzione: la richiesta della traccia sulla riga, il codice sulle righe rientrate sotto (i rientri interni restano; i commenti `--` spiegano le scelte); una riga `query:` per query, nell'ordine della traccia |
 | `colori: entita=… associazioni=…` | D | da non scrivere nei diagrammi nuovi (valgono entità azzurre e associazioni bianche); solo per ridisegnare com'è una figura esistente del libro: `rosa`, `verde`, `giallo`, `arancio`, `bianco`, `azzurro` |
 
 ## Entità
@@ -57,6 +58,7 @@ associazione con: Auto (0,1) -- Conducente (1,N)
 | `sinonimi: …` | Doc | sinonimi presenti nel testo (Utente, Stanza) |
 | `tipo ATTRIBUTO: TIPO; VINCOLI` | Doc | tipo di dato dall'elenco del libro e vincoli (`tipo PrezzoNotte: Decimale; valore > 0`); la chiave primaria si aggiunge da sola |
 | `plurale: …` | S | nome della relazione, se il plurale calcolato non va (`plurale: Compagnie`) |
+| `larghezza: N` | D | larghezza minima del rettangolo in pixel, quando su un lato arrivano più linee e i rombi devono stargli di fronte (`larghezza: 420`) |
 
 - Un solo `*`: chiave semplice, pallino pieno. Più `*`: chiave composta; nel diagramma gli attributi della chiave stanno **sullo stesso lato**.
 - Entità debole: nel diagramma gli attributi della chiave stanno **sopra o sotto**, e le associazioni di `identificata da` arrivano **ai fianchi** dell'entità.
@@ -94,7 +96,8 @@ Con «lasciare tutto» ogni specializzazione ha come chiave la chiave esterna ve
 ## Regole per un diagramma leggibile
 
 - Due entità collegate distano almeno una colonna (o una riga): rombo e cardinalità devono starci. Se lo script avvisa «molto vicina», allarga `griglia:` o allontana le entità.
-- Gli attributi vanno sui lati da cui **non** arrivano linee: lo script avvisa quando una linea arriva sul lato degli attributi o due linee sullo stesso lato. Una generalizzazione ha la gerarchia sotto, una specializzazione sopra.
+- Gli attributi vanno sui lati da cui **non** arrivano linee: lo script avvisa quando una linea arriva sul lato degli attributi.
+- Su un lato possono arrivare più linee (un'entità collegata a molte altre): ognuna parte dal punto del lato di fronte al suo rombo, quindi i rombi vanno messi con `@` di fronte al lato, a una distanza di almeno 40 px l'uno dall'altro; se il lato è troppo corto si allarga l'entità con `larghezza:`. Lo script avvisa quando una linea verrebbe obliqua o due linee sono troppo vicine. Una generalizzazione ha la gerarchia sotto, una specializzazione sopra.
 - Tra due righe di entità con attributi sotto e sopra servono più di 170 px: usa righe a 1.4 o 1.5.
 - Molti attributi su un lato allargano molto il rettangolo: dividili tra due lati.
 - Nomi delle entità al **singolare** e verbo delle associazioni al singolare, anche se la traccia parla al plurale: lo script avvisa quando un nome sembra plurale. Attributi senza spazi, come nel libro (`DataNascita`, `Ore_settimanali`).

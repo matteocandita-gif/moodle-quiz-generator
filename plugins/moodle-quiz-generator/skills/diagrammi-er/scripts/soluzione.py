@@ -3,7 +3,7 @@
 
 Uso:
     python3 soluzione.py MODELLO.er [CARTELLA] [--file=html|docx|md|html,docx]
-                         [--parti=traccia,ipotesi,diagramma,documentazione,schema] [--scala=1.25]
+                         [--parti=traccia,ipotesi,diagramma,documentazione,schema,query] [--scala=1.25]
 
 Scrive in CARTELLA (predefinita: quella del file .er):
   - MODELLO.html (predefinito): una pagina sola, con il diagramma dentro il file; si apre nel browser,
@@ -14,7 +14,7 @@ Scrive in CARTELLA (predefinita: quella del file .er):
 
 Parti, in quest'ordine (predefinite tutte; quelle vuote si omettono): traccia (blocco «traccia:» della
 descrizione), ipotesi aggiuntive, diagramma E/R (servono le posizioni), documentazione (entità, associazioni,
-vincoli non esprimibili), schema relazionale (con i vincoli). Ogni parte si può produrre anche da sola con il
+vincoli non esprimibili), schema relazionale (con i vincoli), query SQL (blocchi «query:»). Ogni parte si può produrre anche da sola con il
 suo script: disegna_er.py, documentazione.py, schema_relazionale.py.
 """
 import base64
@@ -29,7 +29,7 @@ from modello_er import leggi  # noqa: E402
 import documentazione as doc  # noqa: E402
 import schema_relazionale as sr  # noqa: E402
 
-PARTI = ("traccia", "ipotesi", "diagramma", "documentazione", "schema")
+PARTI = ("traccia", "ipotesi", "diagramma", "documentazione", "schema", "query")
 FORMATI = ("html", "docx", "md")
 
 
@@ -69,6 +69,10 @@ def prepara(testo_er, parti, base, scala):
         for av in sr.AVVISI:
             print("AVVISO: " + av)
         b += [("h2", "Schema relazionale"), ("schema", relazioni, vincoli)]
+    if "query" in parti and m["query"]:
+        b.append(("h2", "Query SQL"))
+        for i, q in enumerate(m["query"], 1):
+            b += [("h3", "%d. %s" % (i, q["titolo"])), ("codice", "\n".join(q["sql"]).strip("\n"))]
     return b
 
 
@@ -116,6 +120,8 @@ th, td { border: 1px solid #999999; padding: 4px 8px; text-align: left; vertical
 th { background: #eeeeee; }
 tr.inizio td { border-top: 2px solid #666666; }
 p.relazione { margin: 6px 0; font-size: 1.05em; }
+pre { background: #f5f7fb; border: 1px solid #c9d3e3; border-radius: 4px; padding: 10px 12px; overflow-x: auto;
+      font-size: 0.9em; line-height: 1.4; }
 @media print { body { margin: 0; max-width: none; } h2 { break-after: avoid; } table, img { break-inside: avoid; } }
 """
 
@@ -160,6 +166,8 @@ def rendi_html(blocchi):
                     r_html.append("<tr%s>%s</tr>" % (' class="inizio"' if j == 0 else "", "".join(celle)))
             corpo.append("<table>\n<thead><tr>%s</tr></thead>\n<tbody>\n%s\n</tbody>\n</table>"
                          % ("".join("<th>%s</th>" % html.escape(h) for h in intest), "\n".join(r_html)))
+        elif k == "codice":
+            corpo.append("<pre><code>%s</code></pre>" % html.escape(bl[1]))
         elif k == "schema":
             relazioni, vincoli = bl[1], bl[2]
             for r in relazioni:
@@ -193,6 +201,8 @@ def rendi_md(blocchi, base_nome):
             out.append("![%s](%s.png)" % (bl[2], base_nome))
         elif k == "tabella":
             out.append(doc.tabella_md(bl[1], bl[2]))
+        elif k == "codice":
+            out.append("```sql\n%s\n```" % bl[1])
         elif k == "schema":
             out.append(sr.formatta(bl[1], bl[2], "libro").strip())
     return "\n\n".join(out) + "\n"
@@ -299,6 +309,15 @@ def rendi_docx(blocchi, percorso):
                         for i in range(fisse):
                             prime[i].merge(celle[i])
             d.add_paragraph()
+        elif k == "codice":
+            p = d.add_paragraph()
+            p.paragraph_format.left_indent = Cm(0.5)
+            for i, riga in enumerate(bl[1].split("\n")):
+                if i:
+                    p.add_run().add_break()
+                run = p.add_run(riga)
+                run.font.name = "Consolas"
+                run.font.size = Pt(10)
         elif k == "schema":
             relazioni, vincoli = bl[1], bl[2]
             for r in relazioni:

@@ -193,7 +193,7 @@ def attributi_lato(lato, nomi, box, gambo, allinea="centro", opzionali=()):
 
 
 def dimensioni_entita(e):
-    w = max(W_MIN, lw(e["nome"], FS_ENTITA) + 36)
+    w = max(W_MIN, lw(e["nome"], FS_ENTITA) + 36, e.get("larghezza", 0))
     for lato in ("sopra", "sotto"):
         nomi = e["attr"].get(lato, [])
         if len(nomi) > 1:
@@ -268,11 +268,43 @@ def collegamento(e, centro_rombo, dim_rombo):
     return (0.5, 0), (0.5, 1), "v"
 
 
+NOMI_LATO = {(1, 0.5): "destra", (0, 0.5): "sinistra", (0.5, 1): "sotto", (0.5, 0): "sopra"}
+
+
+def lati_condivisi(diag):
+    """Lati di un'entità su cui arrivano più linee di associazioni: {(entità, lato): [nomi]}."""
+    uso = {}
+    for a in diag["associazioni"]:
+        if a.get("ricorsiva"):
+            continue
+        for nome_e in (a["e1"], a["e2"]):
+            (ex, ey), _, _ = collegamento(diag["entita"][nome_e], a["centro"], a["dim"])
+            uso.setdefault((nome_e, NOMI_LATO[(ex, ey)]), []).append(a["nome"])
+    return {k: v for k, v in uso.items() if len(v) > 1}
+
+
+def attacco_condiviso(e, lato, centro_rombo):
+    """Su un lato condiviso da più linee ognuna parte dal punto del lato di fronte al suo rombo (proiezione
+    del centro del rombo sul lato, tenuta lontana dagli spigoli): con il rombo allineato la linea resta dritta.
+    Restituisce (exitX, exitY) e se la proiezione è stata spostata (linea obliqua)."""
+    x, y, w, h = e["box"]
+    rx, ry = centro_rombo
+    if lato in ("sopra", "sotto"):
+        f = (rx - x) / w
+        fc = min(max(f, 0.1), 0.9)
+        return (fc, 0 if lato == "sopra" else 1), abs(fc - f) > 1e-6
+    f = (ry - y) / h
+    fc = min(max(f, 0.15), 0.85)
+    return (0 if lato == "sinistra" else 1, fc), abs(fc - f) > 1e-6
+
+
 # ---------------------------------------------------------------- costruzione del .drawio
 
 def controlla_lati(diag):
-    """Avvisa quando una linea arriva sul lato dove stanno gli attributi, o due linee sullo stesso lato."""
-    nomi_lato = {(1, 0.5): "destra", (0, 0.5): "sinistra", (0.5, 1): "sotto", (0.5, 0): "sopra"}
+    """Avvisa quando una linea arriva sul lato dove stanno gli attributi, o quando più linee sullo stesso lato
+    sono troppo vicine o non partono di fronte al loro rombo."""
+    nomi_lato = NOMI_LATO
+    condivisi = lati_condivisi(diag)
     usati = {nome: [] for nome in diag["entita"]}
     for a in diag["associazioni"]:
         if a["ricorsiva"]:
@@ -299,10 +331,27 @@ def controlla_lati(diag):
             if lato in e["attr"] and not gomito:
                 avvisi.append("«%s»: la linea di «%s» arriva %s, dove ci sono gli attributi: spostali su un altro lato"
                               % (nome, nome_a, {"sopra": "sopra", "sotto": "sotto"}.get(lato, "a " + lato)))
-            if lato in visti and visti[lato] != nome_a and "gerarchia" not in (visti[lato], nome_a):
-                avvisi.append("«%s»: le linee di «%s» e «%s» arrivano sullo stesso lato (%s): sposta un'entità o un "
-                              "rombo" % (nome, visti[lato], nome_a, lato))
+            if lato in visti and visti[lato] != nome_a and "gerarchia" in (visti[lato], nome_a):
+                avvisi.append("«%s»: la linea di «%s» arriva sullo stesso lato della gerarchia (%s): sposta un'entità "
+                              "o un rombo" % (nome, nome_a if visti[lato] == "gerarchia" else visti[lato], lato))
             visti.setdefault(lato, nome_a)
+    # lati condivisi da più associazioni: linee dritte e abbastanza distanti
+    for (nome, lato), nomi_a in condivisi.items():
+        e = diag["entita"][nome]
+        punti = []
+        for a in diag["associazioni"]:
+            if a.get("ricorsiva") or a["nome"] not in nomi_a or nome not in (a["e1"], a["e2"]):
+                continue
+            (fx, fy), spostato = attacco_condiviso(e, lato, a["centro"])
+            if spostato:
+                avvisi.append("«%s»: il rombo di «%s» non sta di fronte al lato %s dell'entità e la linea viene "
+                              "obliqua: spostalo (@ COLONNA RIGA) o allarga l'entità" % (nome, a["nome"], lato))
+            x, y, w, h = e["box"]
+            punti.append(x + fx * w if lato in ("sopra", "sotto") else y + fy * h)
+        punti.sort()
+        if any(b - q < 40 for q, b in zip(punti, punti[1:])):
+            avvisi.append("«%s»: sul lato %s le linee di %s partono troppo vicine: allontana i rombi"
+                          % (nome, lato, " e ".join("«%s»" % x for x in nomi_a)))
     for av in avvisi:
         print("AVVISO: " + av)
     return avvisi
@@ -329,6 +378,7 @@ def controlla_nomi(diag):
 def costruisci(diag):
     impagina(diag)
     controlla_lati(diag)
+    condivisi = lati_condivisi(diag)
     controlla_nomi(diag)
     M = Modello()
     ce, ca = diag["colori"]["entita"], diag["colori"]["associazioni"]
@@ -507,6 +557,8 @@ def costruisci(diag):
             continue
         for e, nome_e, card in ((e1, a["e1"], a["c1"]), (e2, a["e2"], a["c2"])):
             (exx, exy), (enx, eny), asse = collegamento(e, a["centro"], a["dim"])
+            if (nome_e, NOMI_LATO[(exx, exy)]) in condivisi:
+                (exx, exy), _ = attacco_condiviso(e, NOMI_LATO[(exx, exy)], a["centro"])
             x, y, w, h = e["box"]
             ax, ay = x + exx * w, y + exy * h
             bx, by = a["box"][0] + enx * a["dim"][0], a["box"][1] + eny * a["dim"][1]
