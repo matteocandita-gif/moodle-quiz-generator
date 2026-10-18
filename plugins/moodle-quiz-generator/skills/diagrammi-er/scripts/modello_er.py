@@ -34,9 +34,44 @@ def lista(v):
     return [a.strip() for a in v.split(",") if a.strip()]
 
 
+def lista_attributi(v):
+    """«*Cod, Nome, Email (0,1)» -> ["*Cod", "Nome", "Email"], {"Email"}: le virgole dentro le parentesi
+    non separano; (0,1) dopo il nome è l'attributo opzionale, con la cardinalità nel diagramma."""
+    pezzi, cur, liv = [], "", 0
+    for ch in v:
+        if ch == "(":
+            liv += 1
+        elif ch == ")":
+            liv -= 1
+        if ch == "," and liv == 0:
+            pezzi.append(cur)
+            cur = ""
+        else:
+            cur += ch
+    pezzi.append(cur)
+    nomi, opzionali = [], set()
+    for p in (x.strip() for x in pezzi):
+        if not p:
+            continue
+        m = re.fullmatch(r"(.+?)\s*\(([^)]*)\)", p)
+        if m:
+            card = m.group(2).replace(" ", "").upper()
+            nome = m.group(1).strip()
+            if card != "0,1":
+                raise Errore("attributo «%s (%s)»: la cardinalità di un attributo si scrive solo per quello "
+                             "opzionale, (0,1); un attributo con più valori diventa un'entità a parte "
+                             "(prima forma normale)" % (nome, m.group(2)))
+            if nome.startswith("*"):
+                raise Errore("«%s»: un attributo della chiave primaria non può essere opzionale" % nome.lstrip("*"))
+            opzionali.add(nome)
+            p = nome
+        nomi.append(p)
+    return nomi, opzionali
+
+
 def nuova_entita(nome, pos):
     return {"tipo": "entita", "nome": nome, "pos": pos, "attr": {}, "ordine": [], "deboli": [],
-            "descrizione": "", "sinonimi": "", "plurale": "", "tipi": {}}
+            "descrizione": "", "sinonimi": "", "plurale": "", "tipi": {}, "opzionali": set()}
 
 
 def leggi(testo):
@@ -95,7 +130,7 @@ def leggi(testo):
                                 "e1": m.group(2).strip().strip('"'), "c1": cardinalita(m.group(3)),
                                 "e2": m.group(4).strip().strip('"'), "c2": cardinalita(m.group(5)),
                                 "pos": (m.group(6) or "").strip(), "attr": {}, "ordine": [],
-                                "descrizione": "", "tipi": {}, "fk": "", "fks": [], "tabella": "", "fk_in": ""}
+                                "descrizione": "", "tipi": {}, "opzionali": set(), "fk": "", "fks": [], "tabella": "", "fk_in": ""}
                     m_["associazioni"].append(corrente)
                     continue
                 m = re.match(r"gerarchia\s+(.+?)\s*:\s*(.+?)\s*\(\s*(n?t)\s*,\s*(n?e)\s*\)\s*$", r, re.I)
@@ -120,7 +155,8 @@ def leggi(testo):
                 lato = m.group(1).lower()
                 if lato == "attributi":
                     lato = "sotto"
-                nomi = lista(m.group(2))
+                nomi, opz = lista_attributi(m.group(2))
+                corrente["opzionali"] |= opz
                 corrente["attr"].setdefault(lato, []).extend(nomi)
                 corrente["ordine"].extend((a.lstrip("*"), a.startswith("*")) for a in nomi)
                 continue

@@ -113,8 +113,10 @@ def nome_fk(attr, nome_entita, composta):
 
 
 class Campo:
-    def __init__(self, nome, pk=False, fk=False, facoltativo=False):
-        self.nome, self.pk, self.fk, self.facoltativo = nome, pk, fk, facoltativo
+    def __init__(self, nome, pk=False, fk=False, facoltativo=False, opzionale=False):
+        # facoltativo: può essere NULL; opzionale: viene da un attributo (0,1) del modello E/R
+        self.nome, self.pk, self.fk = nome, pk, fk
+        self.facoltativo, self.opzionale = facoltativo or opzionale, opzionale
 
 
 class Relazione:
@@ -194,10 +196,10 @@ def traduci(m):
             base = [g_su[0]["gen"], nome]   # tutto giù: prima gli attributi ereditati
         for b in base:
             for a, k in ordine_attr(entita[b]):
-                r.aggiungi(Campo(a, pk=k))
+                r.aggiungi(Campo(a, pk=k, opzionale=a in entita[b]["opzionali"]))
         if not r.chiave() and not e["deboli"]:
             AVVISI.append("«%s» non ha la chiave primaria" % nome)
-    # tutto su: la generalizzazione prende gli attributi delle specializzazioni, facoltativi
+    # tutto su: la generalizzazione prende gli attributi delle specializzazioni, opzionali
     for g in m["gerarchie"]:
         if g["traduzione"] != "su":
             continue
@@ -211,7 +213,7 @@ def traduci(m):
             r.aggiungi(Campo(g["campo_tipo"]))
             vincoli.append("%s.%s: indica la specializzazione (%s)" % (r.nome, g["campo_tipo"], ", ".join(g["spec"])))
         if fac:
-            vincoli.append("%s: %s sono facoltativi (NULL quando l'istanza non è della specializzazione che li ha)"
+            vincoli.append("%s: %s sono opzionali (NULL quando l'istanza non è della specializzazione che li ha)"
                            % (r.nome, ", ".join(fac)))
     # ---- associazioni, dopo le sostituzioni delle gerarchie
     associazioni = []
@@ -247,7 +249,7 @@ def traduci(m):
                 if gen not in risolte:
                     continue
                 r = rel[n]
-                proprie = [Campo(a) for a, _ in ordine_attr(entita[n])]
+                proprie = [Campo(a, opzionale=a in entita[n]["opzionali"]) for a, _ in ordine_attr(entita[n])]
                 pk = pk_di(gen)
                 for c in pk:
                     r.aggiungi(Campo(nome_fk(c.nome, gen, len(pk) > 1), pk=True, fk=True))
@@ -276,7 +278,7 @@ def traduci(m):
             # entità debole: gli attributi dell'associazione seguono la chiave esterna
             debole = b["e1"] if b["e1"] in identificanti and b in identificanti[b["e1"]] else b["e2"]
             for a, _ in b["ordine"]:
-                rel[debole].aggiungi(Campo(a))
+                rel[debole].aggiungi(Campo(a, opzionale=a in b["opzionali"]))
             continue
         e1, e2, (min1, max1), (min2, max2) = b["e1"], b["e2"], b["c1"], b["c2"]
         if e1 == e2:
@@ -297,7 +299,7 @@ def traduci(m):
                         nn = nomi[i] if nomi else "%s_%d" % (c.nome, i + 1)
                         nuova.aggiungi(Campo(nn, pk=True, fk=True))
                 for a, _ in b["ordine"]:
-                    nuova.aggiungi(Campo(a))
+                    nuova.aggiungi(Campo(a, opzionale=a in b["opzionali"]))
                 extra.append(nuova)
             else:
                 ruolo = re.findall(r"[^\s']+", b["nome"])[0].lower()
@@ -308,7 +310,7 @@ def traduci(m):
                                       "«chiave esterna:»" % (b["nome"], nn))
                     r.aggiungi(Campo(nn, fk=True))
                 for a, _ in b["ordine"]:
-                    r.aggiungi(Campo(a))
+                    r.aggiungi(Campo(a, opzionale=a in b["opzionali"]))
             continue
         if max1 == "N" and max2 == "N":
             tab = b["tabella"] or "%s_%s" % (rel[e1].nome, rel[e2].nome)
@@ -322,7 +324,7 @@ def traduci(m):
                     nn = nomi[i] if nomi and len(pk) == 1 else nome_fk(c.nome, x, len(pk) > 1)
                     nuova.aggiungi(Campo(nn, pk=True, fk=True))
             for a, _ in b["ordine"]:
-                nuova.aggiungi(Campo(a))
+                nuova.aggiungi(Campo(a, opzionale=a in b["opzionali"]))
             extra.append(nuova)
             continue
         if max1 == "1" and max2 == "1":
@@ -350,8 +352,14 @@ def traduci(m):
         if max1 == "1" and max2 == "1":
             vincoli.append("%s.%s: unico (associazione 1 a 1 «%s»)" % (r.nome, ", ".join(nomi_fk), b["nome"]))
         for a, _ in b["ordine"]:
-            r.aggiungi(Campo(a))
-    return list(rel.values()) + extra, vincoli
+            r.aggiungi(Campo(a, opzionale=a in b["opzionali"]))
+    tutte = list(rel.values()) + extra
+    for r in tutte:
+        opz = [c.nome for c in r.campi if c.opzionale]
+        if opz:
+            vincoli.append("%s: %s %s (%s essere NULL)" % (r.nome, ", ".join(opz),
+                           "è opzionale" if len(opz) == 1 else "sono opzionali", "può" if len(opz) == 1 else "possono"))
+    return tutte, vincoli
 
 
 def campi_ordinati(r):

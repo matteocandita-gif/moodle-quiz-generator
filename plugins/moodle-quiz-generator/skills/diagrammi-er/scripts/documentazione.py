@@ -13,7 +13,7 @@ Colonne:
 
 Il tipo di dato si sceglie dall'elenco del libro (Testo, Testo fisso, Intero, Decimale, Data, Orario,
 Data-ora, Booleano, Elenco); i vincoli lo restringono (lunghezza, valori ammessi, valore > 0). La chiave
-primaria entra da sola nei vincoli. Gerarchie ISA: nella descrizione della generalizzazione
+primaria entra da sola nei vincoli, e così «Opzionale» per gli attributi con (0,1). Gerarchie ISA: nella descrizione della generalizzazione
 «Generalizzazione di A e B (totale, esclusiva)», in quella di ogni specializzazione «Specializzazione
 di X»; le specializzazioni riportano solo i loro attributi.
 
@@ -74,6 +74,8 @@ def tabelle(m):
             elif deboli:
                 pezzi.append("alle associazioni " + elenco(["«%s»" % d for d in deboli]))
             v.append("Chiave primaria, insieme " + " e ".join(pezzi) if pezzi else "Chiave primaria")
+        if nome_attr in oggetto["opzionali"]:
+            v.append("Opzionale")
         if vinc:
             v.append(vinc)
         return tipo, ", ".join(v) if v else "—"

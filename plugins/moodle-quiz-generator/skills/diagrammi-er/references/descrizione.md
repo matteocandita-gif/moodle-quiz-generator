@@ -21,7 +21,7 @@ entita Auto @ 0.4 1.1
 entita Moto @ 1.6 1.1
     destra: Cilindrata
 entita Conducente @ 0.4 2.2
-    sinistra: *Cod_f, Nome, Cognome
+    sinistra: *Cod_f, Nome, Cognome, Email (0,1)
 
 gerarchia Veicolo: Auto, Moto (t,e)
     traduzione: lasciare tutto
@@ -51,6 +51,7 @@ associazione con: Auto (0,1) -- Conducente (1,N)
 | `sopra: A, B` · `sotto: …` · `sinistra: …` · `destra: …` | tutti | attributi su quel lato (sopra e sotto da sinistra a destra, ai lati dall'alto in basso); l'ordine delle righe è anche l'ordine dei campi nello schema e nella documentazione |
 | `attributi: A, B` | tutti | attributi senza lato (per lo schema o la documentazione; nel diagramma vanno sotto) |
 | `*` davanti a un attributo | tutti | fa parte della chiave primaria |
+| `(0,1)` dopo un attributo | tutti | attributo opzionale (`destra: Email (0,1), Telefono`): nel diagramma la cardinalità sul gambetto, nella documentazione «Opzionale» tra i vincoli, nello schema il vincolo «può essere NULL»; non per la chiave primaria. Un attributo con più valori non si scrive: diventa un'entità a parte |
 | `identificata da: ASSOC1, ASSOC2` | tutti | entità debole: la chiave comprende anche le chiavi delle entità collegate da queste associazioni |
 | `descrizione: …` | Doc | descrizione dell'entità |
 | `sinonimi: …` | Doc | sinonimi presenti nel testo (Utente, Stanza) |

@@ -63,6 +63,9 @@ H_ENT = 60
 W_MIN = 110
 DIST_CARD = 32   # distanza della cardinalità dall'entità lungo la linea
 LATI = ("sopra", "sotto", "sinistra", "destra")
+OPZ = "(0,1)"    # cardinalità dell'attributo opzionale, sul suo gambetto
+GAMBO_OPZ = 30   # di quanto si allungano i gambetti di un fianco con un attributo opzionale
+PASSO_O, PASSO_OPZ = 18, 30   # distanza tra gli attributi di un fianco, senza e con attributi opzionali
 
 
 def lw(t, fs=FS):
@@ -132,19 +135,28 @@ ST_CARD = ("edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;point
 
 # ---------------------------------------------------------------- impaginazione
 
-def attributi_lato(lato, nomi, box, gambo, allinea="centro"):
+def centri_sopra_sotto(nomi, opzionali=()):
+    """Centri dei gambetti di un lato sopra o sotto, dal primo: le etichette affiancate a 14 px, più lo
+    spazio della cardinalità (0,1) a destra del gambetto di un attributo opzionale."""
+    larg = [lw(a.lstrip("*")) for a in nomi]
+    centri, cur = [], 0.0
+    for i, l in enumerate(larg):
+        if i:
+            cur += larg[i - 1] / 2 + 14 + l / 2
+            if nomi[i - 1] in opzionali:
+                cur += max(0, lw(OPZ) + 6 - larg[i - 1] / 2)
+        centri.append(cur)
+    return larg, centri
+
+
+def attributi_lato(lato, nomi, box, gambo, allinea="centro", opzionali=()):
     """Posizioni (in coordinate assolute) di gambetti, pallini ed etichette degli attributi di un lato."""
     x, y, w, h = box
     out = []
     if lato in ("sopra", "sotto"):
-        larg = [lw(a.lstrip("*")) for a in nomi]
-        # posizione dei gambetti: le etichette affiancate a 14 px; si centra l'arco dei gambetti
-        # (dal primo all'ultimo), così i gambetti restano dentro il rettangolo anche se le etichette escono
-        centri, cur = [], 0.0
-        for i, l in enumerate(larg):
-            if i:
-                cur += larg[i - 1] / 2 + 14 + l / 2
-            centri.append(cur)
+        # posizione dei gambetti: si centra l'arco dei gambetti (dal primo all'ultimo), così i gambetti
+        # restano dentro il rettangolo anche se le etichette escono
+        larg, centri = centri_sopra_sotto(nomi, opzionali)
         arco = centri[-1]
         if allinea == "sinistra":
             base = x + 12
@@ -158,11 +170,14 @@ def attributi_lato(lato, nomi, box, gambo, allinea="centro"):
             yc = y0 - gambo if lato == "sopra" else y0 + gambo
             et = (cx - l / 2 - 2, yc - R - 2 - 16, l + 4, 16, "center", "bottom") if lato == "sopra" else \
                  (cx - l / 2 - 2, yc + R + 1, l + 4, 16, "center", "top")
-            out.append({"nome": a.lstrip("*"), "chiave": a.startswith("*"), "attacco": (cx, y0),
+            out.append({"nome": a.lstrip("*"), "chiave": a.startswith("*"), "opzionale": a in opzionali,
+                        "attacco": (cx, y0),
                         "fx": (cx - x) / w, "fy": 0 if lato == "sopra" else 1, "pallino": (cx, yc),
                         "etichetta": et})
     else:
         k = len(nomi)
+        if any(a in opzionali for a in nomi):
+            gambo += GAMBO_OPZ
         for i, a in enumerate(nomi):
             cy = y + h * (i + 1) / (k + 1)
             x0 = x if lato == "sinistra" else x + w
@@ -170,7 +185,8 @@ def attributi_lato(lato, nomi, box, gambo, allinea="centro"):
             l = lw(a.lstrip("*"))
             et = (xc - R - 3 - l - 4, cy - 8, l + 4, 16, "right", "middle") if lato == "sinistra" else \
                  (xc + R + 3, cy - 8, l + 4, 16, "left", "middle")
-            out.append({"nome": a.lstrip("*"), "chiave": a.startswith("*"), "attacco": (x0, cy),
+            out.append({"nome": a.lstrip("*"), "chiave": a.startswith("*"), "opzionale": a in opzionali,
+                        "attacco": (x0, cy),
                         "fx": 0 if lato == "sinistra" else 1, "fy": (cy - y) / h, "pallino": (xc, cy),
                         "etichetta": et})
     return out
@@ -181,12 +197,13 @@ def dimensioni_entita(e):
     for lato in ("sopra", "sotto"):
         nomi = e["attr"].get(lato, [])
         if len(nomi) > 1:
-            larg = [lw(a.lstrip("*")) for a in nomi]
-            arco = sum(larg) + 14 * (len(nomi) - 1) - larg[0] / 2 - larg[-1] / 2
-            w = max(w, arco + 24)
+            _, centri = centri_sopra_sotto(nomi, e["opzionali"])
+            w = max(w, centri[-1] + 24)
     h = H_ENT
     for lato in ("sinistra", "destra"):
-        h = max(h, 18 * len(e["attr"].get(lato, [])) + 10)
+        nomi = e["attr"].get(lato, [])
+        passo = PASSO_OPZ if any(a in e["opzionali"] for a in nomi) else PASSO_O
+        h = max(h, passo * len(nomi) + 10)
     return w, h
 
 
@@ -346,7 +363,8 @@ def costruisci(diag):
                         fy = 0.5 if k == 1 else 0.35 + 0.3 * i / (k - 1)
                         fx = abs(fy - 0.5) if lato == "sinistra" else 1 - abs(fy - 0.5)
                         px, py = cx - rw / 2 + fx * rw, cy - rh / 2 + fy * rh
-                        pc = (px - GAMBO_O, py) if lato == "sinistra" else (px + GAMBO_O, py)
+                        go = GAMBO_O + (GAMBO_OPZ if any(x in a["opzionali"] for x in nomi) else 0)
+                        pc = (px - go, py) if lato == "sinistra" else (px + go, py)
                         et = (pc[0] - R - 3 - l - 4, pc[1] - 8, l + 4, 16, "right", "middle") if lato == "sinistra" \
                             else (pc[0] + R + 3, pc[1] - 8, l + 4, 16, "left", "middle")
                     pezzi.append((nome, fx, fy, pc, et, lato))
@@ -363,7 +381,8 @@ def costruisci(diag):
                 entra = {"sopra": (0.5, 1), "sotto": (0.5, 0), "sinistra": (1, 0.5), "destra": (0, 0.5)}[lato]
                 M.linea(lid, ST_LINEA + "exitX=%s;exitY=%s;exitDx=0;exitDy=0;exitPerimeter=0;entryX=%s;entryY=%s;"
                         "entryDx=0;entryDy=0;" % (n(fx), n(fy), n(entra[0]), n(entra[1])),
-                        source=rid, target=pid, parent=gruppo)
+                        source=rid, target=pid, parent=gruppo,
+                        figli=opz_xml(M, lato) if nome in a["opzionali"] else "")
                 M.vertice(tid, nome, ST_TESTO + "align=%s;verticalAlign=%s;" % (et[4], et[5]),
                           et[0] - gx0, et[1] - gy0, et[2], et[3], parent=gruppo, ordine=4)
         else:
@@ -377,7 +396,7 @@ def costruisci(diag):
         ric = [a["lato_ric"] for a in diag["associazioni"] if a.get("ricorsiva") and a["e1"] == nome]
         allinea = "sinistra" if "destra" in ric else ("destra" if "sinistra" in ric else "centro")
         attr = {lato: attributi_lato(lato, e["attr"][lato], e["box"], GAMBO_V if lato in ("sopra", "sotto") else GAMBO_O,
-                                     allinea if lato == "sopra" else "centro")
+                                     allinea if lato == "sopra" else "centro", e["opzionali"])
                 for lato in LATI if lato in e["attr"]}
         chiavi = [(lato, p) for lato, ps in attr.items() for p in ps if p["chiave"]]
         lati_chiave = {lato for lato, _ in chiavi}
@@ -452,7 +471,7 @@ def costruisci(diag):
                 entra = {"sopra": (0.5, 1), "sotto": (0.5, 0), "sinistra": (1, 0.5), "destra": (0, 0.5)}[lato]
                 M.linea(lid, ST_LINEA + "exitX=%s;exitY=%s;exitDx=0;exitDy=0;exitPerimeter=0;entryX=%s;entryY=%s;"
                         "entryDx=0;entryDy=0;" % (n(p["fx"]), n(p["fy"]), n(entra[0]), n(entra[1])),
-                        source=eid, target=pid, parent=gid)
+                        source=eid, target=pid, parent=gid, figli=opz_xml(M, lato) if p["opzionale"] else "")
                 ex, ey, ew, eh, al, va = p["etichetta"]
                 M.vertice(tid, p["nome"], ST_TESTO + "align=%s;verticalAlign=%s;" % (al, va),
                           ex - gx0, ey - gy0, ew, eh, parent=gid, ordine=4)
@@ -538,6 +557,13 @@ def costruisci(diag):
                     "entryDy=0;" % (0 if sotto else 1, 1 if sotto else 0),
                     source=id_ent[sp["nome"]], target=id_ent[g["gen"]], punti=punti, figli=figli)
     return M.xml(diag["titolo"])
+
+
+def opz_xml(M, lato):
+    """La cardinalità (0,1) di un attributo opzionale, figlia del suo gambetto: sotto il gambetto per gli
+    attributi ai fianchi, a destra per quelli sopra e sotto (come nelle figure dell'autore)."""
+    off = (0, 8) if lato in ("sinistra", "destra") else (lw(OPZ) / 2 + 5, 0)
+    return card_xml(M, OPZ, 0, off)[1]
 
 
 def card_xml(M, testo, x, offset):

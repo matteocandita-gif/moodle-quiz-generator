@@ -27,6 +27,7 @@ Regola: **produci solo quello che la richiesta chiede.** Per una domanda di quiz
 - **entità**: rettangolo con il nome al centro; **associazione**: rombo con il nome, collegato con linee alle entità;
 - **cardinalità**: (min,max) tra parentesi accanto all'entità a cui si riferisce, sopra la linea (a sinistra se la linea è verticale): «Studente (1,1) appartiene a (1,N) Classe» si legge «ogni studente appartiene ad almeno 1 e al massimo 1 classe»;
 - **attributi**: pallino vuoto su un gambetto, su un lato dell'entità (o del rombo, per gli attributi di un'associazione); **chiave semplice**: pallino pieno; **chiave composta**: i pallini restano vuoti e una linea con il pallino nero taglia i gambetti della chiave;
+- **attributo opzionale**: la cardinalità (0,1) sul gambetto (sotto il gambetto per gli attributi ai fianchi, a destra per quelli sopra e sotto); gli attributi senza cardinalità sono obbligatori, (1,1). È la notazione che l'utente usa in classe; nel libro per ora l'opzionalità è scritta solo a parole;
 - **entità debole**: la linea della chiave taglia anche le linee delle associazioni che la identificano;
 - **associazione ricorsiva**: una linea a gomito parte dall'entità e arriva al rombo, l'altra è diritta;
 - **gerarchia ISA**: dalle specializzazioni una linea a T sale alla generalizzazione e finisce con la freccia piena; la classificazione tra parentesi accanto alla freccia: (t,e), (t,ne), (nt,e), (nt,ne);
@@ -43,7 +44,7 @@ Regola: **produci solo quello che la richiesta chiede.** Per una domanda di quiz
 
 - entità: NOME | SINONIMI | DESCRIZIONE | ATTRIBUTO | TIPO DI DATO | VINCOLI;
 - associazioni: NOME | DESCRIZIONE | TIPO DI ASSOCIAZIONE | ENTITÀ COLLEGATE | ATTRIBUTO | TIPO DI DATO | VINCOLI;
-- il dominio di un attributo è descritto da tipo di dato (dall'elenco del libro: Testo, Testo fisso, Intero, Decimale, Data, Orario, Data-ora, Booleano, Elenco) e vincoli (lunghezza, valori ammessi, valore > 0); la chiave primaria entra nei vincoli da sola;
+- il dominio di un attributo è descritto da tipo di dato (dall'elenco del libro: Testo, Testo fisso, Intero, Decimale, Data, Orario, Data-ora, Booleano, Elenco) e vincoli (lunghezza, valori ammessi, valore > 0); la chiave primaria entra nei vincoli da sola, e così «Opzionale» per gli attributi (0,1);
 - gerarchie: nella descrizione della generalizzazione «Generalizzazione di Auto e Moto (totale, esclusiva)», in quella di ogni specializzazione «Specializzazione di Veicolo»; le specializzazioni riportano solo i loro attributi.
 
 ## Dove stanno le cose
