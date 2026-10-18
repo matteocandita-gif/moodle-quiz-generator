@@ -2,6 +2,18 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz»: Claude propone di aggiornarla, e i quiz salvati restano.
 
+## 0.4.1 — 18/10/2026
+
+Skill **diagrammi-er**:
+
+- **Attributo opzionale**: si scrive `Email (0,1)` nella descrizione; nel diagramma la cardinalità (0,1) sta sul gambetto (sotto per gli attributi ai fianchi, a destra per quelli sopra e sotto), nella documentazione «Opzionale» tra i vincoli, nello schema relazionale il vincolo «può essere NULL». Non vale per la chiave primaria.
+- **Strumenti che non si usano**: niente associazioni ternarie né attributi multipli. Un legame tra tre entità diventa un'entità collegata alle tre con associazioni 1 a N (mai tre associazioni binarie); un attributo con più valori diventa un'entità a parte (lo script rifiuta una cardinalità diversa da (0,1) su un attributo). Le tracce da dare agli studenti evitano le realtà con legami tra tre entità, salvo un punto opzionale in un'esercitazione difficile.
+- **Query SQL nella soluzione completa**: blocchi `query:` nella descrizione (la richiesta sulla riga, il codice sotto) e una parte «Query SQL» nell'HTML, nel Word e nel Markdown; la skill controlla prima che il modello permetta tutte le query e le prova su un piccolo database SQLite.
+- **Più linee sullo stesso lato di un'entità**, per le entità collegate a molte altre: ogni linea parte di fronte al suo rombo, con un avviso se viene obliqua o troppo vicina a un'altra; `larghezza:` allarga il rettangolo quando servono più attacchi.
+- Nella strategia «tutto su» gli attributi delle specializzazioni sono detti «opzionali», come nel libro.
+
+`progettazione-quiz`: per le tracce e le domande di progettazione rimanda alle regole di `diagrammi-er`, anche quando la domanda non ha un diagramma.
+
 ## 0.4.0 — 17/10/2026
 
 La skill **diagrammi-er** diventa la skill della progettazione: dalla stessa descrizione testuale (file `.er`) quattro moduli indipendenti, e si produce solo ciò che serve (per un quiz basta il diagramma).
