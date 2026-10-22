@@ -10,7 +10,7 @@ Ricavate dal deposito delle terze dell'utente (348 domande CodeRunner: 301 con p
 | **Con scheletro** | `=== preload` con lo scheletro: dati iniziali (un array), commenti che guidano le parti da scrivere | come sopra |
 | **Funzioni** | lo studente scrive la funzione; i test la chiamano: `console.log(maggiore(10, 3));` | il codice del test gira dopo la risposta. Per controllare il `return`, i test stampano il valore restituito: se la funzione stampa invece di restituire, l'output non coincide |
 | **Dati dal test** | opzione `test_prima: 1`: il test definisce i dati (`let voti = [6, 8, 7];`) e la risposta li usa | ogni test con dati diversi; la consegna dice quale variabile esiste già |
-| **Random** | `Math.random()` dalla sequenza fissa; il campo `=== extra` sceglie da dove partire | un test per punto di partenza; con `random: …` nelle opzioni una sequenza costruita apposta (per esempio un valore che si ripete, per la ricerca) |
+| **Random** | `Math.random()` dalla sequenza fissa; il campo `=== extra` sceglie da dove partire | un test per punto di partenza; con `random: …` nelle opzioni una sequenza costruita apposta (per esempio un valore che si ripete, per la ricerca). La sequenza predefinita va da 0.01 a 0.92: in un intervallo largo gli estremi non escono (con 0–100 non arriva mai a 100, con 1–100 si va da 2 a 93). Se un test deve provare un estremo, usa `random:` con un valore come 0.999 |
 | **Debugging** | `=== preload` con il codice sbagliato, `=== answer` corretta | vedi sotto |
 
 ## Gapfiller (`=== question gapfiller`)
@@ -34,6 +34,9 @@ Ogni errore riguarda un concetto della lezione. Nel testo indica quanti errori c
 ## Convenzioni dell'utente
 
 - **Ogni test inizia con un commento** che descrive il caso: `// Caso con input 45`, `// Numeri uguali`. Lo studente lo vede nella tabella dei risultati.
+- **Un test non ovvio ha un commento che lo spiega a parole**: se il test fa qualcosa che lo studente non si aspetta (chiama una funzione dopo il programma, disattiva una funzione predefinita, usa dati particolari), il commento dice che cosa controlla e quale riga dell'output è il risultato: `// Dopo il programma, il test chiama direttamente minimoArray([-3, -7, -1]), con tutti numeri negativi: l'ultima riga è il suo risultato`. Lo studente vede il commento nei risultati e deve capire perché il test non passa.
+- **Le funzioni da creare si controllano chiamandole**: quando la consegna chiede di definire una funzione, anche dentro un programma completo, almeno un test la chiama direttamente nel suo codice (nei programmi l'ultimo, dopo che il programma è girato), così uno studente che scrive tutto nel programma principale senza la funzione non passa. La traccia lo dice in una **Nota bene** («i nomi delle funzioni devono essere esattamente questi»).
+- **Una funzione predefinita vietata** (per esempio `includes` o `indexOf` quando lo studente deve cercare con un ciclo) si controlla con un test che passa alla funzione un array in cui quella predefinita è disattivata solo per quell'array (`arr.includes = function () { throw new Error("contiene deve cercare con un ciclo, senza includes né indexOf"); };`), con il commento che lo spiega. Non disattivarla per tutti gli array (`Array.prototype`): manderebbe in errore anche altro codice, per esempio la stampa degli array.
 - **Il primo test è mostrato come esempio** nel testo (`esempi: primo`, predefinito); `esempi: tutti` o `nessuno` se l'utente lo chiede. I test nascosti (`=== test HIDE`) solo nelle verifiche.
 - **Tutto o niente** (`allornothing: 1`, predefinito); il punteggio parziale per test solo se richiesto.
 - **Da tre a cinque test**, che coprono i rami del programma.

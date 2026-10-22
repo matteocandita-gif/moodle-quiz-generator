@@ -987,16 +987,16 @@ function renderHeader(){
   ["home","scaletta","dettaglio"].forEach(function(v){$("#tab-"+v).setAttribute("aria-selected",(S.view===v||(v==="home"&&S.view==="nuovo"))?"true":"false");});
 }
 /* ------------------------------------------------------------------ vista iniziale e nuovo quiz */
-const VERSIONE_PAGINA="0.3.6";
+const VERSIONE_PAGINA="0.3.8";
 const PERCORSO_IMPOSTAZIONI="impostazioni/avvio";
 function triggerAvvio(){return S.imp&&typeof S.imp.trigger==="string"&&/^trig_[A-Za-z0-9]+$/.test(S.imp.trigger)?S.imp.trigger:"";}
 const CONNETTORE="Claude Code Remote";
 const CLASSI=[["","Scegli"],["terza","Terza"],["quarta","Quarta"],["quinta","Quinta"]];
 const LINGUAGGI=[["","Scegli"],["teoria","Teoria, senza codice"],["html-css","HTML e CSS"],["javascript","JavaScript"],["sql","SQL"],["php","PHP"],["misto","Misto"]];
-const DESCR_TIPO={LIB:"Nessuna regola su tipi e quantità di domande, punti o tempi: decide tutto la richiesta.",ED:"Spiegazione dentro il quiz, poi esercizi guidati e finali: un'ora e mezza.",EDT:"Pagine di spiegazione seguite da domande di comprensione, senza codice.",V:"Verifica di programmazione con voto: parte base e parte avanzata.",VT:"Verifica di teoria con voto, per livelli di Bloom.",RT:"Ripasso di teoria senza voto: risposte e spiegazioni visibili subito.",EP:"Solo esercizi, senza spiegazione: tipica per casa.",ER:"Rispiega gli argomenti dell'anno prima, a inizio anno."};
+const DESCR_TIPO={LIB:"Nessuna regola su tipi e quantità di domande, punti o tempi: decide tutto la richiesta.",ED:"Spiegazione dentro il quiz, poi esercizi guidati e finali: una lezione di due ore (105 minuti).",EDT:"Pagine di spiegazione seguite da domande di comprensione, senza codice.",V:"Verifica di programmazione con voto: parte base e parte avanzata.",VT:"Verifica di teoria con voto, per livelli di Bloom.",RT:"Ripasso di teoria senza voto: risposte e spiegazioni visibili subito.",EP:"Solo esercizi, senza spiegazione: tipica per casa.",ER:"Rispiega gli argomenti dell'anno prima, a inizio anno."};
 const GUIDA_TIPO={
   LIB:["Nessuna regola prefissata","Tipi e numero di domande, punti, tempi e struttura li decide la richiesta. Scegli anche come si comporta in Moodle: come un'esercitazione (risposte e feedback subito, tentativi illimitati) o come una verifica (un tentativo, feedback alla restituzione)."],
-  ED:["Lezione su un argomento nuovo","Le pagine di spiegazione stanno dentro il quiz; per ogni blocco esempio svolto, completamento, debugging ed esercizio guidato, poi gli esercizi finali. 100 punti (completamento 20, debugging 25, guidato 20, finali 35), voto interno non verbalizzato, feedback subito. Circa un'ora e mezza."],
+  ED:["Lezione su un argomento nuovo","Le pagine di spiegazione stanno dentro il quiz; per ogni blocco esempio svolto, completamento, debugging ed esercizio guidato, poi gli esercizi finali. 100 punti (completamento 20, debugging 25, guidato 20, finali 35), voto interno non verbalizzato, feedback subito. Una lezione di due ore: 105 minuti."],
   EDT:["Come la precedente, senza codice","Pagine di spiegazione seguite subito dalle domande di comprensione (vero/falso, risposta multipla, completamento, metti in ordine, corrispondenze). 100 punti a multipli di 5, feedback subito. Per un argomento con teoria e pratica si fanno due quiz: questo e un'esercitazione con spiegazione."],
   V:["Verifica con voto di JavaScript, SQL o PHP","Di ripasso (tutti gli argomenti, un esercizio per argomento) o di dettaglio (uno o due argomenti, esercizi di difficoltà crescente). Parte base 85 punti e parte avanzata 15, per il 9 e il 10. Un tentativo, feedback alla restituzione; varianti possibili per le verifiche di recupero."],
   VT:["Verifica di teoria con voto","Domande per livelli di Bloom: ricordare 20, comprendere 30, applicare 20, analizzare 15, valutare e creare 15. Feedback alla restituzione."],
@@ -1016,6 +1016,8 @@ function codiceCasuale(classe){
   do{c=cifra+L[Math.floor(Math.random()*L.length)]+A[Math.floor(Math.random()*A.length)];k++;}while(usati.indexOf(c)>=0&&k<200);
   return c;
 }
+/* una ED è una lezione di due ore: propone 105 minuti se il tempo è vuoto (o era stato proposto dalla pagina) */
+function tempoProposto(n){const vuoto=!String(n.tempo||"").trim();if(n.tipoQuiz==="ED"){if(vuoto||n.tempoAuto){n.tempo="105";n.tempoAuto=true;}}else if(n.tempoAuto){n.tempo="";n.tempoAuto=false;}}
 function nuovoVuoto(){return {tipoQuiz:"",titolo:"",lezione:"",classe:"",argomento:"",tempo:"",linguaggio:"",varianti:"1",avanzata:"",richiesta:"",materiale:false,presetMbz:"esercitazione",prototipoHtml:"php_con_test"};}
 function faseLabel(f){return label(FASI,f)||"Senza fase";}
 function homeHTML(){
@@ -1647,7 +1649,7 @@ main.addEventListener("click",function(e){const b=e.target.closest("[data-act]")
 main.addEventListener("input",function(e){
   const t=e.target;
   if(t.dataset.draft&&S.edit){S.edit[t.dataset.draft]=t.value;return;}
-  if(t.dataset.nv){S.nuovo[t.dataset.nv]=t.type==="checkbox"?t.checked:t.value;if(t.dataset.nv==="tipoQuiz"||t.dataset.nv==="linguaggio"){render();}return;}
+  if(t.dataset.nv){S.nuovo[t.dataset.nv]=t.type==="checkbox"?t.checked:t.value;if(t.dataset.nv==="tempo")S.nuovo.tempoAuto=false;if(t.dataset.nv==="tipoQuiz")tempoProposto(S.nuovo);if(t.dataset.nv==="tipoQuiz"||t.dataset.nv==="linguaggio"){render();}return;}
   if(t.dataset.k)S.dirty[t.dataset.k]=t.value;
 });
 main.addEventListener("change",function(e){
@@ -1687,6 +1689,26 @@ $("#quizSel").addEventListener("change",function(e){S.quizId=e.target.value;if(S
 document.querySelector(".tabs").addEventListener("click",function(e){const b=e.target.closest("[data-view]");if(!b)return;S.view=b.dataset.view;S.edit=null;render();window.scrollTo(0,0);});
 
 /* ------------------------------------------------------------------ dati */
+/* elenco dal quiz creato per ultimo; i quiz senza data di creazione in fondo, per titolo */
+function dataCreato(q){const t=Date.parse(q&&q.creato||"");return isFinite(t)?t:-Infinity;}
+function perData(a,b){return dataCreato(b)-dataCreato(a)||String(a.titolo||a.id).localeCompare(String(b.titolo||b.id),"it");}
+/* quando compare un quiz pronto (scaletta scritta, o importato) che questo browser non ha ancora visto, la pagina lo apre nella scaletta.
+   Se si sta modificando qualcosa non cambia vista: lo segnala e il quiz resta in cima all'elenco. */
+const VISTI="bozze-quiz-visti";
+function apriNuovo(){
+  let visti=null;try{const v=JSON.parse(localStorage.getItem(VISTI)||"null");if(Array.isArray(v))visti=v;}catch(e){}
+  const pronti=S.quizzes.filter(function(q){return !q.archiviato&&q.fase!=="richiesta";});
+  const nuovi=visti?pronti.filter(function(q){return visti.indexOf(q.id)<0;}):pronti.slice(0,1);
+  try{localStorage.setItem(VISTI,JSON.stringify(S.quizzes.filter(function(q){return q.fase!=="richiesta";}).map(function(q){return q.id;})));}catch(e){}
+  if(!nuovi.length)return;
+  const q=nuovi[0];
+  if(q.id===S.quizId&&S.view!=="home"&&S.view!=="nuovo")return;
+  const occupato=S.edit||Object.keys(S.dirty||{}).length||(S.view==="nuovo"&&!S.avvio);
+  if(occupato){toast("Nuovo quiz pronto: «"+(q.titolo||q.id)+"». Lo trovi in cima all'elenco.");return;}
+  S.quizId=q.id;S.view="scaletta";S.sel=null;S.edit=null;S.dirty={};S.avvio=null;S.restoreY=null;
+  if(visti)toast("Aperto il nuovo quiz «"+(q.titolo||q.id)+"».");
+  persist();window.scrollTo(0,0);
+}
 function selectQuiz(){
   S.quiz=S.quizzes.find(function(q){return q.id===S.quizId;})||null;
   if(S.rowsFor===S.quizId||!S.db||!S.quiz)return;
@@ -1707,8 +1729,9 @@ async function init(){
   S.db=db;
   db.doc(PERCORSO_IMPOSTAZIONI).onSnapshot(function(snap){S.imp=snap.exists?Object.assign({},snap.data()||{}):{};render();},function(){S.imp={};render();});
   db.collection("quiz").onSnapshot(function(snap){
-    S.quizzes=snap.docs.map(function(d){const o=Object.assign({},d.data()||{});o.id=d.id;return o;}).sort(function(a,b){return String(a.titolo||a.id).localeCompare(String(b.titolo||b.id),"it");});
+    S.quizzes=snap.docs.map(function(d){const o=Object.assign({},d.data()||{});o.id=d.id;return o;}).sort(perData);
     if(!S.quizzes.some(function(q){return q.id===S.quizId;})){const a=S.quizzes.find(function(q){return !q.archiviato;})||S.quizzes[0];S.quizId=a?a.id:null;}
+    apriNuovo();
     S.ready=true;selectQuiz();render();
   },function(err){if(err&&err.code==="revoked")S.error="revoked";else toast("Non riesco a leggere i quiz.",true);render();});
   try{const c=await window.claude.use("comments");if(c&&c.openComposer){S.comments=c;render();}}catch(e){}

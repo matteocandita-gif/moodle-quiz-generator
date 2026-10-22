@@ -38,6 +38,8 @@ Un quiz o una verifica intera non parte da qui: si progetta con `progettazione-q
 - **Standard input completo**: una riga per ogni `prompt`, compreso il valore che ferma il ciclo.
 - **La forma dell'output è nella consegna**, scritta esattamente in un blocco di codice.
 - **Test che distinguono**: rami diversi, casi limite, output diversi tra un test e l'altro; ogni test inizia con un commento che descrive il caso; il primo è mostrato come esempio.
+- **Le funzioni da creare le chiamano i test**, anche dentro un programma (nei programmi l'ultimo test, dopo il programma); una predefinita vietata si controlla disattivandola su un solo array; un test non ovvio ha un commento che spiega a parole che cosa controlla (`references/tipologie.md`, «Convenzioni dell'utente»).
+- **Sequenza random predefinita**: valori da 0.01 a 0.92, quindi in un intervallo largo gli estremi non escono (0–100 non arriva a 100); per provarli serve `random:`.
 - **Niente array stampati con `console.log(array)`** e niente decimali lunghissimi nell'output: `join` e `toFixed`.
 - **Gli output non si scrivono a mano**: li calcola lo script. Se un risultato sorprende, è la soluzione o la consegna da rivedere.
 

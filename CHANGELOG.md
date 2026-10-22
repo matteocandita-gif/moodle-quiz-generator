@@ -2,6 +2,16 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz»: Claude propone di aggiornarla, e i quiz salvati restano.
 
+## 0.4.2 — 22/10/2026
+
+- **Dashboard** 0.3.8: l'elenco dei quiz va dal più recente al più vecchio (data di creazione; i quiz senza data in fondo); quando compare un quiz nuovo, pronto, la pagina lo apre da sola nella scaletta (se si sta modificando qualcosa avvisa soltanto, e il quiz resta in cima all'elenco). Nel modulo «Nuovo quiz» un'esercitazione con spiegazione propone 105 minuti; la guida dei tipi dice «una lezione di due ore: 105 minuti».
+- `progettazione-quiz`: il campo `creato` è obbligatorio anche per i quiz creati in chat, perché l'elenco si ordina con quello. Preset ED: una lezione di due ore ha 105 minuti disponibili, non 90 (con almeno 5 minuti di margine).
+- `domande-coderunner-js`, regole sui test:
+  - le funzioni da creare si controllano chiamandole nei test, anche dentro un programma (l'ultimo test, dopo il programma), con una «Nota bene» nella traccia;
+  - una funzione predefinita vietata (`includes`, `indexOf`…) si controlla con un test che la disattiva su un solo array, non su tutti;
+  - un test che fa qualcosa di non ovvio ha un commento che spiega a parole che cosa controlla e quale riga dell'output è il risultato;
+  - la sequenza random predefinita va da 0.01 a 0.92: in un intervallo largo gli estremi non escono (0–100 non arriva a 100); per provarli serve `random:`.
+
 ## 0.4.1 — 18/10/2026
 
 Skill **diagrammi-er**:
