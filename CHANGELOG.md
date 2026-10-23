@@ -1,6 +1,17 @@
 # Changelog
 
-Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz»: Claude propone di aggiornarla, e i quiz salvati restano.
+Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
+
+## 0.5.0 — 23/10/2026
+
+Nuova skill **mappe-prerequisiti**: mappe dei prerequisiti (gerarchie di apprendimento) per l'autovalutazione degli studenti.
+
+- Una mappa scompone un traguardo in competenze minime collegate da prerequisiti. In Moodle diventa un'attività Database: lo studente spunta le voci che sa fare e vede quelle che è pronto a imparare; il docente, nella vista elenco, vede il riepilogo della classe (quanti sanno fare ogni voce, chi è pronto, chi no) e la tabella degli studenti.
+- **Editor mappe** 1.0.0: la pagina «Mappe dei prerequisiti», privata, per creare e correggere le mappe (voci, prerequisiti, «da saper scrivere» o «da saper leggere»), provarle con «Prova come studente» e scaricare il backup o il preset. Come la dashboard: mappe dalla più recente alla più vecchia, una mappa nuova creata in chat si apre da sola, archiviare ed eliminare nel riquadro in fondo.
+- Spunte con i vincoli (attivi di default, si spengono mappa per mappa): una voce si spunta solo dopo i suoi prerequisiti, e togliendo una spunta si tolgono le voci che la richiedono.
+- Backup `.mbz` di un'attività già impostata (approvazione richiesta, una scheda per studente, nessun gruppo), da Claude (`scripts/crea_mbz.js`, che controlla la mappa) o dall'editor. Per aggiornare un'attività già in uso si importa il preset: le spunte restano.
+- Comando `installa-mappe`: installa o aggiorna l'editor.
+- Sorgenti dell'editor in `sviluppo/mappe-prerequisiti`, con lo script che ricostruisce la pagina.
 
 ## 0.4.2 — 22/10/2026
 

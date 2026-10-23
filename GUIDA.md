@@ -54,6 +54,17 @@ Per una domanda sola o poche domande per la banca non serve la dashboard: «una 
 
 I quiz conclusi archiviali (riquadro «Archivia o elimina il quiz», in fondo alla scaletta): restano consultabili tra gli archiviati. Eliminare un quiz lo cancella con tutte le righe; se lo chiedi a Claude, prima ne salva una copia.
 
+## Mappe dei prerequisiti
+
+Una mappa dei prerequisiti mostra le competenze di un argomento e quali servono prima di quali. In Moodle diventa un'attività in cui ogni studente spunta ciò che sa fare; tu vedi il riepilogo della classe.
+
+1. La prima volta: «installa l'editor delle mappe» (comando `installa-mappe`). Claude pubblica la tua pagina «Mappe dei prerequisiti», privata.
+2. In chat: «una mappa dei prerequisiti sulla progettazione E/R per le quinte», allegando il materiale (un capitolo del libro, il programma). Claude propone le voci e i collegamenti e carica la mappa nell'editor, dove la correggi e la provi con «Prova come studente». Tienila intorno alle 25 voci: per un argomento più grande, due mappe divise per modulo.
+3. Per portarla in Moodle: «crea il .mbz della mappa», oppure **Scarica il backup per Moodle** nell'editor (uno .zip con dentro il .mbz). Nel corso: **Ripristina** → carica il .mbz → ripristina in questo corso. L'attività arriva già impostata: ogni studente vede solo la propria scheda.
+4. Per cambiare la mappa di un'attività già usata dagli studenti non ripristinare un altro backup: scarica il **Preset** dall'editor e importalo nella stessa attività (scheda Preset). Le spunte restano.
+
+Se gli studenti non vedono «Aggiungi scheda», di solito è la modalità gruppo: con i gruppi separati chi non è in un gruppo non può aggiungere schede.
+
 ## Se qualcosa non va
 
 - **«Inizia» non avvia la sessione**: guarda il riquadro **Impostazioni** nella vista iniziale. Se l'avvio non è configurato, chiedi a Claude «configura l'avvio automatico della dashboard»; nel frattempo usa la frase da incollare.

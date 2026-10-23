@@ -1,0 +1,2457 @@
+<title>Mappe dei prerequisiti</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+/* Layout: barra della mappa in alto, poi foglio del grafo a sinistra e scheda della voce a destra (una colonna sul telefono). */
+:root {
+  --bg: #f3f4f1;
+  --surface: #ffffff;
+  --ink: #1c2321;
+  --muted: #5d6763;
+  --line: #d9ddd8;
+  --accent: #2856b8;
+  --accent-ink: #ffffff;
+  --accent-soft: #e4ebfa;
+  --sheet: #fcfcfa;
+  --sheet-line: #dfe2dc;
+  --danger: #b0322a;
+  --danger-soft: #fbe9e7;
+  --ok: #3f7a1f;
+  --warn: #8a5a00;
+  --warn-soft: #fbf1db;
+  --font-display: "Bricolage Grotesque", "Atkinson Hyperlegible", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 8px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161b1a; --surface: #1f2624; --ink: #e8ece9; --muted: #a2ada8; --line: #34403c;
+    --accent: #8fb0f5; --accent-ink: #0d1424; --accent-soft: #24304a;
+    --sheet: #f6f6f2; --sheet-line: #4a5551;
+    --danger: #f0938b; --danger-soft: #3d2220; --ok: #9bd174; --warn: #e8c070; --warn-soft: #3a3020;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161b1a; --surface: #1f2624; --ink: #e8ece9; --muted: #a2ada8; --line: #34403c;
+  --accent: #8fb0f5; --accent-ink: #0d1424; --accent-soft: #24304a;
+  --sheet: #f6f6f2; --sheet-line: #4a5551;
+  --danger: #f0938b; --danger-soft: #3d2220; --ok: #9bd174; --warn: #e8c070; --warn-soft: #3a3020;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 40px;
+}
+.app { max-width: 1380px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+.brand { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.brand h1 { font-family: var(--font-display); font-weight: 600; font-size: 1.45rem; letter-spacing: -0.01em; }
+.brand .sub { color: var(--muted); font-size: .92rem; }
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.bar .grow { flex: 1 1 auto; }
+button, select, input, textarea { font: inherit; color: inherit; }
+button {
+  border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 7px 12px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; line-height: 1.2;
+}
+button:hover { border-color: var(--muted); }
+button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+button.ghost { background: transparent; border-color: transparent; color: var(--muted); }
+button.ghost:hover { color: var(--ink); border-color: var(--line); }
+button.danger { color: var(--danger); }
+button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
+select, input[type="text"], textarea {
+  border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 7px 10px; min-width: 0;
+}
+select { padding-right: 28px; max-width: 100%; }
+.status { font-size: .85rem; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+.status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.status.ok::before { background: var(--ok); }
+.status.pending::before { background: var(--warn); }
+.status.err { color: var(--danger); }
+.status.err::before { background: var(--danger); }
+.meta { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) auto; gap: 10px; align-items: end; }
+.vinc .lab { display: block; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 4px; }
+.switch { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 7px 12px; cursor: pointer; white-space: nowrap; }
+.switch:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.meta .switch { display: inline-flex; text-transform: none; letter-spacing: 0; font-size: .92rem; color: var(--ink); margin: 0; white-space: nowrap; }
+.meta .switch input { width: auto; margin: 0; }
+.lh-notice { padding: 0 4px; }
+.meta label, .field label, .field .lab { display: block; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 4px; }
+.meta input { width: 100%; }
+#m-titolo { font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; }
+.work { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 14px; align-items: start; }
+.sheet { background: var(--sheet); border: 1px solid var(--sheet-line); border-radius: 12px; min-width: 0; color: #1c2321; }
+.sheet-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid #e3e5df; }
+.sheet-head button { background: #ffffff; border-color: #d6d9d3; color: #1c2321; }
+.sheet-head button:hover { border-color: #8d958f; }
+.sheet-head button[aria-pressed="true"] { background: #e4ebfa; border-color: #2856b8; }
+.seg { display: inline-flex; border: 1px solid #d6d9d3; border-radius: var(--r); overflow: hidden; }
+.seg button { border: 0; border-radius: 0; }
+.seg button + button { border-left: 1px solid #d6d9d3; }
+.hint { font-size: .85rem; color: #5d6763; padding: 6px 14px 0; min-height: 1.5em; }
+.board { padding: 8px 10px 16px; overflow-x: auto; min-height: 220px; }
+.lh-legend { padding: 0 4px; }
+.lh-count { padding: 0 4px; }
+.warnings { padding: 0 14px 12px; display: flex; flex-direction: column; gap: 4px; }
+.warn { font-size: .85rem; background: #fbf1db; color: #6b4600; border-radius: 6px; padding: 5px 10px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.panel h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; }
+.panel p { margin: 0; color: var(--muted); font-size: .9rem; }
+.field input[type="text"] { width: 100%; }
+.code { font-family: var(--font-mono); font-size: .8rem; color: var(--muted); }
+.radio-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.radio-row label { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: var(--r); padding: 6px 10px; cursor: pointer; text-transform: none; letter-spacing: 0; font-size: .9rem; color: var(--ink); margin: 0; }
+.radio-row label:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.radio-row .sw { width: 16px; height: 10px; border: 1.5px solid var(--muted); border-radius: 3px; }
+.radio-row .sw.dash { border-style: dashed; }
+.checks { max-height: 300px; overflow-y: auto; border: 1px solid var(--line); border-radius: var(--r); padding: 4px; }
+.checks label { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 6px; cursor: pointer; text-transform: none; letter-spacing: 0; font-size: .92rem; color: var(--ink); margin: 0; }
+.checks label:hover { background: var(--accent-soft); }
+.checks label.off { color: var(--muted); cursor: not-allowed; }
+.checks label.off:hover { background: transparent; }
+.checks .why { margin-left: auto; font-size: .75rem; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font-size: .85rem; background: transparent; }
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.list button { width: 100%; justify-content: space-between; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: transparent; padding: 8px 4px; text-align: left; }
+.list button:hover { background: var(--accent-soft); }
+.list .n { font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.confirm { background: var(--danger-soft); border-radius: var(--r); padding: 10px; display: flex; flex-direction: column; gap: 8px; font-size: .9rem; }
+.help { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px 14px; }
+.help summary { cursor: pointer; padding: 8px 0; font-weight: 700; }
+.gest { display: flex; flex-direction: column; gap: 10px; padding: 0 0 14px; }
+.gest .note { max-width: 75ch; margin: 0; }
+.arc-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; background: var(--warn-soft); color: var(--ink); border-radius: var(--r); padding: 10px 14px; font-size: .92rem; }
+.help ol { margin: 0 0 12px; padding-left: 1.3rem; display: flex; flex-direction: column; gap: 6px; max-width: 75ch; }
+.help code { font-family: var(--font-mono); font-size: .85em; }
+.note { font-size: .88rem; color: var(--muted); }
+.note.err { color: var(--danger); }
+.empty { padding: 40px 20px; text-align: center; color: #5d6763; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.empty strong { color: #1c2321; font-size: 1.05rem; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 900px) {
+  .work { grid-template-columns: minmax(0, 1fr); }
+  .meta { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="app">
+  <header class="bar">
+    <div class="brand grow">
+      <h1>Mappe dei prerequisiti</h1>
+      <span class="sub">Gerarchie di apprendimento da usare in Moodle</span>
+    </div>
+    <span id="status" class="status" role="status">Caricamento</span>
+  </header>
+
+  <div class="bar">
+    <label class="sr" for="pick">Mappa aperta</label>
+    <select id="pick" aria-label="Mappa aperta"></select>
+    <button id="btn-new" type="button">Nuova mappa</button>
+    <button id="btn-dup" type="button">Duplica</button>
+    <span class="grow"></span>
+    <button id="btn-import" type="button" class="ghost">Importa JSON</button>
+    <input id="file-import" type="file" accept=".json,application/json" hidden>
+    <button id="btn-json" type="button" class="ghost">Esporta JSON</button>
+    <button id="btn-preset" type="button">Preset (aggiorna un'attività)</button>
+    <button id="btn-moodle" type="button" class="primary">Scarica il backup per Moodle</button>
+  </div>
+  <div id="bar-note" class="note" hidden></div>
+  <div id="arc-banner" class="arc-banner" role="status" hidden>
+    <span><strong>Mappa archiviata.</strong> Non compare più tra le mappe attive del menù, ma resta qui finché non la elimini.</span>
+    <button id="arc-riattiva2" type="button">Riattiva la mappa</button>
+  </div>
+
+  <div class="meta">
+    <div><label for="m-titolo">Titolo della mappa</label><input id="m-titolo" type="text" autocomplete="off"></div>
+    <div><label for="m-desc">Descrizione</label><input id="m-desc" type="text" autocomplete="off"></div>
+    <div class="vinc">
+      <span class="lab">Spunte degli studenti</span>
+      <label class="switch" for="m-vincoli"><input id="m-vincoli" type="checkbox"> Solo se i prerequisiti sono spuntati</label>
+    </div>
+  </div>
+
+  <div class="work">
+    <section class="sheet" aria-label="Mappa">
+      <div class="sheet-head">
+        <div class="seg" role="group" aria-label="Vista">
+          <button id="v-author" type="button" aria-pressed="true">Modifica</button>
+          <button id="v-student" type="button" aria-pressed="false">Prova come studente</button>
+        </div>
+        <button id="btn-add" type="button">Aggiungi voce</button>
+        <button id="btn-link" type="button" aria-pressed="false">Collega con un clic</button>
+      </div>
+      <div id="hint" class="hint"></div>
+      <div id="board" class="board"></div>
+      <div id="warnings" class="warnings"></div>
+    </section>
+
+    <aside id="panel" class="panel" aria-label="Voce selezionata"></aside>
+  </div>
+
+  <details class="help" id="gestione">
+    <summary>Archivia o elimina la mappa</summary>
+    <div class="gest">
+      <p class="note">Archiviare toglie la mappa dall'elenco delle mappe attive (resta in fondo al menù, tra le archiviate) e si può annullare. Eliminare la cancella da qui e non si può annullare. Le attività già create in Moodle non cambiano in nessuno dei due casi. Prima di eliminare una mappa che serve ancora, scarica il JSON.</p>
+      <div class="row">
+        <button id="btn-archivia" type="button">Archivia</button>
+        <button id="btn-riattiva" type="button" hidden>Riattiva</button>
+        <button id="btn-elimina" type="button" class="ghost danger">Elimina la mappa</button>
+      </div>
+      <div id="del-confirm" class="confirm" hidden>
+        <span id="del-text"></span>
+        <div class="row"><button id="del-yes" type="button" class="danger">Sì, elimina definitivamente</button><button id="del-no" type="button">Annulla</button></div>
+      </div>
+    </div>
+  </details>
+
+  <details class="help" id="help">
+    <summary>Come portarla in Moodle</summary>
+    <ol>
+      <li>Premi <strong>Scarica il backup per Moodle</strong>: ricevi uno <code>.zip</code> che contiene il backup <code>.mbz</code> dell'attività. Estrai il file <code>.mbz</code>.</li>
+      <li>Nel corso apri <strong>Altro → Ripristino</strong>, carica il <code>.mbz</code> e scegli di ripristinarlo nel corso attuale. Nasce un'attività Database già pronta: approvazione richiesta, una scheda per studente e nessun gruppo. L'approvazione serve a far vedere a ogni studente solo la propria scheda: tu non approvi nulla e vedi tutto. Il nome è il titolo della mappa e puoi cambiarlo dopo.</li>
+      <li>Lo studente apre l'attività e preme <strong>Aggiungi scheda</strong>: spunta le voci sulla mappa e salva. In seguito usa <strong>Aggiorna la mia autovalutazione</strong>.</li>
+      <li>Nella vista elenco tu trovi il riepilogo della classe: il colore di ogni voce dice quanti la sanno fare, un clic mostra i nomi.</li>
+      <li>Per cambiare la mappa di un'attività già in uso non ripristinare un nuovo backup: scarica il <strong>Preset</strong> e importalo nella stessa attività dalla scheda <em>Preset</em>, confermando il campo <code>voci</code>. Le spunte restano, perché ogni voce tiene il suo codice.</li>
+      <li>Se gli studenti non vedono <strong>Aggiungi scheda</strong>, controlla la modalità gruppo dell'attività: con i gruppi separati chi non è in un gruppo non può aggiungere la scheda. Se il corso forza la modalità gruppo, va cambiata nelle impostazioni del corso.</li>
+    </ol>
+  </details>
+</div>
+
+<script>/* Gerarchie di apprendimento - motore di impaginazione e disegno (nessuna dipendenza esterna). */
+(function (root) {
+  'use strict';
+  if (root.LH && root.LH.version) { return; }
+
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  var NODE_H = 46, RANK_SEP = 46, NODE_SEP = 14, DUMMY_W = 6, MARGIN = 8, PAD_X = 24;
+
+  var COLORS = {
+    fill: '#ffffff', stroke: '#a9a79e', text: '#1f1e1b', sub: '#5f5e5a',
+    lockFill: '#f5f4f0', lockStroke: '#cfcdc4', lockText: '#8a887f',
+    ready: '#2f6fd0',
+    doneFill: '#e3f0d6', doneStroke: '#5c9a2a', doneText: '#2d5410',
+    edge: '#c2c0b6', edgeOpen: '#2f6fd0', edgeDone: '#86b85a', hover: '#d4861a',
+    selected: '#7a4fd0'
+  };
+
+  function tipoLeggere(n) { return n.tipo === 'leggere'; }
+
+  /* ---------- misura del testo ---------- */
+  var measureCtx = null;
+  function makeMeasure(fontFamily) {
+    try {
+      if (!measureCtx) { measureCtx = document.createElement('canvas').getContext('2d'); }
+    } catch (e) { measureCtx = null; }
+    return function (text, size, weight) {
+      if (measureCtx) {
+        measureCtx.font = (weight || 400) + ' ' + size + 'px ' + (fontFamily || 'sans-serif');
+        return measureCtx.measureText(text).width;
+      }
+      return text.length * size * (weight >= 600 ? 0.6 : 0.55);
+    };
+  }
+
+  /* ---------- pulizia del grafo ---------- */
+  function normalize(graph) {
+    var nodes = (graph && graph.nodi) || [];
+    var byId = {}, list = [];
+    nodes.forEach(function (n) {
+      if (!n || !n.id || byId[n.id]) { return; }
+      var c = { id: String(n.id), titolo: n.titolo || n.id, sotto: n.sotto || '', tipo: n.tipo === 'leggere' ? 'leggere' : 'scrivere', pre: [] };
+      byId[c.id] = c; list.push(c);
+    });
+    nodes.forEach(function (n) {
+      if (!n || !byId[n.id]) { return; }
+      var seen = {};
+      byId[n.id].pre = (n.pre || []).map(String).filter(function (p) {
+        if (!byId[p] || p === String(n.id) || seen[p]) { return false; }
+        seen[p] = true; return true;
+      });
+    });
+    return { list: list, byId: byId };
+  }
+
+  /* Rileva i cicli: restituisce l'ordine topologico e gli archi da ignorare. */
+  function topo(list, byId) {
+    var indeg = {}, suc = {}, order = [], queue = [];
+    list.forEach(function (n) { indeg[n.id] = n.pre.length; suc[n.id] = []; });
+    list.forEach(function (n) { n.pre.forEach(function (p) { suc[p].push(n.id); }); });
+    list.forEach(function (n) { if (!indeg[n.id]) { queue.push(n.id); } });
+    while (queue.length) {
+      var v = queue.shift(); order.push(v);
+      suc[v].forEach(function (w) { if (--indeg[w] === 0) { queue.push(w); } });
+    }
+    var placed = {}; order.forEach(function (v) { placed[v] = true; });
+    var cyclic = [];
+    list.forEach(function (n) {
+      if (!placed[n.id]) {
+        cyclic.push(n.id);
+        n.pre = n.pre.filter(function (p) { return placed[p]; });
+        order.push(n.id); placed[n.id] = true;
+      }
+    });
+    return { order: order, cyclic: cyclic };
+  }
+
+  /* Vero se aggiungere l'arco p -> v creerebbe un ciclo. */
+  function createsCycle(graph, p, v) {
+    if (p === v) { return true; }
+    var g = normalize(graph), stack = [p], seen = {};
+    while (stack.length) {
+      var x = stack.pop();
+      if (x === v) { return true; }
+      if (seen[x] || !g.byId[x]) { continue; }
+      seen[x] = true;
+      g.byId[x].pre.forEach(function (q) { stack.push(q); });
+    }
+    return false;
+  }
+
+  /* ---------- impaginazione a strati ---------- */
+  function layout(graph, measure, opts) {
+    var g = normalize(graph), list = g.list, byId = g.byId;
+    var tp = topo(list, byId), order = tp.order;
+    var suc = {};
+    list.forEach(function (n) { suc[n.id] = []; });
+    list.forEach(function (n) { n.pre.forEach(function (p) { suc[p].push(n.id); }); });
+
+    // 1. livelli: catena più lunga, poi ogni voce si avvicina al lato con più collegamenti
+    var rank = {};
+    order.forEach(function (v) {
+      var pre = byId[v].pre;
+      rank[v] = pre.length ? 1 + Math.max.apply(null, pre.map(function (p) { return rank[p]; })) : 0;
+    });
+    for (var it = 0; it < 6; it++) {
+      for (var i = order.length - 1; i >= 0; i--) {
+        var v = order[i], pre = byId[v].pre, sc = suc[v];
+        var lo = pre.length ? 1 + Math.max.apply(null, pre.map(function (p) { return rank[p]; })) : 0;
+        var hi = sc.length ? Math.min.apply(null, sc.map(function (s) { return rank[s]; })) - 1 : Infinity;
+        if (sc.length > pre.length && hi !== Infinity) { rank[v] = hi; }
+        else if (pre.length > sc.length || hi === Infinity) { rank[v] = lo; }
+        else { rank[v] = Math.max(lo, Math.min(rank[v], hi)); }
+      }
+    }
+    var minR = Infinity, maxR = 0;
+    order.forEach(function (v) { minR = Math.min(minR, rank[v]); });
+    order.forEach(function (v) { rank[v] -= minR; maxR = Math.max(maxR, rank[v]); });
+    if (!order.length) { maxR = -1; }
+
+    // 1b. livelli troppo larghi: sposto le voci che hanno margine verso livelli più liberi
+    var widthOf = {};
+    order.forEach(function (v) {
+      var n = byId[v];
+      widthOf[v] = Math.ceil(Math.max(Math.max(measure(n.titolo, 13, 600), measure(n.sotto, 11, 400)) + PAD_X, 70));
+    });
+    function rankWidths() {
+      var w = [];
+      for (var r = 0; r <= maxR; r++) { w.push(0); }
+      var cnt = w.map(function () { return 0; });
+      order.forEach(function (v) { w[rank[v]] += widthOf[v]; cnt[rank[v]]++; });
+      order.forEach(function (v) {
+        byId[v].pre.forEach(function (p) {
+          for (var r = rank[p] + 1; r < rank[v]; r++) { w[r] += DUMMY_W; cnt[r]++; }
+        });
+      });
+      return w.map(function (x, r) { return x + Math.max(0, cnt[r] - 1) * NODE_SEP; });
+    }
+    function edgeLen() {
+      var s = 0;
+      order.forEach(function (v) { byId[v].pre.forEach(function (p) { s += rank[v] - rank[p]; }); });
+      return s;
+    }
+    var target = (opts && opts.maxWidth) || 760;
+    function score() {
+      var ws = rankWidths(), sc = 0;
+      ws.forEach(function (w) { if (w > target) { sc += (w - target) * (w - target); } });
+      return sc + edgeLen() * 50;
+    }
+    var cur = score();
+    for (var guard = 0; guard < 200; guard++) {
+      var bestMove = null, bestScore = cur;
+      order.forEach(function (v) {
+        var pre = byId[v].pre, sc = suc[v];
+        var lo = pre.length ? 1 + Math.max.apply(null, pre.map(function (p) { return rank[p]; })) : 0;
+        var hi = sc.length ? Math.min.apply(null, sc.map(function (s) { return rank[s]; })) - 1 : maxR;
+        for (var r = lo; r <= hi; r++) {
+          if (r === rank[v]) { continue; }
+          var old = rank[v]; rank[v] = r;
+          var m = score();
+          rank[v] = old;
+          if (m < bestScore - 1e-6) { bestScore = m; bestMove = [v, r]; }
+        }
+      });
+      if (!bestMove) { break; }
+      rank[bestMove[0]] = bestMove[1]; cur = bestScore;
+    }
+
+    // 2. nodi fittizi per gli archi lunghi
+    var L = {}; // chiave -> info
+    var layers = [];
+    for (var r = 0; r <= maxR; r++) { layers.push([]); }
+    order.forEach(function (v) {
+      L[v] = { key: v, real: true, rank: rank[v], w: widthOf[v], up: [], down: [] };
+      layers[rank[v]].push(v);
+    });
+    var edges = [], dcount = 0;
+    order.forEach(function (v) {
+      byId[v].pre.forEach(function (p) {
+        var chain = [p], prev = p;
+        for (var rr = rank[p] + 1; rr < rank[v]; rr++) {
+          var key = '\u0000d' + (dcount++);
+          L[key] = { key: key, real: false, rank: rr, w: DUMMY_W, up: [], down: [] };
+          layers[rr].push(key);
+          L[prev].down.push(key); L[key].up.push(prev);
+          chain.push(key); prev = key;
+        }
+        L[prev].down.push(v); L[v].up.push(prev);
+        chain.push(v);
+        edges.push({ from: p, to: v, chain: chain });
+      });
+    });
+
+    // 3. ordine dentro i livelli: baricentri con passate alterne, si tiene il migliore
+    function idx(layer) { var m = {}; layer.forEach(function (k, i) { m[k] = i; }); return m; }
+    function crossings(ls) {
+      var total = 0;
+      for (var r = 0; r < ls.length - 1; r++) {
+        var pos = idx(ls[r + 1]), segs = [];
+        ls[r].forEach(function (k, i) { L[k].down.forEach(function (d) { segs.push([i, pos[d]]); }); });
+        for (var a = 0; a < segs.length; a++) {
+          for (var b = a + 1; b < segs.length; b++) {
+            if ((segs[a][0] - segs[b][0]) * (segs[a][1] - segs[b][1]) < 0) { total++; }
+          }
+        }
+      }
+      return total;
+    }
+    function sweep(ls, down) {
+      var start = down ? 1 : ls.length - 2, end = down ? ls.length : -1, step = down ? 1 : -1;
+      for (var r = start; r !== end; r += step) {
+        var ref = idx(ls[r - step]);
+        var cur = idx(ls[r]);
+        var bc = {};
+        ls[r].forEach(function (k) {
+          var nb = down ? L[k].up : L[k].down;
+          if (nb.length) {
+            var s = 0; nb.forEach(function (x) { s += ref[x]; });
+            bc[k] = s / nb.length;
+          } else { bc[k] = cur[k]; }
+        });
+        ls[r] = ls[r].slice().sort(function (a, b) { return (bc[a] - bc[b]) || (cur[a] - cur[b]); });
+      }
+    }
+    var best = layers.map(function (l) { return l.slice(); }), bestC = crossings(best);
+    var work = layers.map(function (l) { return l.slice(); });
+    for (var s = 0; s < 24 && bestC > 0; s++) {
+      sweep(work, s % 2 === 0);
+      var c = crossings(work);
+      if (c < bestC) { bestC = c; best = work.map(function (l) { return l.slice(); }); }
+    }
+    layers = best;
+
+    // 4. coordinate orizzontali: allineamento ai vicini rispettando ordine e distanze (regressione isotonica)
+    var X = {};
+    function gap(a, b) { return (L[a].w + L[b].w) / 2 + (L[a].real || L[b].real ? NODE_SEP : 4); }
+    var FRAME = 0;
+    layers.forEach(function (layer) {
+      var x = 0;
+      layer.forEach(function (k, i) {
+        if (i > 0) { x += gap(layer[i - 1], k); }
+        X[k] = x;
+      });
+      if (layer.length) { FRAME = Math.max(FRAME, x + (L[layer[0]].w + L[layer[layer.length - 1]].w) / 2); }
+      var off = x / 2; layer.forEach(function (k) { X[k] -= off; });
+    });
+    FRAME = FRAME * 1.06 + 20;
+    function place(layer, desired, weight) {
+      // y_i = x_i - c_i deve essere non decrescente; minimizza la distanza pesata da desired
+      var n = layer.length, c = [], target = [];
+      for (var i = 0; i < n; i++) {
+        c[i] = i === 0 ? 0 : c[i - 1] + gap(layer[i - 1], layer[i]);
+        target[i] = desired[i] - c[i];
+      }
+      var blocks = [];
+      for (i = 0; i < n; i++) {
+        blocks.push({ v: target[i], w: weight[i], n: 1 });
+        while (blocks.length > 1 && blocks[blocks.length - 2].v > blocks[blocks.length - 1].v) {
+          var b2 = blocks.pop(), b1 = blocks.pop();
+          var w = b1.w + b2.w;
+          blocks.push({ v: (b1.v * b1.w + b2.v * b2.w) / w, w: w, n: b1.n + b2.n });
+        }
+      }
+      // limiti della cornice: la prima voce non esce a sinistra, l'ultima non esce a destra
+      var lowB = -FRAME / 2 + L[layer[0]].w / 2;
+      var highB = FRAME / 2 - L[layer[n - 1]].w / 2 - c[n - 1];
+      var k = 0;
+      blocks.forEach(function (b) {
+        var v = Math.min(Math.max(b.v, lowB), Math.max(lowB, highB));
+        for (var j = 0; j < b.n; j++) { X[layer[k]] = v + c[k]; k++; }
+      });
+    }
+    function pass(mode) {
+      var rs = [];
+      for (var r = 0; r < layers.length; r++) { rs.push(r); }
+      if (mode === 'up') { rs.reverse(); }
+      rs.forEach(function (r) {
+        var layer = layers[r];
+        var desired = [], weight = [];
+        layer.forEach(function (k) {
+          var nb = mode === 'down' ? L[k].up : mode === 'up' ? L[k].down : L[k].up.concat(L[k].down);
+          if (nb.length) {
+            var s = 0; nb.forEach(function (x) { s += X[x]; });
+            desired.push(s / nb.length);
+          } else { desired.push(X[k]); }
+          weight.push(L[k].real ? (nb.length ? 1 : 0.2) : 3);
+        });
+        place(layer, desired, weight);
+      });
+    }
+    for (var q = 0; q < 6; q++) { pass('down'); pass('up'); }
+    for (q = 0; q < 4; q++) { pass('both'); }
+
+    // 5. coordinate finali
+    var minX = Infinity, maxX = -Infinity;
+    Object.keys(L).forEach(function (k) {
+      minX = Math.min(minX, X[k] - L[k].w / 2); maxX = Math.max(maxX, X[k] + L[k].w / 2);
+    });
+    if (minX === Infinity) { minX = 0; maxX = 0; }
+    var out = { nodes: {}, edges: [], cyclic: tp.cyclic };
+    Object.keys(L).forEach(function (k) {
+      L[k].x = X[k] - minX + MARGIN;
+      L[k].y = MARGIN + L[k].rank * (NODE_H + RANK_SEP) + NODE_H / 2;
+    });
+    order.forEach(function (v) {
+      var n = byId[v];
+      out.nodes[v] = { id: v, x: L[v].x, y: L[v].y, w: L[v].w, h: NODE_H, titolo: n.titolo, sotto: n.sotto, tipo: n.tipo, pre: n.pre.slice(), suc: suc[v].slice() };
+    });
+    edges.forEach(function (e) {
+      var pts = e.chain.map(function (k) { return { x: L[k].x, y: L[k].y }; });
+      pts[0].y += NODE_H / 2;
+      pts[pts.length - 1].y -= NODE_H / 2 + 2;
+      var d = 'M' + r1(pts[0].x) + ' ' + r1(pts[0].y);
+      for (var i = 1; i < pts.length; i++) {
+        var a = pts[i - 1], b = pts[i], dy = (b.y - a.y) / 2;
+        d += ' C' + r1(a.x) + ' ' + r1(a.y + dy) + ' ' + r1(b.x) + ' ' + r1(b.y - dy) + ' ' + r1(b.x) + ' ' + r1(b.y);
+      }
+      out.edges.push({ from: e.from, to: e.to, d: d });
+    });
+    out.width = Math.ceil(maxX - minX + 2 * MARGIN);
+    out.height = Math.ceil(order.length ? MARGIN * 2 + (maxR + 1) * NODE_H + maxR * RANK_SEP : 2 * MARGIN);
+    out.order = order;
+    return out;
+  }
+  function r1(v) { return Math.round(v * 10) / 10; }
+
+  /* ---------- disegno ---------- */
+  function el(tag, attrs, parent) {
+    var e = document.createElementNS(SVGNS, tag);
+    for (var k in attrs) { if (attrs.hasOwnProperty(k)) { e.setAttribute(k, attrs[k]); } }
+    if (parent) { parent.appendChild(e); }
+    return e;
+  }
+
+  /*
+   * opts:
+   *   mode: 'edit' (lo studente spunta), 'view' (sola lettura), 'summary' (riepilogo classe), 'author' (editor)
+   *   done: array di id spuntati
+   *   onChange(doneArray)
+   *   counts: {id: numero}, total: numero studenti (per 'summary')
+   *   onSelect(id) per 'summary' e 'author'; selected: id evidenziato
+   */
+  function render(container, graph, opts) {
+    opts = opts || {};
+    var mode = opts.mode || 'view';
+    var done = {};
+    (opts.done || []).forEach(function (id) { done[id] = true; });
+    var font = '';
+    try { font = window.getComputedStyle(container).fontFamily; } catch (e) { font = ''; }
+    var avail = container.clientWidth || (container.parentNode && container.parentNode.clientWidth) || 760;
+    var lay = layout(graph, makeMeasure(font), { maxWidth: Math.max(480, avail - 4) });
+    container.innerHTML = '';
+    // vincoli: si spunta una voce solo se sono spuntati i suoi prerequisiti (default sì)
+    var strict = mode === 'edit' && opts.vincoli !== false && graph.vincoli !== false;
+    var notice = null;
+    if (mode === 'edit') {
+      notice = document.createElement('div');
+      notice.className = 'lh-notice';
+      notice.setAttribute('aria-live', 'polite');
+      container.appendChild(notice);
+    }
+    var flash = {}, flashTimer = null;
+    function say(msg) { if (notice) { notice.textContent = msg || ''; } }
+    var top = mode === 'summary' ? 16 : 6;
+    var svg = el('svg', { viewBox: '0 ' + (-top) + ' ' + Math.max(lay.width, 10) + ' ' + Math.max(lay.height + top, 10), role: 'img', 'class': 'lh-svg' }, container);
+    svg.style.width = lay.width + 'px';
+    svg.style.maxWidth = '100%';
+    svg.style.minWidth = Math.round(lay.width * 0.72) + 'px';
+    svg.style.height = 'auto';
+    svg.style.display = 'block';
+    svg.style.margin = '0 auto';
+    svg.style.fontFamily = font || 'inherit';
+    var uid = 'lh' + Math.random().toString(36).slice(2, 8);
+    var defs = el('defs', {}, svg);
+    ['edge', 'edgeOpen', 'edgeDone', 'hover'].forEach(function (c) {
+      var m = el('marker', { id: uid + c, viewBox: '0 0 10 10', refX: '8', refY: '5', markerWidth: '7', markerHeight: '7', orient: 'auto-start-reverse' }, defs);
+      el('path', { d: 'M2 1L8 5L2 9', fill: 'none', stroke: COLORS[c], 'stroke-width': '1.6', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, m);
+    });
+    var gE = el('g', {}, svg), gN = el('g', {}, svg);
+    var edgeEls = lay.edges.map(function (e) {
+      var p = el('path', { d: e.d, fill: 'none', 'stroke-width': '1.2' }, gE);
+      return { e: e, p: p };
+    });
+    var nodeEls = {};
+    var hovered = null, selected = opts.selected || null;
+    lay.order.forEach(function (id) {
+      var n = lay.nodes[id];
+      var g = el('g', { 'class': 'lh-node', 'data-id': id, tabindex: mode === 'edit' || mode === 'author' || mode === 'summary' ? '0' : '-1' }, gN);
+      g.style.cursor = mode === 'view' ? 'default' : 'pointer';
+      var rect = el('rect', { x: r1(n.x - n.w / 2), y: r1(n.y - n.h / 2), width: n.w, height: n.h, rx: 9 }, g);
+      if (n.tipo === 'leggere') { rect.setAttribute('stroke-dasharray', '5 3'); }
+      var mark = el('g', { transform: 'translate(' + r1(n.x - n.w / 2 + 3) + ',' + r1(n.y - n.h / 2 + 3) + ')' }, g);
+      el('circle', { r: '7.5', fill: COLORS.doneStroke, stroke: '#ffffff', 'stroke-width': '1.5' }, mark);
+      el('path', { d: 'M-3.2 0.2 L-0.9 2.5 L3.4 -2.4', fill: 'none', stroke: '#ffffff', 'stroke-width': '1.8', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, mark);
+      var t1 = el('text', { x: r1(n.x), y: r1(n.y - 7), 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-size': '13', 'font-weight': '600' }, g);
+      t1.textContent = n.titolo;
+      var t2 = el('text', { x: r1(n.x), y: r1(n.y + 10), 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-size': '11' }, g);
+      t2.textContent = n.sotto;
+      var badge = null;
+      if (mode === 'summary') {
+        badge = el('text', { x: r1(n.x + n.w / 2 - 6), y: r1(n.y - n.h / 2 - 5), 'text-anchor': 'end', 'font-size': '11', 'font-weight': '600' }, g);
+      }
+      var title = el('title', {}, g);
+      title.textContent = n.titolo + (n.pre.length ? ' - richiede: ' + n.pre.map(function (p) { return lay.nodes[p].titolo; }).join(', ') : '');
+      nodeEls[id] = { g: g, rect: rect, mark: mark, t1: t1, t2: t2, badge: badge };
+      g.addEventListener('mouseenter', function () { hovered = id; paint(); });
+      g.addEventListener('mouseleave', function () { hovered = null; paint(); });
+      function act() {
+        if (mode === 'edit') {
+          if (done[id]) {
+            delete done[id];
+            var removed = strict ? dependentsDone(id) : [];
+            removed.forEach(function (r) { delete done[r]; });
+            say(removed.length ? 'Tolta la spunta anche da ' + names(removed) + (removed.length === 1 ? ', che richiede ' : ', che richiedono ') + '«' + n.titolo + '».' : '');
+          } else if (strict && !isReady(id)) {
+            var missing = n.pre.filter(function (p) { return !done[p]; });
+            say('Per spuntare «' + n.titolo + '» devi prima saper fare ' + names(missing) + '.');
+            flash = {};
+            missing.forEach(function (p) { flash[p] = true; });
+            clearTimeout(flashTimer);
+            flashTimer = setTimeout(function () { flash = {}; paint(); }, 2500);
+            paint();
+            return;
+          } else {
+            done[id] = true;
+            say('');
+          }
+          paint();
+          if (opts.onChange) { opts.onChange(getDone()); }
+        } else if (mode === 'summary' || mode === 'author') {
+          selected = selected === id && mode === 'summary' ? null : id;
+          paint();
+          if (opts.onSelect) { opts.onSelect(selected); }
+        }
+      }
+      g.addEventListener('click', act);
+      g.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); act(); }
+      });
+    });
+
+    function names(ids) {
+      var t = ids.map(function (x) { return '«' + lay.nodes[x].titolo + '»'; });
+      return t.length > 1 ? t.slice(0, -1).join(', ') + ' e ' + t[t.length - 1] : t[0];
+    }
+    function dependentsDone(id) {
+      var out = [], seen = {}, stack = lay.nodes[id].suc.slice();
+      while (stack.length) {
+        var x = stack.pop();
+        if (seen[x]) { continue; }
+        seen[x] = true;
+        if (done[x]) { out.push(x); }
+        lay.nodes[x].suc.forEach(function (s) { stack.push(s); });
+      }
+      return lay.order.filter(function (x) { return out.indexOf(x) >= 0; });
+    }
+    function getDone() { return lay.order.filter(function (id) { return done[id]; }); }
+    function isReady(id) { return lay.nodes[id].pre.every(function (p) { return done[p]; }); }
+    function mix(a, b, t) {
+      var pa = [1, 3, 5].map(function (i) { return parseInt(a.substr(i, 2), 16); });
+      var pb = [1, 3, 5].map(function (i) { return parseInt(b.substr(i, 2), 16); });
+      return '#' + pa.map(function (v, i) { var c = Math.round(v + (pb[i] - v) * t).toString(16); return c.length < 2 ? '0' + c : c; }).join('');
+    }
+
+    function paint() {
+      var counts = opts.counts || {}, total = opts.total || 0;
+      lay.order.forEach(function (id) {
+        var ne = nodeEls[id], fill, stroke, sw = 0.9, tc, sc, mk = '';
+        if (mode === 'summary') {
+          var frac = total ? (counts[id] || 0) / total : 0;
+          fill = mix('#f7f6f2', '#9ccc6e', frac);
+          stroke = frac >= 0.999 && total ? COLORS.doneStroke : COLORS.stroke;
+          tc = COLORS.text; sc = COLORS.sub;
+          ne.badge.textContent = total ? (counts[id] || 0) + '/' + total : '';
+          ne.badge.setAttribute('fill', COLORS.sub);
+        } else if (mode === 'author') {
+          fill = COLORS.fill; stroke = COLORS.stroke; tc = COLORS.text; sc = COLORS.sub;
+        } else {
+          var d = !!done[id], ok = isReady(id);
+          if (d) { fill = COLORS.doneFill; stroke = COLORS.doneStroke; tc = COLORS.doneText; sc = COLORS.doneText; mk = '✓'; }
+          else if (ok) { fill = COLORS.fill; stroke = COLORS.ready; sw = 2; tc = COLORS.text; sc = COLORS.sub; }
+          else { fill = COLORS.lockFill; stroke = COLORS.lockStroke; tc = COLORS.lockText; sc = COLORS.lockText; }
+        }
+        if (mode === 'edit') { ne.g.style.cursor = strict && !done[id] && !isReady(id) ? 'not-allowed' : 'pointer'; }
+        if (flash[id]) { stroke = COLORS.hover; sw = 2.6; }
+        else if (selected === id) { stroke = COLORS.selected; sw = 2.4; }
+        else if (hovered && (id === hovered || lay.nodes[hovered].pre.indexOf(id) >= 0 || lay.nodes[hovered].suc.indexOf(id) >= 0) && id !== hovered) { stroke = COLORS.hover; sw = 2; }
+        ne.rect.setAttribute('fill', fill); ne.rect.setAttribute('stroke', stroke); ne.rect.setAttribute('stroke-width', sw);
+        ne.t1.setAttribute('fill', tc); ne.t2.setAttribute('fill', sc);
+        ne.mark.style.display = mk ? '' : 'none';
+      });
+      edgeEls.forEach(function (x) {
+        var c = 'edge', w = 1.2;
+        var focus = hovered || (mode === 'author' || mode === 'summary' ? selected : null);
+        if (focus && (x.e.from === focus || x.e.to === focus)) { c = 'hover'; w = 2; }
+        else if (mode === 'edit' || mode === 'view') {
+          if (done[x.e.from] && done[x.e.to]) { c = 'edgeDone'; }
+          else if (done[x.e.from]) { c = 'edgeOpen'; w = 1.6; }
+        }
+        x.p.setAttribute('stroke', COLORS[c]); x.p.setAttribute('stroke-width', w);
+        x.p.setAttribute('marker-end', 'url(#' + uid + c + ')');
+      });
+      if (opts.onPaint) { opts.onPaint({ done: getDone().length, total: lay.order.length, ready: lay.order.filter(function (id) { return !done[id] && isReady(id); }).length }); }
+    }
+    paint();
+    return {
+      getDone: getDone,
+      setDone: function (arr) { done = {}; (arr || []).forEach(function (id) { done[id] = true; }); paint(); },
+      setCounts: function (counts, total) { opts.counts = counts; opts.total = total; paint(); },
+      select: function (id) { selected = id; paint(); },
+      layout: lay,
+      svg: svg
+    };
+  }
+
+  /* ---------- legenda e contatore riutilizzabili ---------- */
+  function legend(graph) {
+    var box = document.createElement('div');
+    box.className = 'lh-legend';
+    var nodes = graph ? normalize(graph).list : [];
+    // i due tipi in legenda solo se la mappa li usa entrambi
+    var both = !graph || (nodes.some(function (n) { return n.tipo === 'leggere'; }) && nodes.some(function (n) { return n.tipo !== 'leggere'; }));
+    box.innerHTML =
+      '<span><i class="lh-sw" style="border:2px solid ' + COLORS.ready + '"></i>pronta da imparare</span>' +
+      '<span><i class="lh-sw" style="background:' + COLORS.doneFill + ';border:1px solid ' + COLORS.doneStroke + '"></i>la so fare</span>' +
+      '<span><i class="lh-sw" style="background:' + COLORS.lockFill + ';border:1px solid ' + COLORS.lockStroke + '"></i>non ancora</span>' +
+      (both ?
+      '<span><i class="lh-sw" style="border:1px solid ' + COLORS.stroke + '"></i>da saper scrivere</span>' +
+      '<span><i class="lh-sw" style="border:1px dashed ' + COLORS.stroke + '"></i>da saper leggere</span>' : '');
+    return box;
+  }
+
+  var CSS =
+    '.lh-wrap{margin:.5rem 0 1rem;max-width:100%;overflow-x:auto}' +
+    '.lh-legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.85rem;color:#5f5e5a;margin:.25rem 0 .75rem}' +
+    '.lh-legend span{display:inline-flex;align-items:center;gap:6px}' +
+    '.lh-sw{display:inline-block;width:18px;height:11px;border-radius:3px;box-sizing:border-box}' +
+    '.lh-count{font-weight:600;color:#1f1e1b;margin:.25rem 0}' +
+    '.lh-node:focus{outline:none}.lh-node:focus-visible rect{stroke:#7a4fd0;stroke-width:2.4}' +
+    '.lh-notice{min-height:1.4em;font-size:.9rem;color:#8a5a00;margin:0 0 .25rem}' +
+    '.lh-hint{color:#5f5e5a;font-size:.9rem;margin:.25rem 0 .5rem}' +
+    '.lh-table{border-collapse:collapse;width:100%;font-size:.9rem;margin:.5rem 0}' +
+    '.lh-table th,.lh-table td{border-bottom:1px solid #e3e1da;padding:6px 8px;text-align:left;vertical-align:middle}' +
+    '.lh-bar{display:inline-block;width:120px;height:8px;background:#ecebe5;border-radius:4px;overflow:hidden;vertical-align:middle;margin-right:8px}' +
+    '.lh-bar i{display:block;height:100%;background:#86b85a}' +
+    '.lh-detail{border:1px solid #e3e1da;border-radius:8px;padding:10px 14px;margin:.5rem 0;background:#fbfaf7}' +
+    '.lh-detail h4{font-size:1rem;margin:0 0 .4rem}' +
+    '.lh-cols{display:flex;flex-wrap:wrap;gap:24px}.lh-cols>div{min-width:200px;flex:1}' +
+    '.lh-cols ul{margin:.25rem 0 0;padding-left:1.1rem}';
+  function injectCss() {
+    if (document.getElementById('lh-css')) { return; }
+    var s = document.createElement('style'); s.id = 'lh-css'; s.textContent = CSS;
+    (document.head || document.documentElement).appendChild(s);
+  }
+
+  function countText(p) {
+    return 'Sai fare ' + p.done + (p.done === 1 ? ' voce' : ' voci') + ' su ' + p.total + ' \u00b7 ' +
+      p.ready + (p.ready === 1 ? ' pronta' : ' pronte') + ' da imparare';
+  }
+
+  root.LH = { version: 1, countText: countText, layout: layout, render: render, normalize: normalize, createsCycle: createsCycle, legend: legend, injectCss: injectCss, COLORS: COLORS };
+})(typeof window !== 'undefined' ? window : this);
+</script>
+<script>/* Gerarchie di apprendimento - file del preset per l'attività Database di Moodle. */
+(function (root) {
+  'use strict';
+
+  function xmlEsc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  var PRESET_XML =
+    '<preset>\n\n' +
+    '<settings>\n' +
+    '<intro></intro>\n' +
+    '<comments>0</comments>\n' +
+    '<requiredentries>0</requiredentries>\n' +
+    '<requiredentriestoview>0</requiredentriestoview>\n' +
+    '<maxentries>1</maxentries>\n' +
+    '<rssarticles>0</rssarticles>\n' +
+    '<approval>1</approval>\n' +
+    '<manageapproved>1</manageapproved>\n' +
+    '<defaultsortdir>0</defaultsortdir>\n' +
+    '<defaultsort>0</defaultsort>\n' +
+    '</settings>\n\n' +
+    '<field>\n' +
+    '<type>text</type>\n' +
+    '<name>voci</name>\n' +
+    '<description>Voci spuntate dallo studente (le gestisce la mappa, non modificare a mano)</description>\n' +
+    '<required>0</required>\n' +
+    '<param1>0</param1>\n' +
+    '</field>\n\n' +
+    '</preset>\n';
+
+  var ADD =
+    '<div class="lh-app" data-lh="edit" data-field="[[voci#id]]">\n' +
+    '  <p class="lh-hint">Clicca le voci che ti senti in grado di fare: diventano verdi. ' +
+    'Le voci con il bordo blu sono quelle che sei pronto a imparare, perché sai già tutto quello che richiedono. ' +
+    'Quando hai finito premi «Salva».</p>\n' +
+    '  <div class="lh-native">[[voci]]</div>\n' +
+    '</div>\n';
+
+  var SINGLE =
+    '<div class="lh-app" data-lh="view">\n' +
+    '  <span class="lh-data" hidden>[[voci]]</span>\n' +
+    '  <span class="lh-user" hidden>##user##</span>\n' +
+    '  <span class="lh-edit" hidden>##edit##</span>\n' +
+    '</div>\n';
+
+  var LIST_HEADER = '<div class="lh-app" data-lh="list"></div>\n<div class="lh-entries">\n';
+  var LIST =
+    '<div class="lh-entry">\n' +
+    '  <span class="lh-user">##user##</span>\n' +
+    '  <span class="lh-data">[[voci]]</span>\n' +
+    '  <span class="lh-edit">##edit##</span>\n' +
+    '  <span class="lh-approve" hidden>##approve##</span>\n' +
+    '  <span class="lh-more" hidden>##moreurl##</span>\n' +
+    '</div>\n';
+  var LIST_FOOTER = '</div>\n';
+
+  var ASEARCH =
+    '<div class="container">\n' +
+    '  <div class="mb-3"><div class="fw-bold mb-2">Nome</div>##firstname##</div>\n' +
+    '  <div class="mb-3"><div class="fw-bold mb-2">Cognome</div>##lastname##</div>\n' +
+    '</div>\n';
+
+  var CSS =
+    '.lh-app{margin:.5rem 0 1rem}\n' +
+    '.lh-app .lh-btn{margin:.25rem 0 .75rem}\n' +
+    '.lh-app .lh-who{font-size:1.25rem;margin:.25rem 0}\n';
+
+  function build(graph, runtimeSrc, moodleSrc) {
+    var js =
+      '/* Gerarchia di apprendimento: ' + String(graph.titolo || '').replace(/\*\//g, '') + ' */\n' +
+      'window.LH_GRAFO = ' + JSON.stringify(graph, null, 1).replace(/</g, '\\u003c') + ';\n' +
+      runtimeSrc + '\n' + moodleSrc + '\n';
+    return {
+      'preset.xml': PRESET_XML,
+      'addtemplate.html': ADD,
+      'singletemplate.html': SINGLE,
+      'listtemplate.html': LIST,
+      'listtemplateheader.html': LIST_HEADER,
+      'listtemplatefooter.html': LIST_FOOTER,
+      'asearchtemplate.html': ASEARCH,
+      'rsstemplate.html': '<div>##user## - [[voci]]</div>\n',
+      'rsstitletemplate.html': '##user##\n',
+      'csstemplate.css': CSS,
+      'jstemplate.js': js
+    };
+  }
+
+  function slug(s) {
+    return String(s || 'gerarchia').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'gerarchia';
+  }
+
+  root.LH_PRESET = { build: build, slug: slug, xmlEsc: xmlEsc };
+  if (typeof module !== 'undefined' && module.exports) { module.exports = root.LH_PRESET; }
+})(typeof window !== 'undefined' ? window : this);
+</script>
+<script>/* Gerarchie di apprendimento - backup .mbz di un'attività Database pronta (modello: backup Moodle 5.2). */
+(function (root) {
+  'use strict';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  var XML = '<?xml version="1.0" encoding="UTF-8"?>\n';
+
+  /*
+   * files: oggetto restituito da LH_PRESET.build (preset.xml, modelli, jstemplate.js)
+   * opts: { nome, intro, now (secondi), sezione }
+   * Restituisce { 'percorso': 'contenuto' } con i file del backup.
+   */
+  function files(presetFiles, opts) {
+    opts = opts || {};
+    var now = opts.now || Math.floor(Date.now() / 1000);
+    var nome = opts.nome || 'Mappa dei prerequisiti';
+    var sezione = opts.sezione != null ? opts.sezione : 0;
+    var MID = 900001, DID = 900001, CTX = 900001, FID = 900001;
+    var dir = 'activities/data_' + MID;
+    var filename = (opts.filename || 'backup-mappa') + '.mbz';
+    var t = function (k) { return esc(presetFiles[k] || ''); };
+
+    var data = XML +
+      '<activity id="' + DID + '" moduleid="' + MID + '" modulename="data" contextid="' + CTX + '">\n' +
+      '  <data id="' + DID + '">\n' +
+      '    <name>' + esc(nome) + '</name>\n' +
+      '    <intro>' + esc(opts.intro || '') + '</intro>\n' +
+      '    <introformat>1</introformat>\n' +
+      '    <comments>0</comments>\n' +
+      '    <timeavailablefrom>0</timeavailablefrom>\n' +
+      '    <timeavailableto>0</timeavailableto>\n' +
+      '    <timeviewfrom>0</timeviewfrom>\n' +
+      '    <timeviewto>0</timeviewto>\n' +
+      '    <requiredentries>0</requiredentries>\n' +
+      '    <requiredentriestoview>0</requiredentriestoview>\n' +
+      '    <maxentries>1</maxentries>\n' +
+      '    <rssarticles>0</rssarticles>\n' +
+      '    <singletemplate>' + t('singletemplate.html') + '</singletemplate>\n' +
+      '    <listtemplate>' + t('listtemplate.html') + '</listtemplate>\n' +
+      '    <listtemplateheader>' + t('listtemplateheader.html') + '</listtemplateheader>\n' +
+      '    <listtemplatefooter>' + t('listtemplatefooter.html') + '</listtemplatefooter>\n' +
+      '    <addtemplate>' + t('addtemplate.html') + '</addtemplate>\n' +
+      '    <rsstemplate>' + t('rsstemplate.html') + '</rsstemplate>\n' +
+      '    <rsstitletemplate>' + t('rsstitletemplate.html') + '</rsstitletemplate>\n' +
+      '    <csstemplate>' + t('csstemplate.css') + '</csstemplate>\n' +
+      '    <jstemplate>' + t('jstemplate.js') + '</jstemplate>\n' +
+      '    <asearchtemplate>' + t('asearchtemplate.html') + '</asearchtemplate>\n' +
+      '    <approval>1</approval>\n' +
+      '    <manageapproved>1</manageapproved>\n' +
+      '    <scale>10</scale>\n' +
+      '    <assessed>0</assessed>\n' +
+      '    <assesstimestart>0</assesstimestart>\n' +
+      '    <assesstimefinish>0</assesstimefinish>\n' +
+      '    <defaultsort>0</defaultsort>\n' +
+      '    <defaultsortdir>0</defaultsortdir>\n' +
+      '    <editany>0</editany>\n' +
+      '    <notification>0</notification>\n' +
+      '    <timemodified>' + now + '</timemodified>\n' +
+      '    <config>$@NULL@$</config>\n' +
+      '    <completionentries>0</completionentries>\n' +
+      '    <fields>\n' +
+      '      <field id="' + FID + '">\n' +
+      '        <type>text</type>\n' +
+      '        <name>voci</name>\n' +
+      '        <description>Voci spuntate dallo studente (le gestisce la mappa, non modificare a mano)</description>\n' +
+      '        <required>0</required>\n' +
+      '        <param1>0</param1>\n' +
+      [2, 3, 4, 5, 6, 7, 8, 9, 10].map(function (i) { return '        <param' + i + '>$@NULL@$</param' + i + '>\n'; }).join('') +
+      '      </field>\n' +
+      '    </fields>\n' +
+      '    <records>\n    </records>\n' +
+      '    <recordstags>\n    </recordstags>\n' +
+      '  </data>\n' +
+      '</activity>';
+
+    var module = XML +
+      '<module id="' + MID + '" version="2026042000">\n' +
+      '  <modulename>data</modulename>\n' +
+      '  <sectionid>' + (900000 + sezione) + '</sectionid>\n' +
+      '  <sectionnumber>' + sezione + '</sectionnumber>\n' +
+      '  <idnumber></idnumber>\n' +
+      '  <added>' + now + '</added>\n' +
+      '  <score>0</score>\n' +
+      '  <indent>0</indent>\n' +
+      '  <visible>1</visible>\n' +
+      '  <visibleoncoursepage>1</visibleoncoursepage>\n' +
+      '  <visibleold>1</visibleold>\n' +
+      '  <groupmode>0</groupmode>\n' +
+      '  <groupingid>0</groupingid>\n' +
+      '  <completion>0</completion>\n' +
+      '  <completiongradeitemnumber>$@NULL@$</completiongradeitemnumber>\n' +
+      '  <completionpassgrade>0</completionpassgrade>\n' +
+      '  <completionview>0</completionview>\n' +
+      '  <completionexpected>0</completionexpected>\n' +
+      '  <availability>$@NULL@$</availability>\n' +
+      '  <showdescription>0</showdescription>\n' +
+      '  <downloadcontent>1</downloadcontent>\n' +
+      '  <lang></lang>\n' +
+      '  <enableaitools>$@NULL@$</enableaitools>\n' +
+      '  <enabledaiactions>$@NULL@$</enabledaiactions>\n' +
+      '  <tags>\n  </tags>\n' +
+      '</module>';
+
+    var settings = [
+      ['filename', filename], ['users', 0], ['anonymize', 0], ['role_assignments', 0], ['activities', 1],
+      ['blocks', 0], ['files', 1], ['filters', 0], ['comments', 0], ['badges', 0], ['calendarevents', 0],
+      ['userscompletion', 0], ['logs', 0], ['grade_histories', 0], ['groups', 0], ['competencies', 0],
+      ['customfield', 0], ['contentbankcontent', 0], ['xapistate', 0], ['legacyfiles', 0]
+    ].map(function (s) {
+      return '      <setting>\n        <level>root</level>\n        <name>' + s[0] + '</name>\n        <value>' + esc(s[1]) + '</value>\n      </setting>\n';
+    }).join('') +
+      '      <setting>\n        <level>activity</level>\n        <activity>data_' + MID + '</activity>\n        <name>data_' + MID + '_included</name>\n        <value>1</value>\n      </setting>\n' +
+      '      <setting>\n        <level>activity</level>\n        <activity>data_' + MID + '</activity>\n        <name>data_' + MID + '_userinfo</name>\n        <value>0</value>\n      </setting>\n';
+
+    var backupId = Array.prototype.map.call(String(now) + nome, function (c) { return c.charCodeAt(0); })
+      .reduce(function (h, c) { return (h * 31 + c) >>> 0; }, 7).toString(16);
+    while (backupId.length < 32) { backupId += backupId; }
+    backupId = backupId.slice(0, 32);
+
+    var mb = XML +
+      '<moodle_backup>\n' +
+      '  <information>\n' +
+      '    <name>' + esc(filename) + '</name>\n' +
+      '    <moodle_version>2026042002.02</moodle_version>\n' +
+      '    <moodle_release>5.2.2+ (Build: 20260903)</moodle_release>\n' +
+      '    <backup_version>2026042000</backup_version>\n' +
+      '    <backup_release>5.2</backup_release>\n' +
+      '    <backup_date>' + now + '</backup_date>\n' +
+      '    <mnet_remoteusers>0</mnet_remoteusers>\n' +
+      '    <include_files>1</include_files>\n' +
+      '    <include_file_references_to_external_content>0</include_file_references_to_external_content>\n' +
+      '    <original_wwwroot>https://salvemini.synology.me/moodle</original_wwwroot>\n' +
+      '    <original_site_identifier_hash>8568b3483d0e2ab302ef2738533ac213</original_site_identifier_hash>\n' +
+      '    <original_course_id>900000</original_course_id>\n' +
+      '    <original_course_format>topics</original_course_format>\n' +
+      '    <original_course_fullname>Mappe dei prerequisiti</original_course_fullname>\n' +
+      '    <original_course_shortname>mappe-prerequisiti</original_course_shortname>\n' +
+      '    <original_course_startdate>' + now + '</original_course_startdate>\n' +
+      '    <original_course_enddate>0</original_course_enddate>\n' +
+      '    <original_course_contextid>900000</original_course_contextid>\n' +
+      '    <original_system_contextid>1</original_system_contextid>\n' +
+      '    <details>\n' +
+      '      <detail backup_id="' + backupId + '">\n' +
+      '        <type>activity</type>\n        <format>moodle2</format>\n        <interactive>1</interactive>\n' +
+      '        <mode>70</mode>\n        <execution>2</execution>\n        <executiontime>0</executiontime>\n' +
+      '      </detail>\n' +
+      '    </details>\n' +
+      '    <contents>\n      <activities>\n        <activity>\n' +
+      '          <moduleid>' + MID + '</moduleid>\n' +
+      '          <sectionid>' + (900000 + sezione) + '</sectionid>\n' +
+      '          <modulename>data</modulename>\n' +
+      '          <title>' + esc(nome) + '</title>\n' +
+      '          <directory>' + dir + '</directory>\n' +
+      '          <insubsection></insubsection>\n' +
+      '        </activity>\n      </activities>\n    </contents>\n' +
+      '    <settings>\n' + settings + '    </settings>\n' +
+      '  </information>\n' +
+      '</moodle_backup>';
+
+    var out = {};
+    out['moodle_backup.xml'] = mb;
+    out[dir + '/data.xml'] = data;
+    out[dir + '/module.xml'] = module;
+    out[dir + '/inforef.xml'] = XML + '<inforef>\n</inforef>';
+    out[dir + '/roles.xml'] = XML + '<roles>\n  <role_overrides>\n  </role_overrides>\n  <role_assignments>\n  </role_assignments>\n</roles>';
+    out[dir + '/grades.xml'] = XML + '<activity_gradebook>\n  <grade_items>\n  </grade_items>\n  <grade_letters>\n  </grade_letters>\n</activity_gradebook>';
+    out[dir + '/grade_history.xml'] = XML + '<grade_history>\n  <grade_grades>\n  </grade_grades>\n</grade_history>';
+    out['completion.xml'] = XML + '<course_completion>\n</course_completion>';
+    out['files.xml'] = XML + '<files>\n</files>';
+    out['groups.xml'] = XML + '<groups>\n  <groupcustomfields>\n  </groupcustomfields>\n  <groupings>\n    <groupingcustomfields>\n    </groupingcustomfields>\n  </groupings>\n</groups>';
+    out['outcomes.xml'] = XML + '<outcomes_definition>\n</outcomes_definition>';
+    out['questions.xml'] = XML + '<question_categories>\n</question_categories>';
+    out['roles.xml'] = XML + '<roles_definition>\n</roles_definition>';
+    out['scales.xml'] = XML + '<scales_definition>\n</scales_definition>';
+    out['moodle_backup.log'] = '';
+    return { files: out, dirs: ['activities/', dir + '/'], now: now, filename: filename };
+  }
+
+  /* ---------- archivio tar (ustar) come quello di Moodle, con .ARCHIVE_INDEX in testa ---------- */
+  function utf8(s) {
+    if (typeof TextEncoder !== 'undefined') { return new TextEncoder().encode(s); }
+    return Uint8Array.from(Buffer.from(s, 'utf8'));
+  }
+  function octal(n, len) {
+    var s = n.toString(8);
+    while (s.length < len - 1) { s = '0' + s; }
+    return s + '\0';
+  }
+  function header(name, size, mtime, isDir) {
+    var h = new Uint8Array(512);
+    var put = function (str, off, max) { var b = utf8(str); h.set(b.subarray(0, max), off); };
+    put(name, 0, 100);
+    put(isDir ? '0000755\0' : '0000644\0', 100, 8);
+    put('0000000\0', 108, 8);
+    put('0000000\0', 116, 8);
+    put(octal(size, 12), 124, 12);
+    put(octal(mtime, 12), 136, 12);
+    put('        ', 148, 8);
+    h[156] = isDir ? 53 : 48; // '5' cartella, '0' file
+    put('ustar\0', 257, 6);
+    put('00', 263, 2);
+    var sum = 0;
+    for (var i = 0; i < 512; i++) { sum += h[i]; }
+    put(octal(sum, 7) + ' ', 148, 8);
+    return h;
+  }
+  function tar(pack) {
+    var names = Object.keys(pack.files);
+    var lines = [];
+    pack.dirs.forEach(function (d) { lines.push(d + '\td\t0\t?'); });
+    names.forEach(function (n) { lines.push(n + '\tf\t' + utf8(pack.files[n]).length + '\t' + pack.now); });
+    var index = 'Moodle archive file index. Count: ' + lines.length + '\n' + lines.join('\n') + '\n';
+    var entries = [['.ARCHIVE_INDEX', index, false]];
+    pack.dirs.forEach(function (d) { entries.push([d, null, true]); });
+    names.forEach(function (n) { entries.push([n, pack.files[n], false]); });
+    var chunks = [], total = 0;
+    entries.forEach(function (e) {
+      var body = e[2] ? new Uint8Array(0) : utf8(e[1]);
+      chunks.push(header(e[0], body.length, pack.now, e[2]));
+      chunks.push(body);
+      var pad = (512 - body.length % 512) % 512;
+      chunks.push(new Uint8Array(pad));
+      total += 512 + body.length + pad;
+    });
+    chunks.push(new Uint8Array(1024));
+    total += 1024;
+    var out = new Uint8Array(total), off = 0;
+    chunks.forEach(function (c) { out.set(c, off); off += c.length; });
+    return out;
+  }
+
+  root.LH_MBZ = { files: files, tar: tar };
+  if (typeof module !== 'undefined' && module.exports) { module.exports = root.LH_MBZ; }
+})(typeof window !== 'undefined' ? window : this);
+</script>
+<script type="text/plain" id="src-runtime">/* Gerarchie di apprendimento - motore di impaginazione e disegno (nessuna dipendenza esterna). */
+(function (root) {
+  'use strict';
+  if (root.LH && root.LH.version) { return; }
+
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  var NODE_H = 46, RANK_SEP = 46, NODE_SEP = 14, DUMMY_W = 6, MARGIN = 8, PAD_X = 24;
+
+  var COLORS = {
+    fill: '#ffffff', stroke: '#a9a79e', text: '#1f1e1b', sub: '#5f5e5a',
+    lockFill: '#f5f4f0', lockStroke: '#cfcdc4', lockText: '#8a887f',
+    ready: '#2f6fd0',
+    doneFill: '#e3f0d6', doneStroke: '#5c9a2a', doneText: '#2d5410',
+    edge: '#c2c0b6', edgeOpen: '#2f6fd0', edgeDone: '#86b85a', hover: '#d4861a',
+    selected: '#7a4fd0'
+  };
+
+  function tipoLeggere(n) { return n.tipo === 'leggere'; }
+
+  /* ---------- misura del testo ---------- */
+  var measureCtx = null;
+  function makeMeasure(fontFamily) {
+    try {
+      if (!measureCtx) { measureCtx = document.createElement('canvas').getContext('2d'); }
+    } catch (e) { measureCtx = null; }
+    return function (text, size, weight) {
+      if (measureCtx) {
+        measureCtx.font = (weight || 400) + ' ' + size + 'px ' + (fontFamily || 'sans-serif');
+        return measureCtx.measureText(text).width;
+      }
+      return text.length * size * (weight >= 600 ? 0.6 : 0.55);
+    };
+  }
+
+  /* ---------- pulizia del grafo ---------- */
+  function normalize(graph) {
+    var nodes = (graph && graph.nodi) || [];
+    var byId = {}, list = [];
+    nodes.forEach(function (n) {
+      if (!n || !n.id || byId[n.id]) { return; }
+      var c = { id: String(n.id), titolo: n.titolo || n.id, sotto: n.sotto || '', tipo: n.tipo === 'leggere' ? 'leggere' : 'scrivere', pre: [] };
+      byId[c.id] = c; list.push(c);
+    });
+    nodes.forEach(function (n) {
+      if (!n || !byId[n.id]) { return; }
+      var seen = {};
+      byId[n.id].pre = (n.pre || []).map(String).filter(function (p) {
+        if (!byId[p] || p === String(n.id) || seen[p]) { return false; }
+        seen[p] = true; return true;
+      });
+    });
+    return { list: list, byId: byId };
+  }
+
+  /* Rileva i cicli: restituisce l'ordine topologico e gli archi da ignorare. */
+  function topo(list, byId) {
+    var indeg = {}, suc = {}, order = [], queue = [];
+    list.forEach(function (n) { indeg[n.id] = n.pre.length; suc[n.id] = []; });
+    list.forEach(function (n) { n.pre.forEach(function (p) { suc[p].push(n.id); }); });
+    list.forEach(function (n) { if (!indeg[n.id]) { queue.push(n.id); } });
+    while (queue.length) {
+      var v = queue.shift(); order.push(v);
+      suc[v].forEach(function (w) { if (--indeg[w] === 0) { queue.push(w); } });
+    }
+    var placed = {}; order.forEach(function (v) { placed[v] = true; });
+    var cyclic = [];
+    list.forEach(function (n) {
+      if (!placed[n.id]) {
+        cyclic.push(n.id);
+        n.pre = n.pre.filter(function (p) { return placed[p]; });
+        order.push(n.id); placed[n.id] = true;
+      }
+    });
+    return { order: order, cyclic: cyclic };
+  }
+
+  /* Vero se aggiungere l'arco p -> v creerebbe un ciclo. */
+  function createsCycle(graph, p, v) {
+    if (p === v) { return true; }
+    var g = normalize(graph), stack = [p], seen = {};
+    while (stack.length) {
+      var x = stack.pop();
+      if (x === v) { return true; }
+      if (seen[x] || !g.byId[x]) { continue; }
+      seen[x] = true;
+      g.byId[x].pre.forEach(function (q) { stack.push(q); });
+    }
+    return false;
+  }
+
+  /* ---------- impaginazione a strati ---------- */
+  function layout(graph, measure, opts) {
+    var g = normalize(graph), list = g.list, byId = g.byId;
+    var tp = topo(list, byId), order = tp.order;
+    var suc = {};
+    list.forEach(function (n) { suc[n.id] = []; });
+    list.forEach(function (n) { n.pre.forEach(function (p) { suc[p].push(n.id); }); });
+
+    // 1. livelli: catena più lunga, poi ogni voce si avvicina al lato con più collegamenti
+    var rank = {};
+    order.forEach(function (v) {
+      var pre = byId[v].pre;
+      rank[v] = pre.length ? 1 + Math.max.apply(null, pre.map(function (p) { return rank[p]; })) : 0;
+    });
+    for (var it = 0; it < 6; it++) {
+      for (var i = order.length - 1; i >= 0; i--) {
+        var v = order[i], pre = byId[v].pre, sc = suc[v];
+        var lo = pre.length ? 1 + Math.max.apply(null, pre.map(function (p) { return rank[p]; })) : 0;
+        var hi = sc.length ? Math.min.apply(null, sc.map(function (s) { return rank[s]; })) - 1 : Infinity;
+        if (sc.length > pre.length && hi !== Infinity) { rank[v] = hi; }
+        else if (pre.length > sc.length || hi === Infinity) { rank[v] = lo; }
+        else { rank[v] = Math.max(lo, Math.min(rank[v], hi)); }
+      }
+    }
+    var minR = Infinity, maxR = 0;
+    order.forEach(function (v) { minR = Math.min(minR, rank[v]); });
+    order.forEach(function (v) { rank[v] -= minR; maxR = Math.max(maxR, rank[v]); });
+    if (!order.length) { maxR = -1; }
+
+    // 1b. livelli troppo larghi: sposto le voci che hanno margine verso livelli più liberi
+    var widthOf = {};
+    order.forEach(function (v) {
+      var n = byId[v];
+      widthOf[v] = Math.ceil(Math.max(Math.max(measure(n.titolo, 13, 600), measure(n.sotto, 11, 400)) + PAD_X, 70));
+    });
+    function rankWidths() {
+      var w = [];
+      for (var r = 0; r <= maxR; r++) { w.push(0); }
+      var cnt = w.map(function () { return 0; });
+      order.forEach(function (v) { w[rank[v]] += widthOf[v]; cnt[rank[v]]++; });
+      order.forEach(function (v) {
+        byId[v].pre.forEach(function (p) {
+          for (var r = rank[p] + 1; r < rank[v]; r++) { w[r] += DUMMY_W; cnt[r]++; }
+        });
+      });
+      return w.map(function (x, r) { return x + Math.max(0, cnt[r] - 1) * NODE_SEP; });
+    }
+    function edgeLen() {
+      var s = 0;
+      order.forEach(function (v) { byId[v].pre.forEach(function (p) { s += rank[v] - rank[p]; }); });
+      return s;
+    }
+    var target = (opts && opts.maxWidth) || 760;
+    function score() {
+      var ws = rankWidths(), sc = 0;
+      ws.forEach(function (w) { if (w > target) { sc += (w - target) * (w - target); } });
+      return sc + edgeLen() * 50;
+    }
+    var cur = score();
+    for (var guard = 0; guard < 200; guard++) {
+      var bestMove = null, bestScore = cur;
+      order.forEach(function (v) {
+        var pre = byId[v].pre, sc = suc[v];
+        var lo = pre.length ? 1 + Math.max.apply(null, pre.map(function (p) { return rank[p]; })) : 0;
+        var hi = sc.length ? Math.min.apply(null, sc.map(function (s) { return rank[s]; })) - 1 : maxR;
+        for (var r = lo; r <= hi; r++) {
+          if (r === rank[v]) { continue; }
+          var old = rank[v]; rank[v] = r;
+          var m = score();
+          rank[v] = old;
+          if (m < bestScore - 1e-6) { bestScore = m; bestMove = [v, r]; }
+        }
+      });
+      if (!bestMove) { break; }
+      rank[bestMove[0]] = bestMove[1]; cur = bestScore;
+    }
+
+    // 2. nodi fittizi per gli archi lunghi
+    var L = {}; // chiave -> info
+    var layers = [];
+    for (var r = 0; r <= maxR; r++) { layers.push([]); }
+    order.forEach(function (v) {
+      L[v] = { key: v, real: true, rank: rank[v], w: widthOf[v], up: [], down: [] };
+      layers[rank[v]].push(v);
+    });
+    var edges = [], dcount = 0;
+    order.forEach(function (v) {
+      byId[v].pre.forEach(function (p) {
+        var chain = [p], prev = p;
+        for (var rr = rank[p] + 1; rr < rank[v]; rr++) {
+          var key = '\u0000d' + (dcount++);
+          L[key] = { key: key, real: false, rank: rr, w: DUMMY_W, up: [], down: [] };
+          layers[rr].push(key);
+          L[prev].down.push(key); L[key].up.push(prev);
+          chain.push(key); prev = key;
+        }
+        L[prev].down.push(v); L[v].up.push(prev);
+        chain.push(v);
+        edges.push({ from: p, to: v, chain: chain });
+      });
+    });
+
+    // 3. ordine dentro i livelli: baricentri con passate alterne, si tiene il migliore
+    function idx(layer) { var m = {}; layer.forEach(function (k, i) { m[k] = i; }); return m; }
+    function crossings(ls) {
+      var total = 0;
+      for (var r = 0; r < ls.length - 1; r++) {
+        var pos = idx(ls[r + 1]), segs = [];
+        ls[r].forEach(function (k, i) { L[k].down.forEach(function (d) { segs.push([i, pos[d]]); }); });
+        for (var a = 0; a < segs.length; a++) {
+          for (var b = a + 1; b < segs.length; b++) {
+            if ((segs[a][0] - segs[b][0]) * (segs[a][1] - segs[b][1]) < 0) { total++; }
+          }
+        }
+      }
+      return total;
+    }
+    function sweep(ls, down) {
+      var start = down ? 1 : ls.length - 2, end = down ? ls.length : -1, step = down ? 1 : -1;
+      for (var r = start; r !== end; r += step) {
+        var ref = idx(ls[r - step]);
+        var cur = idx(ls[r]);
+        var bc = {};
+        ls[r].forEach(function (k) {
+          var nb = down ? L[k].up : L[k].down;
+          if (nb.length) {
+            var s = 0; nb.forEach(function (x) { s += ref[x]; });
+            bc[k] = s / nb.length;
+          } else { bc[k] = cur[k]; }
+        });
+        ls[r] = ls[r].slice().sort(function (a, b) { return (bc[a] - bc[b]) || (cur[a] - cur[b]); });
+      }
+    }
+    var best = layers.map(function (l) { return l.slice(); }), bestC = crossings(best);
+    var work = layers.map(function (l) { return l.slice(); });
+    for (var s = 0; s < 24 && bestC > 0; s++) {
+      sweep(work, s % 2 === 0);
+      var c = crossings(work);
+      if (c < bestC) { bestC = c; best = work.map(function (l) { return l.slice(); }); }
+    }
+    layers = best;
+
+    // 4. coordinate orizzontali: allineamento ai vicini rispettando ordine e distanze (regressione isotonica)
+    var X = {};
+    function gap(a, b) { return (L[a].w + L[b].w) / 2 + (L[a].real || L[b].real ? NODE_SEP : 4); }
+    var FRAME = 0;
+    layers.forEach(function (layer) {
+      var x = 0;
+      layer.forEach(function (k, i) {
+        if (i > 0) { x += gap(layer[i - 1], k); }
+        X[k] = x;
+      });
+      if (layer.length) { FRAME = Math.max(FRAME, x + (L[layer[0]].w + L[layer[layer.length - 1]].w) / 2); }
+      var off = x / 2; layer.forEach(function (k) { X[k] -= off; });
+    });
+    FRAME = FRAME * 1.06 + 20;
+    function place(layer, desired, weight) {
+      // y_i = x_i - c_i deve essere non decrescente; minimizza la distanza pesata da desired
+      var n = layer.length, c = [], target = [];
+      for (var i = 0; i < n; i++) {
+        c[i] = i === 0 ? 0 : c[i - 1] + gap(layer[i - 1], layer[i]);
+        target[i] = desired[i] - c[i];
+      }
+      var blocks = [];
+      for (i = 0; i < n; i++) {
+        blocks.push({ v: target[i], w: weight[i], n: 1 });
+        while (blocks.length > 1 && blocks[blocks.length - 2].v > blocks[blocks.length - 1].v) {
+          var b2 = blocks.pop(), b1 = blocks.pop();
+          var w = b1.w + b2.w;
+          blocks.push({ v: (b1.v * b1.w + b2.v * b2.w) / w, w: w, n: b1.n + b2.n });
+        }
+      }
+      // limiti della cornice: la prima voce non esce a sinistra, l'ultima non esce a destra
+      var lowB = -FRAME / 2 + L[layer[0]].w / 2;
+      var highB = FRAME / 2 - L[layer[n - 1]].w / 2 - c[n - 1];
+      var k = 0;
+      blocks.forEach(function (b) {
+        var v = Math.min(Math.max(b.v, lowB), Math.max(lowB, highB));
+        for (var j = 0; j < b.n; j++) { X[layer[k]] = v + c[k]; k++; }
+      });
+    }
+    function pass(mode) {
+      var rs = [];
+      for (var r = 0; r < layers.length; r++) { rs.push(r); }
+      if (mode === 'up') { rs.reverse(); }
+      rs.forEach(function (r) {
+        var layer = layers[r];
+        var desired = [], weight = [];
+        layer.forEach(function (k) {
+          var nb = mode === 'down' ? L[k].up : mode === 'up' ? L[k].down : L[k].up.concat(L[k].down);
+          if (nb.length) {
+            var s = 0; nb.forEach(function (x) { s += X[x]; });
+            desired.push(s / nb.length);
+          } else { desired.push(X[k]); }
+          weight.push(L[k].real ? (nb.length ? 1 : 0.2) : 3);
+        });
+        place(layer, desired, weight);
+      });
+    }
+    for (var q = 0; q < 6; q++) { pass('down'); pass('up'); }
+    for (q = 0; q < 4; q++) { pass('both'); }
+
+    // 5. coordinate finali
+    var minX = Infinity, maxX = -Infinity;
+    Object.keys(L).forEach(function (k) {
+      minX = Math.min(minX, X[k] - L[k].w / 2); maxX = Math.max(maxX, X[k] + L[k].w / 2);
+    });
+    if (minX === Infinity) { minX = 0; maxX = 0; }
+    var out = { nodes: {}, edges: [], cyclic: tp.cyclic };
+    Object.keys(L).forEach(function (k) {
+      L[k].x = X[k] - minX + MARGIN;
+      L[k].y = MARGIN + L[k].rank * (NODE_H + RANK_SEP) + NODE_H / 2;
+    });
+    order.forEach(function (v) {
+      var n = byId[v];
+      out.nodes[v] = { id: v, x: L[v].x, y: L[v].y, w: L[v].w, h: NODE_H, titolo: n.titolo, sotto: n.sotto, tipo: n.tipo, pre: n.pre.slice(), suc: suc[v].slice() };
+    });
+    edges.forEach(function (e) {
+      var pts = e.chain.map(function (k) { return { x: L[k].x, y: L[k].y }; });
+      pts[0].y += NODE_H / 2;
+      pts[pts.length - 1].y -= NODE_H / 2 + 2;
+      var d = 'M' + r1(pts[0].x) + ' ' + r1(pts[0].y);
+      for (var i = 1; i < pts.length; i++) {
+        var a = pts[i - 1], b = pts[i], dy = (b.y - a.y) / 2;
+        d += ' C' + r1(a.x) + ' ' + r1(a.y + dy) + ' ' + r1(b.x) + ' ' + r1(b.y - dy) + ' ' + r1(b.x) + ' ' + r1(b.y);
+      }
+      out.edges.push({ from: e.from, to: e.to, d: d });
+    });
+    out.width = Math.ceil(maxX - minX + 2 * MARGIN);
+    out.height = Math.ceil(order.length ? MARGIN * 2 + (maxR + 1) * NODE_H + maxR * RANK_SEP : 2 * MARGIN);
+    out.order = order;
+    return out;
+  }
+  function r1(v) { return Math.round(v * 10) / 10; }
+
+  /* ---------- disegno ---------- */
+  function el(tag, attrs, parent) {
+    var e = document.createElementNS(SVGNS, tag);
+    for (var k in attrs) { if (attrs.hasOwnProperty(k)) { e.setAttribute(k, attrs[k]); } }
+    if (parent) { parent.appendChild(e); }
+    return e;
+  }
+
+  /*
+   * opts:
+   *   mode: 'edit' (lo studente spunta), 'view' (sola lettura), 'summary' (riepilogo classe), 'author' (editor)
+   *   done: array di id spuntati
+   *   onChange(doneArray)
+   *   counts: {id: numero}, total: numero studenti (per 'summary')
+   *   onSelect(id) per 'summary' e 'author'; selected: id evidenziato
+   */
+  function render(container, graph, opts) {
+    opts = opts || {};
+    var mode = opts.mode || 'view';
+    var done = {};
+    (opts.done || []).forEach(function (id) { done[id] = true; });
+    var font = '';
+    try { font = window.getComputedStyle(container).fontFamily; } catch (e) { font = ''; }
+    var avail = container.clientWidth || (container.parentNode && container.parentNode.clientWidth) || 760;
+    var lay = layout(graph, makeMeasure(font), { maxWidth: Math.max(480, avail - 4) });
+    container.innerHTML = '';
+    // vincoli: si spunta una voce solo se sono spuntati i suoi prerequisiti (default sì)
+    var strict = mode === 'edit' && opts.vincoli !== false && graph.vincoli !== false;
+    var notice = null;
+    if (mode === 'edit') {
+      notice = document.createElement('div');
+      notice.className = 'lh-notice';
+      notice.setAttribute('aria-live', 'polite');
+      container.appendChild(notice);
+    }
+    var flash = {}, flashTimer = null;
+    function say(msg) { if (notice) { notice.textContent = msg || ''; } }
+    var top = mode === 'summary' ? 16 : 6;
+    var svg = el('svg', { viewBox: '0 ' + (-top) + ' ' + Math.max(lay.width, 10) + ' ' + Math.max(lay.height + top, 10), role: 'img', 'class': 'lh-svg' }, container);
+    svg.style.width = lay.width + 'px';
+    svg.style.maxWidth = '100%';
+    svg.style.minWidth = Math.round(lay.width * 0.72) + 'px';
+    svg.style.height = 'auto';
+    svg.style.display = 'block';
+    svg.style.margin = '0 auto';
+    svg.style.fontFamily = font || 'inherit';
+    var uid = 'lh' + Math.random().toString(36).slice(2, 8);
+    var defs = el('defs', {}, svg);
+    ['edge', 'edgeOpen', 'edgeDone', 'hover'].forEach(function (c) {
+      var m = el('marker', { id: uid + c, viewBox: '0 0 10 10', refX: '8', refY: '5', markerWidth: '7', markerHeight: '7', orient: 'auto-start-reverse' }, defs);
+      el('path', { d: 'M2 1L8 5L2 9', fill: 'none', stroke: COLORS[c], 'stroke-width': '1.6', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, m);
+    });
+    var gE = el('g', {}, svg), gN = el('g', {}, svg);
+    var edgeEls = lay.edges.map(function (e) {
+      var p = el('path', { d: e.d, fill: 'none', 'stroke-width': '1.2' }, gE);
+      return { e: e, p: p };
+    });
+    var nodeEls = {};
+    var hovered = null, selected = opts.selected || null;
+    lay.order.forEach(function (id) {
+      var n = lay.nodes[id];
+      var g = el('g', { 'class': 'lh-node', 'data-id': id, tabindex: mode === 'edit' || mode === 'author' || mode === 'summary' ? '0' : '-1' }, gN);
+      g.style.cursor = mode === 'view' ? 'default' : 'pointer';
+      var rect = el('rect', { x: r1(n.x - n.w / 2), y: r1(n.y - n.h / 2), width: n.w, height: n.h, rx: 9 }, g);
+      if (n.tipo === 'leggere') { rect.setAttribute('stroke-dasharray', '5 3'); }
+      var mark = el('g', { transform: 'translate(' + r1(n.x - n.w / 2 + 3) + ',' + r1(n.y - n.h / 2 + 3) + ')' }, g);
+      el('circle', { r: '7.5', fill: COLORS.doneStroke, stroke: '#ffffff', 'stroke-width': '1.5' }, mark);
+      el('path', { d: 'M-3.2 0.2 L-0.9 2.5 L3.4 -2.4', fill: 'none', stroke: '#ffffff', 'stroke-width': '1.8', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, mark);
+      var t1 = el('text', { x: r1(n.x), y: r1(n.y - 7), 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-size': '13', 'font-weight': '600' }, g);
+      t1.textContent = n.titolo;
+      var t2 = el('text', { x: r1(n.x), y: r1(n.y + 10), 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-size': '11' }, g);
+      t2.textContent = n.sotto;
+      var badge = null;
+      if (mode === 'summary') {
+        badge = el('text', { x: r1(n.x + n.w / 2 - 6), y: r1(n.y - n.h / 2 - 5), 'text-anchor': 'end', 'font-size': '11', 'font-weight': '600' }, g);
+      }
+      var title = el('title', {}, g);
+      title.textContent = n.titolo + (n.pre.length ? ' - richiede: ' + n.pre.map(function (p) { return lay.nodes[p].titolo; }).join(', ') : '');
+      nodeEls[id] = { g: g, rect: rect, mark: mark, t1: t1, t2: t2, badge: badge };
+      g.addEventListener('mouseenter', function () { hovered = id; paint(); });
+      g.addEventListener('mouseleave', function () { hovered = null; paint(); });
+      function act() {
+        if (mode === 'edit') {
+          if (done[id]) {
+            delete done[id];
+            var removed = strict ? dependentsDone(id) : [];
+            removed.forEach(function (r) { delete done[r]; });
+            say(removed.length ? 'Tolta la spunta anche da ' + names(removed) + (removed.length === 1 ? ', che richiede ' : ', che richiedono ') + '«' + n.titolo + '».' : '');
+          } else if (strict && !isReady(id)) {
+            var missing = n.pre.filter(function (p) { return !done[p]; });
+            say('Per spuntare «' + n.titolo + '» devi prima saper fare ' + names(missing) + '.');
+            flash = {};
+            missing.forEach(function (p) { flash[p] = true; });
+            clearTimeout(flashTimer);
+            flashTimer = setTimeout(function () { flash = {}; paint(); }, 2500);
+            paint();
+            return;
+          } else {
+            done[id] = true;
+            say('');
+          }
+          paint();
+          if (opts.onChange) { opts.onChange(getDone()); }
+        } else if (mode === 'summary' || mode === 'author') {
+          selected = selected === id && mode === 'summary' ? null : id;
+          paint();
+          if (opts.onSelect) { opts.onSelect(selected); }
+        }
+      }
+      g.addEventListener('click', act);
+      g.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); act(); }
+      });
+    });
+
+    function names(ids) {
+      var t = ids.map(function (x) { return '«' + lay.nodes[x].titolo + '»'; });
+      return t.length > 1 ? t.slice(0, -1).join(', ') + ' e ' + t[t.length - 1] : t[0];
+    }
+    function dependentsDone(id) {
+      var out = [], seen = {}, stack = lay.nodes[id].suc.slice();
+      while (stack.length) {
+        var x = stack.pop();
+        if (seen[x]) { continue; }
+        seen[x] = true;
+        if (done[x]) { out.push(x); }
+        lay.nodes[x].suc.forEach(function (s) { stack.push(s); });
+      }
+      return lay.order.filter(function (x) { return out.indexOf(x) >= 0; });
+    }
+    function getDone() { return lay.order.filter(function (id) { return done[id]; }); }
+    function isReady(id) { return lay.nodes[id].pre.every(function (p) { return done[p]; }); }
+    function mix(a, b, t) {
+      var pa = [1, 3, 5].map(function (i) { return parseInt(a.substr(i, 2), 16); });
+      var pb = [1, 3, 5].map(function (i) { return parseInt(b.substr(i, 2), 16); });
+      return '#' + pa.map(function (v, i) { var c = Math.round(v + (pb[i] - v) * t).toString(16); return c.length < 2 ? '0' + c : c; }).join('');
+    }
+
+    function paint() {
+      var counts = opts.counts || {}, total = opts.total || 0;
+      lay.order.forEach(function (id) {
+        var ne = nodeEls[id], fill, stroke, sw = 0.9, tc, sc, mk = '';
+        if (mode === 'summary') {
+          var frac = total ? (counts[id] || 0) / total : 0;
+          fill = mix('#f7f6f2', '#9ccc6e', frac);
+          stroke = frac >= 0.999 && total ? COLORS.doneStroke : COLORS.stroke;
+          tc = COLORS.text; sc = COLORS.sub;
+          ne.badge.textContent = total ? (counts[id] || 0) + '/' + total : '';
+          ne.badge.setAttribute('fill', COLORS.sub);
+        } else if (mode === 'author') {
+          fill = COLORS.fill; stroke = COLORS.stroke; tc = COLORS.text; sc = COLORS.sub;
+        } else {
+          var d = !!done[id], ok = isReady(id);
+          if (d) { fill = COLORS.doneFill; stroke = COLORS.doneStroke; tc = COLORS.doneText; sc = COLORS.doneText; mk = '✓'; }
+          else if (ok) { fill = COLORS.fill; stroke = COLORS.ready; sw = 2; tc = COLORS.text; sc = COLORS.sub; }
+          else { fill = COLORS.lockFill; stroke = COLORS.lockStroke; tc = COLORS.lockText; sc = COLORS.lockText; }
+        }
+        if (mode === 'edit') { ne.g.style.cursor = strict && !done[id] && !isReady(id) ? 'not-allowed' : 'pointer'; }
+        if (flash[id]) { stroke = COLORS.hover; sw = 2.6; }
+        else if (selected === id) { stroke = COLORS.selected; sw = 2.4; }
+        else if (hovered && (id === hovered || lay.nodes[hovered].pre.indexOf(id) >= 0 || lay.nodes[hovered].suc.indexOf(id) >= 0) && id !== hovered) { stroke = COLORS.hover; sw = 2; }
+        ne.rect.setAttribute('fill', fill); ne.rect.setAttribute('stroke', stroke); ne.rect.setAttribute('stroke-width', sw);
+        ne.t1.setAttribute('fill', tc); ne.t2.setAttribute('fill', sc);
+        ne.mark.style.display = mk ? '' : 'none';
+      });
+      edgeEls.forEach(function (x) {
+        var c = 'edge', w = 1.2;
+        var focus = hovered || (mode === 'author' || mode === 'summary' ? selected : null);
+        if (focus && (x.e.from === focus || x.e.to === focus)) { c = 'hover'; w = 2; }
+        else if (mode === 'edit' || mode === 'view') {
+          if (done[x.e.from] && done[x.e.to]) { c = 'edgeDone'; }
+          else if (done[x.e.from]) { c = 'edgeOpen'; w = 1.6; }
+        }
+        x.p.setAttribute('stroke', COLORS[c]); x.p.setAttribute('stroke-width', w);
+        x.p.setAttribute('marker-end', 'url(#' + uid + c + ')');
+      });
+      if (opts.onPaint) { opts.onPaint({ done: getDone().length, total: lay.order.length, ready: lay.order.filter(function (id) { return !done[id] && isReady(id); }).length }); }
+    }
+    paint();
+    return {
+      getDone: getDone,
+      setDone: function (arr) { done = {}; (arr || []).forEach(function (id) { done[id] = true; }); paint(); },
+      setCounts: function (counts, total) { opts.counts = counts; opts.total = total; paint(); },
+      select: function (id) { selected = id; paint(); },
+      layout: lay,
+      svg: svg
+    };
+  }
+
+  /* ---------- legenda e contatore riutilizzabili ---------- */
+  function legend(graph) {
+    var box = document.createElement('div');
+    box.className = 'lh-legend';
+    var nodes = graph ? normalize(graph).list : [];
+    // i due tipi in legenda solo se la mappa li usa entrambi
+    var both = !graph || (nodes.some(function (n) { return n.tipo === 'leggere'; }) && nodes.some(function (n) { return n.tipo !== 'leggere'; }));
+    box.innerHTML =
+      '<span><i class="lh-sw" style="border:2px solid ' + COLORS.ready + '"></i>pronta da imparare</span>' +
+      '<span><i class="lh-sw" style="background:' + COLORS.doneFill + ';border:1px solid ' + COLORS.doneStroke + '"></i>la so fare</span>' +
+      '<span><i class="lh-sw" style="background:' + COLORS.lockFill + ';border:1px solid ' + COLORS.lockStroke + '"></i>non ancora</span>' +
+      (both ?
+      '<span><i class="lh-sw" style="border:1px solid ' + COLORS.stroke + '"></i>da saper scrivere</span>' +
+      '<span><i class="lh-sw" style="border:1px dashed ' + COLORS.stroke + '"></i>da saper leggere</span>' : '');
+    return box;
+  }
+
+  var CSS =
+    '.lh-wrap{margin:.5rem 0 1rem;max-width:100%;overflow-x:auto}' +
+    '.lh-legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.85rem;color:#5f5e5a;margin:.25rem 0 .75rem}' +
+    '.lh-legend span{display:inline-flex;align-items:center;gap:6px}' +
+    '.lh-sw{display:inline-block;width:18px;height:11px;border-radius:3px;box-sizing:border-box}' +
+    '.lh-count{font-weight:600;color:#1f1e1b;margin:.25rem 0}' +
+    '.lh-node:focus{outline:none}.lh-node:focus-visible rect{stroke:#7a4fd0;stroke-width:2.4}' +
+    '.lh-notice{min-height:1.4em;font-size:.9rem;color:#8a5a00;margin:0 0 .25rem}' +
+    '.lh-hint{color:#5f5e5a;font-size:.9rem;margin:.25rem 0 .5rem}' +
+    '.lh-table{border-collapse:collapse;width:100%;font-size:.9rem;margin:.5rem 0}' +
+    '.lh-table th,.lh-table td{border-bottom:1px solid #e3e1da;padding:6px 8px;text-align:left;vertical-align:middle}' +
+    '.lh-bar{display:inline-block;width:120px;height:8px;background:#ecebe5;border-radius:4px;overflow:hidden;vertical-align:middle;margin-right:8px}' +
+    '.lh-bar i{display:block;height:100%;background:#86b85a}' +
+    '.lh-detail{border:1px solid #e3e1da;border-radius:8px;padding:10px 14px;margin:.5rem 0;background:#fbfaf7}' +
+    '.lh-detail h4{font-size:1rem;margin:0 0 .4rem}' +
+    '.lh-cols{display:flex;flex-wrap:wrap;gap:24px}.lh-cols>div{min-width:200px;flex:1}' +
+    '.lh-cols ul{margin:.25rem 0 0;padding-left:1.1rem}';
+  function injectCss() {
+    if (document.getElementById('lh-css')) { return; }
+    var s = document.createElement('style'); s.id = 'lh-css'; s.textContent = CSS;
+    (document.head || document.documentElement).appendChild(s);
+  }
+
+  function countText(p) {
+    return 'Sai fare ' + p.done + (p.done === 1 ? ' voce' : ' voci') + ' su ' + p.total + ' \u00b7 ' +
+      p.ready + (p.ready === 1 ? ' pronta' : ' pronte') + ' da imparare';
+  }
+
+  root.LH = { version: 1, countText: countText, layout: layout, render: render, normalize: normalize, createsCycle: createsCycle, legend: legend, injectCss: injectCss, COLORS: COLORS };
+})(typeof window !== 'undefined' ? window : this);
+</script>
+<script type="text/plain" id="src-moodle">/* Gerarchie di apprendimento - collegamento con l'attività Database di Moodle. */
+(function () {
+  'use strict';
+
+  function ready(fn) {
+    if (document.readyState !== 'loading') { fn(); } else { document.addEventListener('DOMContentLoaded', fn); }
+  }
+  function ids(text) {
+    return String(text || '').split(/[\s,;]+/).map(function (x) { return x.trim(); }).filter(Boolean);
+  }
+  function div(cls, text) {
+    var d = document.createElement('div');
+    if (cls) { d.className = cls; }
+    if (text) { d.textContent = text; }
+    return d;
+  }
+  function editHref(scope) {
+    var a = scope && scope.querySelector('.lh-edit a[href]');
+    return a ? a.getAttribute('href') : null;
+  }
+  function button(href, label) {
+    var a = document.createElement('a');
+    a.className = 'btn btn-primary lh-btn';
+    a.href = href; a.textContent = label;
+    return a;
+  }
+
+  ready(function () {
+    var G = window.LH_GRAFO;
+    if (!G || !window.LH) { return; }
+    LH.injectCss();
+    var nodes = LH.normalize(G).list, known = {};
+    nodes.forEach(function (n) { known[n.id] = n; });
+    var N = nodes.length;
+
+    var countText = LH.countText;
+
+    /* --- Pagina di inserimento / modifica: lo studente spunta --- */
+    Array.prototype.forEach.call(document.querySelectorAll('.lh-app[data-lh="edit"]'), function (box) {
+      var input = document.getElementById('field_' + box.getAttribute('data-field')) ||
+        box.querySelector('input[type="text"], textarea');
+      if (!input) { return; }
+      var native = box.querySelector('.lh-native');
+      if (native) { native.style.display = 'none'; }
+      var all = ids(input.value);
+      var keep = all.filter(function (id) { return !known[id]; });  // voci tolte dalla mappa: si conservano
+      var count = div('lh-count');
+      var wrap = div('lh-wrap');
+      box.appendChild(count);
+      box.appendChild(LH.legend(G));
+      box.appendChild(wrap);
+      LH.render(wrap, G, {
+        mode: 'edit',
+        done: all.filter(function (id) { return known[id]; }),
+        onChange: function (arr) { input.value = arr.concat(keep).join(','); },
+        onPaint: function (p) { count.textContent = countText(p); }
+      });
+    });
+
+    /* --- Scheda singola: sola lettura --- */
+    Array.prototype.forEach.call(document.querySelectorAll('.lh-app[data-lh="view"]'), function (box) {
+      var data = box.querySelector('.lh-data');
+      var who = box.querySelector('.lh-user');
+      var href = editHref(box);
+      if (who && who.textContent.trim()) {
+        var h = document.createElement('h3');
+        h.className = 'lh-who';
+        h.textContent = who.textContent.trim();
+        box.appendChild(h);
+      }
+      var count = div('lh-count');
+      box.appendChild(count);
+      if (href) { box.appendChild(button(href, 'Aggiorna la mia autovalutazione')); }
+      box.appendChild(LH.legend(G));
+      var wrap = div('lh-wrap');
+      box.appendChild(wrap);
+      LH.render(wrap, G, {
+        mode: 'view',
+        done: ids(data && data.textContent).filter(function (id) { return known[id]; }),
+        onPaint: function (p) { count.textContent = countText(p); }
+      });
+    });
+
+    /* --- Elenco: lo studente vede la sua mappa, il docente il riepilogo della classe --- */
+    var listBox = document.querySelector('.lh-app[data-lh="list"]');
+    if (!listBox) { return; }
+    var entryEls = Array.prototype.slice.call(document.querySelectorAll('.lh-entry'));
+    if (!entryEls.length) { return; }
+    var entries = entryEls.map(function (e) {
+      var u = e.querySelector('.lh-user'), d = e.querySelector('.lh-data'), m = e.querySelector('.lh-more');
+      return {
+        name: u ? u.textContent.trim() : '',
+        done: ids(d && d.textContent).filter(function (id) { return known[id]; }),
+        more: m ? m.textContent.trim() : '',
+        edit: editHref(e),
+        canApprove: !!e.querySelector('.lh-approve a, .lh-approve button')
+      };
+    });
+    var names = {};
+    entries.forEach(function (x) { names[x.name] = true; });
+    var teacher = entries.some(function (x) { return x.canApprove; }) || Object.keys(names).length > 1;
+    var holder = document.querySelector('.lh-entries');
+    if (holder) { holder.style.display = 'none'; }
+
+    if (!teacher) {
+      var own = entries[0];
+      var count = div('lh-count');
+      listBox.appendChild(count);
+      if (own.edit) { listBox.appendChild(button(own.edit, 'Aggiorna la mia autovalutazione')); }
+      listBox.appendChild(LH.legend(G));
+      var w = div('lh-wrap');
+      listBox.appendChild(w);
+      LH.render(w, G, { mode: 'view', done: own.done, onPaint: function (p) { count.textContent = countText(p); } });
+      return;
+    }
+
+    // Riepilogo per il docente
+    var counts = {};
+    entries.forEach(function (x) { x.done.forEach(function (id) { counts[id] = (counts[id] || 0) + 1; }); });
+    var total = entries.length;
+    var head = div('lh-count', 'Riepilogo della classe: ' + total + (total === 1 ? ' studente' : ' studenti'));
+    listBox.appendChild(head);
+    if (document.querySelector('.pagination, .paging')) {
+      var more = div('lh-hint');
+      var url = new URL(window.location.href);
+      url.searchParams.set('perpage', '1000');
+      more.innerHTML = 'Il riepilogo conta solo le schede di questa pagina. ';
+      var a = document.createElement('a'); a.href = url.toString(); a.textContent = 'Mostra tutte le schede in una pagina';
+      more.appendChild(a);
+      listBox.appendChild(more);
+    }
+    listBox.appendChild(div('lh-hint', 'Il colore indica quanti studenti dichiarano di saper fare la voce. Clicca una voce per vedere i nomi.'));
+    var detail = div('lh-detail');
+    detail.style.display = 'none';
+    var w2 = div('lh-wrap');
+    listBox.appendChild(w2);
+    listBox.appendChild(detail);
+
+    function showDetail(id) {
+      if (!id) { detail.style.display = 'none'; return; }
+      var n = known[id];
+      var yes = [], ready = [], no = [];
+      entries.forEach(function (x) {
+        var d = {};
+        x.done.forEach(function (k) { d[k] = true; });
+        if (d[id]) { yes.push(x.name); }
+        else if (n.pre.every(function (p) { return d[p]; })) { ready.push(x.name); }
+        else { no.push(x.name); }
+      });
+      detail.innerHTML = '';
+      var h = document.createElement('h4'); h.textContent = n.titolo + (n.sotto ? ' (' + n.sotto + ')' : '');
+      detail.appendChild(h);
+      var cols = div('lh-cols');
+      [['La sanno fare', yes], ['Pronti a impararla', ready], ['Mancano dei prerequisiti', no]].forEach(function (c) {
+        var col = div('');
+        var t = document.createElement('strong'); t.textContent = c[0] + ' (' + c[1].length + ')';
+        col.appendChild(t);
+        var ul = document.createElement('ul');
+        c[1].sort().forEach(function (name) { var li = document.createElement('li'); li.textContent = name; ul.appendChild(li); });
+        col.appendChild(ul);
+        cols.appendChild(col);
+      });
+      detail.appendChild(cols);
+      detail.style.display = '';
+    }
+    LH.render(w2, G, { mode: 'summary', counts: counts, total: total, onSelect: showDetail });
+
+    // Tabella degli studenti
+    var table = document.createElement('table');
+    table.className = 'lh-table';
+    table.innerHTML = '<thead><tr><th>Studente</th><th>Voci che sa fare</th><th>Pronte da imparare</th></tr></thead>';
+    var tb = document.createElement('tbody');
+    entries.slice().sort(function (a, b) { return a.name.localeCompare(b.name); }).forEach(function (x) {
+      var d = {};
+      x.done.forEach(function (k) { d[k] = true; });
+      var ready = nodes.filter(function (n) { return !d[n.id] && n.pre.every(function (p) { return d[p]; }); }).length;
+      var tr = document.createElement('tr');
+      var td1 = document.createElement('td');
+      if (x.more) { var a = document.createElement('a'); a.href = x.more; a.textContent = x.name; td1.appendChild(a); }
+      else { td1.textContent = x.name; }
+      var td2 = document.createElement('td');
+      var bar = document.createElement('span'); bar.className = 'lh-bar';
+      var fill = document.createElement('i'); fill.style.width = (N ? Math.round(100 * x.done.length / N) : 0) + '%';
+      bar.appendChild(fill); td2.appendChild(bar);
+      td2.appendChild(document.createTextNode(x.done.length + '/' + N));
+      var td3 = document.createElement('td'); td3.textContent = String(ready);
+      tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3);
+      tb.appendChild(tr);
+    });
+    table.appendChild(tb);
+    listBox.appendChild(table);
+  });
+})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  // Versione della pagina: il plugin la confronta con quella pubblicata per proporre l'aggiornamento.
+  var VERSIONE_PAGINA = '1.0.0';
+  window.VERSIONE_PAGINA = VERSIONE_PAGINA;
+  var $ = function (id) { return document.getElementById(id); };
+  var use = function (name) {
+    return (window.claude && window.claude.use) ? window.claude.use(name).catch(function () { return null; }) : Promise.resolve(null);
+  };
+  var LSKEY = 'lh-mappe-locali', LSOPEN = 'lh-mappa-aperta';
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* niente */ } }
+
+  /* ---------- stato ---------- */
+  var graphs = {};          // id -> dati salvati
+  var currentId = null;     // mappa aperta
+  var draft = null;         // copia in modifica
+  var selected = null;      // voce selezionata
+  var view = 'author';      // 'author' | 'student'
+  var linkMode = false;
+  var studentDone = [];
+  var store = null;
+  var dirty = false, saving = false, saveTimer = null, renderTimer = null;
+  var confirmNode = false;
+
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function rid(prefix) { return (prefix || 'v') + Math.random().toString(36).slice(2, 7); }
+  function cleanGraph(g) {
+    return {
+      titolo: String(g.titolo || 'Mappa senza titolo'),
+      descrizione: String(g.descrizione || ''),
+      vincoli: g.vincoli !== false,
+      creato: g.creato ? String(g.creato) : '',
+      archiviato: g.archiviato === true,
+      nodi: (Array.isArray(g.nodi) ? g.nodi : []).filter(function (n) { return n && n.id; }).map(function (n) {
+        return { id: String(n.id), titolo: String(n.titolo || ''), sotto: String(n.sotto || ''), tipo: n.tipo === 'leggere' ? 'leggere' : 'scrivere', pre: (n.pre || []).map(String) };
+      })
+    };
+  }
+  // solo il contenuto della mappa, senza i dati di gestione (per JSON, preset e backup)
+  function content(g) { var c = cleanGraph(g); delete c.creato; delete c.archiviato; return c; }
+  function nodeById(id) { return draft && draft.nodi.filter(function (n) { return n.id === id; })[0]; }
+
+  /* ---------- archivio: db condiviso del documento, altrimenti questo browser ---------- */
+  function localStore(onList) {
+    var data = {};
+    try { data = JSON.parse(lsGet(LSKEY) || '{}') || {}; } catch (e) { data = {}; }
+    setTimeout(function () { onList(clone(data), false); }, 0);
+    return {
+      kind: 'local',
+      save: function (id, g) { data[id] = clone(g); lsSet(LSKEY, JSON.stringify(data)); return Promise.resolve(); },
+      remove: function (id) { delete data[id]; lsSet(LSKEY, JSON.stringify(data)); return Promise.resolve(); }
+    };
+  }
+  function dbStore(db, onList, onError) {
+    var col = db.collection('gerarchie');
+    col.onSnapshot(function (snap) {
+      var next = {};
+      snap.docs.forEach(function (d) { if (d.exists) { next[d.id] = d.data(); } });
+      onList(next, snap.metadata && snap.metadata.hasPendingWrites);
+    }, onError);
+    return {
+      kind: 'db',
+      save: function (id, g) { return col.doc(id).set(g); },
+      remove: function (id) { return col.doc(id).delete(); }
+    };
+  }
+
+  function setStatus(text, cls) { var s = $('status'); s.textContent = text; s.className = 'status ' + (cls || ''); }
+
+  function onList(next) {
+    graphs = next;
+    if (currentId && !graphs[currentId] && !dirty && !saving) { currentId = null; draft = null; }
+    // una mappa nuova che questo browser non ha ancora visto (per esempio creata da Claude in chat) si apre da sola
+    var seen = seenSet(), firstVisit = !lsGet(LSSEEN);
+    var unseen = activeIds().filter(function (id) { return seen.indexOf(id) < 0; });
+    lsSet(LSSEEN, JSON.stringify(Object.keys(graphs)));
+    if (unseen.length && !firstVisit && unseen[0] !== currentId) {
+      if (!dirty && !saving && !confirmNode) {
+        open(unseen[0]);
+        note('Aperta la mappa nuova «' + (graphs[unseen[0]].titolo || '') + '».');
+        return;
+      }
+      note('C\'è una mappa nuova, «' + (graphs[unseen[0]].titolo || '') + '»: la trovi in cima al menù.');
+    }
+    if (!currentId) {
+      var remembered = lsGet(LSOPEN), act = activeIds(), all = sortedIds();
+      if (remembered && graphs[remembered] && !graphs[remembered].archiviato) { open(remembered); }
+      else if (act.length) { open(act[0]); }
+      else if (all.length) { open(all[0]); }
+      else { renderAll(); }
+    } else if (!dirty && !saving && graphs[currentId] && draft && graphs[currentId].aggiornato !== draft.aggiornato) {
+      // cambiata da un altro dispositivo
+      draft = cleanGraph(graphs[currentId]);
+      draft.aggiornato = graphs[currentId].aggiornato;
+      if (selected && !nodeById(selected)) { selected = null; }
+      renderAll();
+    } else {
+      renderPick();
+    }
+    if (!dirty && !saving) { setStatus(store && store.kind === 'local' ? 'Salvato in questo browser' : 'Salvato', 'ok'); }
+  }
+  // dalla più recente alla più vecchia secondo la data di creazione; senza data in fondo, per titolo
+  function sortedIds() {
+    var key = function (id) { return String(graphs[id].creato || ''); };
+    return Object.keys(graphs).sort(function (a, b) {
+      var ka = key(a), kb = key(b);
+      if (ka !== kb) { return !ka ? 1 : !kb ? -1 : (ka < kb ? 1 : -1); }
+      return String(graphs[a].titolo || '').localeCompare(String(graphs[b].titolo || ''), 'it');
+    });
+  }
+  function activeIds() { return sortedIds().filter(function (id) { return !graphs[id].archiviato; }); }
+  function archivedIds() { return sortedIds().filter(function (id) { return graphs[id].archiviato; }); }
+  var LSSEEN = 'lh-mappe-viste';
+  function seenSet() { try { return JSON.parse(lsGet(LSSEEN) || '[]') || []; } catch (e) { return []; } }
+
+  /* ---------- salvataggio ---------- */
+  function touch() {
+    dirty = true;
+    setStatus('Modifiche da salvare', 'pending');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(flush, 900);
+  }
+  function flush() {
+    clearTimeout(saveTimer);
+    if (!dirty || !draft || !currentId || !store) { return Promise.resolve(); }
+    if (saving) { saveTimer = setTimeout(flush, 400); return Promise.resolve(); }
+    saving = true; dirty = false;
+    var id = currentId, data = cleanGraph(draft);
+    data.aggiornato = new Date().toISOString();
+    draft.aggiornato = data.aggiornato;
+    setStatus('Salvataggio', 'pending');
+    return store.save(id, data).then(function () {
+      saving = false;
+      if (dirty) { touch(); } else { setStatus(store.kind === 'local' ? 'Salvato in questo browser' : 'Salvato', 'ok'); }
+    }, function (e) {
+      saving = false; dirty = true;
+      setStatus('Non salvato: ' + ((e && e.message) || 'errore') + '. Riprovo tra poco', 'err');
+      saveTimer = setTimeout(flush, 5000);
+    });
+  }
+
+  /* ---------- apertura e creazione ---------- */
+  function open(id) {
+    var go = function () {
+      currentId = id; lsSet(LSOPEN, id);
+      draft = cleanGraph(graphs[id] || {});
+      draft.aggiornato = graphs[id] && graphs[id].aggiornato;
+      selected = null; studentDone = []; confirmNode = false;
+      hideDelete();
+      $('gestione').open = false;
+      renderAll();
+    };
+    if (dirty) { flush().then(go); } else { go(); }
+  }
+  function createGraph(g) {
+    var id = (LH_PRESET.slug(g.titolo) + '-' + Math.random().toString(36).slice(2, 6));
+    var data = content(g);
+    data.creato = data.aggiornato = new Date().toISOString();
+    data.archiviato = false;
+    var seen = seenSet(); seen.push(id); lsSet(LSSEEN, JSON.stringify(seen));
+    graphs[id] = data;
+    var finish = function () { open(id); };
+    flush().then(function () {
+      return store.save(id, data).then(finish, function (e) { note('Non riesco a creare la mappa: ' + ((e && e.message) || 'errore'), true); });
+    });
+  }
+
+  /* ---------- disegno ---------- */
+  function renderAll() { renderPick(); renderMeta(); renderBoard(); renderPanel(); }
+  function renderPick() {
+    var pick = $('pick'), act = activeIds(), arc = archivedIds();
+    pick.innerHTML = '';
+    var opt = function (id, parent) {
+      var o = document.createElement('option');
+      o.value = id;
+      o.textContent = (id === currentId && draft ? draft.titolo : graphs[id].titolo) || 'Mappa senza titolo';
+      parent.appendChild(o);
+    };
+    if (!act.length && !arc.length) {
+      var o = document.createElement('option'); o.textContent = 'Nessuna mappa'; o.value = ''; pick.appendChild(o);
+    }
+    act.forEach(function (id) { opt(id, pick); });
+    if (arc.length) {
+      var gr = document.createElement('optgroup'); gr.label = 'Archiviate (' + arc.length + ')';
+      arc.forEach(function (id) { opt(id, gr); });
+      pick.appendChild(gr);
+    }
+    pick.value = currentId || '';
+    var has = !!draft;
+    ['btn-dup', 'btn-json', 'btn-moodle', 'btn-preset', 'btn-add', 'btn-link', 'v-author', 'v-student', 'm-titolo', 'm-desc', 'm-vincoli'].forEach(function (b) { $(b).disabled = !has; });
+    var archived = has && draft.archiviato;
+    $('gestione').hidden = !has;
+    $('arc-banner').hidden = !archived;
+    $('btn-archivia').hidden = archived;
+    $('btn-riattiva').hidden = !archived;
+  }
+  function renderMeta() {
+    if (document.activeElement !== $('m-titolo')) { $('m-titolo').value = draft ? draft.titolo : ''; }
+    if (document.activeElement !== $('m-desc')) { $('m-desc').value = draft ? draft.descrizione : ''; }
+    $('m-vincoli').checked = draft ? draft.vincoli !== false : true;
+  }
+
+  var board = $('board');
+  function renderBoard() {
+    board.innerHTML = '';
+    $('v-author').setAttribute('aria-pressed', String(view === 'author'));
+    $('v-student').setAttribute('aria-pressed', String(view === 'student'));
+    $('btn-link').setAttribute('aria-pressed', String(linkMode && view === 'author'));
+    $('btn-link').hidden = view !== 'author';
+    $('btn-add').hidden = view !== 'author';
+    if (!draft) {
+      board.innerHTML = '<div class="empty"><strong>Nessuna mappa aperta</strong><span>Crea una mappa nuova o importa un file JSON: le voci si aggiungono e si collegano qui.</span></div>';
+      var b = document.createElement('button'); b.className = 'primary'; b.type = 'button'; b.textContent = 'Crea la prima mappa';
+      b.addEventListener('click', newGraph);
+      board.firstChild.appendChild(b);
+      $('hint').textContent = ''; $('warnings').innerHTML = '';
+      return;
+    }
+    if (!draft.nodi.length) {
+      board.innerHTML = '<div class="empty"><strong>La mappa è vuota</strong><span>Aggiungi la prima voce: per esempio la competenza più elementare.</span></div>';
+    } else if (view === 'student') {
+      var count = document.createElement('div'); count.className = 'lh-count';
+      board.appendChild(count);
+      board.appendChild(LH.legend(draft));
+      var w = document.createElement('div'); board.appendChild(w);
+      LH.render(w, draft, {
+        mode: 'edit', done: studentDone,
+        onChange: function (d) { studentDone = d; },
+        onPaint: function (p) { count.textContent = LH.countText(p); }
+      });
+    } else {
+      var w2 = document.createElement('div'); board.appendChild(w2);
+      LH.render(w2, draft, { mode: 'author', selected: selected, onSelect: onNodeClick });
+    }
+    renderHint();
+    renderWarnings();
+  }
+  function renderHint() {
+    var h = $('hint');
+    if (!draft) { h.textContent = ''; return; }
+    if (view === 'student') { h.textContent = 'Anteprima: clicca le voci come farebbe uno studente. Qui le spunte non vengono salvate.'; return; }
+    if (linkMode && selected) {
+      var n = nodeById(selected);
+      h.textContent = 'Clicca le voci che servono prima di «' + (n ? n.titolo || 'voce senza titolo' : '') + '»: un clic aggiunge il collegamento, un altro lo toglie.';
+    } else if (linkMode) {
+      h.textContent = 'Scegli prima la voce a cui vuoi aggiungere i prerequisiti.';
+    } else {
+      h.textContent = 'Clicca una voce per modificarla. Le frecce vanno da ciò che serve sapere a ciò che sblocca.';
+    }
+  }
+  function renderWarnings() {
+    var box = $('warnings'); box.innerHTML = '';
+    if (!draft || view !== 'author') { return; }
+    var msgs = [];
+    var untitled = draft.nodi.filter(function (n) { return !n.titolo.trim(); }).length;
+    if (untitled) { msgs.push(untitled === 1 ? 'Una voce non ha titolo.' : untitled + ' voci non hanno titolo.'); }
+    if (draft.nodi.length > 1) {
+      var used = {};
+      draft.nodi.forEach(function (n) { n.pre.forEach(function (p) { used[p] = true; }); });
+      var iso = draft.nodi.filter(function (n) { return !n.pre.length && !used[n.id]; });
+      if (iso.length) { msgs.push('Non collegate a nulla: ' + iso.map(function (n) { return n.titolo || 'voce senza titolo'; }).join(', ') + '.'); }
+    }
+    msgs.forEach(function (m) { var d = document.createElement('div'); d.className = 'warn'; d.textContent = m; box.appendChild(d); });
+  }
+
+  function onNodeClick(id) {
+    if (view !== 'author') { return; }
+    if (linkMode && selected && id && id !== selected) {
+      var v = nodeById(selected);
+      var i = v.pre.indexOf(id);
+      if (i >= 0) { v.pre.splice(i, 1); }
+      else if (LH.createsCycle(draft, id, selected)) {
+        $('hint').textContent = 'Non si può: «' + nodeById(id).titolo + '» richiede già, direttamente o indirettamente, «' + v.titolo + '».';
+        return;
+      } else { v.pre.push(id); }
+      touch(); renderBoard(); renderPanel();
+      return;
+    }
+    selected = id; confirmNode = false;
+    renderBoard(); renderPanel();
+  }
+
+  /* ---------- scheda a destra ---------- */
+  function el(tag, attrs, text) {
+    var e = document.createElement(tag);
+    if (attrs) { Object.keys(attrs).forEach(function (k) { if (k === 'class') { e.className = attrs[k]; } else { e.setAttribute(k, attrs[k]); } }); }
+    if (text != null) { e.textContent = text; }
+    return e;
+  }
+  function renderPanel() {
+    var p = $('panel'); p.innerHTML = '';
+    if (!draft) {
+      p.appendChild(el('h2', null, 'Come funziona'));
+      p.appendChild(el('p', null, 'Ogni mappa scompone un traguardo nelle sue componenti minime. Ogni voce indica le voci che servono prima: da qui nasce l\'ordine in cui imparare.'));
+      return;
+    }
+    var n = selected && nodeById(selected);
+    if (!n || view !== 'author') { renderList(p); return; }
+
+    var head = el('div', { class: 'row' });
+    head.style.justifyContent = 'space-between'; head.style.alignItems = 'baseline';
+    head.appendChild(el('h2', null, 'Voce selezionata'));
+    var close = el('button', { type: 'button', class: 'ghost' }, 'Tutte le voci');
+    close.addEventListener('click', function () { selected = null; linkMode = false; renderBoard(); renderPanel(); });
+    head.appendChild(close);
+    p.appendChild(head);
+
+    var f1 = el('div', { class: 'field' });
+    f1.appendChild(el('label', { for: 'f-titolo' }, 'Titolo'));
+    var inT = el('input', { id: 'f-titolo', type: 'text', autocomplete: 'off', placeholder: 'Tabelle' });
+    inT.value = n.titolo;
+    inT.addEventListener('input', function () { n.titolo = inT.value; touch(); lazyBoard(); renderPick(); });
+    f1.appendChild(inT);
+    p.appendChild(f1);
+
+    var f2 = el('div', { class: 'field' });
+    f2.appendChild(el('label', { for: 'f-sotto' }, 'Riga sotto il titolo'));
+    var inS = el('input', { id: 'f-sotto', type: 'text', autocomplete: 'off', placeholder: 'table, tr, th, td' });
+    inS.value = n.sotto;
+    inS.addEventListener('input', function () { n.sotto = inS.value; touch(); lazyBoard(); });
+    f2.appendChild(inS);
+    p.appendChild(f2);
+
+    var f3 = el('div', { class: 'field' });
+    f3.appendChild(el('span', { class: 'lab' }, 'Che cosa si chiede'));
+    var rr = el('div', { class: 'radio-row', role: 'radiogroup', 'aria-label': 'Che cosa si chiede' });
+    [['scrivere', 'Saperla scrivere', ''], ['leggere', 'Saperla leggere', 'dash']].forEach(function (o) {
+      var lab = el('label');
+      var r = el('input', { type: 'radio', name: 'f-tipo', id: 'f-tipo-' + o[0], value: o[0] });
+      r.checked = n.tipo === o[0];
+      r.addEventListener('change', function () { n.tipo = o[0]; touch(); renderBoard(); });
+      lab.appendChild(r); lab.appendChild(el('span', { class: 'sw ' + o[2] })); lab.appendChild(document.createTextNode(o[1]));
+      rr.appendChild(lab);
+    });
+    f3.appendChild(rr);
+    p.appendChild(f3);
+
+    var f4 = el('div', { class: 'field' });
+    f4.appendChild(el('span', { class: 'lab' }, 'Richiede (prerequisiti)'));
+    var others = draft.nodi.filter(function (x) { return x.id !== n.id; });
+    if (!others.length) {
+      f4.appendChild(el('p', null, 'Aggiungi altre voci per collegarle.'));
+    } else {
+      var box = el('div', { class: 'checks' });
+      others.slice().sort(function (a, b) { return (a.titolo || '').localeCompare(b.titolo || '', 'it'); }).forEach(function (x) {
+        var on = n.pre.indexOf(x.id) >= 0;
+        var blocked = !on && LH.createsCycle(draft, x.id, n.id);
+        var lab = el('label', blocked ? { class: 'off' } : null);
+        var c = el('input', { type: 'checkbox', id: 'f-pre-' + x.id });
+        c.checked = on; c.disabled = blocked;
+        c.addEventListener('change', function () {
+          if (c.checked) { if (n.pre.indexOf(x.id) < 0) { n.pre.push(x.id); } }
+          else { n.pre = n.pre.filter(function (q) { return q !== x.id; }); }
+          touch(); renderBoard(); renderPanel();
+        });
+        lab.appendChild(c);
+        lab.appendChild(document.createTextNode(x.titolo || 'voce senza titolo'));
+        if (blocked) { lab.appendChild(el('span', { class: 'why' }, 'la richiede')); }
+        box.appendChild(lab);
+      });
+      f4.appendChild(box);
+    }
+    p.appendChild(f4);
+
+    var deps = draft.nodi.filter(function (x) { return x.pre.indexOf(n.id) >= 0; });
+    var f5 = el('div', { class: 'field' });
+    f5.appendChild(el('span', { class: 'lab' }, 'Sblocca'));
+    if (!deps.length) { f5.appendChild(el('p', null, 'Nessuna voce la richiede.')); }
+    else {
+      var chips = el('div', { class: 'chips' });
+      deps.forEach(function (d) {
+        var b = el('button', { type: 'button', class: 'chip' }, d.titolo || 'voce senza titolo');
+        b.addEventListener('click', function () { onNodeClick(d.id); });
+        chips.appendChild(b);
+      });
+      f5.appendChild(chips);
+    }
+    p.appendChild(f5);
+
+    var acts = el('div', { class: 'row' });
+    var add = el('button', { type: 'button' }, 'Aggiungi una voce che la richiede');
+    add.addEventListener('click', function () { addNode([n.id]); });
+    acts.appendChild(add);
+    var del = el('button', { type: 'button', class: 'ghost danger' }, 'Elimina voce');
+    del.addEventListener('click', function () { confirmNode = true; renderPanel(); });
+    acts.appendChild(del);
+    p.appendChild(acts);
+
+    if (confirmNode) {
+      var cf = el('div', { class: 'confirm' });
+      cf.appendChild(el('span', null, 'Eliminare «' + (n.titolo || 'voce senza titolo') + '»? Le voci che la richiedono perdono il collegamento.'));
+      var row = el('div', { class: 'row' });
+      var yes = el('button', { type: 'button', class: 'danger' }, 'Sì, elimina');
+      yes.addEventListener('click', function () {
+        draft.nodi = draft.nodi.filter(function (x) { return x.id !== n.id; });
+        draft.nodi.forEach(function (x) { x.pre = x.pre.filter(function (q) { return q !== n.id; }); });
+        selected = null; confirmNode = false; linkMode = false;
+        touch(); renderBoard(); renderPanel();
+      });
+      var no = el('button', { type: 'button' }, 'Annulla');
+      no.addEventListener('click', function () { confirmNode = false; renderPanel(); });
+      row.appendChild(yes); row.appendChild(no); cf.appendChild(row);
+      p.appendChild(cf);
+    }
+
+    var code = el('p', { class: 'code' }, 'codice ' + n.id + ' · resta fisso, così le spunte degli studenti non si perdono');
+    p.appendChild(code);
+  }
+  function renderList(p) {
+    p.appendChild(el('h2', null, 'Voci (' + draft.nodi.length + ')'));
+    p.appendChild(el('p', null, view === 'student' ? 'Torna su «Modifica» per cambiare le voci.' : 'Clicca una voce qui o sulla mappa per modificarla.'));
+    var ul = el('ul', { class: 'list' });
+    var order = LH.layout(draft, function (t) { return t.length * 7; }).order;
+    order.forEach(function (id) {
+      var n = nodeById(id);
+      var li = el('li');
+      var b = el('button', { type: 'button' });
+      b.appendChild(el('span', null, n.titolo || 'voce senza titolo'));
+      b.appendChild(el('span', { class: 'n' }, n.pre.length ? 'richiede ' + n.pre.length : 'di partenza'));
+      b.addEventListener('click', function () { view = 'author'; onNodeClick(id); });
+      li.appendChild(b); ul.appendChild(li);
+    });
+    p.appendChild(ul);
+  }
+
+  function lazyBoard() { clearTimeout(renderTimer); renderTimer = setTimeout(renderBoard, 180); }
+  function addNode(pre) {
+    var id;
+    do { id = rid('v'); } while (nodeById(id));
+    draft.nodi.push({ id: id, titolo: 'Nuova voce', sotto: '', tipo: 'scrivere', pre: (pre || []).slice() });
+    selected = id; view = 'author'; linkMode = false; confirmNode = false;
+    touch(); renderBoard(); renderPanel();
+    var t = $('f-titolo'); if (t) { t.focus(); t.select(); }
+  }
+
+  /* ---------- azioni della barra ---------- */
+  function note(text, err) { var n = $('bar-note'); n.textContent = text; n.className = 'note' + (err ? ' err' : ''); n.hidden = !text; }
+  function newGraph() {
+    createGraph({ titolo: 'Nuova mappa', descrizione: '', nodi: [{ id: 'v1', titolo: 'Prima voce', sotto: '', tipo: 'scrivere', pre: [] }] });
+  }
+  function hideDelete() { $('del-confirm').hidden = true; }
+
+  $('pick').addEventListener('change', function () { if (this.value) { open(this.value); } });
+  $('btn-new').addEventListener('click', newGraph);
+  $('btn-dup').addEventListener('click', function () {
+    if (!draft) { return; }
+    var g = content(draft); g.titolo = g.titolo + ' (copia)';
+    createGraph(g);
+  });
+  function setArchived(v) {
+    if (!draft) { return; }
+    draft.archiviato = v;
+    touch(); flush();
+    renderPick();
+    note(v ? 'Mappa archiviata: la trovi in fondo al menù, tra le archiviate.' : 'Mappa riattivata.');
+  }
+  $('btn-archivia').addEventListener('click', function () { setArchived(true); });
+  $('btn-riattiva').addEventListener('click', function () { setArchived(false); });
+  $('arc-riattiva2').addEventListener('click', function () { setArchived(false); });
+  $('btn-elimina').addEventListener('click', function () {
+    if (!draft) { return; }
+    $('del-text').textContent = 'Eliminare definitivamente la mappa «' + draft.titolo + '»? Le attività già create in Moodle restano come sono.';
+    $('del-confirm').hidden = false;
+  });
+  $('del-no').addEventListener('click', hideDelete);
+  $('del-yes').addEventListener('click', function () {
+    var id = currentId;
+    hideDelete();
+    clearTimeout(saveTimer); dirty = false;
+    currentId = null; draft = null; selected = null;
+    delete graphs[id];
+    store.remove(id).then(function () { onList(graphs); note('Mappa eliminata.'); }, function (e) { note('Non riesco a eliminarla: ' + ((e && e.message) || 'errore'), true); });
+    renderAll();
+  });
+  $('m-titolo').addEventListener('input', function () { if (draft) { draft.titolo = this.value; touch(); renderPick(); } });
+  $('m-desc').addEventListener('input', function () { if (draft) { draft.descrizione = this.value; touch(); } });
+  $('m-vincoli').addEventListener('change', function () {
+    if (!draft) { return; }
+    draft.vincoli = this.checked; touch();
+    if (view === 'student') { studentDone = []; renderBoard(); }
+  });
+  $('v-author').addEventListener('click', function () { view = 'author'; renderBoard(); renderPanel(); });
+  $('v-student').addEventListener('click', function () { view = 'student'; linkMode = false; renderBoard(); renderPanel(); });
+  $('btn-add').addEventListener('click', function () { addNode([]); });
+  $('btn-link').addEventListener('click', function () { linkMode = !linkMode; renderBoard(); });
+
+  var downloads = null;
+  function save(filename, data) {
+    if (!downloads) { note('Lo scaricamento dei file non è disponibile in questa vista. Apri la pagina da claude.ai.', true); return; }
+    downloads.save({ filename: filename, data: data }).then(function () { note(''); }, function (e) {
+      var c = e && e.code;
+      if (c === 'declined') { note(''); return; }
+      note('File non scaricato (' + (c || 'errore') + ').', true);
+    });
+  }
+  $('btn-json').addEventListener('click', function () {
+    if (!draft) { return; }
+    save(LH_PRESET.slug(draft.titolo) + '.json', JSON.stringify(content(draft), null, 2));
+  });
+  function readyToExport() {
+    if (!draft) { return false; }
+    if (!draft.nodi.length) { note('La mappa non ha voci.', true); return false; }
+    if (!window.JSZip) { note('Non riesco a preparare lo zip: la libreria non si è caricata. Ricarica la pagina.', true); return false; }
+    return true;
+  }
+  function presetFiles() {
+    return LH_PRESET.build(content(draft), $('src-runtime').textContent, $('src-moodle').textContent);
+  }
+  $('btn-preset').addEventListener('click', function () {
+    if (!readyToExport()) { return; }
+    var files = presetFiles();
+    var zip = new JSZip();
+    Object.keys(files).forEach(function (f) { zip.file(f, files[f]); });
+    zip.generateAsync({ type: 'blob', compression: 'DEFLATE' }).then(function (blob) {
+      save(LH_PRESET.slug(draft.titolo) + '-preset.zip', blob);
+    });
+  });
+  // Il backup .mbz (tar compresso con gzip) viaggia dentro uno zip: il browser non può salvare file .mbz.
+  $('btn-moodle').addEventListener('click', function () {
+    if (!readyToExport()) { return; }
+    if (!window.CompressionStream) { note('Questo browser non sa comprimere il backup. Usa Chrome, Edge o Firefox aggiornati.', true); return; }
+    var slug = LH_PRESET.slug(draft.titolo);
+    var pack = LH_MBZ.files(presetFiles(), { nome: draft.titolo, filename: slug });
+    var gz = new Blob([LH_MBZ.tar(pack)]).stream().pipeThrough(new CompressionStream('gzip'));
+    new Response(gz).arrayBuffer().then(function (buf) {
+      var zip = new JSZip();
+      zip.file(slug + '.mbz', buf);
+      return zip.generateAsync({ type: 'blob', compression: 'STORE' });
+    }).then(function (blob) {
+      save(slug + '-backup.zip', blob);
+    }, function (e) { note('Backup non creato: ' + ((e && e.message) || 'errore') + '.', true); });
+  });
+  $('btn-import').addEventListener('click', function () { $('file-import').click(); });
+  $('file-import').addEventListener('change', function () {
+    var f = this.files && this.files[0];
+    this.value = '';
+    if (!f) { return; }
+    var r = new FileReader();
+    r.onload = function () {
+      try {
+        var g = JSON.parse(r.result);
+        if (!g || !Array.isArray(g.nodi)) { throw new Error('manca l\'elenco «nodi»'); }
+        createGraph(g);
+        note('Importata «' + (g.titolo || f.name) + '».');
+      } catch (e) { note('Il file non è una mappa valida: ' + e.message + '.', true); }
+    };
+    r.readAsText(f);
+  });
+
+  var lastW = 0;
+  if (window.ResizeObserver) {
+    new ResizeObserver(function () {
+      var w = board.clientWidth;
+      if (Math.abs(w - lastW) > 40) { lastW = w; lazyBoard(); }
+    }).observe(board);
+  }
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(function () { renderBoard(); }); }
+  window.addEventListener('beforeunload', function () { if (dirty) { flush(); } });
+
+  /* ---------- avvio ---------- */
+  renderAll();
+  use('downloads').then(function (d) { downloads = d; });
+  use('db').then(function (db) {
+    if (db) {
+      store = dbStore(db, onList, function (e) { setStatus('Archivio non raggiungibile (' + ((e && e.code) || 'errore') + ')', 'err'); });
+    } else {
+      store = localStore(onList);
+      note('Le mappe vengono salvate solo in questo browser.');
+    }
+  });
+})();
+</script>

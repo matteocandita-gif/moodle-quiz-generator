@@ -1,8 +1,8 @@
 {
   "name": "moodle-quiz-generator",
   "displayName": "Moodle: quiz generator",
-  "version": "0.4.2",
-  "description": "Prepara quiz Moodle di informatica (esercitazioni, verifiche, ripassi) con domande Cloze e CodeRunner JavaScript, SQL e PHP: scaletta e tracce nella dashboard «Bozze dei quiz», poi Moodle XML e backup .mbz da ripristinare.",
+  "version": "0.5.0",
+  "description": "Prepara quiz Moodle di informatica (esercitazioni, verifiche, ripassi) con domande Cloze e CodeRunner JavaScript, SQL e PHP: scaletta e tracce nella dashboard «Bozze dei quiz», poi Moodle XML e backup .mbz da ripristinare. Include le mappe dei prerequisiti per l'autovalutazione degli studenti (attività Database).",
   "author": {
     "name": "Matteo Candita"
   },

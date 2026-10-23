@@ -2,6 +2,8 @@
 
 Plugin per Claude che prepara i quiz Moodle di informatica del triennio SIA: esercitazioni con spiegazione, verifiche di programmazione e di teoria, ripassi. Si parte da una richiesta a parole; Claude propone la scaletta e scrive le domande in una dashboard dove le rivedi e le approvi; alla fine ricevi il backup `.mbz` del quiz, da ripristinare nel corso Moodle con pagine, sezioni, punti e impostazioni già a posto.
 
+Contiene anche le **mappe dei prerequisiti**: un argomento scomposto in competenze collegate da prerequisiti, che in Moodle diventa un'attività in cui ogni studente spunta ciò che sa fare e tu vedi il riepilogo della classe.
+
 Le domande coprono Cloze, risposta multipla, vero/falso, risposta breve, aperta, corrispondenza e CodeRunner JavaScript, SQL, PHP, HTML e CSS. Le domande CodeRunner arrivano con gli output attesi già calcolati eseguendo la soluzione, e quelle SQL e PHP con il database allegato.
 
 ## Che cosa serve
@@ -69,10 +71,11 @@ Le regole didattiche (punti, tempi, struttura delle verifiche, stile delle doman
 | `domande-php-mysqli-mock` | Domande CodeRunner PHP con database simulato |
 | `database-didattici` | Database di prova coerenti in tre taglie, per CodeRunner e phpMyAdmin, con un catalogo |
 | `diagrammi-er` | Progettazione nella notazione del libro, da una descrizione testuale: diagramma E/R (file draw.io e PNG), schema relazionale, documentazione, soluzione completa in HTML o Word |
+| `mappe-prerequisiti` | Mappe dei prerequisiti per l'autovalutazione: l'editor «Mappe dei prerequisiti» e il backup `.mbz` dell'attività Database |
 
-Il comando `installa-dashboard` installa o aggiorna la dashboard.
+Il comando `installa-dashboard` installa o aggiorna la dashboard, `installa-mappe` l'editor delle mappe.
 
-Le skill si usano anche da sole, fuori dalla dashboard: «una Cloze sulle JOIN», «un esercizio sui cicli while da correggere in automatico», «un database con tre tabelle per una lezione in phpMyAdmin», «disegna lo schema E/R della biblioteca», «risolvi questa traccia di progettazione».
+Le skill si usano anche da sole, fuori dalla dashboard: «una Cloze sulle JOIN», «un esercizio sui cicli while da correggere in automatico», «un database con tre tabelle per una lezione in phpMyAdmin», «disegna lo schema E/R della biblioteca», «risolvi questa traccia di progettazione», «una mappa dei prerequisiti su HTML per le quarte».
 
 ## Autore e licenza
 

@@ -1,0 +1,228 @@
+{
+ "descrizione": "Dalla struttura di una pagina alla pagina con form",
+ "nodi": [
+  {
+   "id": "t",
+   "pre": [],
+   "sotto": "apertura, chiusura, vuoti",
+   "tipo": "scrivere",
+   "titolo": "Tag ed elementi"
+  },
+  {
+   "id": "f",
+   "pre": [],
+   "sotto": "salvare, aprire, ispezionare",
+   "tipo": "scrivere",
+   "titolo": "File e browser"
+  },
+  {
+   "id": "a",
+   "pre": [
+    "t"
+   ],
+   "sotto": "nome=\"valore\"",
+   "tipo": "scrivere",
+   "titolo": "Attributi"
+  },
+  {
+   "id": "n",
+   "pre": [
+    "t"
+   ],
+   "sotto": "elementi dentro elementi",
+   "tipo": "scrivere",
+   "titolo": "Annidamento"
+  },
+  {
+   "id": "s",
+   "pre": [
+    "n",
+    "f"
+   ],
+   "sotto": "doctype, head, body, meta",
+   "tipo": "scrivere",
+   "titolo": "Scheletro della pagina"
+  },
+  {
+   "id": "h",
+   "pre": [
+    "t"
+   ],
+   "sotto": "h1–h6, p",
+   "tipo": "scrivere",
+   "titolo": "Titoli e paragrafi"
+  },
+  {
+   "id": "p",
+   "pre": [
+    "f"
+   ],
+   "sotto": "relativi e assoluti",
+   "tipo": "scrivere",
+   "titolo": "Percorsi"
+  },
+  {
+   "id": "l",
+   "pre": [
+    "a",
+    "p"
+   ],
+   "sotto": "a href",
+   "tipo": "leggere",
+   "titolo": "Link"
+  },
+  {
+   "id": "i",
+   "pre": [
+    "a",
+    "p"
+   ],
+   "sotto": "img src alt",
+   "tipo": "leggere",
+   "titolo": "Immagini"
+  },
+  {
+   "id": "ul",
+   "pre": [
+    "n"
+   ],
+   "sotto": "ul, ol, li",
+   "tipo": "leggere",
+   "titolo": "Liste"
+  },
+  {
+   "id": "tb",
+   "pre": [
+    "n"
+   ],
+   "sotto": "table, tr, th, td",
+   "tipo": "leggere",
+   "titolo": "Tabelle"
+  },
+  {
+   "id": "d",
+   "pre": [
+    "s"
+   ],
+   "sotto": "div, header, main, footer",
+   "tipo": "leggere",
+   "titolo": "Contenitori e semantica"
+  },
+  {
+   "id": "ic",
+   "pre": [
+    "a"
+   ],
+   "sotto": "nomi per gli elementi",
+   "tipo": "scrivere",
+   "titolo": "id e class"
+  },
+  {
+   "id": "fo",
+   "pre": [
+    "a",
+    "n"
+   ],
+   "sotto": "action e method",
+   "tipo": "scrivere",
+   "titolo": "Il tag form"
+  },
+  {
+   "id": "in",
+   "pre": [
+    "a"
+   ],
+   "sotto": "input: type, name",
+   "tipo": "scrivere",
+   "titolo": "Campi di testo"
+  },
+  {
+   "id": "at",
+   "pre": [
+    "in"
+   ],
+   "sotto": "value, placeholder, required",
+   "tipo": "scrivere",
+   "titolo": "Attributi dei campi"
+  },
+  {
+   "id": "lb",
+   "pre": [
+    "in",
+    "ic"
+   ],
+   "sotto": "label for e id",
+   "tipo": "scrivere",
+   "titolo": "Etichette"
+  },
+  {
+   "id": "sc",
+   "pre": [
+    "in"
+   ],
+   "sotto": "radio, checkbox, select",
+   "tipo": "scrivere",
+   "titolo": "Campi a scelta"
+  },
+  {
+   "id": "sb",
+   "pre": [
+    "fo",
+    "in"
+   ],
+   "sotto": "button type=submit",
+   "tipo": "scrivere",
+   "titolo": "Invio"
+  },
+  {
+   "id": "dt",
+   "pre": [
+    "sb",
+    "sc"
+   ],
+   "sotto": "coppie name=valore",
+   "tipo": "scrivere",
+   "titolo": "Dati inviati"
+  },
+  {
+   "id": "gp",
+   "pre": [
+    "dt"
+   ],
+   "sotto": "URL o corpo della richiesta",
+   "tipo": "scrivere",
+   "titolo": "GET e POST"
+  },
+  {
+   "id": "lp",
+   "pre": [
+    "s",
+    "h",
+    "l",
+    "i",
+    "ul",
+    "tb",
+    "d"
+   ],
+   "sotto": "capirla e modificarla",
+   "tipo": "leggere",
+   "titolo": "Leggere una pagina"
+  },
+  {
+   "id": "pf",
+   "pre": [
+    "s",
+    "h",
+    "fo",
+    "at",
+    "lb",
+    "gp"
+   ],
+   "sotto": "scritta da zero",
+   "tipo": "scrivere",
+   "titolo": "Pagina con form"
+  }
+ ],
+ "titolo": "HTML",
+ "vincoli": true
+}
