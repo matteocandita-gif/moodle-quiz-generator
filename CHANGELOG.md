@@ -2,7 +2,7 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
-## 0.8.1 — in preparazione
+## 0.8.1 — 25/10/2026
 
 **Esercitazione con studio e domande sequenziale**: nuovo nome del tipo «Studio e domande» (la sigla resta SD), in linea con gli altri tipi, e regole sulle parti e sulle domande.
 
