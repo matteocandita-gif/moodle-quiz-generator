@@ -1,6 +1,6 @@
 ---
 name: "progettazione-quiz"
-description: "Punto di partenza di ogni quiz Moodle dell'utente, comprese le verifiche di programmazione JavaScript, SQL e PHP: tipo di quiz e preset, scaletta e tracce nella dashboard «Bozze dei quiz» (parte 1), poi passaggio a materiali-moodle per XML e .mbz (parte 2). Usala ogni volta che l'utente chiede un quiz intero: verifica, esercitazione con spiegazione, anche solo teoria, studio e domande (teoria a parti, poi domande chiuse e aperte), ripasso teorico, esercitazione pratica, complessiva di ripasso."
+description: "Punto di partenza di ogni quiz Moodle dell'utente, comprese le verifiche di programmazione JavaScript, SQL e PHP: tipo di quiz e preset, scaletta e tracce nella dashboard «Bozze dei quiz» (parte 1), poi passaggio a materiali-moodle per XML e .mbz (parte 2). Usala ogni volta che l'utente chiede un quiz intero: verifica, esercitazione con spiegazione, anche solo teoria, con studio e domande sequenziale (teoria a parti, poi domande chiuse e aperte), ripasso teorico, esercitazione pratica, complessiva di ripasso."
 ---
 
 # Progettazione dei quiz
@@ -69,7 +69,7 @@ Se l'utente aggiunge una riga e ne compila solo una parte (spesso titolo e richi
 
 ## Domande di comprensione
 
-Valgono per tutte le domande di teoria che seguono una pagina di spiegazione o di teoria (EDT, ED, ER, SD) e, dove applicabili, per le altre domande di teoria. Ogni domanda deve:
+Valgono per tutte le domande di teoria che seguono una pagina di spiegazione o di teoria (EDT, ED, ER, SD) e, dove applicabili, per le altre domande di teoria. Nell'esercitazione con studio e domande sequenziale (SD) valgono in più le regole del preset (`preset.md`): parti con un solo nucleo, tutti i concetti verificati, aperta sul concetto generale applicato a un caso nuovo, mai una definizione da riscrivere. Ogni domanda deve:
 
 1. **Ricavarsi dalla pagina**: la risposta è nella pagina di spiegazione o ne segue direttamente. Non chiedere quello che la pagina non dice (una sigla estesa, un dettaglio del manuale non riportato).
 2. **Chiedere di capire, non di riconoscere**: niente affermazioni copiate dalla pagina da dichiarare vere, niente abbinamenti che si risolvono perché due parole stanno vicine nel testo. Meglio applicare il concetto a un caso concreto (una situazione, un elemento di una pagina, un esempio noto agli studenti) o invertire un rapporto.

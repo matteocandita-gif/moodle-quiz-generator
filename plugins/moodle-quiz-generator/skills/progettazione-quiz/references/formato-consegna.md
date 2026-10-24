@@ -172,7 +172,7 @@ In parte 2 tutte le varianti vanno nella banca del quiz con il loro tag (`genera
 
 ## Prefissi dei nomi
 
-Dal catalogo. La pagina del blocco usa «Spiegazione» nelle esercitazioni con spiegazione, «Teoria» in «Studio e domande» (SD) e «Ripasso» nel ripasso teorico (RT) e nella complessiva di ripasso (ER).
+Dal catalogo. La pagina del blocco usa «Spiegazione» nelle esercitazioni con spiegazione, «Teoria» nell'esercitazione con studio e domande sequenziale (SD) e «Ripasso» nel ripasso teorico (RT) e nella complessiva di ripasso (ER).
 
 ## Non ancora gestito
 

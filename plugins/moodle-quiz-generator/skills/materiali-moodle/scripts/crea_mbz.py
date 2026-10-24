@@ -82,7 +82,7 @@ PRESET = {
         "reviewmarks": 0, "reviewspecificfeedback": 0,
         "reviewgeneralfeedback": 0, "reviewrightanswer": 0,
     },
-    # «Studio e domande»: teoria e domande in sequenza, senza tornare indietro; nessuna verifica
+    # «Esercitazione con studio e domande sequenziale» (SD): teoria e domande in sequenza, senza tornare indietro; nessuna verifica
     # durante il tentativo, revisione completa subito dopo la consegna e dopo, a quiz aperto (4352 = 4096 + 256)
     "studio": {
         "preferredbehaviour": "deferredfeedback", "attempts_number": 1, "timelimit": 2400,

@@ -2,6 +2,14 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.8.1 — in preparazione
+
+**Esercitazione con studio e domande sequenziale**: nuovo nome del tipo «Studio e domande» (la sigla resta SD), in linea con gli altri tipi, e regole sulle parti e sulle domande.
+
+- Teoria divisa in **parti brevi, una per nucleo**: il numero di parti e di domande non è fisso, lo decide il materiale di partenza. Tutti i concetti della parte sono verificati: le chiuse sui **dettagli**, l'aperta (di norma una) sul **concetto generale**.
+- Le domande non si risolvono ricopiando gli appunti: **mai chiedere la definizione** («Definisci», «Che cos'è», «Elenca», «Spiega con parole tue»); l'aperta parte da un **caso che la teoria non contiene** e chiede di applicare, spiegare un perché, confrontare, prevedere, correggere un errore o scegliere e motivare, con una consegna operativa. Nelle indicazioni per chi corregge, una risposta che ripete la definizione senza applicarla vale al massimo metà dei punti.
+- **Dashboard** 0.3.12: nuovo nome e nuova guida del tipo; avviso sulle aperte che sembrano chiedere una definizione o un elenco, nota se una parte ha più di un'aperta.
+
 ## 0.8.0 — 25/10/2026
 
 **Copia PDP delle verifiche**, generata dal plugin. Verificata con ripristini reali nel Moodle della scuola: la copia si aggancia alle domande della verifica e alle descrizioni della banca condivisa (riferimenti, non copie), anche da un corso diverso da quello delle banche.

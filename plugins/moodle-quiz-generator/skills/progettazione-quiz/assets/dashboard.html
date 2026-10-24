@@ -419,7 +419,7 @@ const TIPI={
  EDT:{nome:"Esercitazione con spiegazione · solo teoria",p100:true,tempoRule:"margine",seq:false,cinque:true,parti:[[0,"Apertura","pag"],[1,"Pagina di spiegazione","pag"],[2,"Domande di comprensione","comp"]],
    gruppi:[{id:"pag",n:"Pagine",p:0,m:null},{id:"comp",n:"Domande di comprensione",p:100,m:null}]},
  /* teoria divisa in parti, dopo ogni parte le sue domande chiuse e aperte; navigazione sequenziale */
- SD:{nome:"Studio e domande",p100:false,tempoRule:"margine",seq:false,studio:true,parti:[[1,"Pagina di teoria","pag"],[2,"Domande chiuse","chi"],[3,"Domande aperte","ape"]],
+ SD:{nome:"Esercitazione con studio e domande sequenziale",p100:false,tempoRule:"margine",seq:false,studio:true,parti:[[1,"Pagina di teoria","pag"],[2,"Domande chiuse","chi"],[3,"Domande aperte","ape"]],
    gruppi:[{id:"pag",n:"Pagine di teoria",p:0,m:null},{id:"chi",n:"Domande chiuse",p:null,m:null},{id:"ape",n:"Domande aperte",p:null,m:null}]},
  V:{nome:"Verifica di programmazione",p100:true,tempoRule:"quota",seq:false,parti:[[1,"Base","base"],[2,"Avanzata","avz"]],
    gruppi:[{id:"base",n:"Parte base",p:85,m:null},{id:"avz",n:"Parte avanzata",p:15,m:null}]},
@@ -939,12 +939,14 @@ function avvisi(q,rows,C){
     /* ogni pagina di teoria è seguita dalle sue domande: almeno una chiusa e una aperta, le aperte dopo le chiuse; la teoria sta su una pagina del quiz da sola */
     const isTeo=function(r){return r.tipologia==="paginablocco";},isApe=function(r){return r.tipologia==="teoria_aperta";};
     const segs=[];let cur=null;
-    rows.forEach(function(r){if(isTeo(r)){cur={teo:r,dom:[]};segs.push(cur);}else if(cur)cur.dom.push(r);else add("warn",(r.pos||"?")+": viene prima della prima pagina di teoria; in «Studio e domande» le domande seguono la teoria su cui si basano.",r.id);});
+    rows.forEach(function(r){if(isTeo(r)){cur={teo:r,dom:[]};segs.push(cur);}else if(cur)cur.dom.push(r);else add("warn",(r.pos||"?")+": viene prima della prima pagina di teoria; le domande seguono la teoria su cui si basano.",r.id);});
     if(!segs.length)add("warn","Non c'è nessuna pagina di teoria.");
     segs.forEach(function(g){
       const w=g.teo.pos||"una pagina di teoria",chi=g.dom.filter(function(r){return !isApe(r);}),ape=g.dom.filter(isApe);
       if(!chi.length)add("warn","Dopo "+w+" non ci sono domande chiuse: ogni parte di teoria ha domande chiuse e aperte.",g.teo.id);
       if(!ape.length)add("warn","Dopo "+w+" non c'è una domanda aperta: ogni parte di teoria ha domande chiuse e aperte.",g.teo.id);
+      if(ape.length>1)add("info","Dopo "+w+" ci sono "+ape.length+" domande aperte: di norma una sola, sul concetto generale della parte; se i nuclei sono due, valuta di dividere la teoria in due parti.",ape[1].id);
+      ape.forEach(function(r){const t=String(r.traccia||"").replace(/<[^>]+>/g," ");if(/\b(definisci|definire|dai la definizione|che cos['’]\s?è|cosa si intende|che cosa si intende|riporta|elenca|elencare|con parole tue|con parole vostre)(?![\wà-ù])/i.test(t))add("warn",(r.pos||"?")+": l'aperta sembra chiedere una definizione, un elenco o di ripetere la teoria con parole proprie; deve chiedere di usare il concetto su un caso nuovo (spiegare, confrontare, prevedere, correggere, scegliere e motivare).",r.id);});
       const iA=g.dom.findIndex(isApe),iC=g.dom.map(function(r){return !isApe(r);}).lastIndexOf(true);
       if(iA>=0&&iC>iA)add("warn",(g.dom[iC].pos||"?")+": una domanda chiusa viene dopo l'aperta "+(g.dom[iA].pos||"?")+"; le aperte vanno dopo le chiuse della stessa parte.",g.dom[iC].id);
       const insieme=rows.filter(function(r){return r!==g.teo&&String(r.pag)===String(g.teo.pag);});
@@ -1028,7 +1030,7 @@ function renderHeader(){
   ["home","scaletta","dettaglio"].forEach(function(v){$("#tab-"+v).setAttribute("aria-selected",(S.view===v||(v==="home"&&S.view==="nuovo"))?"true":"false");});
 }
 /* ------------------------------------------------------------------ vista iniziale e nuovo quiz */
-const VERSIONE_PAGINA="0.3.11";
+const VERSIONE_PAGINA="0.3.12";
 const PERCORSO_IMPOSTAZIONI="impostazioni/avvio";
 /* depositi delle domande (banche qbank dei corsi deposito): li scrive Claude leggendo un backup */
 const PERCORSO_DEPOSITI="impostazioni/depositi";
@@ -1038,7 +1040,7 @@ function triggerAvvio(){return S.imp&&typeof S.imp.trigger==="string"&&/^trig_[A
 const CONNETTORE="Claude Code Remote";
 const CLASSI=[["","Scegli"],["terza","Terza"],["quarta","Quarta"],["quinta","Quinta"]];
 const LINGUAGGI=[["","Scegli"],["teoria","Teoria, senza codice"],["html-css","HTML e CSS"],["javascript","JavaScript"],["sql","SQL"],["php","PHP"],["misto","Misto"]];
-const DESCR_TIPO={LIB:"Nessuna regola su tipi e quantità di domande, punti o tempi: decide tutto la richiesta.",ED:"Spiegazione dentro il quiz, poi esercizi guidati e finali: una lezione di due ore (105 minuti).",EDT:"Pagine di spiegazione seguite da domande di comprensione, senza codice.",V:"Verifica di programmazione con voto: parte base e parte avanzata.",VT:"Verifica di teoria con voto, per livelli di Bloom.",RT:"Ripasso di teoria senza voto: risposte e spiegazioni visibili subito.",SD:"Teoria divisa in parti, dopo ogni parte domande chiuse e aperte; senza tornare indietro, risposte dopo la consegna.",EP:"Solo esercizi, senza spiegazione: tipica per casa.",ER:"Rispiega gli argomenti dell'anno prima, a inizio anno."};
+const DESCR_TIPO={LIB:"Nessuna regola su tipi e quantità di domande, punti o tempi: decide tutto la richiesta.",ED:"Spiegazione dentro il quiz, poi esercizi guidati e finali: una lezione di due ore (105 minuti).",EDT:"Pagine di spiegazione seguite da domande di comprensione, senza codice.",V:"Verifica di programmazione con voto: parte base e parte avanzata.",VT:"Verifica di teoria con voto, per livelli di Bloom.",RT:"Ripasso di teoria senza voto: risposte e spiegazioni visibili subito.",SD:"Teoria divisa in parti, una per nucleo; dopo ogni parte domande chiuse sui dettagli e un'aperta sul concetto generale; senza tornare indietro, risposte dopo la consegna.",EP:"Solo esercizi, senza spiegazione: tipica per casa.",ER:"Rispiega gli argomenti dell'anno prima, a inizio anno."};
 const GUIDA_TIPO={
   LIB:["Nessuna regola prefissata","Tipi e numero di domande, punti, tempi e struttura li decide la richiesta. Scegli anche come si comporta in Moodle: come un'esercitazione (risposte e feedback subito, tentativi illimitati) o come una verifica (un tentativo, feedback alla restituzione)."],
   ED:["Lezione su un argomento nuovo","Le pagine di spiegazione stanno dentro il quiz; per ogni blocco esempio svolto, completamento, debugging ed esercizio guidato, poi gli esercizi finali. 100 punti (completamento 20, debugging 25, guidato 20, finali 35), voto interno non verbalizzato, feedback subito. Una lezione di due ore: 105 minuti."],
@@ -1046,7 +1048,7 @@ const GUIDA_TIPO={
   V:["Verifica con voto di JavaScript, SQL o PHP","Di ripasso (tutti gli argomenti, un esercizio per argomento) o di dettaglio (uno o due argomenti, esercizi di difficoltà crescente). Parte base 85 punti e parte avanzata 15, per il 9 e il 10. Un tentativo, feedback alla restituzione; varianti possibili per le verifiche di recupero."],
   VT:["Verifica di teoria con voto","Domande per livelli di Bloom: ricordare 20, comprendere 30, applicare 20, analizzare 15, valutare e creare 15. Feedback alla restituzione."],
   RT:["Ripasso di teoria senza voto","Per consolidare quello che gli studenti hanno già studiato, con domande per livelli di Bloom. Risposte e spiegazioni visibili subito, anche sulle risposte giuste."],
-  SD:["Studiare e poi rispondere","La teoria è divisa in parti: gli studenti leggono e prendono appunti, poi rispondono alle domande su quella parte, chiuse (vero/falso, risposta multipla, corrispondenze, risposta breve; niente completamenti) e aperte. Navigazione sequenziale, un tentativo, tempo unico gestito da loro (40 minuti); feedback e risposte solo dopo la consegna. Formativa, senza versione PDP."],
+  SD:["Studiare e poi rispondere","La teoria è divisa in parti brevi, una per nucleo: gli studenti leggono e prendono appunti, poi rispondono alle domande su quella parte. Le chiuse (vero/falso, risposta multipla, corrispondenze, risposta breve; niente completamenti) toccano tutti i concetti della parte, nei dettagli; l'aperta chiede di usare il concetto generale su un caso nuovo, mai di riscrivere una definizione. Quante domande, lo decide il materiale. Navigazione sequenziale, un tentativo, tempo unico gestito da loro (40 minuti); feedback e risposte solo dopo la consegna. Formativa, senza versione PDP."],
   EP:["Solo esercizi, senza spiegazione","Al massimo un richiamo breve, poi completamento, debugging, esercizio guidato ed esercizi finali. Tipica per casa, dopo la spiegazione in classe."],
   ER:["Ripasso dell'anno prima","A inizio anno: rispiega gli argomenti dell'anno precedente e li fa esercitare come l'esercitazione con spiegazione, con meno profondità. Di solito parte dai quiz già fatti."]
 };
