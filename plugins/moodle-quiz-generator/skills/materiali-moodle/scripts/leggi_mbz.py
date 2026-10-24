@@ -253,8 +253,10 @@ def banche_esterne(radice):
     """Banche (contesti) delle categorie che non appartengono alle attività del backup."""
     import xml.etree.ElementTree as ET
     mb = ET.parse(str(pathlib.Path(radice) / "moodle_backup.xml")).getroot()
-    propri = {a.get("contextid") for a in mb.iter("activity")} | {(a.findtext("contextid") or "") for a in mb.iter("activity")}
-    propri |= {a.findtext("moduleid") for a in mb.iter("activity")}
+    # le banche dei quiz del backup non contano; contano le banche esterne e le attività «Banca delle domande» (qbank)
+    att = [a for a in mb.iter("activity") if a.findtext("moduleid")]
+    propri = {a.findtext("moduleid") for a in att if a.findtext("modulename") != "qbank"}
+    titoli_qbank = {a.findtext("moduleid"): a.findtext("title") for a in att if a.findtext("modulename") == "qbank"}
     cats = []
     for c in ET.parse(str(pathlib.Path(radice) / "questions.xml")).getroot().iter("question_category"):
         cats.append({"id": int(c.get("id")), "nome": c.findtext("name") or "", "ctx": c.findtext("contextid"),
@@ -266,11 +268,13 @@ def banche_esterne(radice):
         per.setdefault(c["ctx"], []).append(c)
     trovate = 0
     for ctx, cs in per.items():
-        if cs[0]["modulo"] in propri or ctx in propri:
+        if cs[0]["modulo"] in propri:
             continue
         trovate += 1
         top = next((c for c in cs if c["parent"] == "0"), None)
-        print("== Banca: contesto %s, modulo %s (livello %s)" % (ctx, cs[0]["modulo"], cs[0]["livello"]))
+        tit = titoli_qbank.get(cs[0]["modulo"])
+        print("== Banca%s: contesto %s, modulo %s (livello %s)" % (" «%s» (attività del backup)" % tit if tit else "",
+                                                                  ctx, cs[0]["modulo"], cs[0]["livello"]))
         for c in cs:
             print("   categoria %d «%s», %d domande, stamp %s" % (c["id"], c["nome"], c["domande"], c["stamp"]))
         if top:
