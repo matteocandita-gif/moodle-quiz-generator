@@ -2,6 +2,16 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.6.1 — 24/10/2026
+
+Nuovo tipo di quiz **Studio e domande** (sigla SD), provato con due bozze ripristinate in Moodle.
+
+- La teoria è divisa in parti: gli studenti leggono e prendono appunti, poi rispondono alle domande su quella parte, prima le chiuse (vero/falso, risposta multipla, corrispondenza, risposta breve; niente completamenti, che suggerirebbero la risposta aperta) e poi le aperte. Formativo, senza versione PDP.
+- Impostazioni dell'.mbz, preset nuovo **studio**: navigazione sequenziale (non si torna alla teoria), un tentativo, feedback differito, tempo unico gestito dagli studenti (40 minuti se il quiz non dice altro); durante il tentativo nessuna verifica, revisione completa subito dopo la consegna e dopo, a quiz aperto.
+- Pagine e nomi: la pagina di teoria sta da sola su una pagina del quiz, apre (la prima) con «Come si svolge» e chiude con «Prima di andare avanti»; le chiuse di una parte insieme sulla pagina dopo, ogni aperta su una pagina sua; una sezione per parte; la pagina di teoria ha il prefisso «Teoria».
+- Voto ed elementi di valutazione compaiono solo dopo la correzione delle aperte (limite di Moodle): l'esito delle chiuse si vede subito domanda per domanda; la consegna lo ricorda.
+- **Dashboard** 0.3.9: il tipo «Studio e domande» nel modulo «Nuovo quiz» e nella guida dei tipi, con 40 minuti proposti; avvisi se una parte di teoria non ha domande chiuse o aperte, se una chiusa viene dopo l'aperta, se la teoria condivide la pagina con una domanda o se una domanda viene prima della prima teoria.
+
 ## 0.6.0 — 24/10/2026
 
 Nuova skill **correzione-verifiche**: correzione di una verifica già svolta, dall'export «Risposte» di Moodle anonimizzato.

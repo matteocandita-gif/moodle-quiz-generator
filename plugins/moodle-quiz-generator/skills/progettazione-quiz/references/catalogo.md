@@ -8,15 +8,15 @@ Colonne: **id** è il valore del campo `tipologia` della riga; **Tipo Moodle** d
 |---|---|---|---|---|---|---|
 | `istruzioni` | Istruzioni | Pagine | Descrizione | V VT | pagina |  |
 | `comelavoriamo` | Come lavoriamo oggi | Pagine | Descrizione | ED EDT EP ER | pagina |  |
-| `paginablocco` | Pagina del blocco | Pagine | Descrizione | ED EDT ER | pagina | Spiegazione (Ripasso in RT ed ER) |
-| `vf` | Vero/falso | Concetti | Vero/falso | VT RT ED EDT ER |  |  |
-| `multipla` | Risposta multipla (una giusta) | Concetti | Risposta multipla | VT RT ED EDT ER |  |  |
-| `crocette` | Risposta multipla (più giuste) | Concetti | Risposta multipla | VT RT ED EDT ER |  |  |
-| `breve` | Risposta breve | Concetti | Risposta breve | VT RT ED EDT | solo con una risposta giusta senza varianti |  |
-| `corrispondenza` | Corrispondenza | Concetti | Corrispondenza | VT RT ED EDT ER |  |  |
+| `paginablocco` | Pagina del blocco | Pagine | Descrizione | ED EDT ER SD | pagina | Spiegazione (Ripasso in RT ed ER, Teoria in SD) |
+| `vf` | Vero/falso | Concetti | Vero/falso | VT RT ED EDT ER SD |  |  |
+| `multipla` | Risposta multipla (una giusta) | Concetti | Risposta multipla | VT RT ED EDT ER SD |  |  |
+| `crocette` | Risposta multipla (più giuste) | Concetti | Risposta multipla | VT RT ED EDT ER SD |  |  |
+| `breve` | Risposta breve | Concetti | Risposta breve | VT RT ED EDT SD | solo con una risposta giusta senza varianti |  |
+| `corrispondenza` | Corrispondenza | Concetti | Corrispondenza | VT RT ED EDT ER SD |  |  |
 | `cloze_testo` | Completamento di testo | Concetti | Cloze | VT RT ED EDT ER |  |  |
 | `ordine` | Metti in ordine | Concetti | Cloze | VT RT ED EDT |  |  |
-| `teoria_aperta` | Teoria a risposta aperta | Concetti | Aperta | V VT RT | su una pagina da sola, correzione manuale |  |
+| `teoria_aperta` | Teoria a risposta aperta | Concetti | Aperta | V VT RT SD | su una pagina da sola, correzione manuale |  |
 | `esempio_svolto` | Esempio svolto da leggere | Lettura del codice | Cloze | ED ER |  | Esempio svolto |
 | `tracciamento` | Tracciamento | Lettura del codice | Cloze | V RT ED EP ER |  | Tracciamento |
 | `lettura_output` | Lettura dell'output | Lettura del codice | Cloze | V RT ED EP ER |  | Tracciamento |

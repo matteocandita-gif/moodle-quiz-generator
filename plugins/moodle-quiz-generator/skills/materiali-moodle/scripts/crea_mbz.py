@@ -11,7 +11,7 @@ Il formato dell'impaginazione è in references/formato-impaginazione.md. In brev
 
 {
   "nome": "Prova quiz",
-  "preset": "esercitazione",            # oppure "verifica"
+  "preset": "esercitazione",            # oppure "verifica" o "studio"
   "impostazioni": {"timelimit": 5400},  # facoltativo: sovrascrive il preset
   "voto_massimo": 10, "voto_sufficienza": 6,
   "sezioni": [
@@ -62,6 +62,15 @@ PRESET = {
         "reviewattempt": 65536, "reviewcorrectness": 0, "reviewmaxmarks": 65536,
         "reviewmarks": 0, "reviewspecificfeedback": 0,
         "reviewgeneralfeedback": 0, "reviewrightanswer": 0,
+    },
+    # «Studio e domande»: teoria e domande in sequenza, senza tornare indietro; nessuna verifica
+    # durante il tentativo, revisione completa subito dopo la consegna e dopo, a quiz aperto (4352 = 4096 + 256)
+    "studio": {
+        "preferredbehaviour": "deferredfeedback", "attempts_number": 1, "timelimit": 2400,
+        "navmethod": "sequential",
+        "reviewattempt": 69888, "reviewcorrectness": 4352, "reviewmaxmarks": 69888,
+        "reviewmarks": 4352, "reviewspecificfeedback": 4352,
+        "reviewgeneralfeedback": 4352, "reviewrightanswer": 4352,
     },
 }
 COMUNI = {

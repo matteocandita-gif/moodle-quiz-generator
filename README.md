@@ -51,6 +51,7 @@ La guida per l'uso di tutti i giorni è in [GUIDA.md](GUIDA.md).
 | LIB | Libero (senza preset) | Nessuna regola prefissata: tipi, numero di domande, punti e tempi li decide la richiesta |
 | ED | Esercitazione con spiegazione | Spiegazione dentro il quiz, poi esercizi guidati e finali |
 | EDT | Esercitazione con spiegazione, solo teoria | Pagine di spiegazione seguite da domande di comprensione, senza codice |
+| SD | Studio e domande | Teoria a parti da studiare, dopo ogni parte domande chiuse e aperte; senza tornare indietro, risposte dopo la consegna |
 | V | Verifica di programmazione | Con voto: parte base e parte avanzata, varianti per tag |
 | VT | Verifica teorica | Con voto, per livelli di Bloom |
 | RT | Ripasso teorico | Senza voto: risposte e spiegazioni visibili subito |

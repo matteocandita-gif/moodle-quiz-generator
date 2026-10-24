@@ -19,7 +19,7 @@ Si legge e si scrive con `ArtifactData` sull'URL della pagina. Ogni scrittura su
 | Campo | Contenuto |
 |---|---|
 | `titolo` | nome breve del quiz (compare nel menù) |
-| `tipoQuiz` | sigla del preset: `LIB` (libero, senza preset: regole solo dalla richiesta, impostazioni dell'.mbz in `presetMbz`), `ED`, `EDT`, `V`, `VT`, `RT`, `EP`, `ER`; `IMP` per un quiz importato da un backup (nessun preset: la pagina non applica le regole su punti, tempi, parti e tipologie, e non lo propone nel modulo «Nuovo quiz») |
+| `tipoQuiz` | sigla del preset: `LIB` (libero, senza preset: regole solo dalla richiesta, impostazioni dell'.mbz in `presetMbz`), `ED`, `EDT`, `SD`, `V`, `VT`, `RT`, `EP`, `ER`; `IMP` per un quiz importato da un backup (nessun preset: la pagina non applica le regole su punti, tempi, parti e tipologie, e non lo propone nel modulo «Nuovo quiz») |
 | `lezione` | numero di lezione (solo cifre: nomi `L<lezione> - …`, categoria «Lezione N - argomento»); altrimenti un codice usato così com'è (`V5R - …`, categoria «V5R - argomento»): il codice di una verifica, o quello automatico che la pagina assegna quando il campo resta vuoto nel modulo, tre caratteri che cominciano con la classe (`4K7`) |
 | `argomento` | argomento: la categoria Moodle è «Lezione N - argomento» (con un codice: «V5R - argomento») |
 | `tempo` | minuti disponibili |
@@ -53,7 +53,7 @@ Si legge e si scrive con `ArtifactData` sull'URL della pagina. Ogni scrittura su
 | `titolo` | titolo breve, entra nel nome Moodle |
 | `sintesi` | che cosa chiede, in una o due frasi (scaletta) |
 | `tipologia` | id del catalogo |
-| `parte` | numero della parte del preset (ED: 0 apertura, 1 pagina del blocco, 3 esempio svolto, 4 completamento, 5 debugging, 6 guidato, 7 finali; EDT: 0 apertura, 1 pagina di spiegazione, 2 domande di comprensione; V: 1 base, 2 avanzata; VT e RT: livello di Bloom 1-5) |
+| `parte` | numero della parte del preset (ED: 0 apertura, 1 pagina del blocco, 3 esempio svolto, 4 completamento, 5 debugging, 6 guidato, 7 finali; EDT: 0 apertura, 1 pagina di spiegazione, 2 domande di comprensione; SD: 1 pagina di teoria, 2 domande chiuse, 3 domande aperte; V: 1 base, 2 avanzata; VT e RT: livello di Bloom 1-5) |
 | `punti`, `minuti` | numeri |
 | `strumento` | `suggerito`, `non-nominato`, `na` (non applicabile) o vuoto |
 | `sostegno` | solo debugging: `quanti-dove`, `solo-quanti`, `nulla` |

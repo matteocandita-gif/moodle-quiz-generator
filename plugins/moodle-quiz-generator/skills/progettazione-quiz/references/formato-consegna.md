@@ -37,7 +37,7 @@ Lo script si ferma con l'elenco delle righe che non rispettano le convenzioni; l
 | `nota` | no | spiegazione di una modifica «da rivedere» |
 | `sezione`, `pag`, `punti`, `pos`, `titolo`, `tipologia` | sì | sezione del quiz, pagina, punti nel quiz, nome della domanda, tipo Moodle |
 
-Quiz: `database` (solo con domande SQL, vedi sotto); `lezione` e `argomento` danno la categoria («Lezione N - argomento») e i nomi («LN - pos - prefisso: titolo»); le verifiche non hanno un numero di lezione e `lezione` è il loro codice (`V5R`): categoria «V5R - argomento», nomi «V5R - pos - prefisso: titolo»; `tipoQuiz` sceglie le impostazioni dell'.mbz (V e VT: verifica, con il tempo del quiz; gli altri, compreso EDT: esercitazione). Facoltativi: `titoliSezioni` (titolo della sezione nel quiz, se diverso dal nome della sezione), `nomeQuiz`, `voto` (10), `sufficienza` (6).
+Quiz: `database` (solo con domande SQL, vedi sotto); `lezione` e `argomento` danno la categoria («Lezione N - argomento») e i nomi («LN - pos - prefisso: titolo»); le verifiche non hanno un numero di lezione e `lezione` è il loro codice (`V5R`): categoria «V5R - argomento», nomi «V5R - pos - prefisso: titolo»; `tipoQuiz` sceglie le impostazioni dell'.mbz (V e VT: verifica, con il tempo del quiz; SD: studio, con il tempo del quiz e la navigazione sequenziale; gli altri, compreso EDT: esercitazione). Facoltativi: `titoliSezioni` (titolo della sezione nel quiz, se diverso dal nome della sezione), `nomeQuiz`, `voto` (10), `sufficienza` (6).
 
 ## Convenzioni della traccia
 
@@ -170,7 +170,7 @@ In parte 2 tutte le varianti vanno nella banca del quiz con il loro tag (`genera
 
 ## Prefissi dei nomi
 
-Dal catalogo. La pagina del blocco usa «Spiegazione» nelle esercitazioni con spiegazione e «Ripasso» nel ripasso teorico (RT) e nella complessiva di ripasso (ER).
+Dal catalogo. La pagina del blocco usa «Spiegazione» nelle esercitazioni con spiegazione, «Teoria» in «Studio e domande» (SD) e «Ripasso» nel ripasso teorico (RT) e nella complessiva di ripasso (ER).
 
 ## Non ancora gestito
 

@@ -9,6 +9,7 @@ Ogni preset ha otto voci: scopo, progressione, tipologie, regole sulle tracce, p
 | LIB | Libero (senza preset) | scelte nel modulo (`presetMbz`) |
 | ED | Esercitazione con spiegazione di dettaglio | esercitazione |
 | EDT | Esercitazione con spiegazione, solo teoria | esercitazione |
+| SD | Studio e domande | studio |
 | V | Verifica di programmazione (sottotipi: ripasso, dettaglio) | verifica |
 | VT | Verifica teorica | verifica |
 | RT | Ripasso teorico (verifica formativa) | esercitazione |
@@ -18,7 +19,8 @@ Ogni preset ha otto voci: scopo, progressione, tipologie, regole sulle tracce, p
 Impostazioni dell'.mbz, verificate su backup reali del Moodle della scuola (5.2):
 
 - **esercitazione**: comportamento interattivo con più tentativi, tentativi illimitati, nessun limite di tempo, revisione completa durante il tentativo, subito dopo e a quiz aperto (risposte, punteggi, feedback, risposta giusta);
-- **verifica**: feedback differito, un tentativo, tempo pari al tempo del quiz, durante la prova si vede solo il tentativo e il punteggio massimo; feedback, punteggi e risposte giuste si aprono dopo, alla restituzione, cambiando le opzioni di revisione del quiz (ricordalo nel messaggio di consegna).
+- **verifica**: feedback differito, un tentativo, tempo pari al tempo del quiz, durante la prova si vede solo il tentativo e il punteggio massimo; feedback, punteggi e risposte giuste si aprono dopo, alla restituzione, cambiando le opzioni di revisione del quiz (ricordalo nel messaggio di consegna);
+- **studio**: navigazione sequenziale (non si torna alle pagine precedenti), feedback differito, un tentativo, tempo pari al tempo del quiz (40 minuti se manca); durante il tentativo nessuna verifica, revisione completa (risposte, punteggi, feedback, risposta giusta) subito dopo la consegna e dopo, finché il quiz è aperto. Provato con un ripristino reale il 24/10/2026.
 
 Voto del quiz: 10, sufficienza 6, salvo indicazione diversa nel quiz della dashboard.
 
@@ -53,6 +55,19 @@ Deciso il 2026-10-09 dopo il quiz «Internet e il Web» (chiude A12).
 - **Pagine e sezioni**: una sezione per l'introduzione e una per blocco. Le domande di una pagina di spiegazione stanno insieme sulla pagina del quiz che la segue.
 - **Sostegno e feedback**: feedback su ogni opzione, visibile subito; non deve svelare la risposta di un'altra domanda della stessa pagina.
 - **Nomi**: la pagina di spiegazione ha il prefisso «Spiegazione», come in ED.
+
+## SD · Studio e domande
+
+Deciso il 2026-10-24 con due bozze di prova ripristinate in Moodle.
+
+- **Scopo**: dare un tempo di studio, in cui gli studenti leggono la teoria e prendono appunti, e un tempo per rispondere alle domande su quella teoria, senza poterla rileggere mentre rispondono (possono usare i loro appunti). Formativa.
+- **Progressione**: la teoria è divisa in **parti**, una pagina di teoria per parte (parte 1). Dopo ogni pagina di teoria le sue domande: prima le **chiuse** (parte 2), poi le **aperte** (parte 3). Ogni concetto della pagina ha domande chiuse e almeno una aperta. Niente pagina «Come lavoriamo oggi»: la prima pagina di teoria apre con il riquadro arancio «Come si svolge» (teoria a parti, domande dopo ogni parte, niente ritorno indietro, risposte giuste solo dopo la consegna, tempo unico gestito da loro). Ogni pagina di teoria chiude con il riquadro arancio «Prima di andare avanti»: passando alla pagina successiva non si torna più alla teoria, quindi prendere gli appunti.
+- **Tipologie**: chiuse: vero/falso, risposta multipla (una o più giuste), corrispondenza, risposta breve. **Niente completamenti** (completamento di testo, metti in ordine): suggerirebbero le parole della risposta aperta, che deve basarsi solo su teoria e appunti. Aperte: teoria a risposta aperta, correzione a mano.
+- **Regole sulle domande**: i criteri delle domande di comprensione nella skill `progettazione-quiz`. Le chiuse non svelano la risposta dell'aperta della stessa parte, nemmeno nei feedback (che però si vedono solo dopo la consegna).
+- **Punteggi e tempi**: nessun totale fisso; le aperte valgono più delle chiuse (nelle bozze di prova 1 punto la chiusa, 2 l'aperta). Il docente può dividere le aperte e le chiuse in due elementi di valutazione del quiz, ma Moodle non mostra voti né elementi finché le aperte non sono valutate: gli studenti vedono subito l'esito domanda per domanda delle chiuse. Tempo unico, gestito dagli studenti: di norma **40 minuti** in tutto (il campo `tempo` del quiz).
+- **Pagine e sezioni**: una sezione per parte («Parte 1 - argomento»). La pagina di teoria sta da sola su una pagina del quiz (altrimenti la si vede mentre si risponde); le chiuse di una parte insieme sulla pagina successiva; ogni aperta su una pagina sua. Nomi: la pagina di teoria ha il prefisso «Teoria».
+- **Sostegno e feedback**: feedback su ogni opzione sbagliata e indicazioni per chi corregge sulle aperte, visibili solo dopo la consegna (impostazioni «studio»). Il docente legge in classe alcune risposte aperte alla fine dell'attività.
+- **Varianti**: nessuna. Nessuna versione PDP: è un'attività formativa, il tempo in più non serve.
 
 ## V · Verifica di programmazione
 

@@ -91,8 +91,10 @@ CR_SQL = {"query", "create_tabelle", "query_due_passi", "vincoli", "campo_prova"
 CR_PHP = {"pagina_php"}
 # tipi di quiz in cui la pagina del blocco è un ripasso e non una spiegazione nuova
 TIPI_RIPASSO = {"RT", "ER"}
+# tipi di quiz in cui la pagina del blocco è teoria da studiare prima delle domande
+TIPI_TEORIA = {"SD"}
 PRESET_MBZ = {"ED": "esercitazione", "EDT": "esercitazione", "EP": "esercitazione", "ER": "esercitazione", "RT": "esercitazione",
-              "V": "verifica", "VT": "verifica"}
+              "V": "verifica", "VT": "verifica", "SD": "studio"}
 
 # ---------------------------------------------------------------- stile HTML (materiali-moodle)
 FONT = ("font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 900px; "
@@ -318,9 +320,11 @@ def nome_moodle(quiz, r):
     tipo, pre = CATALOGO.get(r.get("tipologia"), ("", PREFISSI_CR.get(r.get("tipologia"), "")))
     if r.get("tipologia") == "paginablocco" and quiz.get("tipoQuiz") in TIPI_RIPASSO:
         pre = "Ripasso"
+    elif r.get("tipologia") == "paginablocco" and quiz.get("tipoQuiz") in TIPI_TEORIA:
+        pre = "Teoria"
     titolo = (r.get("titolo") or "").strip()
     # un titolo che comincia già con un prefisso («Trova l'errore: …», «Esempio svolto: …») non lo ripete
-    noti = {v[1] for v in CATALOGO.values() if v[1]} | set(PREFISSI_CR.values()) | {"Ripasso"}
+    noti = {v[1] for v in CATALOGO.values() if v[1]} | set(PREFISSI_CR.values()) | {"Ripasso", "Teoria"}
     if any(titolo.lower().startswith(n.lower() + ":") for n in noti if n):
         pre = ""
     return "%s - %s - %s%s" % (prefisso_lezione(quiz), r.get("pos") or "??", pre + ": " if pre else "", titolo)
@@ -953,7 +957,7 @@ def main():
     imp = {"nome": quiz.get("nomeQuiz") or quiz.get("titolo") or categoria, "preset": preset,
            "voto_massimo": quiz.get("voto", 10), "voto_sufficienza": quiz.get("sufficienza", 6),
            "sezioni": sezioni}
-    if preset == "verifica" and quiz.get("tempo"):
+    if preset in ("verifica", "studio") and quiz.get("tempo"):
         imp["impostazioni"] = {"timelimit": int(float(quiz["tempo"])) * 60}
     json.dump(imp, open(os.path.join(usc, "impaginazione.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print("OK: %d domande (%d CodeRunner JavaScript, %d CodeRunner SQL, %d CodeRunner PHP, %d scritte direttamente in XML: esercizi HTML/CSS e corrispondenze), %d sezioni, %g punti, preset %s -> %s"

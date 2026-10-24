@@ -367,15 +367,15 @@ tr.var td{background:var(--surface-2);border-bottom-color:var(--line)}
 const CAT_RAW=[
  ["istruzioni","Istruzioni","Pagine","Descrizione","V VT","p",""],
  ["comelavoriamo","Come lavoriamo oggi","Pagine","Descrizione","ED EP ER EDT","p",""],
- ["paginablocco","Pagina del blocco","Pagine","Descrizione","ED ER EDT","p","Spiegazione"],
- ["vf","Vero/falso","Concetti","Vero/falso","VT RT ED ER EDT","",""],
- ["multipla","Risposta multipla (una giusta)","Concetti","Risposta multipla","VT RT ED ER EDT","",""],
- ["crocette","Risposta multipla (più giuste)","Concetti","Risposta multipla","VT RT ED ER EDT","",""],
- ["breve","Risposta breve","Concetti","Risposta breve","VT RT ED EDT","",""],
- ["corrispondenza","Corrispondenza","Concetti","Corrispondenza","VT RT ED ER EDT","",""],
+ ["paginablocco","Pagina del blocco","Pagine","Descrizione","ED ER EDT SD","p","Spiegazione"],
+ ["vf","Vero/falso","Concetti","Vero/falso","VT RT ED ER EDT SD","",""],
+ ["multipla","Risposta multipla (una giusta)","Concetti","Risposta multipla","VT RT ED ER EDT SD","",""],
+ ["crocette","Risposta multipla (più giuste)","Concetti","Risposta multipla","VT RT ED ER EDT SD","",""],
+ ["breve","Risposta breve","Concetti","Risposta breve","VT RT ED EDT SD","",""],
+ ["corrispondenza","Corrispondenza","Concetti","Corrispondenza","VT RT ED ER EDT SD","",""],
  ["cloze_testo","Completamento di testo","Concetti","Cloze","VT RT ED ER EDT","",""],
  ["ordine","Metti in ordine","Concetti","Cloze","VT RT ED EDT","",""],
- ["teoria_aperta","Teoria a risposta aperta","Concetti","Aperta","V VT RT","om",""],
+ ["teoria_aperta","Teoria a risposta aperta","Concetti","Aperta","V VT RT SD","om",""],
  ["esempio_svolto","Esempio svolto da leggere","Lettura del codice","Cloze","ED ER","","Esempio svolto"],
  ["tracciamento","Tracciamento","Lettura del codice","Cloze","V RT ED EP ER","","Tracciamento"],
  ["lettura_output","Lettura dell'output","Lettura del codice","Cloze","V RT ED EP ER","","Tracciamento"],
@@ -416,6 +416,9 @@ const TIPI={
    gruppi:[{id:"pag",n:"Pagine",p:0,m:[10,15]},{id:"es",n:"Esempio svolto e completamento",p:20,m:15},{id:"dbg",n:"Debugging",p:25,m:15},{id:"gui",n:"Esercizio guidato",p:20,m:15},{id:"fin",n:"Esercizi finali",p:35,m:25}]},
  EDT:{nome:"Esercitazione con spiegazione · solo teoria",p100:true,tempoRule:"margine",seq:false,cinque:true,parti:[[0,"Apertura","pag"],[1,"Pagina di spiegazione","pag"],[2,"Domande di comprensione","comp"]],
    gruppi:[{id:"pag",n:"Pagine",p:0,m:null},{id:"comp",n:"Domande di comprensione",p:100,m:null}]},
+ /* teoria divisa in parti, dopo ogni parte le sue domande chiuse e aperte; navigazione sequenziale */
+ SD:{nome:"Studio e domande",p100:false,tempoRule:"margine",seq:false,studio:true,parti:[[1,"Pagina di teoria","pag"],[2,"Domande chiuse","chi"],[3,"Domande aperte","ape"]],
+   gruppi:[{id:"pag",n:"Pagine di teoria",p:0,m:null},{id:"chi",n:"Domande chiuse",p:null,m:null},{id:"ape",n:"Domande aperte",p:null,m:null}]},
  V:{nome:"Verifica di programmazione",p100:true,tempoRule:"quota",seq:false,parti:[[1,"Base","base"],[2,"Avanzata","avz"]],
    gruppi:[{id:"base",n:"Parte base",p:85,m:null},{id:"avz",n:"Parte avanzata",p:15,m:null}]},
  VT:{nome:"Verifica teorica",p100:true,tempoRule:"quota",seq:false,parti:BLOOM,
@@ -853,7 +856,7 @@ function save(path,patch){
 }
 
 /* ------------------------------------------------------------------ calcoli */
-function prefisso(q,r){const c=CAT[r.tipologia];if(!c)return "";if(r.tipologia==="paginablocco"&&(q.tipoQuiz==="RT"||q.tipoQuiz==="ER"))return "Ripasso";return c.pre;}
+function prefisso(q,r){const c=CAT[r.tipologia];if(!c)return "";if(r.tipologia==="paginablocco"&&(q.tipoQuiz==="RT"||q.tipoQuiz==="ER"))return "Ripasso";if(r.tipologia==="paginablocco"&&q.tipoQuiz==="SD")return "Teoria";return c.pre;}
 function categoriaQuiz(q){const l=String(q.lezione||"").trim()||"?",g=q.argomento||q.titolo||"";return (/^\d+$/.test(l)||l==="?"?"Lezione "+l:l)+" - "+g;}
 function prefLezione(q){const l=String(q.lezione||"").trim()||"?";return /^\d+$/.test(l)||l==="?"?"L"+l:l;}
 function nomeMoodle(q,r){const pre=prefisso(q,r);return prefLezione(q)+" - "+(r.pos||"??")+" - "+(pre?pre+": ":"")+(r.titolo||"(senza titolo)");}
@@ -927,6 +930,22 @@ function avvisi(q,rows,C){
   });
   if(Object.keys(GT).length)add("info","Verifica ripetibile: "+Object.keys(GT).length+" posizioni casuali per tag con "+Object.keys(GT).reduce(function(a,k){return a+GT[k].length;},0)+" varianti. Nei totali ogni posizione conta una volta.");
   if(P.cinque){const no5=rows.filter(function(r){const p=num(r.punti);return p>0&&Math.abs(p/5-Math.round(p/5))>1e-9;});if(no5.length)add("warn","Punti non multipli di 5 in "+no5.map(function(r){return r.pos;}).join(", ")+": nella spiegazione solo teoria i punti vanno a multipli di 5.",no5[0].id);}
+  if(P.studio){
+    /* ogni pagina di teoria è seguita dalle sue domande: almeno una chiusa e una aperta, le aperte dopo le chiuse; la teoria sta su una pagina del quiz da sola */
+    const isTeo=function(r){return r.tipologia==="paginablocco";},isApe=function(r){return r.tipologia==="teoria_aperta";};
+    const segs=[];let cur=null;
+    rows.forEach(function(r){if(isTeo(r)){cur={teo:r,dom:[]};segs.push(cur);}else if(cur)cur.dom.push(r);else add("warn",(r.pos||"?")+": viene prima della prima pagina di teoria; in «Studio e domande» le domande seguono la teoria su cui si basano.",r.id);});
+    if(!segs.length)add("warn","Non c'è nessuna pagina di teoria.");
+    segs.forEach(function(g){
+      const w=g.teo.pos||"una pagina di teoria",chi=g.dom.filter(function(r){return !isApe(r);}),ape=g.dom.filter(isApe);
+      if(!chi.length)add("warn","Dopo "+w+" non ci sono domande chiuse: ogni parte di teoria ha domande chiuse e aperte.",g.teo.id);
+      if(!ape.length)add("warn","Dopo "+w+" non c'è una domanda aperta: ogni parte di teoria ha domande chiuse e aperte.",g.teo.id);
+      const iA=g.dom.findIndex(isApe),iC=g.dom.map(function(r){return !isApe(r);}).lastIndexOf(true);
+      if(iA>=0&&iC>iA)add("warn",(g.dom[iC].pos||"?")+": una domanda chiusa viene dopo l'aperta "+(g.dom[iA].pos||"?")+"; le aperte vanno dopo le chiuse della stessa parte.",g.dom[iC].id);
+      const insieme=rows.filter(function(r){return r!==g.teo&&String(r.pag)===String(g.teo.pag);});
+      if(insieme.length)add("warn","Pagina "+g.teo.pag+": la teoria "+w+" sta con "+insieme.map(function(r){return r.pos||"?";}).join(", ")+"; deve stare da sola, perché dopo non si torna indietro.",g.teo.id);
+    });
+  }
   if(P.p100&&Math.abs(tot.p-100)>0.001)add(tot.p>100?"err":"warn","Il totale dei punti è "+f1(tot.p)+": dovrebbe essere 100.");
   const T=num(q.tempo);
   if(P.importato)add("info","Quiz importato da un backup Moodle: nessun preset, quindi nessuna regola su punti, tempi, parti e tipologie. Per applicarle scegli un tipo di quiz nei dati del quiz.");
@@ -987,13 +1006,13 @@ function renderHeader(){
   ["home","scaletta","dettaglio"].forEach(function(v){$("#tab-"+v).setAttribute("aria-selected",(S.view===v||(v==="home"&&S.view==="nuovo"))?"true":"false");});
 }
 /* ------------------------------------------------------------------ vista iniziale e nuovo quiz */
-const VERSIONE_PAGINA="0.3.8";
+const VERSIONE_PAGINA="0.3.9";
 const PERCORSO_IMPOSTAZIONI="impostazioni/avvio";
 function triggerAvvio(){return S.imp&&typeof S.imp.trigger==="string"&&/^trig_[A-Za-z0-9]+$/.test(S.imp.trigger)?S.imp.trigger:"";}
 const CONNETTORE="Claude Code Remote";
 const CLASSI=[["","Scegli"],["terza","Terza"],["quarta","Quarta"],["quinta","Quinta"]];
 const LINGUAGGI=[["","Scegli"],["teoria","Teoria, senza codice"],["html-css","HTML e CSS"],["javascript","JavaScript"],["sql","SQL"],["php","PHP"],["misto","Misto"]];
-const DESCR_TIPO={LIB:"Nessuna regola su tipi e quantità di domande, punti o tempi: decide tutto la richiesta.",ED:"Spiegazione dentro il quiz, poi esercizi guidati e finali: una lezione di due ore (105 minuti).",EDT:"Pagine di spiegazione seguite da domande di comprensione, senza codice.",V:"Verifica di programmazione con voto: parte base e parte avanzata.",VT:"Verifica di teoria con voto, per livelli di Bloom.",RT:"Ripasso di teoria senza voto: risposte e spiegazioni visibili subito.",EP:"Solo esercizi, senza spiegazione: tipica per casa.",ER:"Rispiega gli argomenti dell'anno prima, a inizio anno."};
+const DESCR_TIPO={LIB:"Nessuna regola su tipi e quantità di domande, punti o tempi: decide tutto la richiesta.",ED:"Spiegazione dentro il quiz, poi esercizi guidati e finali: una lezione di due ore (105 minuti).",EDT:"Pagine di spiegazione seguite da domande di comprensione, senza codice.",V:"Verifica di programmazione con voto: parte base e parte avanzata.",VT:"Verifica di teoria con voto, per livelli di Bloom.",RT:"Ripasso di teoria senza voto: risposte e spiegazioni visibili subito.",SD:"Teoria divisa in parti, dopo ogni parte domande chiuse e aperte; senza tornare indietro, risposte dopo la consegna.",EP:"Solo esercizi, senza spiegazione: tipica per casa.",ER:"Rispiega gli argomenti dell'anno prima, a inizio anno."};
 const GUIDA_TIPO={
   LIB:["Nessuna regola prefissata","Tipi e numero di domande, punti, tempi e struttura li decide la richiesta. Scegli anche come si comporta in Moodle: come un'esercitazione (risposte e feedback subito, tentativi illimitati) o come una verifica (un tentativo, feedback alla restituzione)."],
   ED:["Lezione su un argomento nuovo","Le pagine di spiegazione stanno dentro il quiz; per ogni blocco esempio svolto, completamento, debugging ed esercizio guidato, poi gli esercizi finali. 100 punti (completamento 20, debugging 25, guidato 20, finali 35), voto interno non verbalizzato, feedback subito. Una lezione di due ore: 105 minuti."],
@@ -1001,6 +1020,7 @@ const GUIDA_TIPO={
   V:["Verifica con voto di JavaScript, SQL o PHP","Di ripasso (tutti gli argomenti, un esercizio per argomento) o di dettaglio (uno o due argomenti, esercizi di difficoltà crescente). Parte base 85 punti e parte avanzata 15, per il 9 e il 10. Un tentativo, feedback alla restituzione; varianti possibili per le verifiche di recupero."],
   VT:["Verifica di teoria con voto","Domande per livelli di Bloom: ricordare 20, comprendere 30, applicare 20, analizzare 15, valutare e creare 15. Feedback alla restituzione."],
   RT:["Ripasso di teoria senza voto","Per consolidare quello che gli studenti hanno già studiato, con domande per livelli di Bloom. Risposte e spiegazioni visibili subito, anche sulle risposte giuste."],
+  SD:["Studiare e poi rispondere","La teoria è divisa in parti: gli studenti leggono e prendono appunti, poi rispondono alle domande su quella parte, chiuse (vero/falso, risposta multipla, corrispondenze, risposta breve; niente completamenti) e aperte. Navigazione sequenziale, un tentativo, tempo unico gestito da loro (40 minuti); feedback e risposte solo dopo la consegna. Formativa, senza versione PDP."],
   EP:["Solo esercizi, senza spiegazione","Al massimo un richiamo breve, poi completamento, debugging, esercizio guidato ed esercizi finali. Tipica per casa, dopo la spiegazione in classe."],
   ER:["Ripasso dell'anno prima","A inizio anno: rispiega gli argomenti dell'anno precedente e li fa esercitare come l'esercitazione con spiegazione, con meno profondità. Di solito parte dai quiz già fatti."]
 };
@@ -1017,7 +1037,8 @@ function codiceCasuale(classe){
   return c;
 }
 /* una ED è una lezione di due ore: propone 105 minuti se il tempo è vuoto (o era stato proposto dalla pagina) */
-function tempoProposto(n){const vuoto=!String(n.tempo||"").trim();if(n.tipoQuiz==="ED"){if(vuoto||n.tempoAuto){n.tempo="105";n.tempoAuto=true;}}else if(n.tempoAuto){n.tempo="";n.tempoAuto=false;}}
+const TEMPO_PROPOSTO={ED:"105",SD:"40"};
+function tempoProposto(n){const vuoto=!String(n.tempo||"").trim(),t=TEMPO_PROPOSTO[n.tipoQuiz];if(t){if(vuoto||n.tempoAuto){n.tempo=t;n.tempoAuto=true;}}else if(n.tempoAuto){n.tempo="";n.tempoAuto=false;}}
 function nuovoVuoto(){return {tipoQuiz:"",titolo:"",lezione:"",classe:"",argomento:"",tempo:"",linguaggio:"",varianti:"1",avanzata:"",richiesta:"",materiale:false,presetMbz:"esercitazione",prototipoHtml:"php_con_test"};}
 function faseLabel(f){return label(FASI,f)||"Senza fase";}
 function homeHTML(){

@@ -60,7 +60,8 @@ Se una riga non si può realizzare così com'è (un campo che Moodle non accetta
 L'impaginazione dice nome del quiz, preset, voto (10) e sufficienza (6), e per ogni sezione il titolo e le domande con pagina e punti. Preset:
 
 - **esercitazione**: comportamento interattivo, tentativi illimitati, nessun limite di tempo, revisione completa subito;
-- **verifica**: feedback differito, un tentativo, tempo del quiz, durante la prova solo il tentativo e il punteggio massimo; alla restituzione l'utente apre feedback e risposte dalle opzioni di revisione (ricordalo nella consegna). Le domande CodeRunner seguono le loro opzioni anche con il feedback differito: lo studente prova il codice e vede il risultato dei test.
+- **verifica**: feedback differito, un tentativo, tempo del quiz, durante la prova solo il tentativo e il punteggio massimo; alla restituzione l'utente apre feedback e risposte dalle opzioni di revisione (ricordalo nella consegna). Le domande CodeRunner seguono le loro opzioni anche con il feedback differito: lo studente prova il codice e vede il risultato dei test;
+- **studio** (tipo «Studio e domande», SD): navigazione sequenziale, feedback differito, un tentativo, tempo del quiz (40 minuti se manca); durante il tentativo nessuna verifica, revisione completa subito dopo la consegna e dopo, a quiz aperto. Nella consegna ricorda che voto ed elementi di valutazione compaiono solo dopo la correzione delle aperte («Valutazione manuale», per domanda), mentre l'esito delle chiuse si vede subito domanda per domanda.
 
 Il preset viene dal tipo di quiz della dashboard; `impostazioni` nell'impaginazione sovrascrive singoli campi del quiz (es. `{"timelimit": 5400}`).
 
