@@ -13,12 +13,31 @@ Il formato dell'impaginazione è in references/formato-impaginazione.md. In brev
   "nome": "Prova quiz",
   "preset": "esercitazione",            # oppure "verifica" o "studio"
   "impostazioni": {"timelimit": 5400},  # facoltativo: sovrascrive il preset
+  "banca": {...},                       # facoltativo: banca di un deposito già esistente (sotto)
+  "stamp": {"L3 - A1 - ...": "..."},    # facoltativo: stamp delle domande che sono già in un deposito
   "voto_massimo": 10, "voto_sufficienza": 6,
   "sezioni": [
     {"titolo": "", "domande": [{"nome": "L1 - 00 - ...", "pagina": 1, "punti": 0}]},
     {"titolo": "Blocco A", "domande": [...]}
   ]
 }
+
+Con "banca" le domande non stanno nella banca del quiz ma in una banca delle domande (attività
+qbank) già esistente nel sito, per esempio quella di un corso deposito; i valori si leggono da un
+backup di un quiz che usa quella banca (leggi_mbz.py --banche):
+  {"contextid": 4737, "cmid": 3673,                       # contesto e modulo della banca
+   "top_id": 4452, "top_stamp": "...",                    # categoria «top» della banca
+   "categoria_id": 14596, "categoria_stamp": "..."}       # facoltativi: categoria già esistente
+Moodle non crea categorie nuove in una banca esterna al backup (le domande finirebbero nella banca
+di sistema, nascoste), e scrive nella banca solo se si ripristina nel corso in cui la banca sta:
+la categoria deve esistere già. Senza categoria_stamp vale lo stamp stabile ricavato dal nome della
+categoria, cioè quello che la categoria ha avuto quando un quiz generato l'ha creata nella sua
+banca e l'utente l'ha spostata nel deposito. Verificato con ripristini reali il 24/10/2026.
+
+Stamp stabili: la categoria delle domande ha uno stamp ricavato dal nome; ogni domanda uno ricavato
+dal contenuto (o quello dato nell'impaginazione, "stamp" accanto a "nome", per una domanda che è
+già in un deposito). Nella banca del quiz non cambia niente (Moodle crea sempre domande nuove);
+in un deposito Moodle riusa le domande che ritrova per stamp, senza doppioni.
 
 Lo script riproduce la struttura di un backup di attività di Moodle 5.2 (verificata sul
 ripristino di backup reali). Si ferma con un errore se trova un tipo di domanda che non
@@ -147,6 +166,7 @@ class Banca:
 
     def __init__(self, contesto, modulo, categoria_id):
         self.ctx, self.mid, self.cat = contesto, modulo, categoria_id
+        self.stamp_dati, self.categoria_nome = {}, ""
         self.entry = Contatore(80001)
         self.qid = Contatore(95001)
         self.ans = Contatore(190001)
@@ -167,6 +187,15 @@ class Banca:
 
     def stamp(self):
         return "generato.mbz+%s+%s" % (time.strftime("%y%m%d%H%M%S"), casuale())
+
+    def _stamp_q(self, parent):
+        """Stamp della domanda: stabile. Moodle riconosce per stamp le domande che sono già in una banca
+        esterna al backup (un deposito) e le riusa: una domanda uguale ha lo stesso stamp, una domanda
+        cambiata ne ha uno nuovo. Le sottodomande dei Cloze prendono lo stamp della domanda più un numero."""
+        if parent:
+            self._sub_n += 1
+            return "%s.%d" % (self._stamp_corrente, self._sub_n)
+        return self._stamp_corrente
 
     def _blocco(self, qid, entry_id, parent, nome, testo, fmt, gf, gff, defaultmark, penalty,
                 qtype, length, plugin, nextversion):
@@ -191,7 +220,7 @@ class Banca:
                 <penalty>{f7(penalty)}</penalty>
                 <qtype>{qtype}</qtype>
                 <length>{length}</length>
-                <stamp>{self.stamp()}</stamp>
+                <stamp>{self._stamp_q(parent)}</stamp>
                 <timecreated>{self.ora}</timecreated>
                 <timemodified>{self.ora}</timemodified>
                 <createdby>3</createdby>
@@ -236,6 +265,11 @@ class Banca:
         pen = float((q.findtext("penalty") or "0"))
         entry_id, qid = self.entry(), self.qid()
         self._qid_corrente = qid
+        # stamp stabile: quello dato nell'impaginazione (domanda già in un deposito) o un'impronta del contenuto
+        import hashlib
+        self._sub_n = 0
+        self._stamp_corrente = self.stamp_dati.get(nome) or "generato.mbz+q+" + hashlib.sha1(
+            (self.categoria_nome + "\n").encode("utf-8") + ET.tostring(q, encoding="utf-8")).hexdigest()[:20]
         self.id_per_nome[nome] = entry_id
         # immagini del testo: <file> dentro <questiontext> nel Moodle XML (riferite con @@PLUGINFILE@@/nome)
         qt = q.find("questiontext")
@@ -578,12 +612,12 @@ def quiz_xml(L, ids, banca, righe, nome, ora):
                              "category": {"name": "category", "jointype": 1, "values": [ids["cat"]],
                                           "filteroptions": {"includesubcategories": True}}},
                   "cmid": ids["mid"], "courseid": 7, "jointype": 2, "qpage": 0, "qperpage": 1000,
-                  "sortdata": [], "cat": "%d,%d" % (ids["cat"], ids["ctx"]), "tabname": "questions"}
+                  "sortdata": [], "cat": "%d,%d" % (ids["cat"], ids["qctx"]), "tabname": "questions"}
             istanze.append(testa_i + f"""        <question_set_reference id="{ids['qs']()}">
           <usingcontextid>{ids['ctx']}</usingcontextid>
           <component>mod_quiz</component>
           <questionarea>slot</questionarea>
-          <questionscontextid>{ids['ctx']}</questionscontextid>
+          <questionscontextid>{ids['qctx']}</questionscontextid>
           <filtercondition>{x(json.dumps(fc, separators=(",", ":")))}</filtercondition>
         </question_set_reference>
       </question_instance>
@@ -664,9 +698,26 @@ def main():
     ora = int(time.time())
     mid, quiz_id, ctx, sec_corso = 99001, 9901, 99101, 99201
     cat_top, cat_def, cat_q = 99301, 99302, 99303
+    # banca di destinazione: per default quella del quiz; con "banca" una banca qbank già esistente
+    B = L.get("banca") or {}
+    if B:
+        manca = [k for k in ("contextid", "cmid", "top_id", "top_stamp") if not B.get(k)]
+        if manca:
+            raise SystemExit("ERRORE: nella banca mancano %s" % ", ".join(manca))
+        if B.get("categoria_id"):
+            cat_q = int(B["categoria_id"])
+    qctx = int(B["contextid"]) if B else ctx       # contesto in cui stanno le domande
 
     righe = [dict(d, **{"_sez": s.get("titolo", "")}) for s in L["sezioni"] for d in s["domande"]]
-    banca = Banca(ctx, mid, cat_q)
+    banca = Banca(qctx, mid, cat_q)
+    banca.categoria_nome = categoria
+    banca.stamp_dati = dict(L.get("stamp") or {})   # {nome della domanda: stamp} delle domande già in un deposito
+    banca.stamp_dati.update({d["nome"]: d["stamp"] for s in L["sezioni"] for d in s["domande"] if d.get("stamp")})
+    import hashlib
+    # stamp della categoria delle domande: stabile, dal nome; così, se l'utente sposta la categoria in un
+    # deposito, i quiz successivi con la stessa categoria la ritrovano lì (impaginazione: "banca")
+    stamp_cat = (B.get("categoria_stamp") or L.get("categoria_stamp")
+                 or "generato.mbz+c+" + hashlib.sha1(categoria.encode("utf-8")).hexdigest()[:20])
     for tipo, q in domande:
         banca.aggiungi(tipo, q)
 
@@ -682,15 +733,15 @@ def main():
         raise SystemExit("ERRORE: domande dell'XML non impaginate: %s; impaginate ma assenti nell'XML: %s; "
                          "posizioni casuali senza domande con quel tag: %s" % (mancano, inutili, senza))
 
-    def cat(i, nome_c, info, parent, ordine):
+    def cat(i, nome_c, info, parent, ordine, c=None, m=None, st=None):
         return f"""  <question_category id="{i}">
     <name>{x(nome_c)}</name>
-    <contextid>{ctx}</contextid>
+    <contextid>{c or ctx}</contextid>
     <contextlevel>70</contextlevel>
-    <contextinstanceid>{mid}</contextinstanceid>
+    <contextinstanceid>{m or mid}</contextinstanceid>
     <info>{x(info)}</info>
     <infoformat>0</infoformat>
-    <stamp>{banca.stamp()}</stamp>
+    <stamp>{st or banca.stamp()}</stamp>
     <parent>{parent}</parent>
     <sortorder>{ordine}</sortorder>
     <idnumber>{NULL}</idnumber>
@@ -701,11 +752,14 @@ def main():
                  + cat(cat_top, "top", "", 0, 0) + chiudi
                  + cat(cat_def, "Default per " + nome,
                        "La categoria default per le domande condivise nel contesto '%s'." % nome, cat_top, 999) + chiudi
-                 + cat(cat_q, categoria, "", cat_top, 999) + "".join(banca.out) + chiudi
+                 + (cat(cat_q, categoria, "", cat_top, 999, st=stamp_cat) + "".join(banca.out) + chiudi if not B else
+                    cat(int(B["top_id"]), "top", "", 0, 0, qctx, int(B["cmid"]), B["top_stamp"]) + chiudi
+                    + cat(cat_q, categoria, "", int(B["top_id"]), 999, qctx, int(B["cmid"]), stamp_cat)
+                    + "".join(banca.out) + chiudi)
                  + "</question_categories>")
 
     ids = {"qi": Contatore(99401), "qr": Contatore(99501), "qs": Contatore(99551), "sec": Contatore(99601),
-           "fb": 99701, "quiz": quiz_id, "mid": mid, "ctx": ctx, "cat": cat_q}
+           "fb": 99701, "quiz": quiz_id, "mid": mid, "ctx": ctx, "cat": cat_q, "qctx": qctx}
     quiz = quiz_xml(L, ids, banca, righe, nome, ora)
 
     # file fissi (modello): stessa struttura dei backup di attività di Moodle 5.2
@@ -796,7 +850,7 @@ def main():
     </question_category>
     <question_category>
       <id>{cat_q}</id>
-    </question_category>
+    </question_category>{"" if not B else chr(10) + "    <question_category>" + chr(10) + "      <id>%d</id>" % int(B["top_id"]) + chr(10) + "    </question_category>"}
   </question_categoryref>
 </inforef>"""
     # file delle domande (immagini del testo, database delle CodeRunner): voci in files.xml + contenuto in files/xx/hash
@@ -812,7 +866,7 @@ def main():
                                (".", "da39a3ee5e6b4b0d3255bfef95601890afd80709", 0, NULL)):
             fx += f"""  <file id="{fid}">
     <contenthash>{hh}</contenthash>
-    <contextid>{ctx}</contextid>
+    <contextid>{qctx}</contextid>
     <component>{comp_f}</component>
     <filearea>{area_f}</filearea>
     <itemid>{qid_f}</itemid>

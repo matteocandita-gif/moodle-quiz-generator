@@ -2,6 +2,17 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.7.0 — 24/10/2026
+
+**Depositi**: le domande possono andare direttamente nella banca di un corso deposito, senza spostarle a mano. Regole verificate con ripristini reali nel Moodle della scuola.
+
+- Moodle scrive in una banca che sta fuori dal backup solo se si ripristina **nel corso in cui la banca sta** (altrimenti mette tutto, nascosto, nella banca di sistema) e **non crea categorie nuove** lì: la categoria deve esistere già. Due casi funzionano: una categoria nota del deposito, oppure la categoria che un quiz della dashboard ha creato nella sua banca e che hai spostato tu nel deposito; i quiz successivi con la stessa categoria la ritrovano.
+- Le domande già presenti nel deposito vengono **riusate senza doppioni**. Gli identificativi (stamp) di categorie e domande ora sono stabili: la categoria dal nome, la domanda dal contenuto (una domanda cambiata diventa una domanda nuova). Rigenerare un quiz o farne la copia PDP nel deposito non duplica le domande invariate.
+- Nelle impostazioni della dashboard i **depositi** registrati (`impostazioni/depositi`), che Claude scrive da un backup con `leggi_mbz.py --banche`; nei dati del quiz «Dove vanno le domande»: la banca del quiz (come prima) o un deposito.
+- Importando un quiz da un backup, le domande che vengono da un deposito tengono lo stamp d'origine (`stampOrigine`): rigenerate nel deposito si riusano.
+- `crea_mbz.py`: impaginazione `banca` (contesto, modulo, categoria «top» e, se c'è, la categoria esistente) e `stamp`; `leggi_mbz.py --banche`.
+- **Dashboard** 0.3.10: scelta del deposito nei dati del quiz, elenco dei depositi nelle impostazioni, avvisi se la categoria non è tra quelle note del deposito e promemoria del corso in cui ripristinare.
+
 ## 0.6.1 — 24/10/2026
 
 Nuovo tipo di quiz **Studio e domande** (sigla SD), provato con due bozze ripristinate in Moodle.

@@ -946,6 +946,14 @@ function avvisi(q,rows,C){
       if(insieme.length)add("warn","Pagina "+g.teo.pag+": la teoria "+w+" sta con "+insieme.map(function(r){return r.pos||"?";}).join(", ")+"; deve stare da sola, perché dopo non si torna indietro.",g.teo.id);
     });
   }
+  if(q.deposito){
+    const dep=depositoDi(q),cq=categoriaQuiz(q);
+    if(!dep)add("err","Il deposito «"+q.deposito+"» non è tra quelli registrati nelle impostazioni: scegli un altro deposito o la banca del quiz.");
+    else{
+      if(!(dep.categorie||[]).some(function(c){return c.nome===cq;}))add("warn","La categoria «"+cq+"» non è tra le categorie note del deposito «"+(dep.nome||dep.id)+"»: le domande ci vanno solo se la categoria l'ha creata un quiz della dashboard e l'hai spostata tu nel deposito; altrimenti Moodle le mette, nascoste, nella banca di sistema.");
+      add("info","Le domande vanno nel deposito «"+(dep.nome||dep.id)+"»: ripristina il backup nel corso «"+(dep.corso||dep.nome||dep.id)+"», perché solo lì Moodle scrive nella banca del deposito. Le domande uguali a quelle già presenti vengono riusate, senza doppioni.");
+    }
+  }
   if(P.p100&&Math.abs(tot.p-100)>0.001)add(tot.p>100?"err":"warn","Il totale dei punti è "+f1(tot.p)+": dovrebbe essere 100.");
   const T=num(q.tempo);
   if(P.importato)add("info","Quiz importato da un backup Moodle: nessun preset, quindi nessuna regola su punti, tempi, parti e tipologie. Per applicarle scegli un tipo di quiz nei dati del quiz.");
@@ -1006,8 +1014,12 @@ function renderHeader(){
   ["home","scaletta","dettaglio"].forEach(function(v){$("#tab-"+v).setAttribute("aria-selected",(S.view===v||(v==="home"&&S.view==="nuovo"))?"true":"false");});
 }
 /* ------------------------------------------------------------------ vista iniziale e nuovo quiz */
-const VERSIONE_PAGINA="0.3.9";
+const VERSIONE_PAGINA="0.3.10";
 const PERCORSO_IMPOSTAZIONI="impostazioni/avvio";
+/* depositi delle domande (banche qbank dei corsi deposito): li scrive Claude leggendo un backup */
+const PERCORSO_DEPOSITI="impostazioni/depositi";
+function depositiNoti(){return (S.depositi||[]).filter(function(d){return d&&d.id;});}
+function depositoDi(q){return depositiNoti().find(function(d){return d.id===q.deposito;})||null;}
 function triggerAvvio(){return S.imp&&typeof S.imp.trigger==="string"&&/^trig_[A-Za-z0-9]+$/.test(S.imp.trigger)?S.imp.trigger:"";}
 const CONNETTORE="Claude Code Remote";
 const CLASSI=[["","Scegli"],["terza","Terza"],["quarta","Quarta"],["quinta","Quinta"]];
@@ -1062,6 +1074,9 @@ function impostazioniHTML(){
   return '<details class="panel" id="imp"'+(S.impOpen?" open":"")+'><summary>Impostazioni '+(t?tag("ok","check","avvio automatico attivo"):tag("plain","info","avvio automatico non configurato"))+ico("chev","chev")+'</summary><div class="panel-body">'+
     "<p>«Inizia» avvia la sessione di Claude con un'attività programmata del tuo account, che Claude crea quando installa la dashboard. Senza, «Inizia» salva il quiz e ti dà una frase da incollare in chat.</p>"+
     '<label class="fld wide"><span>Id dell\'attività «Avvia quiz dalla dashboard»</span><input class="ctl mono" id="impTrigger" value="'+esc(S.impBozza!=null?S.impBozza:t)+'" placeholder="trig_…" spellcheck="false"></label>'+
+    '<h3 style="font-size:14px;margin:16px 0 4px">Depositi delle domande</h3>'+
+    (depositiNoti().length?'<ul style="margin:0 0 10px;padding-left:1.2em">'+depositiNoti().map(function(d){const n=(d.categorie||[]).length;return "<li><strong>"+esc(d.nome||d.id)+"</strong>"+(d.corso&&d.corso!==d.nome?" · corso «"+esc(d.corso)+"»":"")+" · "+n+(n===1?" categoria nota":" categorie note")+"</li>";}).join("")+"</ul>":"<p class=\"muted\">Nessun deposito registrato.</p>")+
+    "<p class=\"hint\">Per mandare le domande direttamente nella banca di un deposito, manda a Claude il backup di un quiz che usa quella banca: registra il deposito e le sue categorie. Quando crei o sposti categorie nel deposito, rimanda un backup per aggiornarle.</p>"+
     '<div class="actrow"><button class="btn" data-act="salva-imp">Salva</button><span class="hint">Versione della pagina '+esc(VERSIONE_PAGINA)+(S.imp&&S.imp.versione&&S.imp.versione!==VERSIONE_PAGINA?" · impostazioni scritte con la "+esc(S.imp.versione):"")+"</span></div></div></details>";
 }
 function nuovoHTML(){
@@ -1188,6 +1203,7 @@ function metaHTML(q){
     '<label class="fld"><span>Tempo disponibile (minuti)</span><input class="ctl" type="number" min="0" data-t="n" '+k("tempo")+' value="'+esc(q.tempo)+'" aria-label="Tempo disponibile in minuti"></label>'+
     '<label class="fld"><span>Fase</span><select class="ctl" '+k("fase")+' aria-label="Fase">'+opts(FASI,q.fase).replace('value="dettaglio-approvato"',mancanti()>0?'value="dettaglio-approvato" disabled':'value="dettaglio-approvato"')+"</select></label>"+
     (q.linguaggio==="html-css"||q.prototipoHtml||S.rows.some(function(r){return r.tipologia==="libero_html";})?'<label class="fld wide"><span>Esercizi HTML</span><select class="ctl" '+k("prototipoHtml")+' aria-label="Esercizi HTML">'+opts(PROTO_HTML,q.prototipoHtml||"php_con_test")+"</select></label>":"")+
+    (depositiNoti().length||q.deposito?'<label class="fld wide"><span>Dove vanno le domande</span><select class="ctl" '+k("deposito")+' aria-label="Dove vanno le domande">'+opts([["","Nella banca del quiz (poi, se serve, la sposti tu nel deposito)"]].concat(depositiNoti().map(function(d){return [d.id,"Nel deposito «"+(d.nome||d.id)+"»"];})).concat(q.deposito&&!depositoDi(q)?[[q.deposito,"Deposito «"+q.deposito+"» (non registrato)"]]:[]),q.deposito||"")+"</select></label>":"")+
     '<div class="fld wide"><span>Avanzamento</span><div>'+btn+"</div></div>"+
     '<div class="fld wide"><span>Categoria in Moodle</span><div class="cat">'+esc(categoriaQuiz(q))+"</div></div>"+
   "</section>";
@@ -1749,6 +1765,7 @@ async function init(){
   if(!db){S.error="nodb";render();return;}
   S.db=db;
   db.doc(PERCORSO_IMPOSTAZIONI).onSnapshot(function(snap){S.imp=snap.exists?Object.assign({},snap.data()||{}):{};render();},function(){S.imp={};render();});
+  db.doc(PERCORSO_DEPOSITI).onSnapshot(function(snap){const d=snap.exists?(snap.data()||{}):{};S.depositi=Array.isArray(d.depositi)?d.depositi:[];render();},function(){S.depositi=[];render();});
   db.collection("quiz").onSnapshot(function(snap){
     S.quizzes=snap.docs.map(function(d){const o=Object.assign({},d.data()||{});o.id=d.id;return o;}).sort(perData);
     if(!S.quizzes.some(function(q){return q.id===S.quizId;})){const a=S.quizzes.find(function(q){return !q.archiviato;})||S.quizzes[0];S.quizId=a?a.id:null;}

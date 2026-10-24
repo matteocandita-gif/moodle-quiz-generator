@@ -479,7 +479,9 @@ class Backup:
         self.categorie, self.voci, self.domande_id = {}, {}, {}
         if self.qx is not None:
             for c in self.qx.iter("question_category"):
-                self.categorie[c.get("id")] = {"nome": tx(c, "name"), "padre": tx(c, "parent")}
+                self.categorie[c.get("id")] = {"nome": tx(c, "name"), "padre": tx(c, "parent"),
+                                               "ctx": tx(c, "contextid"), "modulo": tx(c, "contextinstanceid"),
+                                               "stamp": tx(c, "stamp")}
                 for e in c.iter("question_bank_entry"):
                     versioni = []
                     for v in e.iter("question_versions"):
@@ -1034,10 +1036,20 @@ def importa(bk, cartella_quiz, qz, qid=None):
         m = re.match(r"\s*(?:Lezione\s*)?(\d+)\b", nome_quiz)
         lezione = m.group(1) if m else ""
     # argomento dalla categoria delle domande («Lezione N - argomento», «V5R - argomento»)
-    cat_di = {}
+    cat_di, catid_di = {}, {}
     for v in bk.voci.values():
         for _, q in v["versioni"]:
             cat_di[id(q)] = bk.categorie.get(v["categoria"], {}).get("nome", "")
+            catid_di[id(q)] = v["categoria"]
+    # banche esterne al quiz (per esempio un deposito): il loro contesto non è quello di un'attività del backup
+    propri = set()
+    try:
+        import xml.etree.ElementTree as ET2
+        mb = ET2.parse(str(pathlib.Path(bk.dir) / "moodle_backup.xml")).getroot()
+        propri = {a.findtext("contextid") for a in mb.iter("activity")} | {a.findtext("moduleid") for a in mb.iter("activity")}
+    except Exception:
+        pass
+    esterne = {}
     cat = next((cat_di.get(id(d["usata"][1]), "") for s in slot for d in s["domande"]), "")
     m = re.match(r"^(?:Lezione\s+\S+\s+-\s+|[A-Z][A-Z0-9]*\d[A-Z0-9]*\s+-\s+|\d[A-Z][A-Z0-9]*\s+-\s+|\d+\s*-\s*)(.+)$", cat)
     argomento = m.group(1) if m else (cat or nome_quiz)
@@ -1104,9 +1116,19 @@ def importa(bk, cartella_quiz, qz, qid=None):
             }
             if not s["tag"]:
                 r.pop("tag")
+            ci = bk.categorie.get(catid_di.get(id(q)), {})
+            if ci and ci.get("ctx") not in propri and ci.get("modulo") not in propri:
+                # domanda di una banca esterna (deposito): lo stamp serve a riusarla senza doppioni
+                r["stampOrigine"] = tx(q, "stamp")
+                esterne.setdefault((ci["ctx"], ci["modulo"], ci["nome"], ci["stamp"]), []).append(pos)
             righe.append(r)
             if nota:
                 rapporto.append("- %s %s: %s" % (pos, titolo, " ".join(nota)))
+    for (ctx_e, mod_e, nome_e, stamp_e), poss in esterne.items():
+        rapporto.append("- Domande %s dalla banca esterna (contesto %s, modulo %s), categoria «%s» (stamp %s): "
+                        "hanno lo stamp d'origine (stampOrigine); per rigenerarle nel deposito senza doppioni "
+                        "scegli il deposito nei dati del quiz e ripristina nel corso del deposito."
+                        % (", ".join(poss), ctx_e, mod_e, nome_e, stamp_e))
     dbs = [{"nome": v["nome"], "sql": v["sql"]} for v in imp.db.values()]
     mancano_db = sorted(k for k, v in imp.nomi_db.items() if v is None and not any(k.startswith(d["nome"] + "_") for d in dbs))
     gp = 6

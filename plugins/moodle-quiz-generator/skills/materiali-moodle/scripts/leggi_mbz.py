@@ -9,6 +9,9 @@ Uso:
                                                     sezioni, slot con pagina e punti, domande
                                                     usate (con versioni e banca) e domande casuali
                                                     (con i tag e la categoria da cui pescano)
+    python3 leggi_mbz.py BACKUP.mbz --banche        le banche delle domande fuori dalle attività del
+                                                    backup (per esempio quella di un deposito), con
+                                                    i valori di "banca" per crea_mbz.py
     python3 leggi_mbz.py BACKUP.mbz --estrai DIR    estrae l'archivio in DIR
 
 Funziona sia con il backup di un corso sia con il backup di una singola attività
@@ -246,6 +249,40 @@ def quiz(radice, attivita, categorie, voci, tag):
             print("   totale punti degli slot: %s" % numero(totale))
 
 
+def banche_esterne(radice):
+    """Banche (contesti) delle categorie che non appartengono alle attività del backup."""
+    import xml.etree.ElementTree as ET
+    mb = ET.parse(str(pathlib.Path(radice) / "moodle_backup.xml")).getroot()
+    propri = {a.get("contextid") for a in mb.iter("activity")} | {(a.findtext("contextid") or "") for a in mb.iter("activity")}
+    propri |= {a.findtext("moduleid") for a in mb.iter("activity")}
+    cats = []
+    for c in ET.parse(str(pathlib.Path(radice) / "questions.xml")).getroot().iter("question_category"):
+        cats.append({"id": int(c.get("id")), "nome": c.findtext("name") or "", "ctx": c.findtext("contextid"),
+                     "livello": c.findtext("contextlevel"), "modulo": c.findtext("contextinstanceid"),
+                     "stamp": c.findtext("stamp") or "", "parent": c.findtext("parent"),
+                     "domande": len(list(c.iter("question_bank_entry")))})
+    per = {}
+    for c in cats:
+        per.setdefault(c["ctx"], []).append(c)
+    trovate = 0
+    for ctx, cs in per.items():
+        if cs[0]["modulo"] in propri or ctx in propri:
+            continue
+        trovate += 1
+        top = next((c for c in cs if c["parent"] == "0"), None)
+        print("== Banca: contesto %s, modulo %s (livello %s)" % (ctx, cs[0]["modulo"], cs[0]["livello"]))
+        for c in cs:
+            print("   categoria %d «%s», %d domande, stamp %s" % (c["id"], c["nome"], c["domande"], c["stamp"]))
+        if top:
+            print('   "banca": %s' % json.dumps({"contextid": int(ctx), "cmid": int(cs[0]["modulo"]),
+                                                  "top_id": top["id"], "top_stamp": top["stamp"]}, ensure_ascii=False))
+            for c in cs:
+                if c is not top:
+                    print('   per la categoria «%s»: "categoria_id": %d, "categoria_stamp": "%s"' % (c["nome"], c["id"], c["stamp"]))
+    if not trovate:
+        print("Nessuna banca fuori dalle attività del backup: le domande stanno tutte nelle banche dei quiz.")
+
+
 def main():
     args = sys.argv[1:]
     if not args:
@@ -262,6 +299,8 @@ def main():
         categorie, voci, tag = leggi_domande(radice)
         if "--domande" in args:
             elenca_domande(categorie, args[args.index("--domande") + 1])
+        elif "--banche" in args:
+            banche_esterne(radice)
         elif "--quiz" in args:
             attivita = struttura(radice)
             quiz(radice, attivita, categorie, voci, tag)

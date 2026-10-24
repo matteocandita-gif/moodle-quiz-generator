@@ -5,6 +5,7 @@ La parte 2 non riceve un file a parte: legge il database della dashboard «Bozze
 ```
 ArtifactData get   quiz <id>          out_dir=EXPORT     (quiz)
 ArtifactData list  quiz/<id>/domande  out_dir=EXPORT     (righe)
+ArtifactData get   impostazioni depositi  out_dir=EXPORT  (solo se il quiz ha «deposito»)
 python3 genera_quiz.py EXPORT <id> USCITA --nome="<nome del file>" [--varianti=a] [--immagini=CARTELLA]
 ```
 

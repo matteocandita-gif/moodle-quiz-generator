@@ -316,6 +316,15 @@ def carica(export, qid):
     return quiz, righe
 
 
+def depositi(export):
+    """Depositi registrati nella dashboard (documento impostazioni/depositi, esportato con out_dir)."""
+    p = os.path.join(export, "impostazioni", "depositi.json")
+    if not os.path.exists(p):
+        return []
+    d = json.load(open(p, encoding="utf-8"))
+    return (d.get("data", d) or {}).get("depositi", [])
+
+
 def nome_moodle(quiz, r):
     tipo, pre = CATALOGO.get(r.get("tipologia"), ("", PREFISSI_CR.get(r.get("tipologia"), "")))
     if r.get("tipologia") == "paginablocco" and quiz.get("tipoQuiz") in TIPI_RIPASSO:
@@ -959,6 +968,28 @@ def main():
            "sezioni": sezioni}
     if preset in ("verifica", "studio") and quiz.get("tempo"):
         imp["impostazioni"] = {"timelimit": int(float(quiz["tempo"])) * 60}
+    # domande già in un deposito (importate da un backup): il loro stamp d'origine, per riusarle senza doppioni
+    stamp_o = {nome_moodle(quiz, r): r["stampOrigine"] for r in righe if (r.get("stampOrigine") or "").strip()}
+    if stamp_o:
+        imp["stamp"] = stamp_o
+    # deposito di destinazione: le domande vanno nella banca del deposito invece che in quella del quiz
+    avvisi_dep = []
+    dep_id = (quiz.get("deposito") or "").strip()
+    if dep_id:
+        dep = next((d for d in depositi(export) if d.get("id") == dep_id), None)
+        if not dep:
+            raise SystemExit("ERRORE: il quiz va nel deposito «%s», che non è tra i depositi delle impostazioni "
+                             "(impostazioni/depositi, esportato in EXPORT/impostazioni/depositi.json)." % dep_id)
+        imp["banca"] = {k: dep[k] for k in ("contextid", "cmid", "top_id", "top_stamp")}
+        nota_cat = next((c for c in dep.get("categorie", []) if c.get("nome") == categoria), None)
+        if nota_cat and nota_cat.get("stamp"):
+            imp["banca"].update({"categoria_id": nota_cat.get("id") or 99303, "categoria_stamp": nota_cat["stamp"]})
+        else:
+            avvisi_dep.append("la categoria «%s» non è tra le categorie note del deposito «%s»: le domande ci vanno solo "
+                              "se la categoria l'ha creata un quiz della dashboard e l'hai spostata tu nel deposito; "
+                              "altrimenti Moodle le mette, nascoste, nella banca di sistema" % (categoria, dep.get("nome", dep_id)))
+        avvisi_dep.append("ripristina il backup nel corso «%s»: solo lì Moodle scrive nella banca del deposito"
+                          % dep.get("corso", dep.get("nome", dep_id)))
     json.dump(imp, open(os.path.join(usc, "impaginazione.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print("OK: %d domande (%d CodeRunner JavaScript, %d CodeRunner SQL, %d CodeRunner PHP, %d scritte direttamente in XML: esercizi HTML/CSS e corrispondenze), %d sezioni, %g punti, preset %s -> %s"
           % (len(spec) + len(spec_js) + len(spec_sql) + len(spec_php) + len(web), len(spec_js), len(spec_sql), len(spec_php), len(web), len(sezioni), sum(d["punti"] for s in sezioni for d in s["domande"]), preset, usc))
@@ -966,6 +997,8 @@ def main():
         print("VERIFICA RIPETIBILE: %d posizioni casuali per tag, %d varianti in tutto" % (len(gruppi), sum(len(g) for g in gruppi.values())))
     for a in avvisi_tag:
         print("ATTENZIONE: " + a)
+    for a in avvisi_dep:
+        print("DEPOSITO: " + a)
     if non_ok:
         print("ATTENZIONE: righe non ancora approvate: " + ", ".join(non_ok))
     if saltate:

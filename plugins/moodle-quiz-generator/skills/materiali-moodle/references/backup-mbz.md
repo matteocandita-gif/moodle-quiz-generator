@@ -11,7 +11,7 @@ Un `.mbz` è un archivio tar.gz (zip nelle versioni vecchie):
 - `activities/<tipo>_<id>/<tipo>.xml`: ogni attività (per un quiz, `quiz.xml` con le impostazioni e le domande usate);
 - `questions.xml` alla **radice**: le domande di tutte le banche incluse nel backup, con categorie, versioni, testo e risposte. Il testo delle domande non sta nelle cartelle dei quiz.
 
-Da Moodle 4 le domande hanno versioni: conta l'ultima. I quiz puntano alle domande con un riferimento alla voce della banca (`questionbankentryid`), oppure a una categoria per le domande casuali. Le domande che stanno in banche condivise di altri corsi non sono nel backup: il quiz le cita ma il testo manca.
+Da Moodle 4 le domande hanno versioni: conta l'ultima. I quiz puntano alle domande con un riferimento alla voce della banca (`questionbankentryid`), oppure a una categoria per le domande casuali. Nei backup di Moodle 5.2 le domande che il quiz prende da una banca condivisa (un'attività «Banca delle domande», per esempio quella di un corso deposito) sono incluse in `questions.xml`, con il contesto e gli stamp originali della banca, anche se il quiz sta in un altro corso. `leggi_mbz.py --banche` elenca queste banche con i valori per l'impaginazione `banca` di `crea_mbz.py` (vedi «Depositi» in `SKILL.md`).
 
 ## Lo script
 
