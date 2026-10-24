@@ -6,4 +6,6 @@ Per cominciare: in chat «installa la dashboard dei quiz» (comando `installa-da
 
 Mappe dei prerequisiti: in chat «installa l'editor delle mappe» (comando `installa-mappe`), poi «una mappa dei prerequisiti su…». Ogni mappa diventa un backup `.mbz` di un'attività Database in cui gli studenti spuntano ciò che sanno fare e il docente vede il riepilogo della classe.
 
+Correzione di una verifica svolta: nella dashboard «Correzione verifiche» → «Nuova correzione» si trascina l'Excel «Risposte» di Moodle (i nomi li toglie la pagina, nel browser), poi in chat «correggi la verifica …». Claude propone punteggi e commenti nella dashboard «Correzione verifiche» (una per tutte le verifiche, per domanda o per studente), da cui si copiano in Valutazione manuale.
+
 Installazione, percorso di un quiz e guida d'uso: README e GUIDA.md nella radice del repository.

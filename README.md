@@ -72,10 +72,11 @@ Le regole didattiche (punti, tempi, struttura delle verifiche, stile delle doman
 | `database-didattici` | Database di prova coerenti in tre taglie, per CodeRunner e phpMyAdmin, con un catalogo |
 | `diagrammi-er` | Progettazione nella notazione del libro, da una descrizione testuale: diagramma E/R (file draw.io e PNG), schema relazionale, documentazione, soluzione completa in HTML o Word |
 | `mappe-prerequisiti` | Mappe dei prerequisiti per l'autovalutazione: l'editor «Mappe dei prerequisiti» e il backup `.mbz` dell'attività Database |
+| `correzione-verifiche` | Correzione di una verifica svolta: dall'export delle risposte, punteggi e commenti proposti domanda per domanda, codice rieseguito con i test, dashboard «Correzione verifiche» con vista per domanda e per studente, tabella dei voti |
 
 Il comando `installa-dashboard` installa o aggiorna la dashboard, `installa-mappe` l'editor delle mappe.
 
-Le skill si usano anche da sole, fuori dalla dashboard: «una Cloze sulle JOIN», «un esercizio sui cicli while da correggere in automatico», «un database con tre tabelle per una lezione in phpMyAdmin», «disegna lo schema E/R della biblioteca», «risolvi questa traccia di progettazione», «una mappa dei prerequisiti su HTML per le quarte».
+Le skill si usano anche da sole, fuori dalla dashboard: «una Cloze sulle JOIN», «un esercizio sui cicli while da correggere in automatico», «un database con tre tabelle per una lezione in phpMyAdmin», «disegna lo schema E/R della biblioteca», «risolvi questa traccia di progettazione», «una mappa dei prerequisiti su HTML per le quarte», «correggi la verifica V5R · 5Q» (dopo averla caricata con «Nuova correzione»).
 
 ## Autore e licenza
 

@@ -1,0 +1,767 @@
+<title>Correzione verifiche</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@600&display=swap">
+<style>
+/* Layout: elenco delle verifiche; dentro una verifica tre viste (per domanda, per studente, riepilogo) con la barra di navigazione in alto e una scheda per riga */
+:root{
+  --bg:#eef1ef; --panel:#ffffff; --ink:#1c2622; --muted:#5d6b65; --line:#d3dbd7;
+  --accent:#1f6b52; --accent-ink:#ffffff; --accent-soft:#dcebe4;
+  --ok:#2c7a4b; --warn:#9a6a00; --bad:#a63a2e; --code:#f5f7f6;
+  --f-display:"IBM Plex Serif",Georgia,serif; --f-body:"IBM Plex Sans",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#131917; --panel:#1b2320; --ink:#e3ebe7; --muted:#9aa9a2; --line:#2f3a36;
+  --accent:#5fc49c; --accent-ink:#0c1612; --accent-soft:#1f3a30;
+  --ok:#6fcf97; --warn:#e2b14a; --bad:#ef8a7c; --code:#151c19; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#131917; --panel:#1b2320; --ink:#e3ebe7; --muted:#9aa9a2; --line:#2f3a36;
+  --accent:#5fc49c; --accent-ink:#0c1612; --accent-soft:#1f3a30;
+  --ok:#6fcf97; --warn:#e2b14a; --bad:#ef8a7c; --code:#151c19; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 60px}
+h1{font-family:var(--f-display);font-size:1.6rem;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:4px 0 0}
+header.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:end;justify-content:space-between}
+.stato{font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.indietro{font:inherit;font-size:.85rem;background:none;border:0;color:var(--accent);cursor:pointer;padding:0;margin-bottom:6px}
+.comandi{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin-top:14px}
+.ordine{display:flex;gap:6px;align-items:center;font-size:.85rem;color:var(--muted)}
+.ordine button{font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:6px;padding:5px 10px;cursor:pointer}
+.viste{display:flex;gap:0;border:1px solid var(--line);border-radius:7px;overflow:hidden;width:max-content;max-width:100%}
+.viste button{font:inherit;font-size:.88rem;border:0;background:var(--panel);color:var(--ink);padding:6px 14px;cursor:pointer;border-right:1px solid var(--line)}
+.viste button:last-child{border-right:0}
+.viste button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+nav.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 14px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding-block:8px;z-index:5;border-bottom:1px solid var(--line)}
+@media (max-width:600px){nav.tabs{position:static}}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+nav.tabs button{font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:6px;padding:5px 9px;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;line-height:1.2}
+nav.tabs button small{color:var(--muted);font-size:.72rem;font-variant-numeric:tabular-nums}
+nav.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+nav.tabs button[aria-selected="true"] small{color:var(--accent-ink);opacity:.85}
+nav.tabs button.fatta{border-color:var(--ok)}
+nav.tabs button.sigla-tab span{font-family:var(--f-mono)}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.intesta{display:grid;gap:8px;margin-bottom:14px}
+#comandi + nav.tabs[hidden] + main .intesta{margin-top:16px}
+.intesta h2{font-family:var(--f-display);font-size:1.25rem;margin:0}
+.criteri{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:.9rem;color:var(--muted);white-space:pre-line}
+.filtri{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.88rem;color:var(--muted);align-items:center}
+.filtri label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.lista{display:grid;gap:10px}
+.card{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:8px;padding:12px 14px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:12px 18px}
+.card.da-moodle{border-left-color:var(--warn)}
+.card.inserito{border-left-color:var(--ok);opacity:.78}
+@media (max-width:760px){.card{grid-template-columns:minmax(0,1fr)}}
+.chi{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;grid-column:1/-1}
+.sigla{font-family:var(--f-mono);font-weight:500;font-size:1rem;background:var(--accent-soft);padding:1px 8px;border-radius:4px}
+.dom-tit{font-weight:600}
+.n{color:var(--muted);font-size:.8rem;font-variant-numeric:tabular-nums}
+.chip{font-size:.75rem;border-radius:999px;padding:1px 8px;border:1px solid currentColor}
+.chip.ok{color:var(--ok)} .chip.bad{color:var(--bad)} .chip.warn{color:var(--warn)} .chip.muted{color:var(--muted)}
+pre.risp{margin:0;background:var(--code);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-family:var(--f-mono);font-size:.8rem;white-space:pre-wrap;word-break:break-word;max-height:320px;overflow:auto;min-width:0}
+.voto{display:grid;gap:8px;align-content:start;min-width:0}
+.riga{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.punti{display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
+.punti input{width:5.2em;font:inherit;font-size:1.1rem;font-weight:600;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);text-align:right}
+.punti span{color:var(--muted)}
+.perc{font-size:.8rem;color:var(--muted)}
+textarea{width:100%;min-height:140px;font:inherit;font-size:.88rem;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);resize:vertical}
+.btn{font:inherit;font-size:.82rem;border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:6px;padding:4px 10px;cursor:pointer}
+.btn.pieno{background:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.4;cursor:default}
+.spunte{display:flex;gap:14px;flex-wrap:wrap;font-size:.85rem}
+.spunte label{display:flex;gap:5px;align-items:center;cursor:pointer}
+.nota-moodle{font-size:.8rem;color:var(--muted)}
+.nota-moodle b{color:var(--warn);font-weight:600}
+.salvato{font-size:.75rem;color:var(--muted);min-height:1em}
+.vuoto{background:var(--panel);border:1px dashed var(--line);border-radius:8px;padding:28px;text-align:center;color:var(--muted)}
+.totale-stud{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-variant-numeric:tabular-nums}
+.totale-stud b{font-size:1.3rem}
+.totale-stud .voto10{color:var(--accent);font-weight:600;font-size:1.3rem}
+.elenco{display:grid;gap:10px}
+.verifica{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 16px;display:flex;flex-wrap:wrap;gap:6px 20px;align-items:center;justify-content:space-between;cursor:pointer;text-align:left;font:inherit;color:var(--ink);width:100%}
+.verifica:hover{border-color:var(--accent)}
+.verifica h3{font-family:var(--f-display);font-size:1.05rem;margin:0}
+.verifica .n{display:block}
+.barra{width:160px;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.barra i{display:block;height:100%;background:var(--accent)}
+.tab-wrap{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:8px}
+table.riep{border-collapse:collapse;width:100%;font-size:.85rem;font-variant-numeric:tabular-nums}
+table.riep th,table.riep td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+table.riep th:first-child,table.riep td:first-child{text-align:left;font-family:var(--f-mono)}
+table.riep thead th{color:var(--muted);font-weight:500}
+table.riep td.tot{font-weight:600}
+table.riep td.voto10{font-weight:600;color:var(--accent)}
+table.riep td.attesa{color:var(--muted)}
+table.riep tbody tr{cursor:pointer}
+table.riep tbody tr:hover td{background:var(--accent-soft)}
+.leg{font-size:.8rem;color:var(--muted);margin-top:8px}
+details.archivio{margin-top:18px;color:var(--muted)}
+.riquadro{margin-top:22px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 16px;display:grid;gap:8px}
+.riquadro h3{margin:0;font-size:1rem}
+.riquadro p{margin:0}
+.btn.pericolo{border-color:var(--bad);color:var(--bad)}
+.btn.pericolo.pieno{background:var(--bad);color:var(--panel)}
+.incolla{border:2px dashed var(--line);border-radius:8px;padding:26px 16px;text-align:center;color:var(--muted);background:var(--panel);cursor:text}
+.incolla:focus{outline:2px solid var(--accent);outline-offset:2px;color:var(--ink)}
+.imp-q{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.88rem}
+.imp-q label{display:flex;gap:5px;align-items:center;cursor:pointer}
+select.assegna{font:inherit;font-size:.85rem;padding:2px 4px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:5px}
+.conferma{border-top:1px solid var(--line);padding-top:8px;display:grid;gap:8px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:7px 14px;border-radius:6px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <button class="indietro" id="indietro" hidden>← Tutte le verifiche</button>
+      <h1 id="titolo">Correzione verifiche</h1>
+      <p class="sub" id="sottotitolo">Le verifiche da correggere, con le proposte di punteggio e commento da riportare in Moodle.</p>
+    </div>
+    <div class="stato" id="stato">Caricamento…</div>
+  </header>
+  <div class="comandi" id="comandi" hidden>
+    <div class="viste" id="viste" role="group" aria-label="Vista">
+      <button data-vista="domanda" aria-pressed="false">Per domanda</button>
+      <button data-vista="studente" aria-pressed="false">Per studente</button>
+      <button data-vista="riep" aria-pressed="false">Riepilogo voti</button>
+      <button data-vista="importa" aria-pressed="false">Importa da Moodle</button>
+    </div>
+    <div class="ordine">Studenti per cognome <button id="ordine" aria-label="Cambia l'ordine degli studenti">A → Z</button></div>
+  </div>
+  <nav class="tabs" id="tabs" hidden></nav>
+  <main id="vista"><div class="vuoto">Le verifiche compaiono qui appena il database risponde.</div></main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const DISCLAIMER_STD = "Il seguente feedback è stato scritto con l'aiuto di una IA generativa. La valutazione è stata svolta dal docente.";
+const st = { nuova:false, verifiche:{}, vid:null, domande:{}, val:{}, vista:"domanda", ordine:1, tab:null, stud:null, soloMoodle:false, nascondiRisp:false, db:null, unsub:[] };
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = n => (n == null || n === "" || isNaN(n)) ? "—" : (Math.round(n*100)/100).toString().replace(".", ",");
+function toast(t){ const el=$("#toast"); el.textContent=t; el.classList.add("on"); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove("on"),1600); }
+const CHIAVE_UI = "correzioni-ui";
+try { const s = JSON.parse(localStorage.getItem(CHIAVE_UI)||"{}"); Object.assign(st, {vid:s.vid||null, vista:s.vista||"domanda", ordine:s.ordine===-1?-1:1, soloMoodle:!!s.soloMoodle, nascondiRisp:!!s.nascondiRisp}); } catch(e){}
+function salvaUI(){ try{ localStorage.setItem(CHIAVE_UI, JSON.stringify({vid:st.vid, vista:st.vista, ordine:st.ordine, soloMoodle:st.soloMoodle, nascondiRisp:st.nascondiRisp})); }catch(e){} }
+
+const info = () => st.verifiche[st.vid] || {};
+const disclaimer = () => info().disclaimer || DISCLAIMER_STD;
+const domOrd = () => Object.values(st.domande).sort((a,b)=>a.n-b.n);
+// ord è la posizione nell'export, che Moodle ordina per cognome: crescente o rovesciato
+function righe(d){ return Object.values(st.val).filter(v => v.d === d).sort((a,b)=>(a.ord-b.ord)*st.ordine); }
+function studenti(){
+  const m = {}; Object.values(st.val).forEach(v => { if (!m[v.k]) m[v.k] = {k:v.k, s:v.s, ord:v.ord}; });
+  return Object.values(m).sort((a,b)=>(a.ord-b.ord)*st.ordine);
+}
+const nStud = () => info().studenti || studenti().length;
+const posiz = ord => st.ordine === 1 ? ord + 1 : nStud() - ord;   // posizione nell'ordine scelto, come in Moodle
+function rigaDi(d, k){ return st.val[d + "__" + k]; }
+function daMoodle(v){
+  const dom = st.domande[v.d]; if (!dom || v.punti == null) return false;
+  if (dom.tipo === "manuale") return true;
+  return Number(v.punti) !== Number(v.auto);
+}
+function totale(k){
+  let tot = 0, manca = false;
+  domOrd().forEach(d => { const v = rigaDi(d.id, k); if (!v || v.punti == null) manca = true; else tot += Number(v.punti); });
+  return {tot, manca};
+}
+const massimo = () => domOrd().reduce((s,d)=>s+Number(d.max||0),0) || 100;
+const testoCommento = v => v.commento ? disclaimer() + "\n\n" + v.commento : "";
+const htmlCommento = v => v.commento ? "<p><em>"+esc(disclaimer())+"</em></p><p>"+esc(v.commento)+"</p>" : "";
+
+async function copia(testo, html){
+  try {
+    if (html && window.ClipboardItem && navigator.clipboard?.write) {
+      await navigator.clipboard.write([new ClipboardItem({"text/html": new Blob([html],{type:"text/html"}), "text/plain": new Blob([testo],{type:"text/plain"})})]);
+    } else { await navigator.clipboard.writeText(testo); }
+    toast("Copiato");
+  } catch(e) {
+    const ta=document.createElement("textarea"); ta.value=testo; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); toast("Copiato"); }catch(_){ toast("Copia non riuscita: seleziona il testo a mano"); }
+    ta.remove();
+  }
+}
+
+const pending = {};
+function scrivi(id, campi){
+  Object.assign(st.val[id], campi);
+  const vid = st.vid;
+  clearTimeout(pending[id]?.t);
+  pending[id] = { t: setTimeout(async () => {
+    const p = pending[id]; delete pending[id];
+    if (!st.db) return;
+    const [docId, chiave] = id.split("__");
+    try { await st.db.collection(`verifiche/${vid}/valutazioni`).doc(docId).update({righe: {[chiave]: p.campi}}); segnaSalvato(id, "Salvato"); }
+    catch(e){ segnaSalvato(id, "Non salvato: " + (e.code||"errore")); }
+  }, 600), campi: Object.assign(pending[id]?.campi || {}, campi) };
+  segnaSalvato(id, "…");
+}
+function segnaSalvato(id, t){ const el=document.querySelector(`[data-salv="${id}"]`); if(el) el.textContent=t; }
+
+/* ---------- elenco delle verifiche ---------- */
+function renderElenco(){
+  $("#indietro").hidden = true; $("#comandi").hidden = true; $("#tabs").hidden = true;
+  $("#titolo").textContent = "Correzione verifiche";
+  $("#sottotitolo").textContent = "Le verifiche da correggere, con le proposte di punteggio e commento da riportare in Moodle.";
+  const tutte = Object.values(st.verifiche).sort((a,b)=>String(b.creato||"").localeCompare(String(a.creato||"")));
+  const attive = tutte.filter(v=>!v.archiviata), arch = tutte.filter(v=>v.archiviata);
+  $("#stato").textContent = attive.length ? (attive.length === 1 ? "1 verifica in corso" : `${attive.length} verifiche in corso`) : "";
+  const card = v => {
+    const p = v.avanzamento || {}; const perc = p.righe ? Math.round((p.riviste||0)/p.righe*100) : 0;
+    return `<button class="verifica" data-vid="${esc(v.id)}"><div><h3>${esc(v.titolo||v.id)}</h3><span class="n">${esc(v.sottotitolo||"")}${v.studenti?` · ${v.studenti} studenti`:""}${v.creato?` · ${esc(String(v.creato).split("-").reverse().join("/"))}`:""}</span></div>
+      <div><div class="barra" aria-hidden="true"><i style="width:${perc}%"></i></div><span class="n">${p.righe?`${p.riviste||0}/${p.righe} righe riviste`:"da aprire"}</span></div></button>`;
+  };
+  let h = `<p class="riga" style="margin-bottom:12px"><button class="btn pieno" id="nuova">Nuova correzione</button><span class="n">dall'Excel delle risposte di Moodle, anche con i nomi: li toglie la pagina, nel tuo browser</span></p>`;
+  h += attive.length ? `<div class="elenco">${attive.map(card).join("")}</div>`
+    : `<div class="vuoto">Nessuna verifica da correggere. In chat: «correggi questa verifica», con l'export «Risposte» di Moodle anonimizzato.</div>`;
+  if (tutte.length) h += `<p class="leg">Per archiviare o eliminare una verifica: aprila e vai in «Riepilogo voti».</p>`;
+  if (arch.length) h += `<details class="archivio"><summary>Archiviate (${arch.length})</summary><div class="elenco" style="margin-top:10px">${arch.map(card).join("")}</div></details>`;
+  $("#vista").innerHTML = h;
+  $("#nuova").onclick = () => { st.nuova = true; nuova.reset(); render(); };
+  document.querySelectorAll("[data-vid]").forEach(b => b.onclick = () => apri(b.dataset.vid));
+}
+
+/* ---------- una verifica ---------- */
+function apri(vid){
+  st.unsub.forEach(u => { try{u();}catch(_){} }); st.unsub = [];
+  st.vid = vid; st.domande = {}; st.val = {}; st.tab = null; st.stud = null; salvaUI();
+  if (!vid) { render(); return; }
+  $("#vista").innerHTML = `<div class="vuoto">Caricamento delle correzioni…</div>`;
+  const base = `verifiche/${vid}`;
+  st.unsub.push(st.db.collection(base + "/domande").limit(200).onSnapshot(s => {
+    st.domande = {}; s.docs.forEach(d => st.domande[d.id] = {id:d.id, ...d.data()}); render();
+  }, e => { $("#stato").textContent = "Errore nel leggere le domande: " + e.code; }));
+  st.unsub.push(st.db.collection(base + "/valutazioni").limit(200).onSnapshot(s => {
+    const attivo = document.activeElement; const focusId = attivo?.id; const sel = attivo && "selectionStart" in attivo ? [attivo.selectionStart, attivo.selectionEnd] : null;
+    s.docChanges().forEach(ch => {
+      const dId = ch.doc.id;
+      Object.keys(st.val).forEach(k => { if (k.startsWith(dId + "__")) delete st.val[k]; });
+      if (ch.type === "removed") return;
+      for (const [chiave, riga] of Object.entries(ch.doc.data().righe || {})) {
+        const id = dId + "__" + chiave;
+        const nuovo = {id, d: dId, k: chiave, ...riga};
+        if (pending[id]) Object.assign(nuovo, pending[id].campi);
+        st.val[id] = nuovo;
+      }
+    });
+    const cambiFuori = s.docChanges().some(ch => !ch.doc.metadata.hasPendingWrites);
+    if (cambiFuori || !focusId) { render(); if (focusId) { const el=document.getElementById(focusId); if (el){ el.focus(); if (sel && "setSelectionRange" in el) try{ el.setSelectionRange(sel[0], sel[1]); }catch(_){} } } }
+    else { renderStato(); }
+  }, e => { $("#stato").textContent = "Errore nel leggere le correzioni: " + e.code; }));
+}
+
+function renderStato(){
+  if (!st.vid) return;
+  const tutte = Object.values(st.val);
+  const ok = tutte.filter(v=>v.ok).length;
+  const ins = tutte.filter(v=>daMoodle(v)).length, insF = tutte.filter(v=>daMoodle(v)&&v.inserito).length;
+  $("#stato").textContent = tutte.length ? `${ok}/${tutte.length} righe riviste · Moodle: ${insF}/${ins} inserite` : "";
+  segnaAvanzamento(tutte.length, ok);
+}
+let ultimoAv = "";
+function segnaAvanzamento(righe, riviste){       // l'avanzamento nell'elenco, scritto solo quando cambia
+  const k = `${st.vid}:${righe}:${riviste}`; if (k === ultimoAv || !righe) return; ultimoAv = k;
+  const v = info(); if (v.avanzamento && v.avanzamento.righe === righe && v.avanzamento.riviste === riviste) return;
+  clearTimeout(segnaAvanzamento.t);
+  const vid = st.vid;
+  segnaAvanzamento.t = setTimeout(() => st.db?.doc(`verifiche/${vid}`).update({avanzamento:{righe, riviste}}).catch(()=>{}), 1500);
+}
+
+function renderTabs(){
+  const t = $("#tabs");
+  if (st.vista === "riep" || st.vista === "importa") { t.hidden = true; return; }
+  t.hidden = false;
+  if (st.vista === "domanda") {
+    t.innerHTML = domOrd().map(d => {
+      const r = righe(d.id); const fatte = r.filter(v=>v.ok).length;
+      const ins = r.filter(v=>daMoodle(v) && !v.inserito).length;
+      return `<button role="tab" data-tab="${d.id}" aria-selected="${st.tab===d.id}" class="${fatte===r.length&&r.length?'fatta':''}">
+        <span>D${d.n} · ${esc(d.breve)}</span><small>${fatte}/${r.length} riviste${ins?` · ${ins} da Moodle`:''}</small></button>`;
+    }).join("");
+    t.querySelectorAll("button").forEach(b => b.onclick = () => { st.tab = b.dataset.tab; render(); window.scrollTo({top:0}); });
+  } else {
+    const M = massimo();
+    t.innerHTML = studenti().map(s => {
+      const {tot, manca} = totale(s.k);
+      const r = domOrd().map(d=>rigaDi(d.id, s.k)).filter(Boolean); const fatte = r.filter(v=>v.ok).length;
+      return `<button role="tab" class="sigla-tab ${fatte===r.length&&r.length?'fatta':''}" data-stud="${esc(s.k)}" aria-selected="${st.stud===s.k}">
+        <span>${esc(s.s)}</span><small>${fmt(tot/M*10)}${manca?'*':''} · ${fatte}/${r.length}</small></button>`;
+    }).join("");
+    t.querySelectorAll("button").forEach(b => b.onclick = () => { st.stud = b.dataset.stud; render(); window.scrollTo({top:0}); });
+  }
+}
+
+function cardHtml(v, dom, modo){
+  const m = daMoodle(v);
+  const chip = v.esito ? `<span class="chip ${v.esito.startsWith('OK')?'ok':(/^(vuota|in attesa)/.test(v.esito)?'muted':'bad')}">${esc(v.esito)}</span>` : "";
+  const autoTxt = dom.tipo === "auto" ? `Automatico in Moodle (stimato rieseguendo i test): ${fmt(v.auto)}` : "";
+  const perc = (v.punti!=null && dom.max) ? Math.round(v.punti/dom.max*100)+"%" : "";
+  const testa = modo === "domanda"
+    ? `<span class="sigla">${esc(v.s)}</span><span class="n">${posiz(v.ord)} di ${nStud()}</span>`
+    : `<span class="dom-tit">D${dom.n} · ${esc(dom.breve)} · ${esc(dom.titolo)}</span><span class="n">max ${fmt(dom.max)}</span>`;
+  return `<article class="card ${v.inserito?'inserito':(m?'da-moodle':'')}">
+    <div class="chi">${testa}${chip}
+      ${m && !v.inserito ? `<span class="chip warn">${dom.tipo==='manuale'?'da inserire':'da modificare'}</span>`:''}</div>
+    ${st.nascondiRisp ? '' : `<pre class="risp">${esc(v.risposta || "(nessuna risposta)")}</pre>`}
+    <div class="voto">
+      <div class="riga">
+        <label class="punti" for="p-${v.id}"><input id="p-${v.id}" type="number" inputmode="decimal" min="0" max="${dom.max}" step="0.5" value="${v.punti ?? ''}" data-id="${v.id}" data-max="${dom.max}" class="in-punti" placeholder="—"><span>/ ${fmt(dom.max)}</span></label>
+        <span class="perc">${perc}</span>
+        <button class="btn" data-copia-p="${v.id}" ${v.punti==null?'disabled':''}>Copia punteggio</button>
+      </div>
+      ${autoTxt ? `<div class="nota-moodle">${autoTxt}${m?` → <b>porta a ${fmt(v.punti)}</b>`:' · nessuna modifica'}</div>`:''}
+      <textarea id="c-${v.id}" data-id="${v.id}" class="in-comm" placeholder="Nessun commento (punteggio pieno)">${esc(v.commento)}</textarea>
+      <div class="riga">
+        <button class="btn pieno" data-copia-c="${v.id}" ${v.commento?'':'disabled'}>Copia commento per Moodle</button>
+        <span class="salvato" data-salv="${v.id}"></span>
+      </div>
+      <div class="spunte">
+        <label><input type="checkbox" data-ok="${v.id}" ${v.ok?'checked':''}> Rivisto</label>
+        ${m || v.inserito ? `<label><input type="checkbox" data-ins="${v.id}" ${v.inserito?'checked':''}> Inserito in Moodle</label>`:''}
+      </div>
+    </div></article>`;
+}
+
+function filtriHtml(){
+  return `<div class="filtri">
+    <label><input type="checkbox" id="f-moodle" ${st.soloMoodle?'checked':''}> Solo le righe ancora da inserire in Moodle</label>
+    <label><input type="checkbox" id="f-risp" ${st.nascondiRisp?'checked':''}> Nascondi le risposte</label></div>`;
+}
+
+function collega(){
+  $("#f-moodle")?.addEventListener("change", e => { st.soloMoodle = e.target.checked; salvaUI(); render(); });
+  $("#f-risp")?.addEventListener("change", e => { st.nascondiRisp = e.target.checked; salvaUI(); render(); });
+  document.querySelectorAll(".in-punti").forEach(i => i.oninput = () => {
+    const raw = i.value.replace(",", "."); const n = raw === "" ? null : Number(raw); const max = Number(i.dataset.max);
+    if (n != null && (isNaN(n) || n < 0 || n > max)) { i.setCustomValidity("Tra 0 e " + max); i.reportValidity(); return; }
+    i.setCustomValidity(""); scrivi(i.dataset.id, {punti:n}); renderStato(); renderTabs(); aggiornaTotStud();
+  });
+  document.querySelectorAll(".in-comm").forEach(t => t.oninput = () => {
+    scrivi(t.dataset.id, {commento:t.value});
+    const b = document.querySelector(`[data-copia-c="${t.dataset.id}"]`); if (b) b.disabled = !t.value;
+  });
+  document.querySelectorAll("[data-copia-c]").forEach(b => b.onclick = () => { const v = st.val[b.dataset.copiaC]; copia(testoCommento(v), htmlCommento(v)); });
+  document.querySelectorAll("[data-copia-p]").forEach(b => b.onclick = () => { const v = st.val[b.dataset.copiaP]; copia(fmt(v.punti)); });
+  document.querySelectorAll("[data-ok]").forEach(c => c.onchange = () => { scrivi(c.dataset.ok, {ok:c.checked}); renderTabs(); renderStato(); });
+  document.querySelectorAll("[data-ins]").forEach(c => c.onchange = () => { scrivi(c.dataset.ins, {inserito:c.checked}); render(); });
+}
+
+function renderDomanda(d){
+  const dom = st.domande[d]; const r = righe(d);
+  const vis = st.soloMoodle ? r.filter(v => daMoodle(v) && !v.inserito) : r;
+  const azione = dom.tipo === "manuale"
+    ? "In Moodle: punteggio e commento per tutti."
+    : "In Moodle: cambiare solo le righe segnate «da modificare» (il punteggio automatico è diverso dalla proposta).";
+  let h = `<section class="intesta"><h2>D${dom.n} · ${esc(dom.titolo)} <span class="n">max ${fmt(dom.max)} punti</span></h2>
+    <div class="criteri">${esc(dom.criteri)}${dom.criteri?"\n":""}${azione}</div>${filtriHtml()}</section><div class="lista">`;
+  if (!vis.length) h += `<div class="vuoto">${r.length ? "Niente da inserire in Moodle per questa domanda." : "Nessuna riga per questa domanda."}</div>`;
+  h += vis.map(v => cardHtml(v, dom, "domanda")).join("") + `</div>`;
+  $("#vista").innerHTML = h; collega();
+}
+
+function totStudHtml(k){
+  const {tot, manca} = totale(k); const M = massimo();
+  return `<span>Totale <b>${fmt(tot)}</b> / ${fmt(M)}${manca?'*':''}</span><span>Voto <span class="voto10">${fmt(tot/M*10)}${manca?'*':''}</span></span>${manca?'<span class="n">* provvisorio: manca almeno un punteggio</span>':''}`;
+}
+function aggiornaTotStud(){ const el = $("#tot-stud"); if (el && st.stud) el.innerHTML = totStudHtml(st.stud); }
+
+function renderStudente(k){
+  const s = studenti().find(x => x.k === k); if (!s) return;
+  const lista = domOrd().map(d => [rigaDi(d.id, k), d]).filter(([v]) => v);
+  const vis = st.soloMoodle ? lista.filter(([v]) => daMoodle(v) && !v.inserito) : lista;
+  let h = `<section class="intesta"><h2><span class="sigla">${esc(s.s)}</span> <span class="n">${posiz(s.ord)} di ${nStud()}</span></h2>
+    <div class="totale-stud" id="tot-stud">${totStudHtml(k)}</div>
+    <div class="criteri">Tutte le domande di questo studente. Utile per controllare il voto complessivo, o per inserire in Moodle dalla revisione del tentativo («Commenta o modifica la valutazione»).</div>${filtriHtml()}</section><div class="lista">`;
+  if (!vis.length) h += `<div class="vuoto">Niente da inserire in Moodle per questo studente.</div>`;
+  h += vis.map(([v, d]) => cardHtml(v, d, "studente")).join("") + `</div>`;
+  $("#vista").innerHTML = h; collega();
+}
+
+function renderRiep(){
+  const doms = domOrd(); const M = massimo();
+  let h = `<section class="intesta"><h2>Riepilogo dei punteggi</h2>
+    <div class="criteri">Totale su ${fmt(M)} e voto su 10 con i punteggi proposti o modificati qui. Una domanda ancora senza punteggio conta 0 e il totale è segnato come provvisorio. Clic su una riga per aprire lo studente.</div></section>
+    <div class="tab-wrap"><table class="riep"><thead><tr><th>Studente</th>${doms.map(d=>`<th title="${esc(d.titolo)}">D${d.n}<br><span class="n">${fmt(d.max)}</span></th>`).join("")}<th>Totale</th><th>Voto</th></tr></thead><tbody>`;
+  let somma = 0; const st_ = studenti();
+  for (const s of st_){
+    const {tot, manca} = totale(s.k); somma += tot;
+    const celle = doms.map(d => { const v = rigaDi(d.id, s.k); return (!v || v.punti==null) ? `<td class="attesa">—</td>` : `<td>${fmt(v.punti)}</td>`; }).join("");
+    h += `<tr data-apri="${esc(s.k)}"><td>${esc(s.s)}</td>${celle}<td class="tot">${fmt(tot)}${manca?'*':''}</td><td class="voto10">${fmt(tot/M*10)}${manca?'*':''}</td></tr>`;
+  }
+  h += `</tbody></table></div><p class="leg">* provvisorio: manca almeno un punteggio. Media della classe: ${fmt(st_.length ? somma/st_.length/M*10 : 0)} su 10.</p>`;
+  const arch = !!info().archiviata;
+  h += `<section class="riquadro" aria-labelledby="t-archivia"><h3 id="t-archivia">Archivia o elimina la verifica</h3>
+    <p class="n">Archiviata, la verifica resta consultabile in fondo all'elenco. Eliminata, si perdono punteggi e commenti: prima di eliminarla, se ti serve una copia, chiedi a Claude la tabella dei voti.</p>
+    <div class="riga"><button class="btn" id="archivia">${arch ? "Riporta tra le verifiche in corso" : "Archivia la verifica"}</button>
+      <button class="btn pericolo" id="elimina">Elimina…</button></div>
+    <div class="conferma" id="conferma" hidden><p>Eliminare definitivamente <b>${esc(info().titolo || st.vid)}</b>, con tutti i punteggi e i commenti? Non si può annullare.</p>
+      <div class="riga"><button class="btn pericolo pieno" id="elimina-ok">Elimina definitivamente</button><button class="btn" id="elimina-no">Annulla</button></div></div></section>`;
+  $("#vista").innerHTML = h;
+  $("#archivia").onclick = async () => { const vid = st.vid; try { await st.db.doc(`verifiche/${vid}`).update({archiviata: !arch}); toast(arch ? "Riportata tra quelle in corso" : "Archiviata"); if (!arch) apri(null); } catch(e){ toast("Non riuscito: " + (e.code||"errore")); } };
+  $("#elimina").onclick = () => { $("#conferma").hidden = false; $("#elimina-ok").focus(); };
+  $("#elimina-no").onclick = () => { $("#conferma").hidden = true; };
+  $("#elimina-ok").onclick = async () => {
+    const vid = st.vid; const b = $("#elimina-ok"); b.disabled = true; b.textContent = "Eliminazione…";
+    const ids = new Set([...Object.keys(st.domande), ...Object.values(st.val).map(v => v.d)]);
+    try {
+      for (const d of ids) {                    // i documenti annidati non si cancellano da soli
+        await st.db.collection(`verifiche/${vid}/valutazioni`).doc(d).delete();
+        await st.db.collection(`verifiche/${vid}/domande`).doc(d).delete();
+      }
+      await st.db.doc(`verifiche/${vid}`).delete();
+      toast("Verifica eliminata"); apri(null);
+    } catch(e) { b.disabled = false; b.textContent = "Elimina definitivamente"; toast("Eliminazione non riuscita: " + (e.code||"errore")); }
+  };
+  document.querySelectorAll("[data-apri]").forEach(r => r.onclick = () => { st.vista = "studente"; st.stud = r.dataset.apri; salvaUI(); render(); window.scrollTo({top:0}); });
+}
+
+/* La tabella copiata dal browser ha i tag ma comprime spazi e a capo; l'export ha a capo e rientri
+   ma toglie i tag. fondi() rimette i tag di I (importata) dentro gli spazi di E (export):
+   ogni spazio di I corrisponde a un tratto di spazi dell'originale. */
+const TAG_RE = /<[^<>]*>/y;
+function tagA(I, i){ TAG_RE.lastIndex = i; const m = TAG_RE.exec(I); return m ? m[0] : null; }
+const sp = ch => /\s/.test(ch || "");
+function fondi(E, I){
+  E = String(E || ""); I = String(I || "");
+  if (!E.trim() || E.trim() === "-") return I;
+  const out = []; let i = 0, j = 0;
+  while (i < I.length) {
+    const c = I[i];
+    const tolto = c === "<" && tagA(I, i) && !(j < E.length && E[j] === "<");
+    if (!(sp(c) || tolto || (j < E.length && sp(E[j])))) { out.push(c); i++; if (j < E.length && E[j] === c) j++; continue; }
+    const token = [];
+    while (i < I.length) {
+      if (sp(I[i])) { while (i < I.length && sp(I[i])) i++; token.push(null); }
+      else if (I[i] === "<" && tagA(I, i) && !(j < E.length && E[j] === "<" && !token.length)) { const t = tagA(I, i); token.push(t); i += t.length; }
+      else break;
+    }
+    let k = j; while (k < E.length && sp(E[k])) k++;
+    const run = E.slice(j, k); j = k;
+    const n = token.filter(t => t === null).length;
+    const pezzi = run.split(/(?=\n)/).filter(Boolean);
+    if (!n) { out.push(token.join("") + run); continue; }
+    let parti;
+    if (!pezzi.length) parti = Array(n).fill(j >= E.length ? "\n" : " ");
+    else if (pezzi.length >= n) parti = [pezzi.slice(0, pezzi.length - n + 1).join("")].concat(pezzi.slice(pezzi.length - n + 1));
+    else parti = Array(n - pezzi.length).fill(" ").concat(pezzi);
+    for (const t of token) out.push(t === null ? parti.shift() : t);
+  }
+  return out.join("").replace(/\s+$/, "");
+}
+/* ---------- importazione dalla tabella «Risposte» di Moodle ----------
+   I nomi degli studenti restano in questa pagina, nel browser: si salvano solo sigla e risposta. */
+const imp = { righe: null, colonne: [], assegna: {}, scelte: new Set() };
+const piano = s => String(s||"").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase();
+function candidatiSigla(nome){
+  const p = nome.trim().split(/\s+/); const out = [];
+  for (let i = 1; i < p.length; i++) {
+    for (const [n, c] of [[p.slice(0,i).join(" "), p.slice(i).join(" ")], [p.slice(i).join(" "), p.slice(0,i).join(" ")]]) {
+      out.push(piano(c).slice(0,2) + " " + piano(n).slice(0,2));
+    }
+  }
+  return out;
+}
+function testoCella(td){
+  const el = td.querySelector(".que span") || td.querySelector(".que") || td;
+  const c = el.cloneNode(true); c.querySelectorAll("i, .accesshide, .sr-only").forEach(x => x.remove());
+  return c.textContent.replace(/^\s+|\s+$/g, "");
+}
+function leggiTabella(html){
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const tab = doc.querySelector("table#responses") || [...doc.querySelectorAll("table")].find(t => /Risposta data|Response \d/i.test(t.textContent)) || doc.querySelector("table");
+  if (!tab) return {errore: "Negli appunti non c'è una tabella: copia la tabella delle risposte di Moodle, intestazione compresa."};
+  const intest = [...(tab.querySelector("thead tr") || tab.querySelector("tr")).children].map(th => th.textContent.replace(/\s+/g, " ").trim());
+  let cNome = intest.findIndex(h => /nome|cognome|name/i.test(h) && !/utente|user/i.test(h));
+  const colonne = [];
+  intest.forEach((h, i) => { const m = h.match(/^(?:Risposta data|Response)\s+(\d+)$/i); if (m) colonne.push({i, n: Number(m[1])}); });
+  if (!colonne.length) return {errore: "Non trovo le colonne «Risposta data N»: copia anche la riga di intestazione della tabella."};
+  const righe = [];
+  [...tab.querySelectorAll("tbody tr, tr")].forEach(tr => {
+    if (tr.classList.contains("emptyrow") || tr.querySelector("th")) return;
+    const td = [...tr.children]; if (td.length < intest.length - 1) return;
+    const link = [...tr.querySelectorAll('a[href*="user/view.php"]')].find(a => a.textContent.trim());   // il primo link è la foto, senza testo
+    const nome = (link ? link.textContent : (td[cNome]?.textContent || "")).replace(/Rivedi (il )?tentativo/i, "").replace(/\s+/g, " ").trim();
+    if (!nome) return;
+    const risposte = {};
+    colonne.forEach(c => { let t = td[c.i] ? testoCella(td[c.i]) : ""; if (t === "-") t = "";
+      for (const w of new Set(nome.split(/\s+/).filter(w => w.length > 2)))      // il nome non resta nel codice
+        t = t.replace(new RegExp("\\b" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "gi"), "[nome]");
+      risposte[c.n] = t; });
+    righe.push({nome, risposte});
+  });
+  if (!righe.length) return {errore: "Non trovo righe di studenti nella tabella copiata."};
+  return {righe, colonne};
+}
+function abbina(){
+  const sigle = studenti(); const libere = new Set(sigle.map(s => s.k)); imp.assegna = {};
+  const perSigla = Object.fromEntries(sigle.map(s => [piano(s.s).replace(/\s+/g, " ").trim(), s.k]));
+  imp.righe.forEach((r, i) => { const c = candidatiSigla(r.nome).find(x => perSigla[x] && libere.has(perSigla[x]));
+    if (c) { imp.assegna[i] = perSigla[c]; libere.delete(perSigla[c]); } });
+  imp.righe.forEach((r, i) => { if (imp.assegna[i]) return;            // sigle di una sola parte (nome vuoto nell'export)
+    const c = candidatiSigla(r.nome).map(x => x.split(" ")[0]).find(x => perSigla[x] && libere.has(perSigla[x]));
+    if (c) { imp.assegna[i] = perSigla[c]; libere.delete(perSigla[c]); } });
+}
+// proposte: le domande in cui la tabella ha codice con i tag diverso da quello salvato (l'export li aveva tolti)
+const norm = t => String(t || "").replace(/\s+/g, " ").trim();   // spazi e a capo non contano nel confronto
+function scelteProposte(){
+  imp.scelte = new Set(imp.colonne.map(c => c.n).filter(n => { const d = domOrd().find(x => x.n === n);
+    return d && imp.righe.some((rr, i) => { const k = imp.assegna[i]; if (!k || k === "__salta") return false;
+      const nuova = rr.risposte[n] || ""; return norm(nuova) !== norm(rigaDi(d.id, k)?.risposta) && /<[a-z!?]/i.test(nuova); }); }));
+}
+function renderImporta(){
+  const doms = domOrd();
+  let h = `<section class="intesta"><h2>Importa le risposte da Moodle</h2>
+    <div class="criteri">L'export in Excel toglie i tag HTML; la tabella «Risposte» che Moodle mostra nel browser invece li ha. In Moodle apri il quiz → Risultati → Risposte, mostra tutti i tentativi su una pagina, seleziona la tabella dall'intestazione all'ultima riga e copia (Ctrl+C). Poi fai clic nel riquadro qui sotto e incolla (Ctrl+V).
+I nomi degli studenti restano in questa pagina, nel tuo browser: vengono trasformati nelle sigle dell'export e non si salvano. Si salvano solo le risposte delle domande che scegli.</div></section>
+    <div class="incolla" id="incolla" tabindex="0" role="textbox" aria-label="Incolla qui la tabella delle risposte">Fai clic qui e incolla la tabella (Ctrl+V)</div>`;
+  if (imp.errore) h += `<p class="leg" style="color:var(--bad)">${esc(imp.errore)}</p>`;
+  if (imp.righe) {
+    const libere = studenti().filter(s => !Object.values(imp.assegna).includes(s.k));
+    const nonAbb = imp.righe.map((r, i) => i).filter(i => !imp.assegna[i]);
+    const diverse = n => { const d = doms.find(x => x.n === n); if (!d) return null;
+      return imp.righe.filter((r, i) => imp.assegna[i] && norm(rigaDi(d.id, imp.assegna[i])?.risposta) !== norm(r.risposte[n])).length; };
+    h += `<section class="riquadro"><h3>${imp.righe.length} tentativi letti, ${imp.righe.length - nonAbb.length} abbinati alle sigle</h3>`;
+    if (nonAbb.length) h += `<p class="n">Da abbinare a mano (i nomi li vedi solo tu, in questa pagina):</p>` + nonAbb.map(i => `<div class="riga"><span>${esc(imp.righe[i].nome)}</span>
+      <select class="assegna" data-riga="${i}"><option value="">— scegli la sigla —</option>${libere.map(s => `<option value="${esc(s.k)}">${esc(s.s)}</option>`).join("")}<option value="__salta">non importare</option></select></div>`).join("");
+    const senza = studenti().filter(s => !Object.values(imp.assegna).includes(s.k));
+    if (senza.length) h += `<p class="n" style="color:var(--warn)">Nessun tentativo abbinato per: ${senza.map(s => esc(s.s)).join(", ")}. Le loro risposte restano quelle dell'export: controlla di aver copiato tutta la tabella, con tutti i tentativi su una pagina, o abbina a mano la riga qui sopra.</p>`;
+    if (nonAbb.length) h += `<p class="n" style="color:var(--warn)">${nonAbb.length === 1 ? "Un tentativo non abbinato non verrà salvato." : nonAbb.length + " tentativi non abbinati non verranno salvati."}</p>`;
+    h += `<p class="n">Domande da aggiornare (tra parentesi le risposte diverse da quelle dell'export; di norma quelle con codice HTML):</p><div class="imp-q">` +
+      imp.colonne.map(c => { const d = doms.find(x => x.n === c.n); const nd = diverse(c.n);
+        return d ? `<label><input type="checkbox" data-q="${c.n}" ${imp.scelte.has(c.n)?'checked':''}> D${c.n} · ${esc(d.breve)} (${nd})</label>` : ""; }).join("") + `</div>
+      <div class="riga"><button class="btn pieno" id="imp-salva" ${imp.scelte.size?'':'disabled'}>Salva le risposte delle domande scelte</button><button class="btn" id="imp-annulla">Annulla</button></div></section>`;
+  }
+  $("#vista").innerHTML = h;
+  const box = $("#incolla");
+  box.addEventListener("paste", e => {
+    e.preventDefault();                       // niente finisce nella pagina: si legge solo la tabella
+    const html = e.clipboardData?.getData("text/html") || "";
+    if (!html) { imp.errore = "Negli appunti c'è solo testo: copia la tabella dalla pagina di Moodle nel browser, non da un file."; imp.righe = null; renderImporta(); return; }
+    const r = leggiTabella(html);
+    imp.errore = r.errore || null; imp.righe = r.righe || null; imp.colonne = r.colonne || [];
+    if (imp.righe) { abbina(); imp.toccate = false; scelteProposte(); }
+    renderImporta();
+  });
+  document.querySelectorAll("select.assegna").forEach(s => s.onchange = () => { if (s.value) { imp.assegna[s.dataset.riga] = s.value; if (!imp.toccate) scelteProposte(); renderImporta(); } });
+  document.querySelectorAll("[data-q]").forEach(c => c.onchange = () => { imp.toccate = true; const n = Number(c.dataset.q); c.checked ? imp.scelte.add(n) : imp.scelte.delete(n); $("#imp-salva").disabled = !imp.scelte.size; });
+  $("#imp-annulla")?.addEventListener("click", () => { imp.righe = null; imp.errore = null; renderImporta(); });
+  $("#imp-salva")?.addEventListener("click", async () => {
+    const b = $("#imp-salva"); b.disabled = true; b.textContent = "Salvataggio…"; const vid = st.vid; let n = 0;
+    try {
+      for (const q of imp.scelte) {
+        const d = domOrd().find(x => x.n === q); if (!d) continue;
+        const righeDoc = {};
+        imp.righe.forEach((r, i) => { const k = imp.assegna[i]; const v = k && k !== "__salta" ? rigaDi(d.id, k) : null; if (!v) return;
+          // dall'export (non ancora importata) si recuperano a capo e rientri; se fondi() perdesse qualcosa, resta la versione copiata
+          const nuova = r.risposte[q] || "";
+          if (norm(nuova).replace(/ /g, "") === norm(v.risposta).replace(/ /g, "")) return;   // uguale: non si tocca (resta con i suoi a capo)
+          let fusa = v.importata ? nuova : fondi(v.risposta, nuova);
+          if (norm(fusa).replace(/ /g, "") !== norm(nuova).replace(/ /g, "")) fusa = nuova;
+          righeDoc[k] = {risposta: fusa, importata: true}; n++; });
+        if (Object.keys(righeDoc).length) await st.db.collection(`verifiche/${vid}/valutazioni`).doc(d.id).update({righe: righeDoc});
+      }
+      toast(n ? `${n} risposte salvate` : "Nessuna risposta diversa da salvare"); imp.righe = null; imp.scelte = new Set(); renderImporta();
+    } catch(e) { b.disabled = false; b.textContent = "Salva le risposte delle domande scelte"; toast("Salvataggio non riuscito: " + (e.code||"errore")); }
+  });
+}
+
+/* ---------- Nuova correzione: l'Excel di Moodle letto e ripulito nel browser ----------
+   Un .xlsx è uno zip di file XML: lo apriamo qui (DecompressionStream del browser), senza
+   librerie esterne. I nomi servono solo a creare le sigle e ad abbinare la tabella incollata:
+   non si salvano e non escono dalla pagina. */
+async function apriZip(buf){
+  const d = new DataView(buf), u8 = new Uint8Array(buf); let e = -1;
+  for (let i = u8.length - 22; i >= Math.max(0, u8.length - 66000); i--) if (d.getUint32(i, true) === 0x06054b50) { e = i; break; }
+  if (e < 0) throw new Error("non è un file Excel (.xlsx)");
+  const n = d.getUint16(e + 10, true); let p = d.getUint32(e + 16, true); const file = {};
+  for (let k = 0; k < n; k++) {
+    if (d.getUint32(p, true) !== 0x02014b50) throw new Error("file Excel danneggiato");
+    const metodo = d.getUint16(p + 10, true), dim = d.getUint32(p + 20, true);
+    const ln = d.getUint16(p + 28, true), lx = d.getUint16(p + 30, true), lc = d.getUint16(p + 32, true), loc = d.getUint32(p + 42, true);
+    const nome = new TextDecoder().decode(u8.subarray(p + 46, p + 46 + ln));
+    file[nome] = {metodo, dim, loc}; p += 46 + ln + lx + lc;
+  }
+  return async nome => {
+    const f = file[nome]; if (!f) return null;
+    const inizio = f.loc + 30 + d.getUint16(f.loc + 26, true) + d.getUint16(f.loc + 28, true);
+    const dati = u8.subarray(inizio, inizio + f.dim);
+    if (f.metodo === 0) return new TextDecoder().decode(dati);
+    const s = new Blob([dati]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+    return await new Response(s).text();
+  };
+}
+const xml = t => new DOMParser().parseFromString(t, "application/xml");
+const testoT = el => [...el.getElementsByTagName("t")].map(t => t.textContent).join("");
+function colonna(ref){ let c = 0; for (const ch of ref.replace(/\d+/g, "")) c = c * 26 + ch.charCodeAt(0) - 64; return c - 1; }
+async function leggiXlsx(buf){
+  const leggi = await apriZip(buf);
+  const ss = await leggi("xl/sharedStrings.xml");
+  const condivise = ss ? [...xml(ss).getElementsByTagName("si")].map(testoT) : [];
+  let foglio = "xl/worksheets/sheet1.xml";
+  const wb = await leggi("xl/workbook.xml"), rel = await leggi("xl/_rels/workbook.xml.rels");
+  if (wb && rel) { const s = xml(wb).getElementsByTagName("sheet")[0];
+    const rid = s && (s.getAttribute("r:id") || s.getAttributeNS("http://schemas.openxmlformats.org/officeDocument/2006/relationships", "id"));
+    const r = [...xml(rel).getElementsByTagName("Relationship")].find(x => x.getAttribute("Id") === rid);
+    if (r) { const t = r.getAttribute("Target"); foglio = t.startsWith("/") ? t.slice(1) : "xl/" + t.replace(/^\.\//, ""); } }
+  const sh = await leggi(foglio); if (!sh) throw new Error("nel file non trovo il foglio delle risposte");
+  return [...xml(sh).getElementsByTagName("row")].map(row => { const out = [];
+    for (const c of row.getElementsByTagName("c")) { const t = c.getAttribute("t"), v = c.getElementsByTagName("v")[0];
+      out[colonna(c.getAttribute("r"))] = t === "s" ? (condivise[Number(v?.textContent)] ?? "") : t === "inlineStr" ? testoT(c) : (v?.textContent ?? ""); }
+    return Array.from(out, x => x ?? ""); });
+}
+function leggiCsv(t){
+  const righe = [[]]; let cella = "", q = false; const sep = (t.split("\n")[0].match(/;/g)||[]).length > (t.split("\n")[0].match(/,/g)||[]).length ? ";" : ",";
+  for (let i = 0; i < t.length; i++) { const c = t[i];
+    if (q) { if (c === '"' && t[i+1] === '"') { cella += '"'; i++; } else if (c === '"') q = false; else cella += c; }
+    else if (c === '"') q = true; else if (c === sep) { righe.at(-1).push(cella); cella = ""; }
+    else if (c === "\n") { righe.at(-1).push(cella.replace(/\r$/, "")); cella = ""; righe.push([]); } else cella += c; }
+  righe.at(-1).push(cella); return righe.filter(r => r.some(x => x !== ""));
+}
+const nuova = { reset(){ Object.assign(this, {studenti:null, domande:[], errore:null, avvisi:[], titolo:"", sottotitolo:"", salvo:false}); } };
+nuova.reset();
+function preparaDaTabella(righe){
+  const h = righe[0].map(x => String(x).trim());
+  const iC = h.findIndex(x => /^(cognome|surname|last name)$/i.test(x)), iN = h.findIndex(x => /^(nome|first name)$/i.test(x));
+  if (iC < 0 || iN < 0) throw new Error("mancano le colonne Cognome e Nome: è l'export «Risposte» di Moodle?");
+  const qD = {}, qR = {};
+  h.forEach((x, i) => { let m = x.match(/^(?:Domanda|Question)\s+(\d+)$/i); if (m) qD[m[1]] = i; m = x.match(/^(?:Risposta data|Response)\s+(\d+)$/i); if (m) qR[m[1]] = i; });
+  const num = Object.keys(qR).map(Number).sort((a,b)=>a-b);
+  if (!num.length) throw new Error("mancano le colonne «Risposta data N»: scarica il report Risposte, non quello dei voti.");
+  const iS = h.findIndex(x => /^(stato|state)$/i.test(x));
+  const studenti = [], viste = {};
+  righe.slice(1).forEach(r => {
+    const cog = String(r[iC] || "").trim(), nom = String(r[iN] || "").trim();
+    if (!cog || (iS >= 0 && !String(r[iS] || "").trim())) return;          // righe vuote o di media
+    let s = (cog.slice(0,2) + " " + nom.slice(0,2)).toUpperCase().trim();
+    viste[s] = (viste[s] || 0) + 1; if (viste[s] > 1) s += viste[s];
+    const parole = [...new Set((cog + " " + nom).split(/\s+/).filter(w => w.length > 2))];
+    const pulisci = t => { t = String(t ?? ""); if (t.trim() === "-") t = "";
+      for (const w of parole) t = t.replace(new RegExp("\\b" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "gi"), "[nome]"); return t; };
+    studenti.push({s, k: s.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "") || "S" + studenti.length,
+      completo: piano(nom + " " + cog).replace(/\s+/g, " ").trim(), completo2: piano(cog + " " + nom).replace(/\s+/g, " ").trim(),
+      risposte: Object.fromEntries(num.map(n => [n, pulisci(r[qR[n]])])), testi: Object.fromEntries(num.map(n => [n, String(r[qD[n]] ?? "")])), pulisci});
+  });
+  if (!studenti.length) throw new Error("nel file non trovo righe di studenti");
+  const domande = num.map(n => { const testi = [...new Set(studenti.map(s => s.testi[n]).filter(Boolean))];
+    return {n, testi}; });
+  return {studenti, domande};
+}
+function uniscitabella(html){
+  const r = leggiTabella(html); if (r.errore) return r.errore;
+  let abb = 0, rec = 0;
+  r.righe.forEach(t => { const c = piano(t.nome).replace(/\s+/g, " ").trim();
+    const s = nuova.studenti.find(x => x.completo === c || x.completo2 === c); if (!s) return; abb++;
+    for (const [n, val] of Object.entries(t.risposte)) {
+      if (!(n in s.risposte)) continue; const v = s.pulisci(val), E = s.risposte[n];
+      if (norm(v).replace(/ /g, "") === norm(E).replace(/ /g, "")) continue;
+      let f = fondi(E, v); if (norm(f).replace(/ /g, "") !== norm(v).replace(/ /g, "")) f = v;
+      s.risposte[n] = f; rec++; } });
+  nuova.tabella = {lette: r.righe.length, abbinate: abb, recuperate: rec};
+  return null;
+}
+function renderNuova(){
+  $("#indietro").hidden = false; $("#comandi").hidden = true; $("#tabs").hidden = true;
+  $("#titolo").textContent = "Nuova correzione"; $("#sottotitolo").textContent = "L'Excel con i nomi resta nel tuo browser: si salvano solo sigle, domande e risposte.";
+  $("#stato").textContent = "";
+  const n = nuova; let h = `<section class="intesta"><div class="criteri">1. In Moodle: quiz → Risultati → Risposte, scarica in formato Excel (.xlsx). Non serve togliere i nomi: la pagina crea le sigle (prime due lettere di cognome e nome) e scarta email e username.
+2. Se la verifica ha codice HTML, o tag nelle echo PHP, incolla anche la tabella Risposte copiata dal browser: l'Excel toglie i tag, la tabella li ha.
+3. Controlla l'anteprima e salva. Poi in chat: «correggi la verifica …».</div></section>
+    <div class="riquadro"><h3>1 · L'Excel delle risposte</h3>
+      <label class="incolla" id="file-zona" for="file-xlsx">${n.studenti ? `Letto: ${n.studenti.length} studenti, ${n.domande.length} domande. Trascina un altro file per sostituirlo.` : "Trascina qui il file, o fai clic per sceglierlo (.xlsx o .csv)"}</label>
+      <input type="file" id="file-xlsx" accept=".xlsx,.csv" hidden>
+      ${n.errore ? `<p class="leg" style="color:var(--bad)">${esc(n.errore)}</p>` : ""}</div>`;
+  if (n.studenti) {
+    h += `<div class="riquadro"><h3>2 · La tabella copiata dal browser (facoltativa)</h3>
+      <div class="incolla" id="incolla-n" tabindex="0" role="textbox" aria-label="Incolla qui la tabella delle risposte">${n.tabella ? `Tabella letta: ${n.tabella.lette} tentativi, ${n.tabella.abbinate} abbinati, ${n.tabella.recuperate} risposte aggiornate dalla tabella (quelle con i tag che l'Excel aveva tolto). Incolla di nuovo per sostituirla.` : "Fai clic qui e incolla la tabella (Ctrl+V)"}</div>
+      ${n.tabErr ? `<p class="leg" style="color:var(--bad)">${esc(n.tabErr)}</p>` : ""}
+      ${n.tabella && n.tabella.abbinate < n.tabella.lette ? `<p class="leg" style="color:var(--warn)">${n.tabella.lette - n.tabella.abbinate} tentativi della tabella non hanno un nome uguale nell'Excel: restano le risposte dell'Excel.</p>` : ""}</div>
+    <div class="riquadro"><h3>3 · Anteprima e salvataggio</h3>
+      <div class="riga"><label for="n-tit">Titolo</label><input id="n-tit" class="campo" value="${esc(n.titolo)}" placeholder="V5R · 5Q SIA" style="flex:1;min-width:12em;font:inherit;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)"></div>
+      <div class="riga"><label for="n-sot">Verifica</label><input id="n-sot" class="campo" value="${esc(n.sottotitolo)}" placeholder="Verifica di ripasso SQL e PHP" style="flex:1;min-width:12em;font:inherit;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)"></div>
+      <p class="n">Sigle, in ordine di cognome come nel file: ${n.studenti.map(s => `<span class="sigla">${esc(s.s)}</span>`).join(" ")}</p>
+      <p class="n">Domande: ${n.domande.map(d => `D${d.n}${d.testi.length > 1 ? ` (${d.testi.length} varianti)` : ""}`).join(" · ")}. Risposte con tag HTML: ${n.studenti.reduce((a, s) => a + Object.values(s.risposte).filter(t => /<[a-z!?]/i.test(t)).length, 0)}.</p>
+      <div class="riga"><button class="btn pieno" id="n-salva" ${n.salvo?'disabled':''}>${n.salvo ? "Salvataggio…" : "Salva e apri la verifica"}</button><button class="btn" id="n-annulla">Annulla</button></div></div>`;
+  }
+  $("#vista").innerHTML = h;
+  const inp = $("#file-xlsx"), zona = $("#file-zona");
+  const carica = async f => { if (!f) return; try {
+      const righe = /\.csv$/i.test(f.name) ? leggiCsv(await f.text()) : await leggiXlsx(await f.arrayBuffer());
+      const r = preparaDaTabella(righe); Object.assign(nuova, r, {errore: null, tabella: null, tabErr: null});
+    } catch (e) { nuova.studenti = null; nuova.errore = "Non riesco a leggere il file: " + (e.message || e); }
+    renderNuova(); };
+  inp.onchange = () => carica(inp.files[0]);
+  zona.addEventListener("dragover", e => { e.preventDefault(); });
+  zona.addEventListener("drop", e => { e.preventDefault(); carica(e.dataTransfer.files[0]); });
+  $("#incolla-n")?.addEventListener("paste", e => { e.preventDefault();
+    const html = e.clipboardData?.getData("text/html") || "";
+    nuova.tabErr = html ? uniscitabella(html) : "Negli appunti c'è solo testo: copia la tabella dalla pagina di Moodle nel browser."; renderNuova(); });
+  $("#n-tit")?.addEventListener("input", e => { nuova.titolo = e.target.value; });
+  $("#n-sot")?.addEventListener("input", e => { nuova.sottotitolo = e.target.value; });
+  $("#n-annulla")?.addEventListener("click", () => { st.nuova = false; nuova.reset(); render(); });
+  $("#n-salva")?.addEventListener("click", async () => {
+    if (!nuova.titolo.trim()) { toast("Scrivi un titolo, per esempio «V5R · 5Q SIA»"); $("#n-tit").focus(); return; }
+    let vid = nuova.titolo.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 50) || "verifica";
+    while (st.verifiche[vid]) vid += "-2";
+    nuova.salvo = true; renderNuova();
+    try {
+      const base = `verifiche/${vid}`, oggi = new Date().toISOString().slice(0, 10);
+      const doc = {titolo: nuova.titolo.trim(), sottotitolo: nuova.sottotitolo.trim(), studenti: nuova.studenti.length,
+        creato: oggi, archiviata: false, origine: "dashboard", stato: "da correggere", avanzamento: {righe: 0, riviste: 0}};
+      await st.db.doc(base).set(doc); st.verifiche[vid] = {id: vid, ...doc};
+      for (const d of nuova.domande) {
+        const id = "D" + String(d.n).padStart(2, "0"); const righe = {};
+        nuova.studenti.forEach((s, i) => { righe[s.k] = {s: s.s, ord: i, risposta: s.risposte[d.n] || "", esito: "in attesa", auto: null,
+          punti: null, commento: "", ok: false, inserito: false, ...(d.testi.length > 1 ? {variante: d.testi.indexOf(s.testi[d.n])} : {})}; });
+        await st.db.collection(base + "/domande").doc(id).set({n: d.n, breve: "D" + d.n, titolo: (d.testi[0] || "").replace(/\s+/g, " ").slice(0, 70),
+          max: null, tipo: "manuale", criteri: "In attesa delle proposte di Claude.", testi: d.testi});
+        await st.db.collection(base + "/valutazioni").doc(id).set({righe});
+      }
+      toast("Verifica salvata"); st.nuova = false; nuova.reset(); apri(vid);
+    } catch (e) { nuova.salvo = false; renderNuova(); toast("Salvataggio non riuscito: " + (e.code || e.message || "errore")); }
+  });
+}
+
+function render(){
+  if (!st.db) return;
+  if (st.nuova) { renderNuova(); return; }
+  if (!st.vid || !st.verifiche[st.vid]) { if (st.vid && Object.keys(st.verifiche).length && !st.verifiche[st.vid]) st.vid = null; renderElenco(); return; }
+  const v = info();
+  $("#indietro").hidden = false; $("#comandi").hidden = false;
+  $("#ordine").textContent = st.ordine === 1 ? "A → Z" : "Z → A";
+  $("#titolo").textContent = v.titolo || st.vid;
+  $("#sottotitolo").textContent = (v.sottotitolo ? v.sottotitolo + " · " : "") + "ordine di cognome, come in Valutazione manuale";
+  document.querySelectorAll("#viste button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.vista === st.vista)));
+  if (!Object.keys(st.domande).length) { $("#tabs").hidden = true; return; }
+  if (!st.tab || !st.domande[st.tab]) st.tab = domOrd()[0].id;
+  const ss = studenti(); if (ss.length && (!st.stud || !ss.find(x=>x.k===st.stud))) st.stud = ss[0].k;
+  renderTabs(); renderStato();
+  if (st.vista === "riep") renderRiep();
+  else if (st.vista === "importa") renderImporta();
+  else if (st.vista === "studente") { if (st.stud) renderStudente(st.stud); }
+  else renderDomanda(st.tab);
+}
+
+$("#indietro").onclick = () => { st.nuova = false; nuova.reset(); apri(null); };
+$("#ordine").onclick = () => { st.ordine = -st.ordine; salvaUI(); render(); };
+document.querySelectorAll("#viste button").forEach(b => b.onclick = () => { st.vista = b.dataset.vista; salvaUI(); render(); window.scrollTo({top:0}); });
+
+(async () => {
+  const db = await window.claude?.use?.("db");
+  if (!db) { $("#vista").innerHTML = `<div class="vuoto">Il database delle correzioni non è disponibile in questa vista. Apri la pagina da claude.ai con il tuo account.</div>`; $("#stato").textContent=""; return; }
+  st.db = db;
+  let primo = true;
+  db.collection("verifiche").limit(500).onSnapshot(s => {
+    st.verifiche = {}; s.docs.forEach(d => st.verifiche[d.id] = {id:d.id, ...d.data()});
+    if (primo) { primo = false; if (st.vid && st.verifiche[st.vid]) { apri(st.vid); return; } st.vid = null; }
+    if (st.nuova) return;
+    if (!st.vid) renderElenco(); else { $("#titolo").textContent = info().titolo || st.vid; }
+  }, e => { $("#stato").textContent = "Errore nel leggere le verifiche: " + e.code; });
+})();
+</script>

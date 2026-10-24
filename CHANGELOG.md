@@ -2,6 +2,20 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.6.0 — 24/10/2026
+
+Nuova skill **correzione-verifiche**: correzione di una verifica già svolta, dall'export «Risposte» di Moodle anonimizzato.
+
+- **Nuova correzione**, nella dashboard: si trascina l'Excel «Risposte» di Moodle così com'è, con i nomi; la pagina lo legge nel browser (senza librerie esterne), crea le sigle, scarta email e username, cancella i nomi anche dentro le risposte e salva solo dati anonimi. Facoltativa la tabella Risposte incollata dal browser, abbinata per nome completo, per i tag HTML. Poi in chat «correggi la verifica …» (`leggi_export.py` legge anche una verifica della dashboard; `prepara_revisione.py --esistente`).
+- In alternativa, indicazioni per il docente su come preparare l'export a mano: risposte dettagliate in Excel, colonne con email e username eliminate, cognome e nome ridotti alle prime due lettere con `=STRINGA.ESTRAI(A2;1;2)` e incollati come valori (anche nella guida).
+- `leggi_export.py` legge l'export (Excel, CSV; una sigla «NA» resta una sigla e non diventa un dato mancante), si ferma se ci sono nomi completi o colonne con email e username e abbina ogni domanda alla riga della dashboard con la traccia più simile.
+- `esegui_risposte.py` riesegue le risposte SQL, PHP (`php_mysqli_sqlite`) e JavaScript con prompt con tutti i test, nascosti compresi, e stima il punteggio automatico di Moodle (tutto o niente, oppure frazione dei test con `allornothing: 0`).
+- La correzione si fa domanda per domanda, con la griglia della riga e la griglia generale (100 / 80 / 60 / 40%) e i casi già decisi: date confrontate con un numero, pari merito, JOIN interna con IS NULL, GROUP BY sul nome, refusi. Commenti brevi solo dove il punteggio non è pieno.
+- Dashboard **«Correzione verifiche»**, privata, una per tutte le verifiche: elenco dalla più recente con l'avanzamento; archiviare (reversibile) ed eliminare (con conferma nella pagina) dal riepilogo della verifica. Dentro una verifica tre viste: **per domanda** (studenti in ordine di cognome, come in Valutazione manuale), **per studente** (tutte le domande, totale e voto) e **riepilogo voti**. Punteggio e commento modificabili, «Copia commento per Moodle» con la frase sull'IA in corsivo, righe da modificare in Moodle evidenziate, studenti in ordine di cognome crescente o decrescente.
+- **Importa da Moodle**, nella dashboard: si incolla la tabella «Risposte» copiata dal browser, che ha il codice HTML completo; i nomi diventano le sigle dell'export nel browser dell'utente e non si salvano, si salvano solo le risposte delle domande scelte. La copia dal browser perde a capo e rientri: la pagina li recupera dall'export (controllato su 36 risposte HTML e PHP, nessun carattere perso), e avvisa se una sigla resta senza tentativo.
+- **Varianti** (domande casuali per tag): `leggi_export.py` abbina ogni studente alla variante che gli è capitata, `esegui_risposte.py` esegue la sua risposta con i test di quella variante e la pagina mostra la variante accanto alla risposta. Provato su una verifica JavaScript con tre varianti per domanda.
+- `riepilogo.py` rilegge il database di una verifica e calcola totali, voti e media, con le righe ancora da rivedere o da inserire in Moodle.
+
 ## 0.5.0 — 23/10/2026
 
 Nuova skill **mappe-prerequisiti**: mappe dei prerequisiti (gerarchie di apprendimento) per l'autovalutazione degli studenti.

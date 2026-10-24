@@ -54,6 +54,21 @@ Per una domanda sola o poche domande per la banca non serve la dashboard: «una 
 
 I quiz conclusi archiviali (riquadro «Archivia o elimina il quiz», in fondo alla scaletta): restano consultabili tra gli archiviati. Eliminare un quiz lo cancella con tutte le righe; se lo chiedi a Claude, prima ne salva una copia.
 
+## Correggere una verifica
+
+Dopo la verifica Claude propone punteggi e commenti; tu rivedi e li riporti in Moodle.
+
+1. In Moodle: quiz → Risultati → **Risposte**, scarica in Excel. Non serve togliere i nomi.
+2. Apri la tua dashboard «Correzione verifiche» (la prima volta chiedi a Claude di crearla) → **Nuova correzione** e trascina il file. La pagina lo legge nel tuo browser: i nomi diventano sigle (prime due lettere di cognome e nome, es. «RO MA») e non vengono salvati, email e username si scartano.
+3. Se la verifica ha un form o una pagina HTML (o `echo` con tag in PHP), incolla nel secondo riquadro anche la tabella Risposte copiata dal browser, dall'intestazione all'ultima riga: l'Excel toglie i tag, la tabella li ha.
+4. Dai un titolo («V5R · 5Q SIA»), controlla le sigle e salva. Poi in chat: «correggi la verifica V5R · 5Q SIA». Se il quiz è nella dashboard dei quiz, Claude prende tracce e griglie da lì; altrimenti allega il backup del quiz.
+5. Claude riesegue le risposte SQL, PHP e JavaScript con i test e propone per ogni studente punteggio e commento breve. Ti dice quali scelte controllare.
+6. Nella dashboard apri la verifica e rivedi **per domanda** (lo stesso metro su tutta la classe) o **per studente** (tutte le sue domande e il voto). Cambia ciò che non ti convince e spunta «Rivisto».
+7. In Moodle: **Valutazione manuale**, tentativi ordinati per cognome (nella dashboard «A → Z» o «Z → A» come in Moodle). Copia punteggio e commento («Copia commento per Moodle» aggiunge la frase sull'IA in corsivo). Nelle domande automatiche cambi solo le righe «da modificare». Se preferisci studente per studente: vista per studente e, in Moodle, revisione del tentativo → «Commenta o modifica la valutazione».
+8. Alla fine chiedi «la tabella dei voti»: Claude rilegge la dashboard e calcola totali e media. Dal riepilogo archivi la verifica (resta consultabile in fondo all'elenco) o la elimini, con una conferma.
+
+Se preferisci non usare la dashboard per il caricamento, puoi allegare in chat l'Excel anonimizzato da te: elimina le colonne con email o username, metti in due colonne nuove `=STRINGA.ESTRAI(A2;1;2)` e `=STRINGA.ESTRAI(B2;1;2)` (A = Cognome, B = Nome), incollale su Cognome e Nome con **Incolla speciale → Valori** ed elimina le colonne nuove. Una riga dimenticata si aggiunge dopo, con **Importa da Moodle** dentro la verifica.
+
 ## Mappe dei prerequisiti
 
 Una mappa dei prerequisiti mostra le competenze di un argomento e quali servono prima di quali. In Moodle diventa un'attività in cui ogni studente spunta ciò che sa fare; tu vedi il riepilogo della classe.
