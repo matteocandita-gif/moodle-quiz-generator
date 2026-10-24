@@ -6,8 +6,9 @@ Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Da
 
 **Esercitazione con studio e domande sequenziale**: nuovo nome del tipo «Studio e domande» (la sigla resta SD), in linea con gli altri tipi, e regole sulle parti e sulle domande.
 
-- Teoria divisa in **parti brevi, una per nucleo**: il numero di parti e di domande non è fisso, lo decide il materiale di partenza. Tutti i concetti della parte sono verificati: le chiuse sui **dettagli**, l'aperta (di norma una) sul **concetto generale**.
-- Le domande non si risolvono ricopiando gli appunti: **mai chiedere la definizione** («Definisci», «Che cos'è», «Elenca», «Spiega con parole tue»); l'aperta parte da un **caso che la teoria non contiene** e chiede di applicare, spiegare un perché, confrontare, prevedere, correggere un errore o scegliere e motivare, con una consegna operativa. Nelle indicazioni per chi corregge, una risposta che ripete la definizione senza applicarla vale al massimo metà dei punti.
+- Teoria divisa in **parti brevi, una per nucleo**: il numero di parti e di domande non è fisso, lo decide il materiale di partenza.
+- Le **chiuse** verificano tutti gli aspetti di **conoscenza e comprensione puntuale** della parte, a cominciare dalle **definizioni**: per ogni definizione importante una chiusa che viene prima delle altre (riconoscere la definizione giusta, riformulata, tra opzioni che cambiano un solo elemento essenziale; trovare l'elemento mancante o scambiato; dire quali casi rientrano). Con gli appunti davanti non basta cercare la stessa frase.
+- L'**aperta** (di norma una per parte) verifica l'**esposizione** del concetto generale: spiegarlo collegandone gli elementi dentro una situazione nuova o per un destinatario, mai riscrivere una definizione né riassumere la pagina. Nelle indicazioni per chi corregge i criteri dell'esposizione; una risposta che ricopia la teoria senza collegarla né rispondere alla situazione vale al massimo metà dei punti.
 - **Dashboard** 0.3.12: nuovo nome e nuova guida del tipo; avviso sulle aperte che sembrano chiedere una definizione o un elenco, nota se una parte ha più di un'aperta.
 
 ## 0.8.0 — 25/10/2026
