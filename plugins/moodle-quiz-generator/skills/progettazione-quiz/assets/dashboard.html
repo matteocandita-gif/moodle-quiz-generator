@@ -262,6 +262,8 @@ textarea.ctl.mono{font:12.5px/1.5 var(--mono)}
   .sheet-body{padding:14px}
 }
 .hint{font-size:12px;color:var(--fg-2);margin-top:6px;max-width:34ch;line-height:1.35}
+.pdpchk{display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--fg-3);padding:2px 4px;white-space:nowrap}
+.pdpchk input{margin:0}
 .pill{display:inline-block;margin-left:6px;padding:0 6px;border-radius:10px;background:var(--warn-soft);color:var(--warn);font-size:11px;font-weight:600;white-space:nowrap}
 .dsum{padding:8px 12px;font-size:12.5px;color:var(--fg-2);display:flex;justify-content:space-between;gap:8px;align-items:center;border-bottom:1px solid var(--line)}
 .warnt{color:var(--warn)}
@@ -882,6 +884,9 @@ function dbVariante(r){
 function slug(t){return String(t||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").split("-").slice(0,3).join("-");}
 function tagProvvisorio(t){return /-nuova-/.test(String(t||""));}
 function tagPer(q,base,titolo){const cod=slug(String(q.lezione||"").trim()||S.quizId).replace(/-/g,"")||"quiz";return cod+"-"+base+(titolo?"-"+slug(titolo):"");}
+/* copia PDP: solo nei quiz che in Moodle sono verifiche */
+function haPDP(q){return q.tipoQuiz==="V"||q.tipoQuiz==="VT"||((q.tipoQuiz==="LIB"||q.tipoQuiz==="IMP")&&q.presetMbz==="verifica");}
+function chkPDP(q,c,attr,on){return haPDP(q)&&!(c&&c.pagina)?'<label class="pdpchk"><input type="checkbox" data-t="b" '+attr+(on?" checked":"")+'> tolta nella PDP</label>':"";}
 function contaRiga(rows,r){const t=tagDi(r).toLowerCase();if(!t)return true;return rows.find(function(x){return tagDi(x).toLowerCase()===t;})===r;}
 function usaTag(q,rows){return q.tipoQuiz==="V"||q.tipoQuiz==="VT"||rows.some(function(r){return tagDi(r);});}
 function calc(q,rows){
@@ -945,6 +950,15 @@ function avvisi(q,rows,C){
       const insieme=rows.filter(function(r){return r!==g.teo&&String(r.pag)===String(g.teo.pag);});
       if(insieme.length)add("warn","Pagina "+g.teo.pag+": la teoria "+w+" sta con "+insieme.map(function(r){return r.pos||"?";}).join(", ")+"; deve stare da sola, perché dopo non si torna indietro.",g.teo.id);
     });
+  }
+  if(haPDP(q)){
+    const tolte=rows.filter(function(r){return contaRiga(rows,r)&&(tagDi(r)?rows.some(function(x){return tagDi(x).toLowerCase()===tagDi(r).toLowerCase()&&x.pdp;}):r.pdp);});
+    if(tolte.length){
+      const mT=tolte.reduce(function(a,r){return a+num(r.minuti);},0),pT=tolte.reduce(function(a,r){return a+num(r.punti);},0),qm=tot.m?mT/tot.m:0;
+      add(qm>0.3001?"warn":"info","Copia PDP: tolte "+tolte.map(function(r){return basePos(r)||r.pos;}).join(", ")+", "+f1(mT)+" minuti su "+f1(tot.m)+" ("+Math.round(qm*100)+"%"+(qm>0.3001?", oltre il 30% del carico":"")+"); punteggio massimo della copia "+f1(tot.p-pT)+".",tolte[0].id);
+      if(tolte.some(function(r){return !num(r.minuti);}))add("info","Copia PDP: "+tolte.filter(function(r){return !num(r.minuti);}).map(function(r){return basePos(r)||r.pos;}).join(", ")+" senza minuti: la riduzione si misura in minuti consigliati.");
+      if(!q.deposito)add("info","Copia PDP: le domande della verifica stanno nella banca del quiz, quindi per generarla servirà il backup della verifica ripristinata. Con «Dove vanno le domande» su un deposito, la copia si genera direttamente da qui.");
+    }
   }
   if(q.deposito){
     const dep=depositoDi(q),cq=categoriaQuiz(q);
@@ -1014,7 +1028,7 @@ function renderHeader(){
   ["home","scaletta","dettaglio"].forEach(function(v){$("#tab-"+v).setAttribute("aria-selected",(S.view===v||(v==="home"&&S.view==="nuovo"))?"true":"false");});
 }
 /* ------------------------------------------------------------------ vista iniziale e nuovo quiz */
-const VERSIONE_PAGINA="0.3.10";
+const VERSIONE_PAGINA="0.3.11";
 const PERCORSO_IMPOSTAZIONI="impostazioni/avvio";
 /* depositi delle domande (banche qbank dei corsi deposito): li scrive Claude leggendo un backup */
 const PERCORSO_DEPOSITI="impostazioni/depositi";
@@ -1272,7 +1286,7 @@ function rowHTML(q,r,P,conTag){
    '<td><input class="cell" '+k("titolo")+' value="'+esc(r.titolo)+'" placeholder="Titolo" aria-label="Titolo"><textarea class="cell" '+k("sintesi")+' rows="3" placeholder="Che cosa chiede" aria-label="Che cosa chiede">'+esc(r.sintesi)+"</textarea>"+(conTag&&!(c&&c.pagina)?'<input class="cell tagc" '+k("tag")+' value="'+esc(r.tag||"")+'" placeholder="tag della posizione (verifiche ripetibili)" title="Le righe con lo stesso tag sono varianti della stessa posizione: il quiz ne pesca una a caso" aria-label="Tag della posizione">':"")+"</td>"+
    '<td><select class="cell'+(bad?" bad":"")+'" '+k("tipologia")+' aria-label="Tipologia">'+tipOptions(q,r.tipologia)+"</select>"+(c?'<span class="real">'+esc(c.real)+(c.manuale?" · correzione a mano":"")+"</span>":"")+"</td>"+
    '<td><select class="cell" '+k("parte")+' data-t="parte" aria-label="Parte">'+opts(partiOpts,r.parte)+"</select></td>"+
-   '<td class="n"><input class="cell" type="number" min="0" step="1" data-t="n" '+k("punti")+' value="'+esc(r.punti)+'" aria-label="Punti"></td>'+
+   '<td class="n"><input class="cell" type="number" min="0" step="1" data-t="n" '+k("punti")+' value="'+esc(r.punti)+'" aria-label="Punti">'+chkPDP(q,c,k("pdp"),!!r.pdp)+'</td>'+
    '<td class="n"><input class="cell" type="number" min="0" step="1" data-t="n" '+k("minuti")+' value="'+esc(r.minuti)+'" aria-label="Minuti"></td>'+
    '<td><select class="cell" '+k("strumento")+' aria-label="Strumento nella traccia">'+opts(STRUMENTO,r.strumento)+"</select>"+
      (Number(r.parte)===5?'<span class="sub"><span>Sostegno</span><select class="cell" '+k("sostegno")+' aria-label="Sostegno nel debugging">'+opts(SOSTEGNO,r.sostegno)+"</select></span>":"")+"</td>"+
@@ -1303,7 +1317,7 @@ function gruppoHTML(q,u,P){
      '<button class="vtog" data-act="vtog" data-id="'+esc(gid)+'" aria-expanded="'+(aperto?"true":"false")+'">'+(aperto?"▾ ":"▸ ")+u.rows.length+(u.rows.length===1?" variante: ":" varianti: ")+esc(elenco)+"</button></td>"+
    '<td><select class="cell'+(bad?" bad":"")+'" '+k("tipologia")+' aria-label="Tipologia">'+tipOptions(q,r.tipologia)+"</select>"+(c?'<span class="real">'+esc(c.real)+(c.manuale?" · correzione a mano":"")+"</span>":"")+"</td>"+
    '<td><select class="cell" '+k("parte")+' data-t="parte" aria-label="Parte">'+opts(partiOpts,r.parte)+"</select></td>"+
-   '<td class="n"><input class="cell" type="number" min="0" step="1" data-t="n" '+k("punti")+' value="'+esc(r.punti)+'" aria-label="Punti"></td>'+
+   '<td class="n"><input class="cell" type="number" min="0" step="1" data-t="n" '+k("punti")+' value="'+esc(r.punti)+'" aria-label="Punti">'+chkPDP(q,c,k("pdp"),u.rows.some(function(x){return !!x.pdp;}))+'</td>'+
    '<td class="n"><input class="cell" type="number" min="0" step="1" data-t="n" '+k("minuti")+' value="'+esc(r.minuti)+'" aria-label="Minuti"></td>'+
    '<td><select class="cell" '+k("strumento")+' aria-label="Strumento nella traccia">'+opts(STRUMENTO,r.strumento)+"</select>"+
      (Number(r.parte)===5?'<span class="sub"><span>Sostegno</span><select class="cell" '+k("sostegno")+' aria-label="Sostegno nel debugging">'+opts(SOSTEGNO,r.sostegno)+"</select></span>":"")+"</td>"+
@@ -1692,14 +1706,14 @@ main.addEventListener("input",function(e){
 main.addEventListener("change",function(e){
   const t=e.target;
   if(t.dataset.grp){
-    let v=t.value;
+    let v=t.dataset.t==="b"?t.checked:t.value;
     if(t.dataset.t==="n")v=Math.max(0,num(v));
     if(t.dataset.t==="parte")v=Number(v);
     delete S.dirty[t.dataset.k];
     return void salvaGruppo(t.dataset.grp,t.dataset.f,v);
   }
   if(t.dataset.f&&t.dataset.id){
-    let v=t.value;
+    let v=t.dataset.t==="b"?t.checked:t.value;
     if(t.dataset.t==="n")v=Math.max(0,num(v));
     if(t.dataset.t==="parte")v=Number(v);
     delete S.dirty[t.dataset.k];

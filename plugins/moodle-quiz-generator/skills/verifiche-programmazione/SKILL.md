@@ -104,7 +104,11 @@ Per gli studenti con PDP (DSA) la verifica si adatta in uno dei due modi, scelto
 - **tempo aggiuntivo**: stessa verifica, più tempo con la deroga del singolo utente nelle impostazioni del quiz;
 - **riduzione dei contenuti** fino al 30% del carico, misurato in minuti consigliati e non in numero di domande: si tolgono **domande intere**, senza cambiare il contenuto di quelle che restano. Quali togliere (e se tenere la parte avanzata) lo decide l'utente.
 
-La riduzione si fa in una **copia PDP** del quiz: in apertura la dichiarazione «Solo mappe concettuali»; al posto di ogni domanda tolta, sulla stessa pagina e prima della domanda, una delle descrizioni «Riduzione contenuti PDP -1…-5» della banca condivisa «Domande per riduzione PDP - DSA» (corso «Quinte SIA - Deposito»); la domanda tolta resta nel quiz a 0 punti. La copia non si genera insieme al quiz: l'utente la chiede dopo, quando è sicuro che il quiz funziona (la generazione da script è un punto aperto da provare con un ripristino; intanto la fa l'utente in Moodle).
+La riduzione si fa in una **copia PDP** del quiz: in apertura, su una pagina sua, la dichiarazione «Solo mappe concettuali» (a 0 punti); prima di ogni domanda tolta, sulla stessa pagina, una delle descrizioni «Riduzione contenuti PDP -1…-7» (una diversa per ogni domanda: un quiz non può usare due volte la stessa; «PEI -1…-6» per gli studenti con PEI) della banca condivisa «Domande per riduzione PDP - DSA» del corso «Terze SIA - Deposito»; la domanda tolta resta nel quiz a 0 punti.
+
+**Quali togliere si decide in progettazione**: nella scaletta della verifica proponi le posizioni da togliere (domande intere, fino al 30% dei minuti consigliati, senza togliere gli argomenti essenziali) e segnale «tolta nella PDP»; l'utente le conferma o le cambia. La dashboard mostra la riduzione in minuti e avvisa oltre il 30%.
+
+**La copia la genera `materiali-moodle`** (`crea_pdp.py`, sezione «Copia PDP»), verificata con ripristini reali il 25/10/2026: direttamente dalla dashboard se le domande della verifica stanno in un deposito registrato, altrimenti dal backup della verifica ripristinata. L'utente la chiede quando la verifica è pronta.
 
 ## JavaScript
 

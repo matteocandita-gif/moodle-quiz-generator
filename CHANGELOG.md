@@ -2,6 +2,16 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.8.0 — 25/10/2026
+
+**Copia PDP delle verifiche**, generata dal plugin. Verificata con ripristini reali nel Moodle della scuola: la copia si aggancia alle domande della verifica e alle descrizioni della banca condivisa (riferimenti, non copie), anche da un corso diverso da quello delle banche.
+
+- `crea_pdp.py`: le posizioni tolte restano a 0 punti, prima di ognuna una «Riduzione contenuti PDP -k» diversa (o PEI), in apertura la dichiarazione «Solo mappe concettuali» (o «Tempo aggiuntivo e mappe», «Generica»), nome con «(PDP)». Due modalità: **dalla dashboard** (`genera_quiz.py … --pdp`), quando le domande della verifica stanno in un deposito registrato, oppure **dal backup** della verifica ripristinata, sempre possibile.
+- Quali domande togliere si decide in progettazione: nella dashboard, nelle verifiche, la casella **«tolta nella PDP»** sotto i punti di ogni riga (per le varianti, di tutta la posizione); gli avvisi mostrano la riduzione in minuti consigliati e avvisano oltre il 30%.
+- La banca delle descrizioni PDP («Domande per riduzione PDP - DSA», deposito delle terze) è salvata nella dashboard (`impostazioni/pdp`): non serve rimandarla. La skill `verifiche-programmazione` diceva per errore che stava nel deposito delle quinte.
+- `leggi_mbz.py --banche` mostra anche le attività «Banca delle domande» contenute nel backup (backup dei corsi deposito o di una singola banca).
+- **Dashboard** 0.3.11: casella «tolta nella PDP» e avvisi della copia PDP.
+
 ## 0.7.0 — 24/10/2026
 
 **Depositi**: le domande possono andare direttamente nella banca di un corso deposito, senza spostarle a mano. Regole verificate con ripristini reali nel Moodle della scuola.

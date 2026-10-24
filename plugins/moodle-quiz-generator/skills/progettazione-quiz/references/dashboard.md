@@ -14,6 +14,8 @@ Si legge e si scrive con `ArtifactData` sull'URL della pagina. Ogni scrittura su
 
 **Depositi**: documento `impostazioni/depositi`, `{depositi: [{id, nome, corso, contextid, cmid, top_id, top_stamp, categorie: [{nome, id, stamp}]}]}`: le banche dei corsi deposito in cui le domande possono andare direttamente. Lo scrive Claude da un backup (`materiali-moodle`, «Depositi»); la pagina li elenca nelle impostazioni e li propone nei dati del quiz.
 
+**Banca PDP**: documento `impostazioni/pdp`, `{banca: {nome, corso, contextid, cmid, top_id, top_stamp, categoria_id, categoria_nome, categoria_stamp}, domande: {nome: XML della voce}}`: le descrizioni «Riduzione contenuti PDP/PEI -k» e le dichiarazioni della banca condivisa, per le copie PDP (`crea_pdp.py --prepara-banca`).
+
 **Impostazioni**: documento `impostazioni/avvio` con `trigger` (id dell'attività «Avvia quiz dalla dashboard», `trig_…`; vuoto o assente: «Inizia» dà la frase da incollare) e `versione` (la `VERSIONE_PAGINA` con cui è stato scritto). Lo scrive l'installazione; l'utente può cambiare l'id dal riquadro «Impostazioni» della vista iniziale.
 
 **Quiz**: collezione `quiz`, un documento per quiz, id breve in minuscolo con trattini (es. `js-cicli-while`).
@@ -69,6 +71,7 @@ Si legge e si scrive con `ArtifactData` sull'URL della pagina. Ogni scrittura su
 **Varianti nella pagina.** Nel database resta una riga per variante; la pagina raggruppa le righe con lo stesso tag in una posizione. Nella scaletta ogni posizione è una riga sola, con la posizione senza lettera (`Q1`): pagina, posizione, titolo, tag, tipologia, parte, punti, minuti, strumento e sostegno si modificano lì e la pagina li scrive su tutte le varianti (cambiando la posizione aggiorna la lettera di ognuna). Sotto il titolo, chiusa di default, la riga «▸ 3 varianti: a palestra · b cinema · c veterinario» apre una sottoriga per variante (lettera, database letto da `database:` nelle opzioni o dalla sintesi che comincia con `[nome]`, sintesi, stato) con «Aggiungi variante» (copia i campi comuni con la lettera successiva) ed «Elimina variante»; il cestino della posizione elimina tutte le varianti. Spostare su o giù sposta la posizione intera. «Aggiungi domanda» in un quiz con varianti crea tante varianti quante ne ha la posizione che ne ha di più, con un tag provvisorio (`v5r-nuova-xxxx`) che diventa `v5r-<pos>-<titolo>` appena si scrivono posizione e titolo. Nel dettaglio l'elenco ha una voce per posizione (un pallino per variante) e sopra il foglio le schede a, b, c passano da una variante all'altra; le frecce restano sulla stessa lettera. Quando scrivi tu nel database, mantieni uguali i campi comuni delle varianti e la lettera finale nella `pos`.
 | `docente` | note interne, non escono dalla dashboard |
 | `nota` | perché la riga è «da rivedere»; si svuota quando viene approvata |
+| `pdp` | facoltativo, solo nelle verifiche: `true` se la posizione è tolta nella copia PDP (pagina: «tolta nella PDP», sotto i punti); nelle varianti vale per tutta la posizione. La pagina mostra la riduzione in minuti e avvisa oltre il 30% |
 | `stampOrigine` | facoltativo: lo stamp della domanda in un deposito, messo dall'importazione di un backup; generando nel deposito la domanda viene riusata invece di duplicarla. Copiando la riga in un altro quiz, copialo con lei |
 
 ## Fasi e stati

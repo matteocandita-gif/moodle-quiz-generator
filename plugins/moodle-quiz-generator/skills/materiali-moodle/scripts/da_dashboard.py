@@ -954,6 +954,9 @@ def main():
             sezioni.append(cur)
         voce = {"casuale": t} if t else {"nome": nome_moodle(quiz, r)}
         voce.update({"pagina": int(float(r.get("pag") or 1)), "punti": float(r.get("punti") or 0)})
+        # copia PDP: la posizione è tolta se è segnata nella riga (o in una delle sue varianti)
+        if r.get("pdp") or (t and any(x.get("pdp") for x in righe if (x.get("tag") or "").strip().lower() == t.lower())):
+            voce["pdp"] = True
         cur["domande"].append(voce)
     ptag = os.path.join(usc, "tag.json")
     if tag_nomi:

@@ -4,6 +4,7 @@
 Uso:
     python3 genera_quiz.py EXPORT QUIZ_ID USCITA [--js=CARTELLA] [--sql=CARTELLA] [--php=CARTELLA] [--nome=BASE]
                            [--salta-coderunner] [--varianti=a[,b...]] [--immagini=CARTELLA]
+                           [--pdp [--pdp-pei] [--pdp-dichiarazione=mappe|tempo|generica|nessuna]]
 
 EXPORT, QUIZ_ID, USCITA  come per da_dashboard.py
 --js=CARTELLA   cartella scripts/ della skill domande-coderunner-js (serve se il quiz ha righe
@@ -16,6 +17,10 @@ EXPORT, QUIZ_ID, USCITA  come per da_dashboard.py
                 incorporate nell'XML (allega_immagini.py) e quindi nell'.mbz; obbligatoria se ce ne sono
 --varianti=a    verifiche ripetibili: genera solo le varianti indicate (lettera finale della posizione);
                 le righe senza tag restano tutte (vedi da_dashboard.py)
+--pdp           crea anche la copia PDP (BASE-PDP.mbz) con crea_pdp.py: tolte le posizioni segnate
+                «tolta nella PDP» nella dashboard. Solo se il quiz ha «deposito» (le domande stanno in
+                una banca nota e la copia si aggancia a quelle della verifica); la banca delle descrizioni
+                è EXPORT/impostazioni/pdp.json (ArtifactData get impostazioni pdp con out_dir)
 
 Esegue, nella cartella dove sta (insieme agli script di materiali-moodle):
   1. da_dashboard.py            -> specifica.txt, specifica-js.txt, specifica-sql.txt, impaginazione.json
@@ -158,6 +163,27 @@ def main():
     esegui([os.path.join(QUI, "crea_mbz.py"), finale, os.path.join(usc, "impaginazione.json"),
             os.path.join(usc, base + ".mbz")], "backup .mbz")
     print("FATTO: %s e %s" % (finale, os.path.join(usc, base + ".mbz")))
+    if "--pdp" in sys.argv:
+        imp = json.load(open(os.path.join(usc, "impaginazione.json"), encoding="utf-8"))
+        if not imp.get("banca"):
+            raise SystemExit("ERRORE: copia PDP dalla dashboard solo per un quiz con «deposito»: le domande della "
+                             "verifica devono stare in una banca nota. Altrimenti usa crea_pdp.py con il backup "
+                             "della verifica ripristinata.")
+        voci = [d for s in imp["sezioni"] for d in s["domande"]]
+        togli = [str(i) for i, d in enumerate(voci, 1) if d.get("pdp")]
+        if not togli:
+            raise SystemExit("ERRORE: nessuna posizione segnata «tolta nella PDP» nella dashboard.")
+        banca = opz.get("banca-pdp") or os.path.join(export, "impostazioni", "pdp.json")
+        if not os.path.exists(banca):
+            raise SystemExit("ERRORE: manca la banca delle descrizioni PDP (%s)" % banca)
+        cmd = [os.path.join(QUI, "crea_pdp.py"), os.path.join(usc, base + ".mbz"), banca,
+               os.path.join(usc, base + "-PDP.mbz"), "--togli=" + ",".join(togli)]
+        if "--pdp-pei" in sys.argv:
+            cmd.append("--pei")
+        if opz.get("pdp-dichiarazione"):
+            cmd.append("--dichiarazione=" + opz["pdp-dichiarazione"])
+        esegui(cmd, "copia PDP")
+        print("FATTO: %s" % os.path.join(usc, base + "-PDP.mbz"))
 
 
 if __name__ == "__main__":
