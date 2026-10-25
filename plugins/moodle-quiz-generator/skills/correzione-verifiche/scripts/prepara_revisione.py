@@ -80,7 +80,7 @@ def main():
             righe[s["chiave"]] = {"s": s["sigla"], "ord": i, "risposta": s["risposte"][k],
                                   "esito": ea.get("esito", "" if voti else "in attesa"),
                                   "auto": ea.get("auto"), "punti": p, "commento": c or "",
-                                  "ok": False, "inserito": False}
+                                  "inserito": False}
         json.dump({"righe": righe}, open(os.path.join(out, "valutazioni", did + ".json"), "w", encoding="utf-8"),
                   ensure_ascii=False)
         voci += [(f"verifiche/{vid}/domande", did, os.path.join(out, "domande", did + ".json")),
@@ -90,7 +90,7 @@ def main():
         json.dump({"titolo": opz["titolo"], "sottotitolo": opz.get("sottotitolo", ""), "quiz": opz.get("quiz", ""),
                    "studenti": len(dati["studenti"]), "disclaimer": opz.get("disclaimer", DISCLAIMER),
                    "creato": datetime.date.today().isoformat(), "archiviata": False,
-                   "avanzamento": {"righe": 0, "riviste": 0}},
+                   "avanzamento": {"righe": 0, "fatte": 0, "ins": 0, "insF": 0}},
                   open(os.path.join(out, "verifica.json"), "w", encoding="utf-8"), ensure_ascii=False)
         voci.insert(0, ("verifiche", vid, os.path.join(out, "verifica.json")))
     if mancanti:

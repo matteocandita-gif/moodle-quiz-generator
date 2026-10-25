@@ -63,7 +63,7 @@ Dopo la verifica Claude propone punteggi e commenti; tu rivedi e li riporti in M
 3. Se la verifica ha un form o una pagina HTML (o `echo` con tag in PHP), incolla nel secondo riquadro anche la tabella Risposte copiata dal browser, dall'intestazione all'ultima riga: l'Excel toglie i tag, la tabella li ha.
 4. Dai un titolo («V5R · 5Q SIA»), controlla le sigle e salva. Poi in chat: «correggi la verifica V5R · 5Q SIA». Se il quiz è nella dashboard dei quiz, Claude prende tracce e griglie da lì; altrimenti allega il backup del quiz.
 5. Claude riesegue le risposte SQL, PHP e JavaScript con i test e propone per ogni studente punteggio e commento breve. Ti dice quali scelte controllare.
-6. Nella dashboard apri la verifica e rivedi **per domanda** (lo stesso metro su tutta la classe) o **per studente** (tutte le sue domande e il voto). Cambia ciò che non ti convince e spunta «Rivisto».
+6. Nella dashboard apri la verifica e rivedi **per domanda** (lo stesso metro su tutta la classe) o **per studente** (tutte le sue domande e il voto). Cambia ciò che non ti convince.
 7. In Moodle: **Valutazione manuale**, tentativi ordinati per cognome (nella dashboard «A → Z» o «Z → A» come in Moodle). Copia punteggio e commento («Copia commento per Moodle» aggiunge la frase sull'IA in corsivo). Nelle domande automatiche cambi solo le righe «da modificare». Se preferisci studente per studente: vista per studente e, in Moodle, revisione del tentativo → «Commenta o modifica la valutazione».
 8. Alla fine chiedi «la tabella dei voti»: Claude rilegge la dashboard e calcola totali e media. Dal riepilogo archivi la verifica (resta consultabile in fondo all'elenco) o la elimini, con una conferma.
 

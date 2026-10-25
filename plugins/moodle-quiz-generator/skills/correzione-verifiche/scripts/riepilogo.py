@@ -8,7 +8,7 @@ CARTELLA  l'esportazione di una verifica (ArtifactData list con out_dir di «ver
           «verifiche/ID/valutazioni»): sotto CARTELLA, …/domande/DNN.json e …/valutazioni/DNN.json.
 
 Stampa una riga per studente con i punti di ogni domanda, il totale e il voto (totale diviso per
-il massimo e moltiplicato per 10), le righe ancora senza punteggio, quelle non spuntate come riviste
+il massimo e moltiplicato per 10), le righe ancora senza punteggio
 e quelle da inserire in Moodle non ancora segnate «inserito». Le somme le fa lo script, mai a mano.
 """
 import csv
@@ -34,7 +34,7 @@ def main():
     ids = sorted(domande, key=lambda d: domande[d]["n"])
     massimo = sum(float(domande[d]["max"]) for d in ids)
     studenti = sorted({(r["ord"], c, r["s"]) for d in val for c, r in val[d]["righe"].items()})
-    senza, non_riviste, da_moodle, tabella = [], 0, [], []
+    senza, da_moodle, tabella = [], [], []
     for _, c, sigla in studenti:
         riga, tot = [sigla], 0.0
         for d in ids:
@@ -46,7 +46,6 @@ def main():
             p = float(r["punti"])
             tot += p
             riga.append(f"{p:g}".replace(".", ","))
-            non_riviste += 0 if r.get("ok") else 1
             manuale = domande[d]["tipo"] == "manuale"
             if (manuale or p != float(r.get("auto") or 0)) and not r.get("inserito"):
                 da_moodle.append(f"{d} {sigla}")
@@ -59,7 +58,7 @@ def main():
     voti = [float(r[-1].replace(",", ".")) for r in tabella]
     print(f"\nMedia: {sum(voti) / len(voti):.2f} · sufficienti: {sum(v >= 6 for v in voti)}/{len(voti)}")
     print(f"Senza punteggio: {len(senza)}{' (' + ', '.join(senza[:12]) + ('…' if len(senza) > 12 else '') + ')' if senza else ''}")
-    print(f"Non spuntate come riviste: {non_riviste} · da inserire in Moodle e non segnate: {len(da_moodle)}")
+    print(f"Da inserire in Moodle e non segnate: {len(da_moodle)}")
     if opz.get("csv"):
         with open(opz["csv"], "w", newline="", encoding="utf-8") as f:
             csv.writer(f, delimiter=";").writerows([intest] + tabella)

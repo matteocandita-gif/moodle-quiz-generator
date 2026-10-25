@@ -2,6 +2,14 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.8.2 — 26/10/2026
+
+Correzione delle verifiche: commenti a paragrafi e niente più spunta «Rivisto».
+
+- **Commenti a paragrafi**: con più richieste un paragrafo per richiesta, «Sintassi:» in un paragrafo a parte, un paragrafo per parte nei commenti lunghi sulle pagine HTML e PHP (regola in `criteri.md`).
+- Dashboard **«Correzione verifiche»**: «Copia commento per Moodle» trasforma ogni riga del commento in un paragrafo, che arriva così nell'editor di Moodle (prima gli a capo si perdevano).
+- Dashboard **«Correzione verifiche»**: tolta la spunta «Rivisto». Una riga è a posto quando ha il punteggio e, se va riportata in Moodle, è segnata «Inserito»; schede, elenco e intestazione mostrano quante righe restano da inserire o senza punteggio. `prepara_revisione.py` e `riepilogo.py` allineati.
+
 ## 0.8.1 — 25/10/2026
 
 **Esercitazione con studio e domande sequenziale**: nuovo nome del tipo «Studio e domande» (la sigla resta SD), in linea con gli altri tipi, e regole sulle parti e sulle domande.

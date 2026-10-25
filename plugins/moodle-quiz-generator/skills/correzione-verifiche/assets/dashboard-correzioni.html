@@ -167,6 +167,7 @@ function daMoodle(v){
   if (dom.tipo === "manuale") return true;
   return Number(v.punti) !== Number(v.auto);
 }
+function aPosto(v){ return v.punti != null && (!daMoodle(v) || !!v.inserito); }   // punteggio deciso e, se serve, già inserito in Moodle
 function totale(k){
   let tot = 0, manca = false;
   domOrd().forEach(d => { const v = rigaDi(d.id, k); if (!v || v.punti == null) manca = true; else tot += Number(v.punti); });
@@ -174,7 +175,7 @@ function totale(k){
 }
 const massimo = () => domOrd().reduce((s,d)=>s+Number(d.max||0),0) || 100;
 const testoCommento = v => v.commento ? disclaimer() + "\n\n" + v.commento : "";
-const htmlCommento = v => v.commento ? "<p><em>"+esc(disclaimer())+"</em></p><p>"+esc(v.commento)+"</p>" : "";
+const htmlCommento = v => v.commento ? "<p><em>"+esc(disclaimer())+"</em></p>"+v.commento.split(/\n+/).filter(p=>p.trim()).map(p=>"<p>"+esc(p)+"</p>").join("") : "";
 
 async function copia(testo, html){
   try {
@@ -214,9 +215,10 @@ function renderElenco(){
   const attive = tutte.filter(v=>!v.archiviata), arch = tutte.filter(v=>v.archiviata);
   $("#stato").textContent = attive.length ? (attive.length === 1 ? "1 verifica in corso" : `${attive.length} verifiche in corso`) : "";
   const card = v => {
-    const p = v.avanzamento || {}; const perc = p.righe ? Math.round((p.riviste||0)/p.righe*100) : 0;
+    const p = v.avanzamento || {}; const fatte = p.fatte != null ? p.fatte : (p.riviste||0); const perc = p.righe ? Math.round(fatte/p.righe*100) : 0;
+    const testo = !p.righe ? "da aprire" : p.ins != null ? (p.ins ? `Moodle: ${p.insF||0}/${p.ins} inserite` : "nulla da inserire in Moodle") : `${fatte}/${p.righe} righe`;
     return `<button class="verifica" data-vid="${esc(v.id)}"><div><h3>${esc(v.titolo||v.id)}</h3><span class="n">${esc(v.sottotitolo||"")}${v.studenti?` · ${v.studenti} studenti`:""}${v.creato?` · ${esc(String(v.creato).split("-").reverse().join("/"))}`:""}</span></div>
-      <div><div class="barra" aria-hidden="true"><i style="width:${perc}%"></i></div><span class="n">${p.righe?`${p.riviste||0}/${p.righe} righe riviste`:"da aprire"}</span></div></button>`;
+      <div><div class="barra" aria-hidden="true"><i style="width:${perc}%"></i></div><span class="n">${testo}</span></div></button>`;
   };
   let h = `<p class="riga" style="margin-bottom:12px"><button class="btn pieno" id="nuova">Nuova correzione</button><span class="n">dall'Excel delle risposte di Moodle, anche con i nomi: li toglie la pagina, nel tuo browser</span></p>`;
   h += attive.length ? `<div class="elenco">${attive.map(card).join("")}</div>`
@@ -260,18 +262,18 @@ function apri(vid){
 function renderStato(){
   if (!st.vid) return;
   const tutte = Object.values(st.val);
-  const ok = tutte.filter(v=>v.ok).length;
+  const fatte = tutte.filter(aPosto).length, senza = tutte.filter(v=>v.punti==null).length;
   const ins = tutte.filter(v=>daMoodle(v)).length, insF = tutte.filter(v=>daMoodle(v)&&v.inserito).length;
-  $("#stato").textContent = tutte.length ? `${ok}/${tutte.length} righe riviste · Moodle: ${insF}/${ins} inserite` : "";
-  segnaAvanzamento(tutte.length, ok);
+  $("#stato").textContent = tutte.length ? `Moodle: ${insF}/${ins} inserite${senza?` · ${senza} senza punteggio`:""}` : "";
+  segnaAvanzamento({righe: tutte.length, fatte, ins, insF});
 }
 let ultimoAv = "";
-function segnaAvanzamento(righe, riviste){       // l'avanzamento nell'elenco, scritto solo quando cambia
-  const k = `${st.vid}:${righe}:${riviste}`; if (k === ultimoAv || !righe) return; ultimoAv = k;
-  const v = info(); if (v.avanzamento && v.avanzamento.righe === righe && v.avanzamento.riviste === riviste) return;
+function segnaAvanzamento(av){                  // l'avanzamento nell'elenco, scritto solo quando cambia
+  const k = `${st.vid}:${av.righe}:${av.fatte}:${av.ins}:${av.insF}`; if (k === ultimoAv || !av.righe) return; ultimoAv = k;
+  const a = info().avanzamento; if (a && a.righe === av.righe && a.fatte === av.fatte && a.ins === av.ins && a.insF === av.insF) return;
   clearTimeout(segnaAvanzamento.t);
   const vid = st.vid;
-  segnaAvanzamento.t = setTimeout(() => st.db?.doc(`verifiche/${vid}`).update({avanzamento:{righe, riviste}}).catch(()=>{}), 1500);
+  segnaAvanzamento.t = setTimeout(() => st.db?.doc(`verifiche/${vid}`).update({avanzamento: av}).catch(()=>{}), 1500);
 }
 
 function renderTabs(){
@@ -280,19 +282,19 @@ function renderTabs(){
   t.hidden = false;
   if (st.vista === "domanda") {
     t.innerHTML = domOrd().map(d => {
-      const r = righe(d.id); const fatte = r.filter(v=>v.ok).length;
-      const ins = r.filter(v=>daMoodle(v) && !v.inserito).length;
+      const r = righe(d.id); const fatte = r.filter(aPosto).length;
+      const ins = r.filter(v=>daMoodle(v) && !v.inserito).length, senza = r.filter(v=>v.punti==null).length;
       return `<button role="tab" data-tab="${d.id}" aria-selected="${st.tab===d.id}" class="${fatte===r.length&&r.length?'fatta':''}">
-        <span>D${d.n} · ${esc(d.breve)}</span><small>${fatte}/${r.length} riviste${ins?` · ${ins} da Moodle`:''}</small></button>`;
+        <span>D${d.n} · ${esc(d.breve)}</span><small>${ins?`${ins} da inserire`:(senza?`${senza} senza punteggio`:(r.length?'a posto':''))}</small></button>`;
     }).join("");
     t.querySelectorAll("button").forEach(b => b.onclick = () => { st.tab = b.dataset.tab; render(); window.scrollTo({top:0}); });
   } else {
     const M = massimo();
     t.innerHTML = studenti().map(s => {
       const {tot, manca} = totale(s.k);
-      const r = domOrd().map(d=>rigaDi(d.id, s.k)).filter(Boolean); const fatte = r.filter(v=>v.ok).length;
+      const r = domOrd().map(d=>rigaDi(d.id, s.k)).filter(Boolean); const fatte = r.filter(aPosto).length, ins = r.filter(v=>daMoodle(v) && !v.inserito).length;
       return `<button role="tab" class="sigla-tab ${fatte===r.length&&r.length?'fatta':''}" data-stud="${esc(s.k)}" aria-selected="${st.stud===s.k}">
-        <span>${esc(s.s)}</span><small>${fmt(tot/M*10)}${manca?'*':''} · ${fatte}/${r.length}</small></button>`;
+        <span>${esc(s.s)}</span><small>${fmt(tot/M*10)}${manca?'*':''}${ins?` · ${ins} da inserire`:''}</small></button>`;
     }).join("");
     t.querySelectorAll("button").forEach(b => b.onclick = () => { st.stud = b.dataset.stud; render(); window.scrollTo({top:0}); });
   }
@@ -323,7 +325,6 @@ function cardHtml(v, dom, modo){
         <span class="salvato" data-salv="${v.id}"></span>
       </div>
       <div class="spunte">
-        <label><input type="checkbox" data-ok="${v.id}" ${v.ok?'checked':''}> Rivisto</label>
         ${m || v.inserito ? `<label><input type="checkbox" data-ins="${v.id}" ${v.inserito?'checked':''}> Inserito in Moodle</label>`:''}
       </div>
     </div></article>`;
@@ -349,7 +350,6 @@ function collega(){
   });
   document.querySelectorAll("[data-copia-c]").forEach(b => b.onclick = () => { const v = st.val[b.dataset.copiaC]; copia(testoCommento(v), htmlCommento(v)); });
   document.querySelectorAll("[data-copia-p]").forEach(b => b.onclick = () => { const v = st.val[b.dataset.copiaP]; copia(fmt(v.punti)); });
-  document.querySelectorAll("[data-ok]").forEach(c => c.onchange = () => { scrivi(c.dataset.ok, {ok:c.checked}); renderTabs(); renderStato(); });
   document.querySelectorAll("[data-ins]").forEach(c => c.onchange = () => { scrivi(c.dataset.ins, {inserito:c.checked}); render(); });
 }
 
@@ -713,12 +713,12 @@ function renderNuova(){
     try {
       const base = `verifiche/${vid}`, oggi = new Date().toISOString().slice(0, 10);
       const doc = {titolo: nuova.titolo.trim(), sottotitolo: nuova.sottotitolo.trim(), studenti: nuova.studenti.length,
-        creato: oggi, archiviata: false, origine: "dashboard", stato: "da correggere", avanzamento: {righe: 0, riviste: 0}};
+        creato: oggi, archiviata: false, origine: "dashboard", stato: "da correggere", avanzamento: {righe: 0, fatte: 0, ins: 0, insF: 0}};
       await st.db.doc(base).set(doc); st.verifiche[vid] = {id: vid, ...doc};
       for (const d of nuova.domande) {
         const id = "D" + String(d.n).padStart(2, "0"); const righe = {};
         nuova.studenti.forEach((s, i) => { righe[s.k] = {s: s.s, ord: i, risposta: s.risposte[d.n] || "", esito: "in attesa", auto: null,
-          punti: null, commento: "", ok: false, inserito: false, ...(d.testi.length > 1 ? {variante: d.testi.indexOf(s.testi[d.n])} : {})}; });
+          punti: null, commento: "", inserito: false, ...(d.testi.length > 1 ? {variante: d.testi.indexOf(s.testi[d.n])} : {})}; });
         await st.db.collection(base + "/domande").doc(id).set({n: d.n, breve: "D" + d.n, titolo: (d.testi[0] || "").replace(/\s+/g, " ").slice(0, 70),
           max: null, tipo: "manuale", criteri: "In attesa delle proposte di Claude.", testi: d.testi});
         await st.db.collection(base + "/valutazioni").doc(id).set({righe});
