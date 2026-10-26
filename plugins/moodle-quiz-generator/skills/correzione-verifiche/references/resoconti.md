@@ -4,7 +4,7 @@ A correzione finita, su richiesta («prepara i resoconti della verifica …»), 
 
 ## Da dove si parte
 
-Rileggi il database della verifica (`ArtifactData list` di `domande` e `valutazioni` con `out_dir`): punteggi e commenti sono quelli decisi dall'utente, che contano più delle proposte. Per ogni studente guarda tutte le domande insieme, con i titoli e il tipo (teoria, programma, debug…), e calcola il voto con le somme dello script, non a mano. Se la prova ha parti distinte (prima e seconda metà, base e avanzata, teoria e pratica), calcola anche il voto di ogni parte: è spesso il dato che spiega il resto.
+Rileggi il database della verifica (`ArtifactData list` di `domande` e `valutazioni` con `out_dir`): punteggi e commenti sono quelli decisi dall'utente, che contano più delle proposte. Per ogni studente guarda tutte le domande insieme, con i titoli e il tipo (teoria, programma, debug…), e calcola il voto con le somme dello script, non a mano. Se l'utente ha già finito in Moodle e ha cambiato punteggi o pesi lì (il caso tipico: la revisione fatta direttamente in Valutazione manuale), i voti veri sono quelli dell'export «Valutazioni» di Moodle: chiedilo, leggilo usando solo le iniziali (cognome e nome ridotti alle prime due lettere, mai stampati per intero) e abbinalo alle sigle; i commenti della dashboard servono comunque per gli errori. Dillo nel resoconto della classe («con i punteggi inseriti in Moodle»). Se la prova ha parti distinte (prima e seconda metà, base e avanzata, teoria e pratica), calcola anche il voto di ogni parte: è spesso il dato che spiega il resto.
 
 ## Lo studente
 
