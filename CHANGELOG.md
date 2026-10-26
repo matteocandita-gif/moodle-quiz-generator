@@ -2,6 +2,15 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.8.3 — 26/10/2026
+
+Correzione delle verifiche: il codice nei commenti si vede come codice.
+
+- **Codice in linea** tra apici inversi (`let i = 0`): «Copia commento per Moodle» lo incolla come `<code>`, nel testo semplice gli apici si tolgono. Sotto il commento la pagina mostra l'anteprima.
+- **Blocchi di codice**: quando la correzione ha più di due istruzioni si scrive come blocco, tra una riga ```js e una riga ```, con a capo e rientri; arriva in Moodle come `<pre><code>`. Le spiegazioni brevi possono stare nel codice come commenti in linea.
+- **CodeRunner non svolte o completamente sbagliate** (fino al 20% del massimo, o con il codice di un'altra domanda): niente soluzione intera nel commento, una o due frasi sull'errore principale e il rimando «Clicca su «Mostra/Nascondi soluzione dell'autore» per vedere un esempio di soluzione corretta.»
+- Dashboard **«Correzione verifiche»**: nelle domande automatiche una riga con lo stesso punteggio ma un commento da dare è segnata «commento da inserire».
+
 ## 0.8.2 — 26/10/2026
 
 Correzione delle verifiche: commenti a paragrafi e niente più spunta «Rivisto».
