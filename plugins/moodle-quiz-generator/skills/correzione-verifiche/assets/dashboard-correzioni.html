@@ -68,6 +68,10 @@ pre.risp{margin:0;background:var(--code);border:1px solid var(--line);border-rad
 .punti input{width:5.2em;font:inherit;font-size:1.1rem;font-weight:600;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);text-align:right}
 .punti span{color:var(--muted)}
 .perc{font-size:.8rem;color:var(--muted)}
+.anteprima:empty{display:none}
+.anteprima{font-size:.88rem;line-height:1.45;padding:6px 9px;border-left:3px solid var(--line);color:var(--ink)}
+.anteprima p{margin:0 0 6px}
+.anteprima code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.85em;background:color-mix(in srgb,var(--line) 45%,transparent);padding:1px 4px;border-radius:4px}
 textarea{width:100%;min-height:140px;font:inherit;font-size:.88rem;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);resize:vertical}
 .btn{font:inherit;font-size:.82rem;border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:6px;padding:4px 10px;cursor:pointer}
 .btn.pieno{background:var(--accent);color:var(--accent-ink)}
@@ -162,10 +166,13 @@ function studenti(){
 const nStud = () => info().studenti || studenti().length;
 const posiz = ord => st.ordine === 1 ? ord + 1 : nStud() - ord;   // posizione nell'ordine scelto, come in Moodle
 function rigaDi(d, k){ return st.val[d + "__" + k]; }
+// Un commento da riportare in Moodle: non vuoto e diverso da «Risposta non svolta.»
+function commentoDaInserire(v){ const c = (v.commento || "").trim(); return !!c && !/^risposta non svolta\.?$/i.test(c); }
+function cambiaPunti(v){ return Number(v.punti) !== Number(v.auto); }
 function daMoodle(v){
   const dom = st.domande[v.d]; if (!dom || v.punti == null) return false;
   if (dom.tipo === "manuale") return true;
-  return Number(v.punti) !== Number(v.auto);
+  return cambiaPunti(v) || commentoDaInserire(v);   // automatica: punteggio diverso, oppure stesso punteggio con un commento da dare
 }
 function aPosto(v){ return v.punti != null && (!daMoodle(v) || !!v.inserito); }   // punteggio deciso e, se serve, già inserito in Moodle
 function totale(k){
@@ -174,8 +181,12 @@ function totale(k){
   return {tot, manca};
 }
 const massimo = () => domOrd().reduce((s,d)=>s+Number(d.max||0),0) || 100;
-const testoCommento = v => v.commento ? disclaimer() + "\n\n" + v.commento : "";
-const htmlCommento = v => v.commento ? "<p><em>"+esc(disclaimer())+"</em></p>"+v.commento.split(/\n+/).filter(p=>p.trim()).map(p=>"<p>"+esc(p)+"</p>").join("") : "";
+// Nel commento il codice sta tra apici inversi (`let i = 0`): in Moodle diventa <code>, nel testo semplice gli apici si tolgono.
+const paraHtml = p => esc(p).replace(/`([^`]+)`/g, "<code>$1</code>");
+const corpoHtml = c => String(c||"").split(/\n+/).filter(p=>p.trim()).map(p=>"<p>"+paraHtml(p)+"</p>").join("");
+const testoCommento = v => v.commento ? disclaimer() + "\n\n" + v.commento.replace(/`/g, "") : "";
+const htmlCommento = v => v.commento ? "<p><em>"+esc(disclaimer())+"</em></p>"+corpoHtml(v.commento) : "";
+const anteprima = c => /`/.test(c||"") ? corpoHtml(c) : "";
 
 async function copia(testo, html){
   try {
@@ -310,7 +321,7 @@ function cardHtml(v, dom, modo){
     : `<span class="dom-tit">D${dom.n} · ${esc(dom.breve)} · ${esc(dom.titolo)}</span><span class="n">max ${fmt(dom.max)}</span>`;
   return `<article class="card ${v.inserito?'inserito':(m?'da-moodle':'')}">
     <div class="chi">${testa}${chip}
-      ${m && !v.inserito ? `<span class="chip warn">${dom.tipo==='manuale'?'da inserire':'da modificare'}</span>`:''}</div>
+      ${m && !v.inserito ? `<span class="chip warn">${dom.tipo==='manuale'?'da inserire':(cambiaPunti(v)?'da modificare':'commento da inserire')}</span>`:''}</div>
     ${st.nascondiRisp ? '' : `<pre class="risp">${esc(v.risposta || "(nessuna risposta)")}</pre>`}
     <div class="voto">
       <div class="riga">
@@ -318,8 +329,9 @@ function cardHtml(v, dom, modo){
         <span class="perc">${perc}</span>
         <button class="btn" data-copia-p="${v.id}" ${v.punti==null?'disabled':''}>Copia punteggio</button>
       </div>
-      ${autoTxt ? `<div class="nota-moodle">${autoTxt}${m?` → <b>porta a ${fmt(v.punti)}</b>`:' · nessuna modifica'}</div>`:''}
+      ${autoTxt ? `<div class="nota-moodle">${autoTxt}${!m?' · nessuna modifica':(cambiaPunti(v)?` → <b>porta a ${fmt(v.punti)}</b>`:' · punteggio invariato, <b>inserisci il commento</b>')}</div>`:''}
       <textarea id="c-${v.id}" data-id="${v.id}" class="in-comm" placeholder="Nessun commento (punteggio pieno)">${esc(v.commento)}</textarea>
+      <div class="anteprima" id="a-${v.id}" title="Come appare in Moodle: il codice tra apici inversi diventa codice">${anteprima(v.commento)}</div>
       <div class="riga">
         <button class="btn pieno" data-copia-c="${v.id}" ${v.commento?'':'disabled'}>Copia commento per Moodle</button>
         <span class="salvato" data-salv="${v.id}"></span>
@@ -346,6 +358,7 @@ function collega(){
   });
   document.querySelectorAll(".in-comm").forEach(t => t.oninput = () => {
     scrivi(t.dataset.id, {commento:t.value});
+    const a = document.getElementById("a-" + t.dataset.id); if (a) a.innerHTML = anteprima(t.value);
     const b = document.querySelector(`[data-copia-c="${t.dataset.id}"]`); if (b) b.disabled = !t.value;
   });
   document.querySelectorAll("[data-copia-c]").forEach(b => b.onclick = () => { const v = st.val[b.dataset.copiaC]; copia(testoCommento(v), htmlCommento(v)); });
@@ -358,7 +371,7 @@ function renderDomanda(d){
   const vis = st.soloMoodle ? r.filter(v => daMoodle(v) && !v.inserito) : r;
   const azione = dom.tipo === "manuale"
     ? "In Moodle: punteggio e commento per tutti."
-    : "In Moodle: cambiare solo le righe segnate «da modificare» (il punteggio automatico è diverso dalla proposta).";
+    : "In Moodle: solo le righe segnate «da modificare» (il punteggio automatico è diverso dalla proposta) o «commento da inserire» (stesso punteggio, con un commento per lo studente).";
   let h = `<section class="intesta"><h2>D${dom.n} · ${esc(dom.titolo)} <span class="n">max ${fmt(dom.max)} punti</span></h2>
     <div class="criteri">${esc(dom.criteri)}${dom.criteri?"\n":""}${azione}</div>${filtriHtml()}</section><div class="lista">`;
   if (!vis.length) h += `<div class="vuoto">${r.length ? "Niente da inserire in Moodle per questa domanda." : "Nessuna riga per questa domanda."}</div>`;
