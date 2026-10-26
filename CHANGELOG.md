@@ -2,6 +2,10 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## Prossima versione (in lavorazione)
+
+- Dashboard **«Correzione verifiche»**: nelle domande automatiche una riga va inserita in Moodle anche quando il punteggio resta quello automatico ma c'è un commento per lo studente (non «Risposta non svolta.»). Il segno è «commento da inserire», accanto a «da modificare» (punteggio diverso); il conteggio delle righe da inserire e il filtro le comprendono. `riepilogo.py` e la documentazione allineati.
+
 ## 0.8.2 — 26/10/2026
 
 Correzione delle verifiche: commenti a paragrafi e niente più spunta «Rivisto».

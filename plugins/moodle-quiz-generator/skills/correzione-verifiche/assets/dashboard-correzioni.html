@@ -162,10 +162,13 @@ function studenti(){
 const nStud = () => info().studenti || studenti().length;
 const posiz = ord => st.ordine === 1 ? ord + 1 : nStud() - ord;   // posizione nell'ordine scelto, come in Moodle
 function rigaDi(d, k){ return st.val[d + "__" + k]; }
+// Un commento da riportare in Moodle: non vuoto e diverso da «Risposta non svolta.»
+function commentoDaInserire(v){ const c = (v.commento || "").trim(); return !!c && !/^risposta non svolta\.?$/i.test(c); }
+function cambiaPunti(v){ return Number(v.punti) !== Number(v.auto); }
 function daMoodle(v){
   const dom = st.domande[v.d]; if (!dom || v.punti == null) return false;
   if (dom.tipo === "manuale") return true;
-  return Number(v.punti) !== Number(v.auto);
+  return cambiaPunti(v) || commentoDaInserire(v);   // automatica: punteggio diverso, oppure stesso punteggio con un commento da dare
 }
 function aPosto(v){ return v.punti != null && (!daMoodle(v) || !!v.inserito); }   // punteggio deciso e, se serve, già inserito in Moodle
 function totale(k){
@@ -310,7 +313,7 @@ function cardHtml(v, dom, modo){
     : `<span class="dom-tit">D${dom.n} · ${esc(dom.breve)} · ${esc(dom.titolo)}</span><span class="n">max ${fmt(dom.max)}</span>`;
   return `<article class="card ${v.inserito?'inserito':(m?'da-moodle':'')}">
     <div class="chi">${testa}${chip}
-      ${m && !v.inserito ? `<span class="chip warn">${dom.tipo==='manuale'?'da inserire':'da modificare'}</span>`:''}</div>
+      ${m && !v.inserito ? `<span class="chip warn">${dom.tipo==='manuale'?'da inserire':(cambiaPunti(v)?'da modificare':'commento da inserire')}</span>`:''}</div>
     ${st.nascondiRisp ? '' : `<pre class="risp">${esc(v.risposta || "(nessuna risposta)")}</pre>`}
     <div class="voto">
       <div class="riga">
@@ -318,7 +321,7 @@ function cardHtml(v, dom, modo){
         <span class="perc">${perc}</span>
         <button class="btn" data-copia-p="${v.id}" ${v.punti==null?'disabled':''}>Copia punteggio</button>
       </div>
-      ${autoTxt ? `<div class="nota-moodle">${autoTxt}${m?` → <b>porta a ${fmt(v.punti)}</b>`:' · nessuna modifica'}</div>`:''}
+      ${autoTxt ? `<div class="nota-moodle">${autoTxt}${!m?' · nessuna modifica':(cambiaPunti(v)?` → <b>porta a ${fmt(v.punti)}</b>`:' · punteggio invariato, <b>inserisci il commento</b>')}</div>`:''}
       <textarea id="c-${v.id}" data-id="${v.id}" class="in-comm" placeholder="Nessun commento (punteggio pieno)">${esc(v.commento)}</textarea>
       <div class="riga">
         <button class="btn pieno" data-copia-c="${v.id}" ${v.commento?'':'disabled'}>Copia commento per Moodle</button>
@@ -358,7 +361,7 @@ function renderDomanda(d){
   const vis = st.soloMoodle ? r.filter(v => daMoodle(v) && !v.inserito) : r;
   const azione = dom.tipo === "manuale"
     ? "In Moodle: punteggio e commento per tutti."
-    : "In Moodle: cambiare solo le righe segnate «da modificare» (il punteggio automatico è diverso dalla proposta).";
+    : "In Moodle: solo le righe segnate «da modificare» (il punteggio automatico è diverso dalla proposta) o «commento da inserire» (stesso punteggio, con un commento per lo studente).";
   let h = `<section class="intesta"><h2>D${dom.n} · ${esc(dom.titolo)} <span class="n">max ${fmt(dom.max)} punti</span></h2>
     <div class="criteri">${esc(dom.criteri)}${dom.criteri?"\n":""}${azione}</div>${filtriHtml()}</section><div class="lista">`;
   if (!vis.length) h += `<div class="vuoto">${r.length ? "Niente da inserire in Moodle per questa domanda." : "Nessuna riga per questa domanda."}</div>`;

@@ -11,6 +11,7 @@ Stampa una riga per studente con i punti di ogni domanda, il totale e il voto (t
 il massimo e moltiplicato per 10), le righe ancora senza punteggio
 e quelle da inserire in Moodle non ancora segnate «inserito». Le somme le fa lo script, mai a mano.
 """
+import re
 import csv
 import glob
 import json
@@ -47,7 +48,9 @@ def main():
             tot += p
             riga.append(f"{p:g}".replace(".", ","))
             manuale = domande[d]["tipo"] == "manuale"
-            if (manuale or p != float(r.get("auto") or 0)) and not r.get("inserito"):
+            commento = (r.get("commento") or "").strip()
+            con_commento = bool(commento) and not re.fullmatch(r"(?i)risposta non svolta\.?", commento)
+            if (manuale or p != float(r.get("auto") or 0) or con_commento) and not r.get("inserito"):
                 da_moodle.append(f"{d} {sigla}")
         riga += [f"{tot:g}".replace(".", ","), f"{tot / massimo * 10:.2f}".replace(".", ",")]
         tabella.append(riga)
