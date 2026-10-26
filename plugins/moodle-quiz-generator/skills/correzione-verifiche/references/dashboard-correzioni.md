@@ -23,6 +23,7 @@ Una riga è «da inserire» in Moodle se la domanda è a correzione manuale, opp
 | `verifiche` | `<id>` (es. `v5r-5q`) | `titolo`, `sottotitolo`, `quiz` (id nella dashboard dei quiz), `studenti`, `disclaimer`, `creato` (AAAA-MM-GG), `archiviata`, `avanzamento` (lo aggiorna la pagina) |
 | `verifiche/<id>/domande` | `D01`, `D02`… | `n`, `breve` (posizione nella dashboard), `titolo`, `max`, `tipo` (`manuale` o `auto`), `criteri` |
 | `verifiche/<id>/valutazioni` | `D01`, `D02`… | `righe`: una mappa chiave dello studente → `s` (sigla), `ord`, `risposta`, `esito`, `auto`, `punti`, `commento`, `inserito` (le verifiche più vecchie hanno anche `ok`, non più usato) |
+| `verifiche/<id>/resoconti` | `studenti`, `classe` | `studenti`: `righe` (chiave → `testo`, `aggiornato`, `modificato`); `classe`: `testo`, `aggiornato`, `modificato`. Vedi `resoconti.md` |
 
 Una domanda è un solo documento, con le righe degli studenti in una mappa: così il database si riempie con un batch e la pagina salva una riga con un `update` che tocca solo quella (`{righe: {"AL-IU": {punti: 4.5}}}`). L'`id` della verifica unisce il quiz e la classe, perché la stessa verifica si può correggere in più classi.
 

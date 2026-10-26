@@ -108,6 +108,11 @@ table.riep tbody tr:hover td{background:var(--accent-soft)}
 details.archivio{margin-top:18px;color:var(--muted)}
 .riquadro{margin-top:22px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 16px;display:grid;gap:8px}
 .riquadro h3{margin:0;font-size:1rem}
+.resoconto{margin-top:4px}
+.resoconto h3 .n{font-weight:400;font-size:.8rem}
+.res-testo{font-size:.92rem;line-height:1.5}
+.res-testo p{margin:0 0 7px}
+.res-testo code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.85em;background:color-mix(in srgb,var(--line) 45%,transparent);padding:1px 4px;border-radius:4px}
 .riquadro p{margin:0}
 .btn.pericolo{border-color:var(--bad);color:var(--bad)}
 .btn.pericolo.pieno{background:var(--bad);color:var(--panel)}
@@ -147,7 +152,7 @@ select.assegna{font:inherit;font-size:.85rem;padding:2px 4px;background:var(--bg
 
 <script>
 const DISCLAIMER_STD = "Il seguente feedback è stato scritto con l'aiuto di una IA generativa. La valutazione è stata svolta dal docente.";
-const st = { nuova:false, verifiche:{}, vid:null, domande:{}, val:{}, vista:"domanda", ordine:1, tab:null, stud:null, soloMoodle:false, nascondiRisp:false, db:null, unsub:[] };
+const st = { nuova:false, verifiche:{}, vid:null, domande:{}, val:{}, res:{}, resClasse:null, vista:"domanda", ordine:1, tab:null, stud:null, soloMoodle:false, nascondiRisp:false, db:null, unsub:[] };
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmt = n => (n == null || n === "" || isNaN(n)) ? "—" : (Math.round(n*100)/100).toString().replace(".", ",");
@@ -192,6 +197,32 @@ const corpoHtml = c => String(c||"").split(/```(\w*)\n?([\s\S]*?)\n?```/).map((t
 const testoCommento = v => v.commento ? disclaimer() + "\n\n" + v.commento.replace(/```\w*\n?/g, "").replace(/`/g, "") : "";
 const htmlCommento = v => v.commento ? "<p><em>"+esc(disclaimer())+"</em></p>"+corpoHtml(v.commento) : "";
 const anteprima = c => /`/.test(c||"") ? corpoHtml(c) : "";
+
+// Resoconto per il docente: righe «Etichetta: testo», con l'etichetta in grassetto; il codice come nei commenti.
+const resHtml = t => corpoHtml(t).replace(/<p>([A-ZÀ-Ý][^<:]{1,40}):/g, "<p><b>$1:</b>");
+const oggiISO = () => new Date().toISOString().slice(0, 10);
+function resocontoHtml(id, titolo, r, vuoto){
+  const t = r?.testo || "";
+  const quando = r?.aggiornato ? "Aggiornato il " + esc(String(r.aggiornato).slice(0,10).split("-").reverse().join("/")) + (r.modificato ? " · modificato da te" : "") : "";
+  return `<section class="riquadro resoconto" aria-labelledby="t-${id}"><h3 id="t-${id}">${titolo} <span class="n">solo per te</span></h3>
+    ${t ? `<div class="res-testo">${resHtml(t)}</div>` : `<p class="n">${vuoto}</p>`}
+    <textarea class="in-res" id="rt-${id}" hidden>${esc(t)}</textarea>
+    <div class="riga"><button class="btn" data-res="${id}">${t ? "Modifica" : "Scrivi"}</button><span class="n">${quando}</span><span class="salvato" id="rs-${id}"></span></div></section>`;
+}
+function collegaRes(id, salva){
+  const b = document.querySelector(`[data-res="${id}"]`), ta = $("#rt-" + id); if (!b || !ta) return;
+  b.onclick = async () => {
+    if (ta.hidden) { ta.hidden = false; ta.style.minHeight = "240px"; ta.focus(); b.textContent = "Salva"; return; }
+    b.disabled = true;
+    try { await salva(ta.value); } catch(e){ $("#rs-" + id).textContent = "Non salvato: " + (e.code || "errore"); b.disabled = false; return; }
+    ta.blur(); render();
+  };
+}
+async function salvaResStud(k, testo){
+  const ref = st.db.collection(`verifiche/${st.vid}/resoconti`).doc("studenti");
+  const riga = {righe: {[k]: {testo, aggiornato: oggiISO(), modificato: true}}};
+  try { await ref.update(riga); } catch(_) { await ref.set(riga); }
+}
 
 async function copia(testo, html){
   try {
@@ -249,13 +280,20 @@ function renderElenco(){
 /* ---------- una verifica ---------- */
 function apri(vid){
   st.unsub.forEach(u => { try{u();}catch(_){} }); st.unsub = [];
-  st.vid = vid; st.domande = {}; st.val = {}; st.tab = null; st.stud = null; salvaUI();
+  st.vid = vid; st.domande = {}; st.val = {}; st.res = {}; st.resClasse = null; st.tab = null; st.stud = null; salvaUI();
   if (!vid) { render(); return; }
   $("#vista").innerHTML = `<div class="vuoto">Caricamento delle correzioni…</div>`;
   const base = `verifiche/${vid}`;
   st.unsub.push(st.db.collection(base + "/domande").limit(200).onSnapshot(s => {
     st.domande = {}; s.docs.forEach(d => st.domande[d.id] = {id:d.id, ...d.data()}); render();
   }, e => { $("#stato").textContent = "Errore nel leggere le domande: " + e.code; }));
+  // Resoconti per il docente: documento «studenti» (righe: chiave → {testo, aggiornato, modificato}) e documento «classe»
+  st.unsub.push(st.db.collection(base + "/resoconti").limit(10).onSnapshot(s => {
+    st.res = {}; st.resClasse = null;
+    s.docs.forEach(d => { if (d.id === "studenti") st.res = d.data().righe || {}; if (d.id === "classe") st.resClasse = d.data(); });
+    if (document.activeElement?.classList.contains("in-res")) return;
+    if (st.vista === "studente" || st.vista === "riep") render();
+  }, () => {}));
   st.unsub.push(st.db.collection(base + "/valutazioni").limit(200).onSnapshot(s => {
     const attivo = document.activeElement; const focusId = attivo?.id; const sel = attivo && "selectionStart" in attivo ? [attivo.selectionStart, attivo.selectionEnd] : null;
     s.docChanges().forEach(ch => {
@@ -396,10 +434,12 @@ function renderStudente(k){
   const vis = st.soloMoodle ? lista.filter(([v]) => daMoodle(v) && !v.inserito) : lista;
   let h = `<section class="intesta"><h2><span class="sigla">${esc(s.s)}</span> <span class="n">${posiz(s.ord)} di ${nStud()}</span></h2>
     <div class="totale-stud" id="tot-stud">${totStudHtml(k)}</div>
+    ${resocontoHtml("stud", "Resoconto", st.res[k], "Nessun resoconto per questo studente: chiedi a Claude di preparare i resoconti della verifica.")}
     <div class="criteri">Tutte le domande di questo studente. Utile per controllare il voto complessivo, o per inserire in Moodle dalla revisione del tentativo («Commenta o modifica la valutazione»).</div>${filtriHtml()}</section><div class="lista">`;
   if (!vis.length) h += `<div class="vuoto">Niente da inserire in Moodle per questo studente.</div>`;
   h += vis.map(([v, d]) => cardHtml(v, d, "studente")).join("") + `</div>`;
   $("#vista").innerHTML = h; collega();
+  collegaRes("stud", testo => salvaResStud(k, testo));
 }
 
 function renderRiep(){
@@ -414,6 +454,7 @@ function renderRiep(){
     h += `<tr data-apri="${esc(s.k)}"><td>${esc(s.s)}</td>${celle}<td class="tot">${fmt(tot)}${manca?'*':''}</td><td class="voto10">${fmt(tot/M*10)}${manca?'*':''}</td></tr>`;
   }
   h += `</tbody></table></div><p class="leg">* provvisorio: manca almeno un punteggio. Media della classe: ${fmt(st_.length ? somma/st_.length/M*10 : 0)} su 10.</p>`;
+  h += resocontoHtml("classe", "Resoconto della classe", st.resClasse, "Nessun resoconto della classe: chiedi a Claude di preparare i resoconti della verifica.");
   const arch = !!info().archiviata;
   h += `<section class="riquadro" aria-labelledby="t-archivia"><h3 id="t-archivia">Archivia o elimina la verifica</h3>
     <p class="n">Archiviata, la verifica resta consultabile in fondo all'elenco. Eliminata, si perdono punteggi e commenti: prima di eliminarla, se ti serve una copia, chiedi a Claude la tabella dei voti.</p>
@@ -422,6 +463,7 @@ function renderRiep(){
     <div class="conferma" id="conferma" hidden><p>Eliminare definitivamente <b>${esc(info().titolo || st.vid)}</b>, con tutti i punteggi e i commenti? Non si può annullare.</p>
       <div class="riga"><button class="btn pericolo pieno" id="elimina-ok">Elimina definitivamente</button><button class="btn" id="elimina-no">Annulla</button></div></div></section>`;
   $("#vista").innerHTML = h;
+  collegaRes("classe", testo => st.db.collection(`verifiche/${st.vid}/resoconti`).doc("classe").set({testo, aggiornato: oggiISO(), modificato: true}));
   $("#archivia").onclick = async () => { const vid = st.vid; try { await st.db.doc(`verifiche/${vid}`).update({archiviata: !arch}); toast(arch ? "Riportata tra quelle in corso" : "Archiviata"); if (!arch) apri(null); } catch(e){ toast("Non riuscito: " + (e.code||"errore")); } };
   $("#elimina").onclick = () => { $("#conferma").hidden = false; $("#elimina-ok").focus(); };
   $("#elimina-no").onclick = () => { $("#conferma").hidden = true; };
