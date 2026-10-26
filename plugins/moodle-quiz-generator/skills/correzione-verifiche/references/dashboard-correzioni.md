@@ -16,6 +16,8 @@ Una sola pagina privata per tutte le verifiche dell'utente, come la dashboard «
 
 Una riga è «da inserire» in Moodle se la domanda è a correzione manuale, oppure se la proposta è diversa dal punteggio automatico.
 
+- Nel **riepilogo voti**, sotto la tabella, l'istogramma dei voti a fasce di mezzo voto (come quello di Moodle) con la linea della sufficienza, media, mediana e sufficienti; poi il resoconto della classe.
+
 ## Il database
 
 | Collezione | Documento | Contenuto |
