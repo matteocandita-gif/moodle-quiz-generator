@@ -6,16 +6,16 @@
 /* Layout: elenco delle verifiche; dentro una verifica tre viste (per domanda, per studente, riepilogo) con la barra di navigazione in alto e una scheda per riga */
 :root{
   --bg:#eef1ef; --panel:#ffffff; --ink:#1c2622; --muted:#5d6b65; --line:#d3dbd7;
-  --accent:#1f6b52; --accent-ink:#ffffff; --accent-soft:#dcebe4;
+  --accent:#1f6b52; --accent-ink:#ffffff; --accent-soft:#dcebe4; --bar:#13805a;
   --ok:#2c7a4b; --warn:#9a6a00; --bad:#a63a2e; --code:#f5f7f6;
   --f-display:"IBM Plex Serif",Georgia,serif; --f-body:"IBM Plex Sans",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#131917; --panel:#1b2320; --ink:#e3ebe7; --muted:#9aa9a2; --line:#2f3a36;
+  --bg:#131917; --panel:#1b2320; --ink:#e3ebe7; --muted:#9aa9a2; --line:#2f3a36; --bar:#5fc49c;
   --accent:#5fc49c; --accent-ink:#0c1612; --accent-soft:#1f3a30;
   --ok:#6fcf97; --warn:#e2b14a; --bad:#ef8a7c; --code:#151c19; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#131917; --panel:#1b2320; --ink:#e3ebe7; --muted:#9aa9a2; --line:#2f3a36;
+  --bg:#131917; --panel:#1b2320; --ink:#e3ebe7; --muted:#9aa9a2; --line:#2f3a36; --bar:#5fc49c;
   --accent:#5fc49c; --accent-ink:#0c1612; --accent-soft:#1f3a30;
   --ok:#6fcf97; --warn:#e2b14a; --bad:#ef8a7c; --code:#151c19; color-scheme:dark}
 *{box-sizing:border-box}
@@ -109,6 +109,18 @@ details.archivio{margin-top:18px;color:var(--muted)}
 .riquadro{margin-top:22px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 16px;display:grid;gap:8px}
 .riquadro h3{margin:0;font-size:1rem}
 .resoconto{margin-top:4px}
+.isto{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 16px 8px}
+.isto h3{margin:0 0 2px;font-size:1rem}
+.isto .n{display:block;margin-bottom:6px}
+.isto svg{display:block;width:100%;height:auto;overflow:visible}
+.isto .griglia{stroke:var(--line);stroke-width:1}
+.isto .asse{fill:var(--muted);font-size:11px;font-family:var(--f-body)}
+.isto .soglia{stroke:var(--muted);stroke-width:1.5;stroke-dasharray:4 4}
+.isto .barra path{fill:var(--bar)}
+.isto .barra .val{fill:var(--ink);font-size:12px;font-weight:600;text-anchor:middle;opacity:0;font-family:var(--f-body)}
+.isto .barra:hover path{opacity:.8}
+.isto .barra:hover .val{opacity:1}
+.isto .barra rect{fill:transparent}
 .resoconto h3 .n{font-weight:400;font-size:.8rem}
 .res-testo{font-size:.92rem;line-height:1.5}
 .res-testo p{margin:0 0 7px}
@@ -442,6 +454,35 @@ function renderStudente(k){
   collegaRes("stud", testo => salvaResStud(k, testo));
 }
 
+// Istogramma dei voti a fasce di mezzo voto (0–0,5 … 9,5–10; il 10 va nell'ultima), con la linea della sufficienza.
+function istogrammaHtml(voti, provv){
+  if (!voti.length) return "";
+  const n = 20, cnt = Array(n).fill(0);
+  voti.forEach(v => { cnt[Math.max(0, Math.min(n - 1, Math.floor(v * 2 + 1e-9)))]++; });
+  const W = 640, H = 220, ml = 30, mr = 6, mt = 18, mb = 30, pw = W - ml - mr, ph = H - mt - mb, bw = pw / n;
+  const top = Math.max(1, ...cnt), passo = top <= 6 ? 1 : Math.ceil(top / 5), yMax = Math.ceil(top / passo) * passo;
+  const y = c => mt + ph - c / yMax * ph, f = x => fmt(x);
+  let s = "";
+  for (let t = 0; t <= yMax; t += passo) s += `<line class="griglia" x1="${ml}" x2="${W - mr}" y1="${y(t)}" y2="${y(t)}"/><text class="asse" x="${ml - 8}" y="${y(t) + 4}" text-anchor="end">${t}</text>`;
+  for (let k = 0; k <= 10; k++) s += `<text class="asse" x="${ml + k * 2 * bw}" y="${H - mb + 16}" text-anchor="middle">${k}</text>`;
+  cnt.forEach((c, i) => {
+    const x = ml + i * bw + 1, w = bw - 2, da = f(i / 2), a = f((i + 1) / 2);
+    const tip = `${da}–${a}: ${c} ${c === 1 ? "studente" : "studenti"}`;
+    let p = "";
+    if (c) { const yt = y(c), r = Math.min(4, w / 2, (mt + ph - yt) / 2), yb = mt + ph;
+      p = `<path d="M${x},${yb} V${yt + r} Q${x},${yt} ${x + r},${yt} H${x + w - r} Q${x + w},${yt} ${x + w},${yt + r} V${yb} Z"/><text class="val" x="${x + w / 2}" y="${yt - 5}">${c}</text>`; }
+    s += `<g class="barra"><title>${tip}</title><rect x="${x - 1}" y="${mt}" width="${bw}" height="${ph}"/>${p}</g>`;
+  });
+  const xs = ml + 12 * bw;
+  s += `<line class="soglia" x1="${xs}" x2="${xs}" y1="${mt - 6}" y2="${mt + ph}"/><text class="asse" x="${xs + 5}" y="${mt - 2}">sufficienza</text>`;
+  s += `<line class="griglia" x1="${ml}" x2="${W - mr}" y1="${mt + ph}" y2="${mt + ph}" style="stroke:var(--muted)"/>`;
+  const ord = [...voti].sort((a, b) => a - b), med = ord.length % 2 ? ord[(ord.length - 1) / 2] : (ord[ord.length / 2 - 1] + ord[ord.length / 2]) / 2;
+  const media = voti.reduce((a, b) => a + b, 0) / voti.length, suff = voti.filter(v => v >= 6 - 1e-9).length;
+  const riass = `${voti.length} studenti · media ${f(media)} · mediana ${f(med)} · sufficienti ${suff} su ${voti.length}${provv ? " · provvisorio" : ""}`;
+  return `<section class="isto" aria-labelledby="t-isto"><h3 id="t-isto">Distribuzione dei voti</h3><span class="n">A fasce di mezzo voto, con i punteggi di questa pagina. ${riass}.</span>
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Istogramma dei voti a fasce di mezzo voto: ${riass}">${s}</svg></section>`;
+}
+
 function renderRiep(){
   const doms = domOrd(); const M = massimo();
   let h = `<section class="intesta"><h2>Riepilogo dei punteggi</h2>
@@ -454,6 +495,7 @@ function renderRiep(){
     h += `<tr data-apri="${esc(s.k)}"><td>${esc(s.s)}</td>${celle}<td class="tot">${fmt(tot)}${manca?'*':''}</td><td class="voto10">${fmt(tot/M*10)}${manca?'*':''}</td></tr>`;
   }
   h += `</tbody></table></div><p class="leg">* provvisorio: manca almeno un punteggio. Media della classe: ${fmt(st_.length ? somma/st_.length/M*10 : 0)} su 10.</p>`;
+  h += istogrammaHtml(st_.map(s => totale(s.k).tot / M * 10), st_.some(s => totale(s.k).manca));
   h += resocontoHtml("classe", "Resoconto della classe", st.resClasse, "Nessun resoconto della classe: chiedi a Claude di preparare i resoconti della verifica.");
   const arch = !!info().archiviata;
   h += `<section class="riquadro" aria-labelledby="t-archivia"><h3 id="t-archivia">Archivia o elimina la verifica</h3>
