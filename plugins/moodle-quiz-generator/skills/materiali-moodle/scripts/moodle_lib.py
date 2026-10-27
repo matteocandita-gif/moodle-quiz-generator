@@ -181,21 +181,264 @@ def _codice_con_campi(codice):
     return "".join(out)
 
 
-BLOCCO_RE = re.compile(r"\[\[codice(?:\s+([\w-]+))?(?:\s+(semplice))?\]\]\n?([\s\S]*?)\n?\[\[/codice\]\]")
+BLOCCO_RE = re.compile(r"\[\[codice(?:\s+([\w-]+))?(?:\s+(semplice|leggere))?\]\]\n?([\s\S]*?)\n?\[\[/codice\]\]")
 
 
 def espandi_codice(testo):
-    """Sostituisce i blocchi [[codice LINGUA]] ... [[/codice]] con il <pre>."""
+    """Sostituisce i blocchi [[codice LINGUA]] ... [[/codice]] con il <pre>.
+
+    [[codice LINGUA semplice]]: senza colori. [[codice LINGUA leggere]]: codice da leggere
+    senza eseguirlo, colorato come gli altri e reso non eseguibile (rendi_non_eseguibile)."""
     def sost(m):
-        lingua, semplice, codice = m.group(1), m.group(2), m.group(3)
+        lingua, opzione, codice = m.group(1), m.group(2), m.group(3)
         if CAMPO_RE.search(codice):
             corpo = _codice_con_campi(codice)
-        elif semplice:
+        elif opzione == "semplice":
             corpo = _esc(codice)
         else:
             corpo = colora(codice, lingua)
+        if opzione == "leggere":
+            corpo = rendi_non_eseguibile(corpo, lingua, codice)
         return '<pre style="%s">%s</pre>' % (PRE_STYLE, corpo)
     return BLOCCO_RE.sub(sost, testo)
+
+
+# ------------------------------------------------- codice da leggere, non eseguibile
+# Nelle domande di lettura (lo studente risponde leggendo il codice, senza eseguirlo) il
+# codice si mostra identico, ma alcuni caratteri sono «sosia» Unicode: una lettera cirillica
+# dentro una parola chiave, uno spazio a larghezza zero dopo un operatore. Copiato ed
+# eseguito (in una domanda CodeRunner o nella console), il codice dà un errore di sintassi.
+# Le sostituzioni si fanno dopo la colorazione, quindi i colori non cambiano. Ognuna, da
+# sola, deve impedire l'esecuzione: lo si controlla con l'interprete (node, php, sqlite),
+# così correggerne una non basta. Mai negli esempi da usare come riferimento.
+
+SOSIA = {"a": "а", "c": "с", "e": "е", "i": "і", "o": "о",
+         "p": "р", "x": "х",
+         "A": "А", "B": "В", "C": "С", "E": "Е", "H": "Н",
+         "I": "І", "K": "К", "M": "М", "O": "О", "P": "Р",
+         "T": "Т", "X": "Х"}
+SPAZIO_ZERO = "​"
+_CARATTERI_SOSIA = set(SOSIA.values()) | {SPAZIO_ZERO}
+
+# parole chiave in cui una lettera cambiata dà un errore di sintassi (non i valori come
+# true, null, che darebbero al massimo un errore durante l'esecuzione)
+_KW_LETTURA = {
+    "js": {"let", "const", "var", "if", "else", "for", "while", "do", "function",
+           "return", "new", "typeof", "switch", "case"},
+    "php": {"if", "else", "elseif", "while", "for", "foreach", "as", "function",
+            "return", "echo", "print", "new", "do", "switch", "case"},
+    "sql": {"SELECT", "FROM", "WHERE", "ORDER", "BY", "GROUP", "HAVING", "JOIN", "ON",
+            "AS", "INSERT", "INTO", "VALUES", "UPDATE", "SET", "DELETE", "CREATE",
+            "TABLE", "AND", "OR", "LIKE", "BETWEEN", "LIMIT", "DISTINCT", "LEFT", "INNER"},
+}
+_OPERATORI = "=+-*/<>,!&|%"
+# colori degli span in cui non si tocca niente (stringhe, commenti, numeri, variabili PHP)
+_COLORI_INTOCCABILI = {COLORI["string"], COLORI["comment"], COLORI["number"], COLORI["var"]}
+
+# avvisi della resa non eseguibile, letti dagli script che li stampano
+AVVISI_LETTURA = []
+
+
+def _lingua_lettura(lingua):
+    lingua = (lingua or "").lower()
+    return {"javascript": "js", "mysql": "sql", "sqlite": "sql"}.get(lingua, lingua)
+
+
+def _segmenti(corpo):
+    """Divide l'HTML del <pre> in segmenti [tipo, testo, colore]: 'tag' e 'campo' restano
+    come sono; 'testo' è testo vero (entità risolte), con il colore dello span che lo contiene."""
+    segs, colori = [], []
+    for pezzo in re.split(r"(<[^>]+>)", corpo):
+        if not pezzo:
+            continue
+        if pezzo.startswith("<"):
+            segs.append(["tag", pezzo, None])
+            m = re.match(r'<span style="color: (#[0-9a-fA-F]{6});">', pezzo)
+            if m:
+                colori.append(m.group(1))
+            elif pezzo.startswith("</span"):
+                colori and colori.pop()
+            continue
+        pos = 0
+        for m in CAMPO_RE.finditer(pezzo):
+            if m.start() > pos:
+                segs.append(["testo", _html.unescape(pezzo[pos:m.start()]), colori[-1] if colori else None])
+            segs.append(["campo", m.group(0), None])
+            pos = m.end()
+        if pos < len(pezzo):
+            segs.append(["testo", _html.unescape(pezzo[pos:]), colori[-1] if colori else None])
+    return segs
+
+
+def _candidati(segs, lingua):
+    """Posti dove mettere un sosia: (riga del codice, indice del segmento, posizione, carattere
+    da inserire o sostituire, 'ins' o 'sost', gruppo). Il gruppo è la parola chiave (o il
+    punto di inserimento): al massimo un sosia per gruppo."""
+    kw = _KW_LETTURA[lingua]
+    out, riga = [], 0
+    for n, (tipo, testo, colore) in enumerate(segs):
+        if tipo != "testo":
+            if tipo == "campo":
+                riga += testo.count("\n")
+            continue
+        if colore in _COLORI_INTOCCABILI:
+            riga += testo.count("\n")
+            continue
+        for i, ch in enumerate(testo):
+            if ch == "\n":
+                riga += 1
+                continue
+            # spazio a larghezza zero tra un operatore e lo spazio che lo segue
+            if ch == " " and i > 0 and testo[i - 1] in _OPERATORI:
+                out.append((riga, n, i, SPAZIO_ZERO, "ins", (n, i)))
+        # lettera cirillica in una parola chiave (nello span delle parole chiave, o nel testo
+        # semplice quando il codice ha campi Cloze e non è colorato)
+        rig0 = riga - testo.count("\n")
+        for m in re.finditer(r"[A-Za-z]+", testo):
+            parola = m.group(0)
+            if (parola.upper() if lingua == "sql" else parola) not in kw:
+                continue
+            if lingua == "sql" and not (parola.isupper() or parola.islower()):
+                continue
+            r = rig0 + testo[:m.start()].count("\n")
+            for j, ch in enumerate(parola):
+                if ch in SOSIA:
+                    out.append((r, n, m.start() + j, SOSIA[ch], "sost", (n, m.start())))
+    return out
+
+
+def _rendi(segs, modifiche):
+    out = []
+    for n, (tipo, testo, _) in enumerate(segs):
+        if tipo != "testo":
+            out.append(testo)
+            continue
+        mods = sorted((p, c, k) for (nn, p, c, k) in modifiche if nn == n)
+        if mods:
+            t, prec = [], 0
+            for p, c, k in mods:
+                t.append(testo[prec:p])
+                if k == "ins":
+                    t.append(c)
+                    prec = p
+                else:
+                    t.append(c)
+                    prec = p + 1
+            t.append(testo[prec:])
+            testo = "".join(t)
+        out.append("".join("&#%d;" % ord(ch) if ch in _CARATTERI_SOSIA else _esc(ch) for ch in testo))
+    return "".join(out)
+
+
+def testo_copiato(corpo):
+    """Il testo che lo studente ottiene copiando il <pre> (i campi Cloze diventano 0)."""
+    senza_campi = CAMPO_RE.sub("0", corpo)
+    return _html.unescape(re.sub(r"<[^>]+>", "", senza_campi))
+
+
+def non_si_esegue(codice, lingua):
+    """True se il codice dà un errore di sintassi, False se passa il controllo, None se non si
+    può controllare (interprete assente)."""
+    import os
+    import shutil
+    import subprocess
+    import tempfile
+    if lingua == "sql":
+        import sqlite3
+        con = sqlite3.connect(":memory:")
+        istruzioni, buf = [], ""
+        for riga in codice.splitlines(keepends=True):
+            buf += riga
+            if sqlite3.complete_statement(buf):
+                istruzioni.append(buf)
+                buf = ""
+        if buf.strip():
+            istruzioni.append(buf + ";")
+        for ist in istruzioni:
+            try:
+                con.execute(ist)
+            except sqlite3.Error as e:
+                msg = str(e).lower()
+                if any(x in msg for x in ("syntax error", "unrecognized token", "incomplete input")):
+                    return True
+            except Exception:
+                return True
+        return False
+    comando = {"js": "node", "php": "php"}[lingua]
+    if not shutil.which(comando):
+        return None
+    if lingua == "php" and "<?php" not in codice:
+        codice = "<?php\n" + codice
+    fd, percorso = tempfile.mkstemp(suffix="." + lingua)
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        f.write(codice)
+    try:
+        args = ["node", "--check", percorso] if lingua == "js" else ["php", "-l", percorso]
+        r = subprocess.run(args, capture_output=True, text=True, timeout=20)
+        return r.returncode != 0
+    finally:
+        os.remove(percorso)
+
+
+def rendi_non_eseguibile(corpo, lingua, codice=""):
+    """Mette i sosia nell'HTML colorato di un codice da leggere e restituisce il nuovo HTML.
+
+    Numero di sostituzioni: circa una per riga (almeno 3, al massimo 10), su righe diverse
+    quando si può. Ogni sostituzione si tiene solo se, da sola, il codice copiato non si
+    esegue più. Le scelte dipendono dal codice (stesso codice, stesse sostituzioni)."""
+    import hashlib
+    import random
+    lingua = _lingua_lettura(lingua)
+    if lingua not in _KW_LETTURA:
+        AVVISI_LETTURA.append("codice da leggere in «%s»: si rende non eseguibile solo il codice "
+                              "JavaScript, PHP e SQL; lasciato com'è" % (lingua or "senza linguaggio"))
+        return corpo
+    segs = _segmenti(corpo)
+    righe = [r for r in testo_copiato(corpo).splitlines() if r.strip()]
+    obiettivo = max(3, min(10, len(righe), round(len(righe) * 0.8)))
+    rng = random.Random(hashlib.md5(testo_copiato(corpo).encode("utf-8")).hexdigest())
+    cand = _candidati(segs, lingua)
+    rng.shuffle(cand)
+    # prima un candidato per riga, alternando lettere cirilliche e spazi invisibili; poi gli altri
+    per_riga = {}
+    for c in cand:
+        per_riga.setdefault(c[0], []).append(c)
+    primi, altri, conta = [], [], {"ins": 0, "sost": 0}
+    for riga in sorted(per_riga, key=lambda r: rng.random()):
+        lista = per_riga[riga]
+        meno = min(conta, key=lambda k: (conta[k], rng.random()))
+        lista.sort(key=lambda c: c[4] != meno)
+        primi.append(lista[0])
+        conta[lista[0][4]] += 1
+        altri += lista[1:]
+    ordine = primi + altri
+    base = non_si_esegue(testo_copiato(corpo), lingua)
+    verificabile = base is False
+    scelti, gruppi = [], set()
+    for (riga, n, p, c, k, gruppo) in ordine:
+        if len(scelti) >= obiettivo:
+            break
+        if gruppo in gruppi:
+            continue
+        if verificabile:
+            if not non_si_esegue(testo_copiato(_rendi(segs, [(n, p, c, k)])), lingua):
+                continue
+        elif k == "ins":
+            continue    # senza controllo, solo le parole chiave (le più sicure)
+        scelti.append((n, p, c, k))
+        gruppi.add(gruppo)
+    nuovo = _rendi(segs, scelti)
+    if not verificabile:
+        motivo = ("interprete «%s» non disponibile" % {"js": "node", "php": "php"}.get(lingua, lingua)
+                  if base is None else "il codice pulito ha già un errore di sintassi")
+        AVVISI_LETTURA.append("codice da leggere: %d sostituzioni NON controllate (%s): provarlo "
+                              "a mano" % (len(scelti), motivo))
+    elif len(scelti) < 2:
+        AVVISI_LETTURA.append("codice da leggere: solo %d sostituzioni possibili, il codice copiato "
+                              "si corregge facilmente: allungarlo o leggerlo con attenzione" % len(scelti))
+    elif not non_si_esegue(testo_copiato(nuovo), lingua):
+        AVVISI_LETTURA.append("codice da leggere: il codice copiato si esegue ancora (da controllare)")
+    return nuovo
 
 
 # ---------------------------------------------------------------- controlli

@@ -56,6 +56,24 @@ CATALOGO = {
     "debug_motivazione": ("essay", "Debug"), "esercizio_libero": ("essay", "Esercizio libero"),
     "consegna_file": ("essay", "Consegna"),
 }
+# domande di lettura: lo studente risponde leggendo il codice, senza eseguirlo. Nella traccia
+# il codice JavaScript, PHP e SQL diventa non eseguibile (rendi_non_eseguibile di moodle_lib);
+# ```js esempio lo lascia com'è (codice di riferimento), ```js leggere lo chiede in ogni tipologia.
+LETTURA = {"tracciamento", "lettura_output", "trova_errore", "teoria_aperta", "debug_motivazione"}
+LINGUE_LETTURA = {"js", "javascript", "php", "sql"}
+
+
+def marca_lettura(tr):
+    """Aggiunge «leggere» ai blocchi di codice della traccia di una domanda di lettura."""
+    def sost(m):
+        parole = m.group(1).split()
+        if parole and parole[0].lower() in LINGUE_LETTURA and not (
+                {"esempio", "leggere", "anteprima", "semplice"} & set(parole)):
+            return "```" + " ".join(parole + ["leggere"])
+        return m.group(0)
+    return re.sub(r"(?m)^```(\S.*)$", sost, tr)
+
+
 # consegna di un file: domanda aperta senza testo da scrivere, con un file da caricare (correzione a mano)
 CONSEGNA_FILE = {"responseformat": "noinline", "responserequired": "0", "attachments": "1",
                  "attachmentsrequired": "1", "filetypeslist": ".html .htm .css"}
@@ -280,7 +298,11 @@ def html_blocchi(bl, in_box=False, pagina=False):
                            '<p style="margin: 0 0 6px; font-size: 0.85em; color: #666666;"><strong>Nel browser</strong></p>\n%s\n</div>\n</div>'
                            % (lingua, codice.strip("\n"), codice.strip("\n")))
             else:
-                out.append("[[codice %s]]\n%s\n[[/codice]]" % (lang, codice.strip("\n")))
+                # «esempio» serve solo a non marcare il codice come da leggere: nel blocco non resta
+                parole = [p for p in lang.split() if p != "esempio"]
+                if "leggere" in parole and parole[0].lower() not in LINGUE_LETTURA:
+                    parole.remove("leggere")
+                out.append("[[codice %s]]\n%s\n[[/codice]]" % (" ".join(parole), codice.strip("\n")))
         elif tipo == "table":
             head, rows = dati
             h = "<tr>" + "".join('<th style="%s">%s</th>' % (TH, inl(c)) for c in head) + "</tr>"
@@ -748,6 +770,8 @@ def domanda(quiz, r):
     tr = r.get("traccia") or ""
     if re.search(r"\[\[\d+\]\]", tr):
         raise ValueError("segnaposto [[n]] nella traccia: i campi vanno scritti nella sintassi Cloze di Moodle")
+    if tip in LETTURA:
+        tr = marca_lettura(tr)
     bl = leggi_blocchi(tr)
     opz = [d for t, d in bl if t == "opzioni"]
     corpo = [b for b in bl if b[0] != "opzioni"]

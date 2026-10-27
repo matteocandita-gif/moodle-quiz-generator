@@ -73,6 +73,8 @@ echo "<p>Totale: " . $prezzo . "</p>";
 
 Lo script (`crea_xml.py` per le domande, `espandi_html.py` per le pagine) lo trasforma nel `<pre>` scuro con le entità HTML al posto di `<`, `>`, `&` e la colorazione della sintassi. Linguaggi: `php`, `js`, `sql`, `html`, `css`; senza linguaggio, o con `[[codice php semplice]]`, il codice resta senza colori.
 
+**Codice da leggere**: `[[codice js leggere]]` (anche `php` e `sql`) colora il codice come gli altri e poi lo rende non eseguibile (`rendi_non_eseguibile` in `moodle_lib.py`): alcune lettere delle parole chiave diventano lettere cirilliche identiche (`lеt`, `іf`, `SЕLECT`) e dopo alcuni operatori compare uno spazio a larghezza zero, scritti come entità numeriche (`&#1077;`, `&#8203;`) perché non si perdano. Circa una sostituzione per riga (almeno 3, al massimo 10), su righe diverse; ognuna si tiene solo se da sola fa fallire il codice copiato (`node --check`, `php -l`, SQLite), quindi correggerne una non basta. Le scelte dipendono dal codice: rigenerando, le stesse. Mai nelle stringhe e nei commenti. Dalla dashboard il marcatore lo mette `da_dashboard.py` nelle domande di lettura (`formato-consegna.md` di `progettazione-quiz`); a mano si usa solo nel testo delle domande, mai nelle pagine, negli esempi da usare come riferimento, nella correzione e nei feedback. Gli avvisi (interprete mancante, codice troppo corto) li stampa `crea_xml.py`.
+
 Se il blocco contiene **campi Cloze**, lo script non colora e lascia intatti i campi: gli `<span>` della colorazione potrebbero spezzarli. In quel caso il blocco diventa un `<pre>` senza `<code>`, come vuole la regola dell'utente.
 
 Il `<pre>` risultante:

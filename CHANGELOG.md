@@ -2,6 +2,14 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## Prossima versione (in preparazione)
+
+Codice da leggere non eseguibile:
+
+- Nelle **domande di lettura** (teoria su un codice, debug con motivazione, tracciamento, lettura dell'output, trova l'errore) il codice JavaScript, PHP e SQL della traccia esce **identico a schermo ma non eseguibile**: lettere cirilliche nelle parole chiave e spazi a larghezza zero dopo gli operatori, circa uno per riga. Copiato in una domanda CodeRunner o nella console dà un errore di sintassi. Ogni sostituzione è controllata con l'interprete (`node --check`, `php -l`, SQLite): da sola blocca il codice, quindi correggerne una non basta. I colori non cambiano.
+- **Mai** negli esempi da usare come riferimento: pagine, esempi svolti, correzione, feedback.
+- Marcatori nella traccia per i casi particolari: ```` ```js leggere ```` (codice da leggere in un'altra tipologia) e ```` ```js esempio ```` (codice di riferimento dentro una domanda di lettura). Regola in `verifiche-programmazione`, formato in `formato-consegna.md`, funzione `rendi_non_eseguibile` in `moodle_lib.py`.
+
 ## 0.8.4 — 27/10/2026
 
 Correzione delle verifiche:
