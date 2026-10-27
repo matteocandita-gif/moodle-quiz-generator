@@ -711,7 +711,7 @@ I nomi degli studenti restano in questa pagina, nel tuo browser: vengono trasfor
    La copia PDP ha domande in più (la dichiarazione iniziale, le descrizioni) e tracce riscritte:
    le colonne si abbinano alle domande della verifica per somiglianza del testo (parole e codice),
    non per posizione, e l'abbinamento si controlla nell'anteprima. I nomi restano nel browser. */
-const agg = { reset(){ Object.assign(this, {studenti: null, colonne: [], mappa: {}, punteggi: {}, escluse: new Set(), errore: null, salvo: false, nome: ""}); } };
+const agg = { reset(){ Object.assign(this, {studenti: null, colonne: [], mappa: {}, punteggi: {}, escluse: new Set(), errore: null, salvo: false, nome: "", pesi: null, erroreP: null}); } };
 agg.reset();
 const SOGLIA_SIM = 0.15;                             // sotto questa somiglianza la colonna non è una domanda della verifica
 const parole = t => new Set((piano(t).toLowerCase().match(/[a-z_][a-z0-9_]*|\d+/g) || []).filter(w => w.length >= 3 || /^\d+$/.test(w)));
@@ -725,7 +725,7 @@ function preparaAggiunta(righe){
   h.forEach((x, i) => { let m = x.match(/^(?:Domanda|Question)\s+(\d+)$/i); if (m) qD[m[1]] = i; m = x.match(/^(?:Risposta data|Response)\s+(\d+)$/i); if (m) qR[m[1]] = i; });
   const num = Object.keys(qR).map(Number).sort((a, b) => a - b);
   if (!num.length) throw new Error("mancano le colonne «Risposta data N»: scarica il report Risposte, non quello dei voti.");
-  const usate = new Set(studenti().map(s => s.s)), studs = [];
+  const usate = new Set(studenti().filter(s => !isPdp(s.k)).map(s => s.s)), studs = [];   // una sigla PDP già presente si riusa: lo studente viene sostituito
   righe.slice(1).forEach(r => {
     const cog = iC >= 0 ? String(r[iC] || "").trim() : "", nom = iN >= 0 ? String(r[iN] || "").trim() : "";
     const stato = iS >= 0 ? String(r[iS] || "").trim() : "";
@@ -753,17 +753,41 @@ function abbinaColonne(){
   proponiEscluse();
 }
 const colonnaDi = id => agg.colonne.find(n => agg.mappa[n] === id);
-function proponiEscluse(){                          // proposta: le domande che nessuno studente PDP ha svolto, e quelle che nella copia non ci sono
-  agg.escluse = new Set(domOrd().filter(d => { const n = colonnaDi(d.id); return n == null || agg.studenti.every(s => !String(s.risposte[n] || "").trim()); }).map(d => d.id));
+// L'export «Valutazioni» della copia: dall'intestazione («D. 3 /0,00») si leggono i pesi delle domande; le righe, con i nomi, non si leggono.
+function leggiPesi(righe){
+  const pesi = {};
+  (righe[0] || []).forEach(x => { const m = String(x).trim().match(/^D\.\s*(\d+)\s*\/\s*([\d.,]+)$/); if (m) pesi[m[1]] = Number(m[2].replace(",", ".")); });
+  if (!Object.keys(pesi).length) throw new Error("non trovo le colonne «D. N /punti»: scarica il report Valutazioni della copia PDP.");
+  return pesi;
+}
+function proponiEscluse(){                          // con i pesi: le domande a 0 punti nella copia; senza: quelle che nessuno ha svolto. In più quelle che nella copia non ci sono
+  if (!agg.studenti) return;
+  agg.escluse = new Set(domOrd().filter(d => { const n = colonnaDi(d.id); if (n == null) return true;
+    return agg.pesi && agg.pesi[n] != null ? agg.pesi[n] === 0 : agg.studenti.every(s => !String(s.risposte[n] || "").trim()); }).map(d => d.id));
+}
+// pesi della copia diversi da quelli della verifica (in proporzione): il voto di Moodle non tornerebbe con quello della pagina
+function pesiDiversi(){
+  if (!agg.pesi || !agg.studenti) return [];
+  const doms = domOrd().filter(d => !agg.escluse.has(d.id) && colonnaDi(d.id) != null);
+  const r = doms.map(d => agg.pesi[colonnaDi(d.id)] / Number(d.max)).filter(x => x > 0 && isFinite(x)).sort((x, y) => x - y);
+  if (!r.length) return [];
+  const k = r[Math.floor(r.length / 2)];               // la scala della maggior parte delle domande: si segnalano quelle fuori scala
+  return doms.filter(d => { const p = agg.pesi[colonnaDi(d.id)]; return p != null && Math.abs(p - Number(d.max) * k) > 0.015 + 0.03 * p; })
+    .map(d => ({d, copia: agg.pesi[colonnaDi(d.id)]}));
 }
 function aggiungiHtml(){
   const a = agg, doms = domOrd();
   let h = `<section class="riquadro" aria-labelledby="t-agg"><h3 id="t-agg">Aggiungi studenti da un altro export (versione PDP)</h3>
-    <p class="n">Per la copia della verifica con riduzione dei contenuti: scarica da Moodle l'Excel «Risposte» della copia e trascinalo qui, anche con i nomi (restano nel browser, si salvano solo le sigle). La pagina abbina le domande per somiglianza del testo, scarta quelle in più (la dichiarazione iniziale, le descrizioni) e propone come escluse le domande non svolte da nessuno. Controlla l'anteprima prima di salvare.</p>
+    <p class="n">Per la copia della verifica con riduzione dei contenuti: scarica da Moodle l'Excel «Risposte» della copia e trascinalo qui, anche con i nomi (restano nel browser, si salvano solo le sigle). La pagina abbina le domande per somiglianza del testo, scarta quelle in più (la dichiarazione iniziale, le descrizioni) e prende le domande escluse dall'export «Valutazioni» della copia (quelle a 0 punti); senza quel file propone quelle non svolte da nessuno. Se reimporti, gli studenti PDP con la stessa sigla vengono sostituiti. Controlla l'anteprima prima di salvare.</p>
     <label class="incolla" id="agg-zona" for="agg-file">${a.studenti ? `Letto: ${a.studenti.length} studenti, ${a.colonne.length} colonne. Trascina un altro file per sostituirlo.` : "Trascina qui il file, o fai clic per sceglierlo (.xlsx o .csv)"}</label>
     <input type="file" id="agg-file" accept=".xlsx,.csv" hidden>
-    ${a.errore ? `<p class="leg" style="color:var(--bad)">${esc(a.errore)}</p>` : ""}`;
+    ${a.errore ? `<p class="leg" style="color:var(--bad)">${esc(a.errore)}</p>` : ""}
+    <label class="incolla" id="agg-zona-p" for="agg-pesi">${a.pesi ? `Valutazioni lette: ${Object.keys(a.pesi).length} domande, ${Object.values(a.pesi).filter(x => x === 0).length} a 0 punti. Le domande escluse vengono da qui.` : "Facoltativo, consigliato: l'export «Valutazioni» della copia PDP (.xlsx o .csv). Dai pesi delle domande la pagina sa quali sono escluse (quelle a 0 punti); dal file legge solo l'intestazione."}</label>
+    <input type="file" id="agg-pesi" accept=".xlsx,.csv" hidden>
+    ${a.erroreP ? `<p class="leg" style="color:var(--bad)">${esc(a.erroreP)}</p>` : ""}`;
   if (a.studenti) {
+    const giaPdp = studenti().filter(s => isPdp(s.k)), sost = giaPdp.filter(s => a.studenti.some(x => x.s === s.s));
+    const diversi = pesiDiversi();
     const usate = Object.values(a.mappa).filter(Boolean), doppie = usate.filter((x, i) => usate.indexOf(x) !== i);
     const mancanti = doms.filter(d => colonnaDi(d.id) == null);
     h += `<p class="n">Sigle dei nuovi studenti${a.studenti.some(s => /^PDP /.test(s.s)) ? " (nel file mancano i nomi: scrivile tu, prime due lettere di cognome e nome)" : ""}:</p>
@@ -778,8 +802,11 @@ function aggiungiHtml(){
       ${doppie.length ? `<p class="n" style="color:var(--bad)">Due colonne sono abbinate alla stessa domanda (${[...new Set(doppie)].map(id => "D" + st.domande[id].n).join(", ")}): correggi prima di salvare.</p>` : ""}
       <p class="n">Domande escluse per questi studenti (non contano nei punti né nel massimo):</p>
       <div class="imp-q">${doms.map(d => { const n = colonnaDi(d.id); const vuote = n == null ? null : a.studenti.filter(s => !String(s.risposte[n] || "").trim()).length;
-        return `<label><input type="checkbox" data-agg-e="${d.id}" ${a.escluse.has(d.id) ? "checked" : ""} ${n == null ? "disabled" : ""}> D${d.n} <span class="n">${n == null ? "(non c'è nella copia)" : `(vuota per ${vuote} su ${a.studenti.length})`}</span></label>`; }).join("")}</div>
+        const peso = n != null && a.pesi && a.pesi[n] != null ? (a.pesi[n] === 0 ? "0 punti nella copia, " : "") : "";
+        return `<label><input type="checkbox" data-agg-e="${d.id}" ${a.escluse.has(d.id) ? "checked" : ""} ${n == null ? "disabled" : ""}> D${d.n} <span class="n">${n == null ? "(non c'è nella copia)" : `(${peso}vuota per ${vuote} su ${a.studenti.length})`}</span></label>`; }).join("")}</div>
       ${mancanti.length ? `<p class="n">Le domande che nella copia non ci sono restano escluse.</p>` : ""}
+      ${diversi.length ? `<p class="n" style="color:var(--warn)">Nella copia i punti di ${diversi.map(x => "D" + x.d.n).join(", ")} non sono in proporzione con quelli della verifica: la pagina usa i punti della verifica, quindi il voto di Moodle sarà diverso. Conviene allineare i punti della copia in Moodle.</p>` : ""}
+      ${sost.length ? `<p class="n" style="color:var(--warn)">Sono già nella verifica come PDP: ${sost.map(s => esc(s.s)).join(", ")}. Salvando, le loro righe vengono sostituite (punteggi e commenti compresi).</p>` : ""}
       <div class="riga"><button class="btn pieno" id="agg-salva" ${a.salvo || doppie.length ? "disabled" : ""}>${a.salvo ? "Salvataggio…" : `Aggiungi ${a.studenti.length} studenti alla verifica`}</button><button class="btn" id="agg-annulla">Annulla</button></div>`;
   }
   return h + `</section>`;
@@ -794,6 +821,15 @@ function collegaAggiungi(){
   inp.onchange = () => carica(inp.files[0]);
   zona.addEventListener("dragover", e => e.preventDefault());
   zona.addEventListener("drop", e => { e.preventDefault(); carica(e.dataTransfer.files[0]); });
+  const caricaPesi = async f => { if (!f) return; try {
+      const righe = /\.csv$/i.test(f.name) ? leggiCsv(await f.text()) : await leggiXlsx(await f.arrayBuffer());
+      agg.pesi = leggiPesi(righe); agg.erroreP = null; proponiEscluse();
+    } catch (e) { agg.pesi = null; agg.erroreP = "Non riesco a leggere il file: " + (e.message || e); }
+    renderImporta(); };
+  const ip = $("#agg-pesi"), zp = $("#agg-zona-p");
+  ip.onchange = () => caricaPesi(ip.files[0]);
+  zp.addEventListener("dragover", e => e.preventDefault());
+  zp.addEventListener("drop", e => { e.preventDefault(); caricaPesi(e.dataTransfer.files[0]); });
   document.querySelectorAll("[data-agg-s]").forEach(i => i.oninput = () => { agg.studenti[i.dataset.aggS].s = i.value.toUpperCase().replace(/\s+/g, " ").trim(); });
   document.querySelectorAll("[data-agg-c]").forEach(s => s.onchange = () => { agg.mappa[s.dataset.aggC] = s.value; proponiEscluse(); renderImporta(); });
   document.querySelectorAll("[data-agg-e]").forEach(c => c.onchange = () => { c.checked ? agg.escluse.add(c.dataset.aggE) : agg.escluse.delete(c.dataset.aggE); });
@@ -804,11 +840,14 @@ async function salvaAggiunta(){
   const vid = st.vid, doms = domOrd(), esistenti = studenti();
   const sigle = agg.studenti.map(s => s.s.trim());
   if (sigle.some(s => !s)) { toast("Manca una sigla"); return; }
-  if (new Set(sigle).size !== sigle.length || sigle.some(s => esistenti.some(e => e.s === s))) { toast("Due studenti hanno la stessa sigla: cambiane una"); return; }
+  if (new Set(sigle).size !== sigle.length || sigle.some(s => esistenti.some(e => e.s === s && !isPdp(e.k)))) { toast("Due studenti hanno la stessa sigla: cambiane una"); return; }
   const chiavi = new Set(esistenti.map(e => e.k));
-  const nuovi = agg.studenti.map(s => { let k = s.s.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "") || "PDP", base = k, i = 2;
-    while (chiavi.has(k)) k = base + "-" + (i++); chiavi.add(k); return {...s, k}; });
-  const ordBase = Math.max(-1, ...Object.values(st.val).map(v => Number(v.ord) || 0)) + 1;
+  let ordNuovo = Math.max(-1, ...Object.values(st.val).map(v => Number(v.ord) || 0)) + 1, aggiunti = 0;
+  const nuovi = agg.studenti.map(s => {
+    const gia = esistenti.find(e => e.s === s.s && isPdp(e.k));         // già importato: stessa chiave e stessa posizione, righe sostituite
+    if (gia) return {...s, k: gia.k, ord: gia.ord};
+    let k = s.s.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "") || "PDP", base = k, i = 2;
+    while (chiavi.has(k)) k = base + "-" + (i++); chiavi.add(k); aggiunti++; return {...s, k, ord: ordNuovo++}; });
   agg.salvo = true; renderImporta();
   try {
     for (const d of doms) {
@@ -818,14 +857,14 @@ async function salvaAggiunta(){
         const testo = n == null ? "" : s.testi[n] || "";
         let variante = null;
         if (testo) { variante = testi.indexOf(testo); if (variante < 0) { testi.push(testo); variante = testi.length - 1; } }
-        righeDoc[s.k] = {s: s.s, ord: ordBase + i, risposta: n == null ? "" : s.risposte[n] || "", esito: escl ? "esclusa" : "in attesa", auto: null,
+        righeDoc[s.k] = {s: s.s, ord: s.ord, risposta: n == null ? "" : s.risposte[n] || "", esito: escl ? "esclusa" : "in attesa", auto: null,
           punti: null, commento: "", inserito: false, pdp: true, esclusa: escl, ...(variante != null ? {variante} : {})};
       });
       if (testi.length !== (d.testi || []).length) await st.db.collection(`verifiche/${vid}/domande`).doc(d.id).update({testi});
       await st.db.collection(`verifiche/${vid}/valutazioni`).doc(d.id).update({righe: righeDoc});
     }
-    await st.db.doc(`verifiche/${vid}`).update({studenti: (info().studenti || esistenti.length) + nuovi.length});
-    toast(`${nuovi.length} studenti aggiunti`); agg.reset(); renderImporta();
+    if (aggiunti) await st.db.doc(`verifiche/${vid}`).update({studenti: (info().studenti || esistenti.length) + aggiunti});
+    toast(aggiunti === nuovi.length ? `${nuovi.length} studenti aggiunti` : `${nuovi.length} studenti PDP salvati (${nuovi.length - aggiunti} sostituiti)`); agg.reset(); renderImporta();
   } catch (e) { agg.salvo = false; renderImporta(); toast("Salvataggio non riuscito: " + (e.code || e.message || "errore")); }
 }
 
