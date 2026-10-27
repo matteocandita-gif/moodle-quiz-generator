@@ -384,10 +384,22 @@ function renderTabs(){
   }
 }
 
+// Il titolo della domanda come l'ha vista lo studente: con le varianti (domande casuali, copia PDP) è l'inizio della sua traccia,
+// senza le righe di intestazione tutte maiuscole («IL PROBLEMA»). «D12 · D12» diventa «D12».
+function titoloDi(v, dom){
+  const t = v && v.variante != null ? dom.testi?.[v.variante] : null;
+  if (!t) return dom.titolo || "";
+  const righe = String(t).split("\n").map(x => x.trim()).filter(Boolean);
+  while (righe.length > 1 && !/[a-zà-ù]/.test(righe[0])) righe.shift();
+  const r = righe.join(" ").replace(/\s+/g, " ");
+  return r.length > 70 ? r.slice(0, 70) + "…" : r;
+}
+const nomeDom = dom => `D${dom.n}${dom.breve && dom.breve !== "D" + dom.n ? " · " + esc(dom.breve) : ""}`;
+const varianti = dom => (dom.testi || []).length > 1;
 function cardHtml(v, dom, modo){
   const pdpChip = v.pdp ? `<span class="chip muted">PDP</span>` : "";
   if (esclusa(v)) {
-    const testa = modo === "domanda" ? `<span class="sigla">${esc(v.s)}</span>` : `<span class="dom-tit">D${dom.n} · ${esc(dom.breve)} · ${esc(dom.titolo)}</span>`;
+    const testa = modo === "domanda" ? `<span class="sigla">${esc(v.s)}</span>` : `<span class="dom-tit">${nomeDom(dom)} · ${esc(titoloDi(v, dom))}</span>`;
     return `<article class="card escl"><div class="chi">${testa}${pdpChip}<span class="chip muted">esclusa dal PDP</span>
       <span class="n">non conta nei punti né nel massimo</span>
       <label class="n" style="margin-left:auto"><input type="checkbox" data-escl="${v.id}" checked> Esclusa</label></div></article>`;
@@ -397,8 +409,8 @@ function cardHtml(v, dom, modo){
   const autoTxt = dom.tipo === "auto" ? `Automatico in Moodle (stimato rieseguendo i test): ${fmt(v.auto)}` : "";
   const perc = (v.punti!=null && dom.max) ? Math.round(v.punti/dom.max*100)+"%" : "";
   const testa = modo === "domanda"
-    ? `<span class="sigla">${esc(v.s)}</span><span class="n">${posiz(v.ord)} di ${nStud()}</span>`
-    : `<span class="dom-tit">D${dom.n} · ${esc(dom.breve)} · ${esc(dom.titolo)}</span><span class="n">max ${fmt(dom.max)}</span>`;
+    ? `<span class="sigla">${esc(v.s)}</span><span class="n">${posiz(v.ord)} di ${nStud()}${varianti(dom) ? " · " + esc(titoloDi(v, dom)) : ""}</span>`
+    : `<span class="dom-tit">${nomeDom(dom)} · ${esc(titoloDi(v, dom))}</span><span class="n">max ${fmt(dom.max)}</span>`;
   return `<article class="card ${v.inserito?'inserito':(m?'da-moodle':'')}">
     <div class="chi">${testa}${pdpChip}${chip}
       ${m && !v.inserito ? `<span class="chip warn">${dom.tipo==='manuale'?'da inserire':(cambiaPunti(v)?'da modificare':'commento da inserire')}</span>`:''}</div>
@@ -454,7 +466,7 @@ function renderDomanda(d){
   const azione = dom.tipo === "manuale"
     ? "In Moodle: punteggio e commento per tutti."
     : "In Moodle: solo le righe segnate «da modificare» (il punteggio automatico è diverso dalla proposta) o «commento da inserire» (stesso punteggio, con un commento per lo studente).";
-  let h = `<section class="intesta"><h2>D${dom.n} · ${esc(dom.titolo)} <span class="n">max ${fmt(dom.max)} punti</span></h2>
+  let h = `<section class="intesta"><h2>D${dom.n} · ${esc(dom.titolo)} <span class="n">max ${fmt(dom.max)} punti${varianti(dom) ? ` · ${dom.testi.length} varianti: la traccia di ciascuno è sulla sua scheda` : ""}</span></h2>
     <div class="criteri">${esc(dom.criteri)}${dom.criteri?"\n":""}${azione}</div>${filtriHtml()}</section><div class="lista">`;
   if (!vis.length) h += `<div class="vuoto">${r.length ? "Niente da inserire in Moodle per questa domanda." : "Nessuna riga per questa domanda."}</div>`;
   h += vis.map(v => cardHtml(v, dom, "domanda")).join("") + `</div>`;
