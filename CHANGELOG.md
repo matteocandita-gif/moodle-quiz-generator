@@ -2,13 +2,23 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
-## Prossima versione (in preparazione)
+## 0.8.5 — 27/10/2026
 
 Codice da leggere non eseguibile:
 
 - Nelle **domande di lettura** (teoria su un codice, debug con motivazione, tracciamento, lettura dell'output, trova l'errore) il codice JavaScript, PHP e SQL della traccia esce **identico a schermo ma non eseguibile**: lettere cirilliche nelle parole chiave e spazi a larghezza zero dopo gli operatori, circa uno per riga. Copiato in una domanda CodeRunner o nella console dà un errore di sintassi. Ogni sostituzione è controllata con l'interprete (`node --check`, `php -l`, SQLite): da sola blocca il codice, quindi correggerne una non basta. I colori non cambiano.
 - **Mai** negli esempi da usare come riferimento: pagine, esempi svolti, correzione, feedback.
 - Marcatori nella traccia per i casi particolari: ```` ```js leggere ```` (codice da leggere in un'altra tipologia) e ```` ```js esempio ```` (codice di riferimento dentro una domanda di lettura). Regola in `verifiche-programmazione`, formato in `formato-consegna.md`, funzione `rendi_non_eseguibile` in `moodle_lib.py`.
+
+Correzione delle verifiche, versione PDP nella stessa verifica:
+
+- Dashboard **«Correzione verifiche»**: in «Importa da Moodle» il riquadro **«Aggiungi studenti da un altro export (versione PDP)»**. Si trascinano l'export «Risposte» della copia PDP (anche con i nomi: restano nel browser) e, consigliato, l'export «Valutazioni» della copia, di cui si legge solo l'intestazione.
+  - Le colonne si abbinano alle domande della verifica **per somiglianza del testo** (parole e codice), perché la copia ha tracce riscritte e domande in più (la dichiarazione sulle mappe, le descrizioni): l'abbinamento si controlla e si corregge nell'anteprima.
+  - Le **domande escluse** sono quelle a 0 punti nell'export «Valutazioni»; senza quel file, quelle non svolte da nessuno. Avviso se i punti della copia non sono in proporzione con quelli della verifica.
+  - Reimportando, gli studenti PDP con la stessa sigla si sostituiscono, non si duplicano; i nuovi vanno in coda alla classe, in ordine di sigla.
+- Nelle viste: le domande escluse sono schede tratteggiate, senza punteggio e senza niente da inserire in Moodle; il voto degli studenti PDP è sul loro massimo ridotto; nel riepilogo l'etichetta PDP e «×» per le escluse; media e istogramma senza chi non ha ancora punteggi.
+- Nelle schede il **titolo della variante** che lo studente ha avuto davvero (domande casuali e copie PDP), non quello della prima.
+- `riepilogo.py` conta le domande escluse; nella skill: le proposte per gli studenti PDP si scrivono solo con `update`.
 
 ## 0.8.4 — 27/10/2026
 
