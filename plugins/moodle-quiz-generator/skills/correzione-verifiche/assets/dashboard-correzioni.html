@@ -71,6 +71,7 @@ pre.risp{margin:0;background:var(--code);border:1px solid var(--line);border-rad
 .anteprima:empty{display:none}
 .anteprima{font-size:.88rem;line-height:1.45;padding:6px 9px;border-left:3px solid var(--line);color:var(--ink)}
 .anteprima p{margin:0 0 6px}
+.anteprima b,.res-testo b{font-weight:600}
 .anteprima pre{margin:0 0 6px;padding:6px 9px;background:color-mix(in srgb,var(--line) 30%,transparent);border-radius:6px;overflow-x:auto}
 .anteprima pre code{background:none;padding:0;font-size:.82rem}
 .anteprima code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.85em;background:color-mix(in srgb,var(--line) 45%,transparent);padding:1px 4px;border-radius:4px}
@@ -202,13 +203,14 @@ function totale(k){
 const massimo = () => domOrd().reduce((s,d)=>s+Number(d.max||0),0) || 100;
 // Nel commento il codice in linea sta tra apici inversi (`let i = 0`) e diventa <code>; un blocco sta tra due righe ```js … ``` e diventa
 // <pre><code>, con gli a capo e i rientri. Ogni altra riga è un paragrafo. Nel testo semplice gli apici si tolgono.
-const paraHtml = p => esc(p).replace(/`([^`]+)`/g, "<code>$1</code>");
+// **parola** diventa grassetto, ma non dentro il codice.
+const paraHtml = p => esc(p).split(/(`[^`]+`)/).map(t => /^`[^`]+`$/.test(t) ? "<code>" + t.slice(1, -1) + "</code>" : t.replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")).join("");
 const corpoHtml = c => String(c||"").split(/```(\w*)\n?([\s\S]*?)\n?```/).map((t,i,a) => i % 3 === 1 ? "" : i % 3 === 2
   ? `<pre><code${a[i-1] ? ` class="language-${a[i-1] === "js" ? "javascript" : a[i-1]}"` : ""}>${esc(t)}</code></pre>`
   : t.split(/\n+/).filter(p=>p.trim()).map(p=>"<p>"+paraHtml(p)+"</p>").join("")).join("");
-const testoCommento = v => v.commento ? disclaimer() + "\n\n" + v.commento.replace(/```\w*\n?/g, "").replace(/`/g, "") : "";
+const testoCommento = v => v.commento ? disclaimer() + "\n\n" + v.commento.replace(/```\w*\n?/g, "").replace(/`/g, "").replace(/\*\*([^*]+)\*\*/g, "$1") : "";
 const htmlCommento = v => v.commento ? "<p><em>"+esc(disclaimer())+"</em></p>"+corpoHtml(v.commento) : "";
-const anteprima = c => /`/.test(c||"") ? corpoHtml(c) : "";
+const anteprima = c => /`|\*\*/.test(c||"") ? corpoHtml(c) : "";
 
 // Resoconto per il docente: righe «Etichetta: testo», con l'etichetta in grassetto; il codice come nei commenti.
 const resHtml = t => corpoHtml(t).replace(/<p>([A-ZÀ-Ý][^<:]{1,40}):/g, "<p><b>$1:</b>");
