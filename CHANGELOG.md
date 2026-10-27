@@ -2,7 +2,18 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
-## In preparazione
+## 0.8.4 — 27/10/2026
+
+Correzione delle verifiche:
+
+- **Resoconti** per il docente, su richiesta: uno per studente e uno della classe, con l'andamento e gli errori ricorrenti (regole in `resoconti.md`). Si leggono e si modificano nella dashboard «Correzione verifiche», nella vista per studente e nel riepilogo voti. A correzione finita in Moodle i voti si prendono dall'export «Valutazioni».
+- Dashboard **«Correzione verifiche»**: nel riepilogo voti l'istogramma dei voti a fasce di mezzo voto, con la linea della sufficienza, media, mediana e sufficienti.
+- **Commenti più facili da scorrere** (`criteri.md`):
+  - un concetto per riga, anche nei commenti brevi;
+  - due concetti scollegati non si uniscono con il punto e virgola;
+  - grassetto per le etichette («**Richiesta 2:**») e per poche parole chiave. La pagina lo copia in Moodle come grassetto.
+
+Dashboard dei quiz:
 
 - **Dashboard** 0.3.13: pulsante **«Esporta»** nel riquadro «Avanzamento», attivo solo con il dettaglio approvato. Avvia la stessa attività programmata di «Inizia» con «Quiz da esportare: <id>»: la sessione genera il backup `.mbz` e il Moodle XML, li consegna nella sua chat (con la notifica) e scrive l'esito nel quiz (campo `esportazione`). La pagina mostra se l'esportazione è richiesta, in corso, fatta o non riuscita; se l'attività non parte, dà la frase da incollare in chat.
 - **Prompt dell'attività cambiato** (`installazione.md`): ha la sezione «Esportare». Con l'aggiornamento della dashboard Claude aggiorna anche il prompt dell'attività programmata già creata (`update_trigger`).
