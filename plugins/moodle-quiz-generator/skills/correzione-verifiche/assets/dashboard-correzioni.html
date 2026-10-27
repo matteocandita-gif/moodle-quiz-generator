@@ -135,6 +135,15 @@ details.archivio{margin-top:18px;color:var(--muted)}
 .imp-q label{display:flex;gap:5px;align-items:center;cursor:pointer}
 select.assegna{font:inherit;font-size:.85rem;padding:2px 4px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:5px}
 .conferma{border-top:1px solid var(--line);padding-top:8px;display:grid;gap:8px}
+.pdp{font-family:var(--f-body);font-size:.62rem;font-weight:600;letter-spacing:.04em;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px;vertical-align:middle}
+.card.escl{display:block;opacity:.7;border-style:dashed;padding:8px 14px}
+.card.escl .chi{grid-column:auto}
+table.mappa{border-collapse:collapse;width:100%;font-size:.85rem}
+table.mappa td,table.mappa th{padding:5px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.mappa th{color:var(--muted);font-weight:500}
+table.mappa td.testo{color:var(--muted);max-width:28em}
+table.mappa tr.ignorata td{opacity:.6}
+input.sigla-in{font-family:var(--f-mono);width:6.5em;font-size:.9rem;padding:2px 6px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:7px 14px;border-radius:6px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.on{opacity:1}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
@@ -189,18 +198,26 @@ function rigaDi(d, k){ return st.val[d + "__" + k]; }
 // Un commento da riportare in Moodle: non vuoto e diverso da «Risposta non svolta.»
 function commentoDaInserire(v){ const c = (v.commento || "").trim(); return !!c && !/^risposta non svolta\.?$/i.test(c); }
 function cambiaPunti(v){ return Number(v.punti) !== Number(v.auto); }
+// Versione PDP: le righe degli studenti PDP hanno pdp: true; una domanda tolta per il PDP ha esclusa: true
+// e non conta né nei punti né nel massimo di quello studente.
+const esclusa = v => !!v?.esclusa;
+const isPdp = k => Object.values(st.val).some(v => v.k === k && v.pdp);
 function daMoodle(v){
-  const dom = st.domande[v.d]; if (!dom || v.punti == null) return false;
+  const dom = st.domande[v.d]; if (!dom || esclusa(v) || v.punti == null) return false;
   if (dom.tipo === "manuale") return true;
   return cambiaPunti(v) || commentoDaInserire(v);   // automatica: punteggio diverso, oppure stesso punteggio con un commento da dare
 }
-function aPosto(v){ return v.punti != null && (!daMoodle(v) || !!v.inserito); }   // punteggio deciso e, se serve, già inserito in Moodle
+function aPosto(v){ return esclusa(v) || (v.punti != null && (!daMoodle(v) || !!v.inserito)); }   // punteggio deciso e, se serve, già inserito in Moodle
+const senzaPunti = v => !esclusa(v) && v.punti == null;
 function totale(k){
   let tot = 0, manca = false;
-  domOrd().forEach(d => { const v = rigaDi(d.id, k); if (!v || v.punti == null) manca = true; else tot += Number(v.punti); });
+  domOrd().forEach(d => { const v = rigaDi(d.id, k); if (esclusa(v)) return; if (!v || v.punti == null) manca = true; else tot += Number(v.punti); });
   return {tot, manca};
 }
 const massimo = () => domOrd().reduce((s,d)=>s+Number(d.max||0),0) || 100;
+// il massimo di uno studente: senza le domande escluse per il PDP
+const massimoDi = k => domOrd().reduce((s,d)=> s + (esclusa(rigaDi(d.id, k)) ? 0 : Number(d.max||0)), 0) || massimo();
+const votoDi = k => { const {tot, manca} = totale(k); return {tot, manca, M: massimoDi(k), voto: tot / massimoDi(k) * 10}; };
 // Nel commento il codice in linea sta tra apici inversi (`let i = 0`) e diventa <code>; un blocco sta tra due righe ```js … ``` e diventa
 // <pre><code>, con gli a capo e i rientri. Ogni altra riga è un paragrafo. Nel testo semplice gli apici si tolgono.
 // **parola** diventa grassetto, ma non dentro il codice.
@@ -330,7 +347,7 @@ function apri(vid){
 function renderStato(){
   if (!st.vid) return;
   const tutte = Object.values(st.val);
-  const fatte = tutte.filter(aPosto).length, senza = tutte.filter(v=>v.punti==null).length;
+  const fatte = tutte.filter(aPosto).length, senza = tutte.filter(senzaPunti).length;
   const ins = tutte.filter(v=>daMoodle(v)).length, insF = tutte.filter(v=>daMoodle(v)&&v.inserito).length;
   $("#stato").textContent = tutte.length ? `Moodle: ${insF}/${ins} inserite${senza?` · ${senza} senza punteggio`:""}` : "";
   segnaAvanzamento({righe: tutte.length, fatte, ins, insF});
@@ -351,24 +368,30 @@ function renderTabs(){
   if (st.vista === "domanda") {
     t.innerHTML = domOrd().map(d => {
       const r = righe(d.id); const fatte = r.filter(aPosto).length;
-      const ins = r.filter(v=>daMoodle(v) && !v.inserito).length, senza = r.filter(v=>v.punti==null).length;
+      const ins = r.filter(v=>daMoodle(v) && !v.inserito).length, senza = r.filter(senzaPunti).length;
       return `<button role="tab" data-tab="${d.id}" aria-selected="${st.tab===d.id}" class="${fatte===r.length&&r.length?'fatta':''}">
         <span>D${d.n} · ${esc(d.breve)}</span><small>${ins?`${ins} da inserire`:(senza?`${senza} senza punteggio`:(r.length?'a posto':''))}</small></button>`;
     }).join("");
     t.querySelectorAll("button").forEach(b => b.onclick = () => { st.tab = b.dataset.tab; render(); window.scrollTo({top:0}); });
   } else {
-    const M = massimo();
     t.innerHTML = studenti().map(s => {
-      const {tot, manca} = totale(s.k);
+      const {voto, manca} = votoDi(s.k);
       const r = domOrd().map(d=>rigaDi(d.id, s.k)).filter(Boolean); const fatte = r.filter(aPosto).length, ins = r.filter(v=>daMoodle(v) && !v.inserito).length;
       return `<button role="tab" class="sigla-tab ${fatte===r.length&&r.length?'fatta':''}" data-stud="${esc(s.k)}" aria-selected="${st.stud===s.k}">
-        <span>${esc(s.s)}</span><small>${fmt(tot/M*10)}${manca?'*':''}${ins?` · ${ins} da inserire`:''}</small></button>`;
+        <span>${esc(s.s)}${isPdp(s.k)?' <span class="pdp">PDP</span>':''}</span><small>${fmt(voto)}${manca?'*':''}${ins?` · ${ins} da inserire`:''}</small></button>`;
     }).join("");
     t.querySelectorAll("button").forEach(b => b.onclick = () => { st.stud = b.dataset.stud; render(); window.scrollTo({top:0}); });
   }
 }
 
 function cardHtml(v, dom, modo){
+  const pdpChip = v.pdp ? `<span class="chip muted">PDP</span>` : "";
+  if (esclusa(v)) {
+    const testa = modo === "domanda" ? `<span class="sigla">${esc(v.s)}</span>` : `<span class="dom-tit">D${dom.n} · ${esc(dom.breve)} · ${esc(dom.titolo)}</span>`;
+    return `<article class="card escl"><div class="chi">${testa}${pdpChip}<span class="chip muted">esclusa dal PDP</span>
+      <span class="n">non conta nei punti né nel massimo</span>
+      <label class="n" style="margin-left:auto"><input type="checkbox" data-escl="${v.id}" checked> Esclusa</label></div></article>`;
+  }
   const m = daMoodle(v);
   const chip = v.esito ? `<span class="chip ${v.esito.startsWith('OK')?'ok':(/^(vuota|in attesa)/.test(v.esito)?'muted':'bad')}">${esc(v.esito)}</span>` : "";
   const autoTxt = dom.tipo === "auto" ? `Automatico in Moodle (stimato rieseguendo i test): ${fmt(v.auto)}` : "";
@@ -377,7 +400,7 @@ function cardHtml(v, dom, modo){
     ? `<span class="sigla">${esc(v.s)}</span><span class="n">${posiz(v.ord)} di ${nStud()}</span>`
     : `<span class="dom-tit">D${dom.n} · ${esc(dom.breve)} · ${esc(dom.titolo)}</span><span class="n">max ${fmt(dom.max)}</span>`;
   return `<article class="card ${v.inserito?'inserito':(m?'da-moodle':'')}">
-    <div class="chi">${testa}${chip}
+    <div class="chi">${testa}${pdpChip}${chip}
       ${m && !v.inserito ? `<span class="chip warn">${dom.tipo==='manuale'?'da inserire':(cambiaPunti(v)?'da modificare':'commento da inserire')}</span>`:''}</div>
     ${st.nascondiRisp ? '' : `<pre class="risp">${esc(v.risposta || "(nessuna risposta)")}</pre>`}
     <div class="voto">
@@ -395,6 +418,7 @@ function cardHtml(v, dom, modo){
       </div>
       <div class="spunte">
         ${m || v.inserito ? `<label><input type="checkbox" data-ins="${v.id}" ${v.inserito?'checked':''}> Inserito in Moodle</label>`:''}
+        ${v.pdp ? `<label><input type="checkbox" data-escl="${v.id}"> Esclusa dal PDP</label>`:''}
       </div>
     </div></article>`;
 }
@@ -421,6 +445,7 @@ function collega(){
   document.querySelectorAll("[data-copia-c]").forEach(b => b.onclick = () => { const v = st.val[b.dataset.copiaC]; copia(testoCommento(v), htmlCommento(v)); });
   document.querySelectorAll("[data-copia-p]").forEach(b => b.onclick = () => { const v = st.val[b.dataset.copiaP]; copia(fmt(v.punti)); });
   document.querySelectorAll("[data-ins]").forEach(c => c.onchange = () => { scrivi(c.dataset.ins, {inserito:c.checked}); render(); });
+  document.querySelectorAll("[data-escl]").forEach(c => c.onchange = () => { scrivi(c.dataset.escl, {esclusa:c.checked}); render(); });
 }
 
 function renderDomanda(d){
@@ -437,8 +462,9 @@ function renderDomanda(d){
 }
 
 function totStudHtml(k){
-  const {tot, manca} = totale(k); const M = massimo();
-  return `<span>Totale <b>${fmt(tot)}</b> / ${fmt(M)}${manca?'*':''}</span><span>Voto <span class="voto10">${fmt(tot/M*10)}${manca?'*':''}</span></span>${manca?'<span class="n">* provvisorio: manca almeno un punteggio</span>':''}`;
+  const {tot, manca, M, voto} = votoDi(k);
+  const ridotto = M !== massimo() ? `<span class="n">versione PDP: massimo ridotto, senza le domande escluse</span>` : "";
+  return `<span>Totale <b>${fmt(tot)}</b> / ${fmt(M)}${manca?'*':''}</span><span>Voto <span class="voto10">${fmt(voto)}${manca?'*':''}</span></span>${ridotto}${manca?'<span class="n">* provvisorio: manca almeno un punteggio</span>':''}`;
 }
 function aggiornaTotStud(){ const el = $("#tot-stud"); if (el && st.stud) el.innerHTML = totStudHtml(st.stud); }
 
@@ -446,7 +472,7 @@ function renderStudente(k){
   const s = studenti().find(x => x.k === k); if (!s) return;
   const lista = domOrd().map(d => [rigaDi(d.id, k), d]).filter(([v]) => v);
   const vis = st.soloMoodle ? lista.filter(([v]) => daMoodle(v) && !v.inserito) : lista;
-  let h = `<section class="intesta"><h2><span class="sigla">${esc(s.s)}</span> <span class="n">${posiz(s.ord)} di ${nStud()}</span></h2>
+  let h = `<section class="intesta"><h2><span class="sigla">${esc(s.s)}</span>${isPdp(k)?' <span class="chip muted">PDP</span>':''} <span class="n">${posiz(s.ord)} di ${nStud()}</span></h2>
     <div class="totale-stud" id="tot-stud">${totStudHtml(k)}</div>
     ${resocontoHtml("stud", "Resoconto", st.res[k], "Nessun resoconto per questo studente: chiedi a Claude di preparare i resoconti della verifica.")}
     <div class="criteri">Tutte le domande di questo studente. Utile per controllare il voto complessivo, o per inserire in Moodle dalla revisione del tentativo («Commenta o modifica la valutazione»).</div>${filtriHtml()}</section><div class="lista">`;
@@ -490,14 +516,17 @@ function renderRiep(){
   let h = `<section class="intesta"><h2>Riepilogo dei punteggi</h2>
     <div class="criteri">Totale su ${fmt(M)} e voto su 10 con i punteggi proposti o modificati qui. Una domanda ancora senza punteggio conta 0 e il totale è segnato come provvisorio. Clic su una riga per aprire lo studente.</div></section>
     <div class="tab-wrap"><table class="riep"><thead><tr><th>Studente</th>${doms.map(d=>`<th title="${esc(d.titolo)}">D${d.n}<br><span class="n">${fmt(d.max)}</span></th>`).join("")}<th>Totale</th><th>Voto</th></tr></thead><tbody>`;
-  let somma = 0; const st_ = studenti();
+  let somma = 0; const st_ = studenti(); let pdp = 0;
   for (const s of st_){
-    const {tot, manca} = totale(s.k); somma += tot;
-    const celle = doms.map(d => { const v = rigaDi(d.id, s.k); return (!v || v.punti==null) ? `<td class="attesa">—</td>` : `<td>${fmt(v.punti)}</td>`; }).join("");
-    h += `<tr data-apri="${esc(s.k)}"><td>${esc(s.s)}</td>${celle}<td class="tot">${fmt(tot)}${manca?'*':''}</td><td class="voto10">${fmt(tot/M*10)}${manca?'*':''}</td></tr>`;
+    const {tot, manca, M: Ms, voto} = votoDi(s.k); somma += voto; const p = isPdp(s.k); if (p) pdp++;
+    const celle = doms.map(d => { const v = rigaDi(d.id, s.k); return esclusa(v) ? `<td class="attesa" title="esclusa dal PDP">×</td>` : (!v || v.punti==null) ? `<td class="attesa">—</td>` : `<td>${fmt(v.punti)}</td>`; }).join("");
+    h += `<tr data-apri="${esc(s.k)}"><td>${esc(s.s)}${p?' <span class="pdp">PDP</span>':''}</td>${celle}<td class="tot">${fmt(tot)}${Ms !== M ? `<span class="n"> / ${fmt(Ms)}</span>` : ""}${manca?'*':''}</td><td class="voto10">${fmt(voto)}${manca?'*':''}</td></tr>`;
   }
-  h += `</tbody></table></div><p class="leg">* provvisorio: manca almeno un punteggio. Media della classe: ${fmt(st_.length ? somma/st_.length/M*10 : 0)} su 10.</p>`;
-  h += istogrammaHtml(st_.map(s => totale(s.k).tot / M * 10), st_.some(s => totale(s.k).manca));
+  // media e istogramma: solo chi ha almeno un punteggio (gli studenti appena aggiunti, ancora da correggere, li falserebbero)
+  const valutati = st_.filter(s => domOrd().some(d => { const v = rigaDi(d.id, s.k); return v && !esclusa(v) && v.punti != null; }));
+  const attesa = st_.filter(s => !valutati.includes(s));
+  h += `</tbody></table></div><p class="leg">* provvisorio: manca almeno un punteggio.${pdp ? " PDP: versione con riduzione dei contenuti; × domanda esclusa, il voto è sul massimo ridotto." : ""}${attesa.length ? ` Media e grafico senza ${attesa.length === 1 ? "lo studente" : "gli studenti"} ancora da correggere (${attesa.map(s => esc(s.s)).join(", ")}).` : ""} Media della classe: ${fmt(valutati.length ? valutati.reduce((t, s) => t + votoDi(s.k).voto, 0) / valutati.length : 0)} su 10.</p>`;
+  h += istogrammaHtml(valutati.map(s => votoDi(s.k).voto), valutati.some(s => totale(s.k).manca));
   h += resocontoHtml("classe", "Resoconto della classe", st.resClasse, "Nessun resoconto della classe: chiedi a Claude di preparare i resoconti della verifica.");
   const arch = !!info().archiviata;
   h += `<section class="riquadro" aria-labelledby="t-archivia"><h3 id="t-archivia">Archivia o elimina la verifica</h3>
@@ -642,7 +671,9 @@ I nomi degli studenti restano in questa pagina, nel tuo browser: vengono trasfor
         return d ? `<label><input type="checkbox" data-q="${c.n}" ${imp.scelte.has(c.n)?'checked':''}> D${c.n} · ${esc(d.breve)} (${nd})</label>` : ""; }).join("") + `</div>
       <div class="riga"><button class="btn pieno" id="imp-salva" ${imp.scelte.size?'':'disabled'}>Salva le risposte delle domande scelte</button><button class="btn" id="imp-annulla">Annulla</button></div></section>`;
   }
+  h += aggiungiHtml();
   $("#vista").innerHTML = h;
+  collegaAggiungi();
   const box = $("#incolla");
   box.addEventListener("paste", e => {
     e.preventDefault();                       // niente finisce nella pagina: si legge solo la tabella
@@ -674,6 +705,128 @@ I nomi degli studenti restano in questa pagina, nel tuo browser: vengono trasfor
       toast(n ? `${n} risposte salvate` : "Nessuna risposta diversa da salvare"); imp.righe = null; imp.scelte = new Set(); renderImporta();
     } catch(e) { b.disabled = false; b.textContent = "Salva le risposte delle domande scelte"; toast("Salvataggio non riuscito: " + (e.code||"errore")); }
   });
+}
+
+/* ---------- Aggiungi studenti da un altro export (la versione PDP) ----------
+   La copia PDP ha domande in più (la dichiarazione iniziale, le descrizioni) e tracce riscritte:
+   le colonne si abbinano alle domande della verifica per somiglianza del testo (parole e codice),
+   non per posizione, e l'abbinamento si controlla nell'anteprima. I nomi restano nel browser. */
+const agg = { reset(){ Object.assign(this, {studenti: null, colonne: [], mappa: {}, punteggi: {}, escluse: new Set(), errore: null, salvo: false, nome: ""}); } };
+agg.reset();
+const SOGLIA_SIM = 0.15;                             // sotto questa somiglianza la colonna non è una domanda della verifica
+const parole = t => new Set((piano(t).toLowerCase().match(/[a-z_][a-z0-9_]*|\d+/g) || []).filter(w => w.length >= 3 || /^\d+$/.test(w)));
+function somiglianza(a, b){ if (!a.size || !b.size) return 0; let c = 0; for (const w of a) if (b.has(w)) c++; return c / (a.size + b.size - c); }
+function miglioreVariante(d, P){ let best = {vi: -1, sc: 0}; (d.testi || []).forEach((t, vi) => { const sc = somiglianza(P, parole(t)); if (sc > best.sc) best = {vi, sc}; }); return best; }
+function preparaAggiunta(righe){
+  const h = righe[0].map(x => String(x).trim());
+  const iC = h.findIndex(x => /^(cognome|surname|last name)$/i.test(x)), iN = h.findIndex(x => /^(nome|first name)$/i.test(x));
+  const iS = h.findIndex(x => /^(stato|state)$/i.test(x));
+  const qD = {}, qR = {};
+  h.forEach((x, i) => { let m = x.match(/^(?:Domanda|Question)\s+(\d+)$/i); if (m) qD[m[1]] = i; m = x.match(/^(?:Risposta data|Response)\s+(\d+)$/i); if (m) qR[m[1]] = i; });
+  const num = Object.keys(qR).map(Number).sort((a, b) => a - b);
+  if (!num.length) throw new Error("mancano le colonne «Risposta data N»: scarica il report Risposte, non quello dei voti.");
+  const usate = new Set(studenti().map(s => s.s)), studs = [];
+  righe.slice(1).forEach(r => {
+    const cog = iC >= 0 ? String(r[iC] || "").trim() : "", nom = iN >= 0 ? String(r[iN] || "").trim() : "";
+    const stato = iS >= 0 ? String(r[iS] || "").trim() : "";
+    if (!cog && !stato) return;                      // righe vuote o di media
+    if (iS >= 0 && !stato) return;
+    let base = cog ? (cog.slice(0,2) + " " + nom.slice(0,2)).toUpperCase().trim() : "PDP " + (studs.length + 1);
+    let s = base, i = 2; while (usate.has(s)) s = base + (i++); usate.add(s);
+    const pw = [...new Set((cog + " " + nom).split(/\s+/).filter(w => w.length > 2))];
+    const pulisci = t => { t = String(t ?? ""); if (t.trim() === "-") t = "";
+      for (const w of pw) t = t.replace(new RegExp("\\b" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "gi"), "[nome]"); return t; };
+    studs.push({s, risposte: Object.fromEntries(num.map(n => [n, pulisci(r[qR[n]])])), testi: Object.fromEntries(num.map(n => [n, String(r[qD[n]] ?? "")]))});
+  });
+  if (!studs.length) throw new Error("nel file non trovo righe di studenti");
+  return {studenti: studs, colonne: num};
+}
+function abbinaColonne(){
+  const doms = domOrd(); agg.mappa = {}; agg.punteggi = {};
+  for (const n of agg.colonne) {
+    const somme = {};
+    agg.studenti.forEach(s => { const P = parole(s.testi[n]); doms.forEach(d => { const b = miglioreVariante(d, P); somme[d.id] = (somme[d.id] || 0) + b.sc; }); });
+    const [id, tot] = Object.entries(somme).sort((a, b) => b[1] - a[1])[0] || [null, 0];
+    const media = tot / agg.studenti.length; agg.punteggi[n] = media;
+    agg.mappa[n] = media >= SOGLIA_SIM ? id : "";
+  }
+  proponiEscluse();
+}
+const colonnaDi = id => agg.colonne.find(n => agg.mappa[n] === id);
+function proponiEscluse(){                          // proposta: le domande che nessuno studente PDP ha svolto, e quelle che nella copia non ci sono
+  agg.escluse = new Set(domOrd().filter(d => { const n = colonnaDi(d.id); return n == null || agg.studenti.every(s => !String(s.risposte[n] || "").trim()); }).map(d => d.id));
+}
+function aggiungiHtml(){
+  const a = agg, doms = domOrd();
+  let h = `<section class="riquadro" aria-labelledby="t-agg"><h3 id="t-agg">Aggiungi studenti da un altro export (versione PDP)</h3>
+    <p class="n">Per la copia della verifica con riduzione dei contenuti: scarica da Moodle l'Excel «Risposte» della copia e trascinalo qui, anche con i nomi (restano nel browser, si salvano solo le sigle). La pagina abbina le domande per somiglianza del testo, scarta quelle in più (la dichiarazione iniziale, le descrizioni) e propone come escluse le domande non svolte da nessuno. Controlla l'anteprima prima di salvare.</p>
+    <label class="incolla" id="agg-zona" for="agg-file">${a.studenti ? `Letto: ${a.studenti.length} studenti, ${a.colonne.length} colonne. Trascina un altro file per sostituirlo.` : "Trascina qui il file, o fai clic per sceglierlo (.xlsx o .csv)"}</label>
+    <input type="file" id="agg-file" accept=".xlsx,.csv" hidden>
+    ${a.errore ? `<p class="leg" style="color:var(--bad)">${esc(a.errore)}</p>` : ""}`;
+  if (a.studenti) {
+    const usate = Object.values(a.mappa).filter(Boolean), doppie = usate.filter((x, i) => usate.indexOf(x) !== i);
+    const mancanti = doms.filter(d => colonnaDi(d.id) == null);
+    h += `<p class="n">Sigle dei nuovi studenti${a.studenti.some(s => /^PDP /.test(s.s)) ? " (nel file mancano i nomi: scrivile tu, prime due lettere di cognome e nome)" : ""}:</p>
+      <div class="riga">${a.studenti.map((s, i) => `<input class="sigla-in" data-agg-s="${i}" value="${esc(s.s)}" aria-label="Sigla dello studente ${i + 1}">`).join("")}</div>
+      <p class="n">Abbinamento delle colonne alle domande della verifica:</p>
+      <div class="tab-wrap"><table class="mappa"><thead><tr><th>Colonna</th><th>Inizio del testo</th><th>Domanda</th><th>Somiglianza</th></tr></thead><tbody>
+      ${a.colonne.map(n => { const t = (a.studenti.find(s => s.testi[n])?.testi[n] || "").replace(/\s+/g, " ").slice(0, 90);
+        return `<tr class="${a.mappa[n] ? "" : "ignorata"}"><td>Domanda ${n}</td><td class="testo">${esc(t)}…</td>
+          <td><select class="assegna" data-agg-c="${n}"><option value="">— ignora —</option>${doms.map(d => `<option value="${d.id}" ${a.mappa[n] === d.id ? "selected" : ""}>D${d.n}${d.breve && d.breve !== "D" + d.n ? " · " + esc(d.breve) : ""}</option>`).join("")}</select></td>
+          <td>${Math.round((a.punteggi[n] || 0) * 100)}%</td></tr>`; }).join("")}
+      </tbody></table></div>
+      ${doppie.length ? `<p class="n" style="color:var(--bad)">Due colonne sono abbinate alla stessa domanda (${[...new Set(doppie)].map(id => "D" + st.domande[id].n).join(", ")}): correggi prima di salvare.</p>` : ""}
+      <p class="n">Domande escluse per questi studenti (non contano nei punti né nel massimo):</p>
+      <div class="imp-q">${doms.map(d => { const n = colonnaDi(d.id); const vuote = n == null ? null : a.studenti.filter(s => !String(s.risposte[n] || "").trim()).length;
+        return `<label><input type="checkbox" data-agg-e="${d.id}" ${a.escluse.has(d.id) ? "checked" : ""} ${n == null ? "disabled" : ""}> D${d.n} <span class="n">${n == null ? "(non c'è nella copia)" : `(vuota per ${vuote} su ${a.studenti.length})`}</span></label>`; }).join("")}</div>
+      ${mancanti.length ? `<p class="n">Le domande che nella copia non ci sono restano escluse.</p>` : ""}
+      <div class="riga"><button class="btn pieno" id="agg-salva" ${a.salvo || doppie.length ? "disabled" : ""}>${a.salvo ? "Salvataggio…" : `Aggiungi ${a.studenti.length} studenti alla verifica`}</button><button class="btn" id="agg-annulla">Annulla</button></div>`;
+  }
+  return h + `</section>`;
+}
+function collegaAggiungi(){
+  const inp = $("#agg-file"), zona = $("#agg-zona"); if (!inp) return;
+  const carica = async f => { if (!f) return; try {
+      const righe = /\.csv$/i.test(f.name) ? leggiCsv(await f.text()) : await leggiXlsx(await f.arrayBuffer());
+      Object.assign(agg, preparaAggiunta(righe), {errore: null, nome: f.name}); abbinaColonne();
+    } catch (e) { agg.studenti = null; agg.errore = "Non riesco a leggere il file: " + (e.message || e); }
+    renderImporta(); };
+  inp.onchange = () => carica(inp.files[0]);
+  zona.addEventListener("dragover", e => e.preventDefault());
+  zona.addEventListener("drop", e => { e.preventDefault(); carica(e.dataTransfer.files[0]); });
+  document.querySelectorAll("[data-agg-s]").forEach(i => i.oninput = () => { agg.studenti[i.dataset.aggS].s = i.value.toUpperCase().replace(/\s+/g, " ").trim(); });
+  document.querySelectorAll("[data-agg-c]").forEach(s => s.onchange = () => { agg.mappa[s.dataset.aggC] = s.value; proponiEscluse(); renderImporta(); });
+  document.querySelectorAll("[data-agg-e]").forEach(c => c.onchange = () => { c.checked ? agg.escluse.add(c.dataset.aggE) : agg.escluse.delete(c.dataset.aggE); });
+  $("#agg-annulla")?.addEventListener("click", () => { agg.reset(); renderImporta(); });
+  $("#agg-salva")?.addEventListener("click", salvaAggiunta);
+}
+async function salvaAggiunta(){
+  const vid = st.vid, doms = domOrd(), esistenti = studenti();
+  const sigle = agg.studenti.map(s => s.s.trim());
+  if (sigle.some(s => !s)) { toast("Manca una sigla"); return; }
+  if (new Set(sigle).size !== sigle.length || sigle.some(s => esistenti.some(e => e.s === s))) { toast("Due studenti hanno la stessa sigla: cambiane una"); return; }
+  const chiavi = new Set(esistenti.map(e => e.k));
+  const nuovi = agg.studenti.map(s => { let k = s.s.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "") || "PDP", base = k, i = 2;
+    while (chiavi.has(k)) k = base + "-" + (i++); chiavi.add(k); return {...s, k}; });
+  const ordBase = Math.max(-1, ...Object.values(st.val).map(v => Number(v.ord) || 0)) + 1;
+  agg.salvo = true; renderImporta();
+  try {
+    for (const d of doms) {
+      const n = colonnaDi(d.id), escl = n == null || agg.escluse.has(d.id);
+      const testi = [...(d.testi || [])]; const righeDoc = {};
+      nuovi.forEach((s, i) => {
+        const testo = n == null ? "" : s.testi[n] || "";
+        let variante = null;
+        if (testo) { variante = testi.indexOf(testo); if (variante < 0) { testi.push(testo); variante = testi.length - 1; } }
+        righeDoc[s.k] = {s: s.s, ord: ordBase + i, risposta: n == null ? "" : s.risposte[n] || "", esito: escl ? "esclusa" : "in attesa", auto: null,
+          punti: null, commento: "", inserito: false, pdp: true, esclusa: escl, ...(variante != null ? {variante} : {})};
+      });
+      if (testi.length !== (d.testi || []).length) await st.db.collection(`verifiche/${vid}/domande`).doc(d.id).update({testi});
+      await st.db.collection(`verifiche/${vid}/valutazioni`).doc(d.id).update({righe: righeDoc});
+    }
+    await st.db.doc(`verifiche/${vid}`).update({studenti: (info().studenti || esistenti.length) + nuovi.length});
+    toast(`${nuovi.length} studenti aggiunti`); agg.reset(); renderImporta();
+  } catch (e) { agg.salvo = false; renderImporta(); toast("Salvataggio non riuscito: " + (e.code || e.message || "errore")); }
 }
 
 /* ---------- Nuova correzione: l'Excel di Moodle letto e ripulito nel browser ----------

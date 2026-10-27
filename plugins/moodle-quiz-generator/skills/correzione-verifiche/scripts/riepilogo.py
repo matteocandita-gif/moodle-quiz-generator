@@ -8,7 +8,8 @@ CARTELLA  l'esportazione di una verifica (ArtifactData list con out_dir di «ver
           «verifiche/ID/valutazioni»): sotto CARTELLA, …/domande/DNN.json e …/valutazioni/DNN.json.
 
 Stampa una riga per studente con i punti di ogni domanda, il totale e il voto (totale diviso per
-il massimo e moltiplicato per 10), le righe ancora senza punteggio
+il massimo e moltiplicato per 10; per gli studenti PDP il massimo è senza le domande escluse,
+segnate «×»), le righe ancora senza punteggio
 e quelle da inserire in Moodle non ancora segnate «inserito». Le somme le fa lo script, mai a mano.
 """
 import csv
@@ -36,9 +37,13 @@ def main():
     studenti = sorted({(r["ord"], c, r["s"]) for d in val for c, r in val[d]["righe"].items()})
     senza, da_moodle, tabella = [], [], []
     for _, c, sigla in studenti:
-        riga, tot = [sigla], 0.0
+        riga, tot, mass = [sigla], 0.0, massimo
         for d in ids:
             r = val.get(d, {}).get("righe", {}).get(c)
+            if r and r.get("esclusa"):                 # versione PDP: domanda tolta, fuori dai punti e dal massimo
+                mass -= float(domande[d]["max"])
+                riga.append("×")
+                continue
             if not r or r.get("punti") is None:
                 senza.append(f"{d} {sigla}")
                 riga.append("")
@@ -49,7 +54,9 @@ def main():
             manuale = domande[d]["tipo"] == "manuale"
             if (manuale or p != float(r.get("auto") or 0)) and not r.get("inserito"):
                 da_moodle.append(f"{d} {sigla}")
-        riga += [f"{tot:g}".replace(".", ","), f"{tot / massimo * 10:.2f}".replace(".", ",")]
+        if mass != massimo:
+            riga[0] += " (PDP)"
+        riga += [f"{tot:g}".replace(".", ",") + (f"/{mass:g}" if mass != massimo else ""), f"{tot / mass * 10:.2f}".replace(".", ",")]
         tabella.append(riga)
     intest = ["Studente"] + [f"D{domande[d]['n']} ({domande[d]['max']:g})" for d in ids] + [f"Totale ({massimo:g})", "Voto"]
     larg = [max(len(str(x)) for x in col) for col in zip(intest, *tabella)]
