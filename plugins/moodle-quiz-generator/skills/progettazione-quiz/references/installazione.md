@@ -32,6 +32,7 @@ Quando una nuova versione del plugin porta una pagina nuova (la costante `VERSIO
 1. Leggi la pagina pubblicata (`Artifact`, `action: "read"`) e confronta `VERSIONE_PAGINA`. Se è uguale, non serve niente.
 2. Ripubblica `assets/dashboard.html` sullo **stesso URL**, senza `capabilities` (restano quelle salvate). Se la pagina nuova richiede capacità diverse (lo dice il changelog del plugin), passale tutte. I quiz e le impostazioni restano: stanno nel database, non nella pagina.
 3. Aggiorna `versione` in `impostazioni` / `avvio` (`update` con `if_version`).
+3b. Se il changelog dice che è cambiato il prompt dell'attività programmata, aggiorna anche l'attività: prendi il suo id da `impostazioni` / `avvio` e sostituisci il prompt con il testo di «Prompt dell'attività», con l'URL della dashboard (`update_trigger` del connettore Claude Code Remote; cercalo con `ToolSearch` se è differito). Se lo strumento non c'è, dillo all'utente.
 4. Di' all'utente che cosa cambia nella pagina, in una riga.
 
 Non modificare la pagina pubblicata a mano: le modifiche si fanno in `assets/dashboard.html` del plugin e arrivano a tutti con l'aggiornamento.
@@ -39,7 +40,9 @@ Non modificare la pagina pubblicata a mano: le modifiche si fanno in `assets/das
 ## Prompt dell'attività
 
 ```
-Avvio di un quiz Moodle dalla dashboard «Bozze dei quiz» dell'utente ({URL}). Il pulsante «Inizia» della dashboard ha appena creato un quiz in fase `richiesta`; di solito un messaggio successivo a questo indica il suo id («Quiz da avviare: <id>»), ma può mancare.
+Lavoro su un quiz Moodle partito dalla dashboard «Bozze dei quiz» dell'utente ({URL}). Di solito un messaggio successivo a questo dice che cosa fare:
+- «Quiz da esportare: <id>»: il pulsante «Esporta» chiede il backup di un quiz con il dettaglio approvato. Segui solo la sezione «Esportare» in fondo, non i passi numerati.
+- «Quiz da avviare: <id>», oppure nessun messaggio: il pulsante «Inizia» ha appena creato un quiz in fase `richiesta`. Segui i passi numerati.
 
 1. Carica la skill `progettazione-quiz` e segui il suo processo (parte 1): leggi i file di riferimento che la skill indica (preset.md, catalogo.md, dashboard.md, formato-consegna.md) e, per una verifica di programmazione, anche la skill `verifiche-programmazione`. La dashboard è quella dell'indirizzo qui sopra.
 2. Trova il quiz da avviare. Se hai l'id, leggi `quiz/<id>`. Se l'id manca, leggi la collezione `quiz` e prendi i quiz in fase `richiesta` che non hanno il campo `inLavorazione` (o lo hanno più vecchio di un'ora) e non hanno righe in `quiz/<id>/domande`: avviali tutti, uno dopo l'altro, dal più vecchio (campo `creato`). Un quiz che non è in fase `richiesta`, o che non esiste, non si tocca.
@@ -49,4 +52,13 @@ Avvio di un quiz Moodle dalla dashboard «Bozze dei quiz» dell'utente ({URL}). 
 6. Altrimenti scrivi la scaletta come dice la skill: le righe in `quiz/<id>/domande` (con le varianti per tag se `varianti` è maggiore di 1), le scelte e i dubbi nelle `note` del quiz, poi porta la fase a `scaletta-revisione` e togli `inLavorazione`. Non scrivere le tracce: ci si ferma alla scaletta, che l'utente rivede nella dashboard.
 7. L'utente non è presente mentre lavori: non fare domande. Dove manca un dato prendi la scelta più ragionevole e scrivila nelle `note`. Se il quiz avrà bisogno di un database (SQL o PHP), non sceglierlo né crearlo: scrivi nelle `note` che la scelta del database va fatta dopo, insieme all'utente.
 8. Alla fine scrivi un messaggio breve: il quiz creato, quante righe, le scelte principali e i dubbi da guardare nella dashboard.
+
+Esportare («Quiz da esportare: <id>»)
+- Carica la skill `materiali-moodle` e segui «Dalla dashboard: XML e .mbz». Leggi `quiz/<id>`: se la fase non è `dettaglio-approvato`, non generare niente e scrivi nel quiz `esportazione` con `stato: "errore"` e l'esito «Il dettaglio non è approvato».
+- Prima di cominciare: `update` del quiz con `esportazione` uguale a `{stato: "in-corso", richiesta: <quella che c'è>, inizio: <data e ora ISO>, fine: null, esito: null, file: null}` (con `if_version`).
+- Genera il backup `.mbz` e il Moodle XML con `genera_quiz.py`, con il nome del quiz (`nomeQuiz`, o la lezione e il titolo come nei quiz già generati: `<lezione> - <titolo>`). Se il quiz ha `deposito` e righe con il campo `pdp`, genera anche la copia PDP. Se le tracce citano immagini, cercale come dicono le note del quiz: se non le trovi in questa sessione, non generare un backup senza immagini.
+- Non cambiare le righe né le tracce. Se lo script trova errori, il backup non si consegna: si scrive l'errore.
+- Consegna i file in questa sessione con `SendUserFile` (prima il `.mbz`, poi l'XML).
+- Alla fine scrivi nel quiz `esportazione` con `stato: "fatta"` (oppure `"errore"`), `fine` (data e ora ISO), `file` (il nome del `.mbz`) ed `esito`: una riga con domande, punti, errori e avvisi del controllo, oppure il motivo dell'errore. La dashboard mostra questa riga.
+- L'utente non è presente: non fare domande. Chiudi con un messaggio breve: i file, l'esito del controllo, gli avvisi da guardare.
 ```

@@ -2,6 +2,12 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## In preparazione
+
+- **Dashboard** 0.3.13: pulsante **«Esporta»** nel riquadro «Avanzamento», attivo solo con il dettaglio approvato. Avvia la stessa attività programmata di «Inizia» con «Quiz da esportare: <id>»: la sessione genera il backup `.mbz` e il Moodle XML, li consegna nella sua chat (con la notifica) e scrive l'esito nel quiz (campo `esportazione`). La pagina mostra se l'esportazione è richiesta, in corso, fatta o non riuscita; se l'attività non parte, dà la frase da incollare in chat.
+- **Prompt dell'attività cambiato** (`installazione.md`): ha la sezione «Esportare». Con l'aggiornamento della dashboard Claude aggiorna anche il prompt dell'attività programmata già creata (`update_trigger`).
+- `materiali-moodle`: dopo una generazione dalla dashboard si scrive l'esito in `esportazione`, anche quando si genera in chat.
+
 ## 0.8.3 — 26/10/2026
 
 Correzione delle verifiche: il codice nei commenti si vede come codice.
