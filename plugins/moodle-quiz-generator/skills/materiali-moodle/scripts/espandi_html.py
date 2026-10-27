@@ -20,6 +20,7 @@ def main():
     sorgente = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")
     pagina = ml.espandi_codice(sorgente)
     errori, avvisi = ml.controlla_html(pagina, "pagina")
+    avvisi += ml.AVVISI_LETTURA
     if ml.campi_cloze(pagina):
         e, a = ml.controlla_cloze(pagina)
         errori += e; avvisi += a

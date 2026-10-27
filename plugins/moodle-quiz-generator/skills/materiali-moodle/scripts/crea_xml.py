@@ -248,16 +248,24 @@ def main():
         sys.exit(2)
     spec = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")
     domande, errori = leggi_specifica(spec)
+    avvisi_lettura, da_leggere = [], 0
     for d in domande:
+        ml.AVVISI_LETTURA.clear()
+        da_leggere += sum(1 for m in ml.BLOCCO_RE.finditer(d.campi.get("questiontext", ""))
+                          if m.group(2) == "leggere")
         for campo in ("questiontext", "generalfeedback", "graderinfo", "responsetemplate"):
             if campo in d.campi:
                 d.campi[campo] = ml.espandi_codice(d.campi[campo])
         for r in d.risposte:
             r[1] = ml.espandi_codice(r[1])
             r[2] = ml.espandi_codice(r[2])
+        nome = d.campi.get("name", "(senza nome)").strip()
+        avvisi_lettura += ["%s: %s" % (nome, a) for a in ml.AVVISI_LETTURA]
 
     nomi = {}
     tot_avvisi = 0
+    for x in avvisi_lettura:
+        print("AVVISO  %s" % x); tot_avvisi += 1
     for d in domande:
         e, a = controlla(d)
         nome = d.campi.get("name", "(senza nome)").strip()
@@ -293,6 +301,8 @@ def main():
     print("\nOK: %d domande (%s), %d avvisi -> %s" % (
         len(domande), ", ".join("%s %d" % kv for kv in sorted(conteggio.items())),
         tot_avvisi, sys.argv[2]))
+    if da_leggere:
+        print("Codici da leggere resi non eseguibili: %d" % da_leggere)
 
 
 if __name__ == "__main__":
