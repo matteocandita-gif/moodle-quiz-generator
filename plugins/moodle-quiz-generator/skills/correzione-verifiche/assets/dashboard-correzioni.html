@@ -843,7 +843,8 @@ async function salvaAggiunta(){
   if (new Set(sigle).size !== sigle.length || sigle.some(s => esistenti.some(e => e.s === s && !isPdp(e.k)))) { toast("Due studenti hanno la stessa sigla: cambiane una"); return; }
   const chiavi = new Set(esistenti.map(e => e.k));
   let ordNuovo = Math.max(-1, ...Object.values(st.val).map(v => Number(v.ord) || 0)) + 1, aggiunti = 0;
-  const nuovi = agg.studenti.map(s => {
+  // in coda alla classe, ma in ordine di sigla tra loro (l'export può essere in ordine di tentativo, e senza nomi non c'è il cognome)
+  const nuovi = [...agg.studenti].sort((x, y) => x.s.localeCompare(y.s)).map(s => {
     const gia = esistenti.find(e => e.s === s.s && isPdp(e.k));         // già importato: stessa chiave e stessa posizione, righe sostituite
     if (gia) return {...s, k: gia.k, ord: gia.ord};
     let k = s.s.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "") || "PDP", base = k, i = 2;
