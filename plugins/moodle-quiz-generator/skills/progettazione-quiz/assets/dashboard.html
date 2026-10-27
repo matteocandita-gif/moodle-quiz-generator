@@ -1030,7 +1030,7 @@ function renderHeader(){
   ["home","scaletta","dettaglio"].forEach(function(v){$("#tab-"+v).setAttribute("aria-selected",(S.view===v||(v==="home"&&S.view==="nuovo"))?"true":"false");});
 }
 /* ------------------------------------------------------------------ vista iniziale e nuovo quiz */
-const VERSIONE_PAGINA="0.3.12";
+const VERSIONE_PAGINA="0.3.13";
 const PERCORSO_IMPOSTAZIONI="impostazioni/avvio";
 /* depositi delle domande (banche qbank dei corsi deposito): li scrive Claude leggendo un backup */
 const PERCORSO_DEPOSITI="impostazioni/depositi";
@@ -1147,6 +1147,41 @@ function idNuovo(n){
   let id=b,k=2;while(S.quizzes.some(function(q){return q.id===id;}))id=b+"-"+(k++);
   return id;
 }
+/* ---- esportazione: «Esporta» avvia la stessa attività con «Quiz da esportare: <id>»; la sessione genera .mbz e XML,
+   scrive l'esito nel campo esportazione del quiz e consegna i file nella sua chat */
+function oraData(iso){const d=new Date(iso||"");return isFinite(d)?d.toLocaleString("it-IT",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"}):"";}
+function espInCorso(q){const e=q.esportazione;if(!e||(e.stato!=="richiesta"&&e.stato!=="in-corso"))return false;const t=Date.parse((e.stato==="in-corso"&&e.inizio)||e.richiesta||"");return isFinite(t)&&Date.now()-t<30*60*1000;}
+function testoEsporta(id,titolo){return "Esporta il quiz «"+titolo+"» (id "+id+") dalla dashboard «Bozze dei quiz»: segui materiali-moodle e genera il backup .mbz e il Moodle XML.";}
+function esportazioneHTML(q){
+  const st=S.esporta&&S.esporta.id===q.id&&!S.esporta.ok?S.esporta:null;
+  if(st)return '<div class="rivbox" role="status"><div class="rivt">'+ico("warn")+"<strong>Esportazione non avviata</strong></div><p>"+esc(st.motivo)+" Copia questa frase e incollala in una chat con Claude: legge il quiz dalla dashboard.</p>"+
+    '<textarea class="ctl mono copia" readonly id="testoEsporta">'+esc(testoEsporta(q.id,q.titolo||q.id))+'</textarea><div class="actrow"><button class="btn primary" data-act="copia-esporta">Copia</button><button class="btn" data-act="esporta">Riprova</button></div></div>';
+  const e=q.esportazione;if(!e||q.fase!=="dettaglio-approvato")return "";
+  if(e.stato==="fatta")return '<div class="rivbox okbox" role="status"><div class="rivt">'+ico("check")+"<strong>Esportato "+esc(oraData(e.fine))+"</strong></div><p>"+esc(e.esito||"Backup .mbz e Moodle XML generati.")+(e.file?" File: "+esc(e.file)+".":"")+" Li trovi nella sessione di Claude dell'esportazione.</p></div>";
+  if(e.stato==="errore")return '<div class="rivbox" role="status"><div class="rivt">'+ico("warn")+"<strong>Esportazione non riuscita "+esc(oraData(e.fine))+"</strong></div><p>"+esc(e.esito||"La sessione non è riuscita a generare il backup.")+" I dettagli sono nella sessione di Claude dell'esportazione.</p></div>";
+  if(espInCorso(q))return '<div class="rivbox okbox" role="status"><div class="rivt">'+ico("info")+"<strong>"+(e.stato==="in-corso"?"Claude sta generando il backup":"Esportazione richiesta "+esc(oraData(e.richiesta)))+"</strong></div><p>La sessione è tra le tue sessioni di Claude: quando i file sono pronti arriva la notifica, e qui compare l'esito.</p></div>";
+  return '<div class="rivbox" role="status"><div class="rivt">'+ico("warn")+"<strong>Esportazione senza risposta</strong></div><p>Richiesta "+esc(oraData(e.richiesta))+", ma l'esito non è arrivato: controlla la sessione tra le tue sessioni di Claude, oppure premi di nuovo «Esporta».</p></div>";
+}
+async function esporta(q){
+  if(q.fase!=="dettaglio-approvato"||S.esportando)return;
+  S.esportando=true;S.esporta=null;render();
+  let motivo="";
+  try{
+    const trig=triggerAvvio();
+    const mcp=trig?await window.claude.use("mcp"):null;
+    if(!trig)motivo="L'avvio automatico non è configurato in questa dashboard: chiedi a Claude di installarlo («installa la dashboard dei quiz»).";
+    else if(!mcp)motivo="Da questa vista la pagina non può usare il connettore Claude Code Remote.";
+    else{await mcp.callTool(CONNETTORE,"fire_trigger",{trigger_id:trig,text:"Quiz da esportare: "+q.id});
+      await save("quiz/"+q.id,{esportazione:{stato:"richiesta",richiesta:new Date().toISOString(),inizio:null,fine:null,esito:null,file:null}});
+      S.esportando=false;S.esporta={id:q.id,ok:true};toast("Esportazione avviata: i file arrivano nella sessione di Claude.");render();return;}
+  }catch(e){
+    const c=e&&e.code;
+    motivo=c==="not_in_manifest"||c==="consent_required"||c==="approval_required"?"Il connettore Claude Code Remote non è stato autorizzato per questa pagina.":
+      c==="server_not_connected"||c==="needs_reauth"?"Il connettore Claude Code Remote non è collegato al tuo account (Impostazioni → Connettori).":
+      "Avvio non riuscito"+(c?" ("+c+")":"")+".";
+  }
+  S.esportando=false;S.esporta={id:q.id,ok:false,motivo:motivo};render();
+}
 async function avviaSessione(id,titolo,materiale){
   let motivo="";
   try{
@@ -1203,14 +1238,16 @@ function metaHTML(q){
   if(nx&&bloccato)btn='<button class="btn primary" disabled aria-disabled="true">'+ico("check")+esc(nx[1])+"</button>";
   else if(nx)btn='<button class="btn primary" data-act="approve">'+ico("check")+esc(S.confirmApprove&&errs?"Ci sono "+errs+(errs===1?" errore":" errori")+": "+nx[1].toLowerCase()+" comunque":nx[1])+"</button>";
   else if(q.fase==="richiesta")btn='<span class="tag info">'+ico("info")+"In attesa della scaletta</span>";
+  else if(q.fase==="dettaglio-approvato")btn='<span class="tag ok">'+ico("check")+"Pronto per la parte tecnica</span>"+'<button class="btn primary" data-act="esporta"'+(S.esportando||espInCorso(q)?" disabled":"")+">"+ico("open")+(S.esportando?"Invio in corso…":espInCorso(q)?"Esportazione in corso":q.esportazione?"Esporta di nuovo":"Esporta")+"</button>";
   else btn='<span class="tag ok">'+ico("check")+"Pronto per la parte tecnica</span>";
   if(PREV[q.fase])btn+='<button class="ib" data-act="back" title="Torna alla fase precedente" aria-label="Torna alla fase precedente">'+ico("undo")+"</button>";
-  let hint={"scaletta-revisione":"Segna che la scaletta è a posto. Poi dimmelo in chat e scrivo le tracce.","scaletta-approvata":"Segna che si può passare alle tracce di dettaglio.","dettaglio-revisione":"Si abilita quando ogni domanda ha la traccia e nessuna è da rivedere. Approvando il dettaglio tutte le domande diventano «approvata».","dettaglio-approvato":"Le tracce sono approvate: si può passare alla parte tecnica."}[q.fase]||"";
+  let hint={"scaletta-revisione":"Segna che la scaletta è a posto. Poi dimmelo in chat e scrivo le tracce.","scaletta-approvata":"Segna che si può passare alle tracce di dettaglio.","dettaglio-revisione":"Si abilita quando ogni domanda ha la traccia e nessuna è da rivedere. Approvando il dettaglio tutte le domande diventano «approvata».","dettaglio-approvato":"Le tracce sono approvate. «Esporta» avvia una sessione di Claude che genera il backup .mbz (e il Moodle XML): i file arrivano in quella sessione, tra le tue sessioni di Claude, con la notifica quando sono pronti."}[q.fase]||"";
   if(q.fase==="dettaglio-revisione"&&!bloccato)hint="Ogni domanda ha la sua traccia: dopo averle riviste si può approvare il dettaglio, e tutte le domande diventano «approvata».";
   if(bloccato&&manc>0)hint="Mancano "+manc+(manc===1?" traccia":" tracce")+" da scrivere: il dettaglio non si può ancora approvare.";
   else if(bloccato)hint=nRiv+(nRiv===1?" domanda è":" domande sono")+" ancora da rivedere: approvale una per una nel Dettaglio.";
   btn='<div class="actrow">'+btn+"</div>";
   if(hint)btn+='<div class="hint">'+esc(hint)+"</div>";
+  btn+=esportazioneHTML(q);
   return '<section class="meta" aria-label="Dati del quiz">'+
     '<label class="fld wide"><span>Nome del quiz (menù e attività in Moodle)</span><input class="ctl" '+k("titolo")+' value="'+esc(q.titolo)+'" aria-label="Nome del quiz"></label>'+
     '<label class="fld"><span>Tipo di quiz</span><select class="ctl" '+k("tipoQuiz")+' aria-label="Tipo di quiz">'+opts(tipiScelta(q.tipoQuiz).map(function(t){return [t,TIPI[t].nome];}),q.tipoQuiz)+"</select></label>"+
@@ -1636,6 +1673,8 @@ function act(a,d){
       const doc=Object.assign({},S.imp||{});doc.trigger=v;
       S.db.doc(PERCORSO_IMPOSTAZIONI).set(doc).then(function(){S.impBozza=null;toast(v?"Avvio automatico salvato.":"Avvio automatico tolto.");},function(e){toast("Non sono riuscito a salvare"+(e&&e.code?" ("+e.code+")":"")+".",true);});return;}
     case "riprova-avvio":{const q=S.quizzes.find(function(x){return x.id===d.id;});if(!q)return;S.inviando=true;avviaSessione(q.id,q.titolo||q.id,!!q.materiale);return;}
+    case "esporta":{const q=S.quizzes.find(function(x){return x.id===S.quizId;});if(q)esporta(q);return;}
+    case "copia-esporta":{const ta=document.getElementById("testoEsporta");if(!ta)return;ta.select();try{navigator.clipboard.writeText(ta.value).then(function(){toast("Frase copiata: incollala in una chat con Claude.");},function(){toast("Seleziona il testo e copialo a mano.");});}catch(e){toast("Seleziona il testo e copialo a mano.");}return;}
     case "copia-avvio":{const ta=document.getElementById("testoAvvio");if(!ta)return;const ok=function(){toast("Frase copiata: incollala in una chat con Claude.");};
       try{navigator.clipboard.writeText(ta.value).then(ok,function(){ta.select();toast("Copia non permessa qui: la frase è selezionata, premi Ctrl+C.");});}catch(e){ta.select();toast("La frase è selezionata: premi Ctrl+C.");}return;}
     case "vtog":S.openG=S.openG||{};S.openG[d.id]=!S.openG[d.id];return render();
