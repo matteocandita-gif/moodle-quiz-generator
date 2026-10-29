@@ -120,9 +120,10 @@ Ai siti dimostrativi dell'utente, sempre in una nuova scheda:
 
 ## Testo delle domande
 
-- Uno o due paragrafi di situazione e consegna; parole chiave della consegna in grassetto.
+- Uno o due paragrafi di situazione e consegna; parole chiave della consegna in grassetto. Negli elenchi di 4 o più voci (requisiti, passi) una parola chiave in grassetto per voce, quella che la distingue; niente grassetti negli elenchi brevi e nelle domande corte.
+- Il risultato atteso di una pagina HTML, quando ha più elementi, va nel riquadro «Visualizzazione nel browser» (blocco ```` ```html risultato ```` della dashboard): barra grigia con tre pallini e la scritta, pagina bianca sotto. I titoli `h1`/`h2` dentro il riquadro sono ammessi: sono il risultato, non la struttura della domanda.
 - Poi, se servono, la tabella di dati e il codice.
-- Niente `h1`/`h2`: se serve separare parti, un paragrafo in grassetto.
+- Niente `h1`/`h2` (fuori dal riquadro del risultato): se serve separare parti, un paragrafo in grassetto.
 - Un riquadro (stessa forma delle pagine) solo per indicazioni lunghe o un N.B. che non deve sfuggire.
 - Lo scenario ricorrente è la **Libreria Pagina 42** (database `dblibreria`, tabella `Libri (ISBN, Titolo, Autore, Prezzo)`): usalo quando l'utente non indica altro, così domande, pagine e siti dimostrativi parlano dello stesso caso.
 

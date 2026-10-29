@@ -237,6 +237,13 @@ textarea.ctl.mono{font:12.5px/1.5 var(--mono)}
 .md .anteprima{flex:1 1 200px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;color:#111;padding:8px 14px;min-width:0}
 .md .anteprima .anlab{display:block;font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#5F706C;margin-bottom:4px}
 .md .anbody th,.md .anbody td{border:1px solid #888;background:none;color:#111}
+.md .risul{border:1px solid #999;border-radius:6px;overflow:hidden;margin:0 0 1em;max-width:75ch;background:#fff;color:#111}
+.md .risul .rbar{display:flex;align-items:center;gap:4px;background:#e3e3e3;border-bottom:1px solid #999;padding:4px 10px;font-size:12px;color:#555}
+.md .risul .rbar i{display:inline-block;width:9px;height:9px;border-radius:50%}
+.md .risul .rbar i:nth-child(1){background:#e06c5f}.md .risul .rbar i:nth-child(2){background:#e5b84f}.md .risul .rbar i:nth-child(3){background:#6cbf6a}
+.md .risul .rbar span{margin-left:6px}
+.md .risul .anbody{padding:8px 14px;overflow-x:auto}
+.md .risul .imgph{margin:0;color:#5F706C;font-style:italic}
 .md .anbody>*:last-child{margin-bottom:0}
 .md pre.code{background:var(--code-bg);border:1px solid var(--line);border-radius:6px;padding:10px 14px;overflow-x:auto;margin:0 0 1em;font:13px/1.6 var(--mono)}
 .md pre.code code{background:none;padding:0;font:inherit}
@@ -533,7 +540,10 @@ function mdBlocchi(L){
   const LI=/^\s*(?:[-*]|\d+[.)])\s+/,TB=/^\s*\|.*\|\s*$/,HD=/^(#{1,3})\s+(.*)$/,FN=/^```/,BX=/^:::(\w+)\s*(.*)$/;
   const SEP=/^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/;
   const fmt=function(x){return x.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>").replace(/__(.+?)__/g,"<u>$1</u>").replace(/(^|[^*\w])\*([^*\s][^*]*)\*(?![*\w])/g,"$1<em>$2</em>");};
-  const inl=function(t){let res="",last=0;t.replace(/`([^`\n]+)`/g,function(m,c,idx){res+=fmt(esc(t.slice(last,idx)))+"<code>"+esc(c)+"</code>";last=idx+m.length;return m;});return res+fmt(esc(t.slice(last)));};
+  /* un grassetto che contiene un codice in linea (**dentro `<body>`**) diventa segnaposto prima di separare il codice */
+  const inl=function(t){t=t.replace(/\*\*(?=\S)([^\n]+?)\*\*/g,function(m,c){return c.indexOf("`")>=0&&!/\s$/.test(c)?"\u0002"+c+"\u0003":m;});
+    let res="",last=0;t.replace(/`([^`\n]+)`/g,function(m,c,idx){res+=fmt(esc(t.slice(last,idx)))+"<code>"+esc(c)+"</code>";last=idx+m.length;return m;});
+    return (res+fmt(esc(t.slice(last)))).replace(/\u0002/g,"<strong>").replace(/\u0003/g,"</strong>");};
   const cells=function(l){return l.trim().replace(/^\|/,"").replace(/\|$/,"").split("|").map(function(c){return c.trim();});};
   const stop=function(l){return !l.trim()||FN.test(l)||HD.test(l)||LI.test(l)||TB.test(l)||BX.test(l)||l.trim()===":::"||OPZ_RE.test(l)||isCop(l);};
   while(i<L.length){
@@ -541,6 +551,11 @@ function mdBlocchi(L){
     if(FN.test(ln)){const info=ln.slice(3).trim(),buf=[];i++;while(i<L.length&&!FN.test(L[i])){buf.push(L[i]);i++;}i++;
       const pre='<pre class="code"><code>'+esc(buf.join("\n"))+"</code></pre>";
       /* ```html anteprima: il codice e, accanto, come lo mostra il browser */
+      /* ```html risultato: solo il risultato, in una cornice da finestra del browser; con una sola immagine
+         (schermata, per esempio dei form) la pagina mostra il nome del file, perché le immagini non sono qui */
+      if(/\brisultato\b/.test(info)){const src=buf.join("\n").trim(),mi=src.match(/^!\[([^\]]*)\]\(([^)\s]+)\)$/);
+        out.push('<div class="risul"><div class="rbar"><i></i><i></i><i></i><span>Visualizzazione nel browser</span></div><div class="anbody">'+
+          (mi?'<p class="imgph">Schermata '+esc(mi[2])+(mi[1]?": "+esc(mi[1]):"")+"</p>":anteprimaHTML(src))+"</div></div>");continue;}
       out.push(/\banteprima\b/.test(info)?'<div class="prev2">'+pre+'<div class="anteprima"><span class="anlab">Nel browser</span><div class="anbody">'+anteprimaHTML(buf.join("\n"))+"</div></div></div>":pre);continue;}
     if(!ln.trim()){i++;continue;}
     if((m=ln.match(BX))){
@@ -1030,7 +1045,7 @@ function renderHeader(){
   ["home","scaletta","dettaglio"].forEach(function(v){$("#tab-"+v).setAttribute("aria-selected",(S.view===v||(v==="home"&&S.view==="nuovo"))?"true":"false");});
 }
 /* ------------------------------------------------------------------ vista iniziale e nuovo quiz */
-const VERSIONE_PAGINA="0.3.13";
+const VERSIONE_PAGINA="0.3.14";
 const PERCORSO_IMPOSTAZIONI="impostazioni/avvio";
 /* depositi delle domande (banche qbank dei corsi deposito): li scrive Claude leggendo un backup */
 const PERCORSO_DEPOSITI="impostazioni/depositi";

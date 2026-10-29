@@ -2,6 +2,21 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.8.6 — 30/10/2026
+
+Risultato nel browser nei materiali HTML (sostituisce la regola «mai l'anteprima nell'esempio svolto»):
+
+- Nuovo blocco ```` ```html risultato ````: il **solo risultato**, senza il codice, in un riquadro a forma di finestra del browser (barra grigia con tre pallini e la scritta «Visualizzazione nel browser», pagina bianca sotto), così la scritta non si scambia per parte della pagina. Per esempi svolti, consegne (anche il risultato parziale) ed esercizi «dal risultato al codice»; solo quando l'output ha più elementi, mai per una scritta, un paragrafo o un titolo. Dentro può esserci una sola immagine: per i **form** il risultato è una schermata, perché la pagina del quiz è già un form.
+- **Dashboard**: nel Dettaglio il blocco compare con la stessa cornice; con una schermata, il nome del file. L'anteprima accanto al codice (```` ```html anteprima ````) resta com'è, con «Nel browser».
+- `importa_mbz.py` riconosce il riquadro nei backup e lo riporta nel blocco ```` ```html risultato ````; il controllo dell'HTML non segnala più i titoli `h1`/`h2` che stanno dentro il riquadro.
+- Esercizi **«dal risultato al codice»**, già dalla prima esercitazione sui tag: risposta multipla tra codici quasi uguali (letture più complesse) oppure Cloze di lettura del risultato o della schermata (riconoscimento semplice), scelti volta per volta (`SKILL.md` di progettazione-quiz, `catalogo.md`).
+
+Testi più facili da scorrere:
+
+- **Grassetti**: negli elenchi di 4 o più voci (requisiti, passi, criteri) la parola chiave che distingue ogni voce, una per voce; nel testo continuo di più di 4-5 righe un grassetto lieve sulle azioni da fare e sui concetti nuovi; niente negli elenchi brevi e nelle domande corte.
+- Il **grassetto che contiene codice in linea** (`**dentro `<body>`**`) ora diventa grassetto anche in Moodle e nella **Dashboard** (prima restavano gli asterischi).
+- **Esercitazioni autoportanti**: la parte svolta insieme in classe sta all'inizio della lezione e non si formalizza negli esercizi; al massimo un richiamo in apertura, «Dopo aver visto insieme…».
+
 ## 0.8.5 — 27/10/2026
 
 Codice da leggere non eseguibile:

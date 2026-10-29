@@ -32,7 +32,8 @@ un preset; si può sempre scegliere un tipo vero dal menù. Le impostazioni dell
 esercitazione) vengono dal backup (campo presetMbz), il tempo dal limite del quiz.
 
 Che cosa non torna uguale (e lo dice il rapporto, con la riga «da rivedere»):
-- immagini: la dashboard non le gestisce; nella traccia resta il segnaposto [immagine: nome];
+- immagini: la dashboard non le gestisce; nella traccia resta il segnaposto [immagine: nome] (nel riquadro
+  del risultato resta ![testo](nome), come lo scrive la dashboard);
 - colori e formattazioni particolari dell'editor (testo rosso, font): si perdono;
 - un a capo dentro un'opzione di risposta multipla diventa « / »;
 - nelle domande aperte il feedback generale (visibile allo studente) diventa la correzione,
@@ -149,6 +150,16 @@ def albero(src):
     a.feed(src or "")
     a.close()
     return a.radice
+
+
+def serializza(n):
+    """HTML di un nodo dell'albero, per ricostruire il contenuto di un riquadro del risultato."""
+    if isinstance(n, str):
+        return html.escape(n, quote=False)
+    attrs = "".join(' %s="%s"' % (k, html.escape(v or "", quote=True)) for k, v in n.attrs.items())
+    if n.tag in VUOTI:
+        return "<%s%s>" % (n.tag, attrs)
+    return "<%s%s>%s</%s>" % (n.tag, attrs, "".join(serializza(f) for f in n.figli), n.tag)
 
 
 def stile(n):
@@ -292,7 +303,7 @@ class Convertitore:
         if t == "table":
             return self.tabella(n)
         if t == "div":
-            an = self.anteprima(n)
+            an = self.anteprima(n) or self.risultato(n)
             if an:
                 return an
             box = self.riquadro(n)
@@ -323,6 +334,25 @@ class Convertitore:
             return None
         intestazione, resto = codice[0].split("\n", 1)
         return ["%s anteprima\n%s" % (intestazione if intestazione != "```" else "```html", resto)]
+
+    def risultato(self, n):
+        """Riquadro del solo risultato (```html risultato di da_dashboard.py): una cornice con la barra
+        «Visualizzazione nel browser» e sotto la pagina bianca con l'HTML interpretato o una schermata.
+        Torna il blocco ```html risultato con l'HTML ricostruito, o con l'immagine ![testo](file)."""
+        figli = [f for f in n.figli if not (isinstance(f, str) and not f.strip())]
+        if len(figli) != 2 or any(isinstance(f, str) or f.tag != "div" for f in figli):
+            return None
+        if re.sub(r"\s+", " ", figli[0].testo()).strip() != "Visualizzazione nel browser":
+            return None
+        interni = [f for f in figli[1].figli if not (isinstance(f, str) and not f.strip())]
+        if len(interni) == 1 and not isinstance(interni[0], str) and interni[0].tag == "img":
+            img = interni[0]
+            nome = os.path.basename(html.unescape(img.attrs.get("src") or "immagine")).split("?")[0]
+            self.immagini.append(nome)
+            self.perdi("immagini (nella traccia resta il nome del file)")
+            return ["```html risultato\n![%s](%s)\n```" % ((img.attrs.get("alt") or "").replace("]", ")"), nome)]
+        corpo = "".join(serializza(f) for f in figli[1].figli).strip("\n")
+        return ["```html risultato\n%s\n```" % corpo] if corpo.strip() else None
 
     def riquadro(self, n):
         m = re.search(r"background-color:\s*(#[0-9a-f]{6})", stile(n))

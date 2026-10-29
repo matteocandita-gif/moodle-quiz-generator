@@ -68,7 +68,7 @@ def marca_lettura(tr):
     def sost(m):
         parole = m.group(1).split()
         if parole and parole[0].lower() in LINGUE_LETTURA and not (
-                {"esempio", "leggere", "anteprima", "semplice"} & set(parole)):
+                {"esempio", "leggere", "anteprima", "risultato", "semplice"} & set(parole)):
             return "```" + " ".join(parole + ["leggere"])
         return m.group(0)
     return re.sub(r"(?m)^```(\S.*)$", sost, tr)
@@ -156,6 +156,9 @@ def inl(t):
         return "\x00%d\x00" % (len(campi) - 1)
     t = CAMPO_RE.sub(tieni, t)
     t = IMG_RE.sub(tieni_img, t)
+    # grassetto che contiene un codice in linea (**dentro `<body>`**): i segni ** diventano segnaposto prima di
+    # separare il codice, così il grassetto può attraversarlo
+    t = re.sub(r"\*\*(?=\S)(.+?)(?<=\S)\*\*", lambda m: "\x02" + m.group(1) + "\x03" if "`" in m.group(1) else m.group(0), t)
     out = ""
     for p in re.split(r"(`[^`]+`)", t):
         if len(p) > 2 and p[0] == "`" and p[-1] == "`":
@@ -164,6 +167,7 @@ def inl(t):
             s = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", esc(p))
             s = re.sub(r"__(.+?)__", r"<u>\1</u>", s)
             out += re.sub(r"(?<![*\w])\*([^*\s][^*]*)\*(?![*\w])", r"<em>\1</em>", s)
+    out = out.replace("\x02", "<strong>").replace("\x03", "</strong>")
     return re.sub(r"\x00(\d+)\x00", lambda m: campi[int(m.group(1))], out)
 
 
@@ -288,7 +292,26 @@ def html_blocchi(bl, in_box=False, pagina=False):
             out.append('<%s style="%s">\n%s\n</%s>' % (tipo, LISTS, "\n".join("<li>%s</li>" % inl(x) for x in dati), tipo))
         elif tipo == "code":
             lang, codice = dati
-            if re.search(r"\banteprima\b", lang):
+            if re.search(r"\brisultato\b", lang):
+                # ```html risultato: solo il risultato nel browser, senza il codice (consegne, esempi svolti,
+                # domande «dal risultato al codice»)
+                # il contenuto è l'HTML da mostrare, oppure una sola immagine ![testo](file.png): la schermata del
+                # browser quando l'HTML vero non si può mettere nella domanda (per esempio i campi dei form, perché la
+                # pagina del quiz è già un form)
+                m_img = IMG_RE.fullmatch(codice.strip())
+                contenuto = img_html(m_img.group(1), m_img.group(2)) if m_img else codice.strip("\n")
+                # cornice da finestra del browser: la barra grigia con «Visualizzazione nel browser» sta fuori dalla pagina bianca,
+                # così non si scambia per parte del risultato
+                pallino = ('<span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%%; '
+                           'background-color: %s; margin-right: 4px; vertical-align: middle;"></span>')
+                out.append('<div style="border: 1px solid #999999; border-radius: 6px; margin: 8px 0 16px; '
+                           'max-width: 100%%; overflow: hidden;">\n'
+                           '<div style="background-color: #e3e3e3; border-bottom: 1px solid #999999; padding: 4px 10px; '
+                           'font-size: 0.8em; color: #555555;">%s%s%s<span style="margin-left: 8px; vertical-align: middle;">'
+                           'Visualizzazione nel browser</span></div>\n'
+                           '<div style="background-color: #ffffff; padding: 8px 14px; overflow-x: auto;">\n%s\n</div>\n</div>'
+                           % (pallino % "#e06c5f", pallino % "#e5b84f", pallino % "#6cbf6a", contenuto))
+            elif re.search(r"\banteprima\b", lang):
                 # ```html anteprima: il codice e, accanto, il risultato nel browser (l'HTML stesso, interpretato da Moodle)
                 lingua = lang.replace("anteprima", "").strip() or "html"
                 out.append('<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; margin: 8px 0 16px;">\n'

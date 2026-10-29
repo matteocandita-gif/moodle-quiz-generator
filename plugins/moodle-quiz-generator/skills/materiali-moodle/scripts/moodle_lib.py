@@ -576,7 +576,10 @@ def controlla_html(html, tipo):
     for tag in ("html", "head", "body", "style", "script"):
         if re.search(r"<%s[\s>]" % tag, html, re.I):
             errori.append("tag <%s>: Moodle vuole un frammento HTML, senza %s" % (tag, tag))
-    if tipo not in ("description", "pagina") and re.search(r"<h[12][\s>]", html, re.I):
+    # i titoli dentro il riquadro del solo risultato («Visualizzazione nel browser», ```html risultato di
+    # da_dashboard.py) sono la pagina mostrata, non lo stile della domanda: non contano
+    senza_risultato = re.sub(r"Visualizzazione nel browser</span></div>.*?</div>\s*</div>", "", html, flags=re.S)
+    if tipo not in ("description", "pagina") and re.search(r"<h[12][\s>]", senza_risultato, re.I):
         avvisi.append("titolo <h1>/<h2> nel testo di una domanda: le domande usano "
                       "lo stile compatto, senza titoli grandi")
     if "[[codice" in html or "[[/codice]]" in html:
