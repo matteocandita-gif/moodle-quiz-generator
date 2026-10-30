@@ -9,7 +9,7 @@ Una pagina privata per tutte le tracce dell'utente. Il codice sta in `assets/das
 - **Scheda**, quattro viste:
   - *Traccia*: i blocchi modificabili (titolo, realtà, che cosa presentare, query con gradino e requisito, pagina PHP), «Salva le modifiche»; il riquadro «Chiedi a Claude» scrive `richiestaModifica` e avvia «Traccia da modificare: <id>».
   - *Note per il docente*: costrutti, ipotesi attese, punti delicati, query con il loro requisito, durata, opzioni, il `.er`.
-  - *Soluzione*: diagramma, ipotesi, documentazione, schema, query; «Genera la soluzione» avvia «Soluzione da generare: <id>». Sotto il pulsante una riga avvisa che si apre una chat nuova e che, se della traccia si è parlato in una chat, conviene chiedere la soluzione lì.
+  - *Soluzione*: diagramma, ipotesi, documentazione, schema, query; «Scarica Word» e «Scarica HTML» della soluzione completa (la pagina li compone da sola con `docxSoluzione` e `htmlSoluzione`, prendendo il diagramma dagli asset); «Genera la soluzione» avvia «Soluzione da generare: <id>». Sotto il pulsante una riga avvisa che si apre una chat nuova e che, se della traccia si è parlato in una chat, conviene chiedere la soluzione lì.
   - In testa alla scheda, se c'è `sessione`, il link «apri la chat» alla conversazione in cui Claude ha scritto la traccia.
   - *Uscite*: Word, Word PDP, HTML (copia o file), le riduzioni PDP punto per punto, i pesi della griglia (personalizzabili, totale 100).
 - **Stato** della traccia a mano (Richiesta, Da rivedere, Approvata, Usata); **archivia** o **elimina** (con conferma nella pagina).
@@ -50,7 +50,7 @@ L'utente non è presente: niente domande, le scelte e i dubbi in `nota` (una rig
 2. Scrivi il `.er` di `docente.er` in un file e genera con `diagrammi-er`: il PNG (`disegna_er.py`, guardalo prima di caricarlo), lo schema (`schema_relazionale.py --formato=libro`), la documentazione (`documentazione.py`) e la soluzione completa in HTML e Word (`soluzione.py`, `--file=docx`).
 3. Carica il PNG come asset della pagina (`Artifact`, `action: "publish"` con l'`url` della pagina, `file_path` del PNG e `asset: true`) e prendi l'id dal risultato.
 4. `update` del documento con `soluzione` (vedi sopra; le query dai blocchi `query:` del `.er`), togli `inLavorazione`.
-5. Consegna nella sessione con `SendUserFile` l'HTML e il Word della soluzione e il `.drawio`.
+5. Consegna nella sessione con `SendUserFile` il `.drawio` (da ritoccare); Word e HTML della soluzione l'utente li scarica dalla scheda, ma se te li chiede in chat generali con `uscite_traccia.js --soluzione-word/--soluzione-html --png`.
 
 ## Installare
 

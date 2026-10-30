@@ -203,12 +203,14 @@ pre.codice{background:var(--code);border:1px solid var(--line);border-radius:7px
   var esc = function (s) {
     return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   };
-  /* **grassetto** e *corsivo* in pezzi {t, b, i} */
+  /* **grassetto**, *corsivo* (solo tra spazi: l'asterisco delle chiavi esterne non è corsivo), <u>sottolineato</u> e `codice` in pezzi {t, b, i, u, c} */
   function pezzi(testo) {
-    var out = [], re = /(\*\*[^*]+\*\*|\*[^*]+\*)/g, s = String(testo || ""), last = 0, m;
+    var out = [], re = /(\*\*[^*]+\*\*|<u>.*?<\/u>|`[^`]+`|(?<![^\s(«"])\*[^*\s](?:[^*]*[^*\s])?\*(?![\w*]))/g, s = String(testo || ""), last = 0, m;
     while ((m = re.exec(s))) {
       if (m.index > last) out.push({ t: s.slice(last, m.index) });
-      if (m[0].slice(0, 2) === "**") out.push({ t: m[0].slice(2, -2), b: true });
+      if (m[0].slice(0, 2) === "**") pezzi(m[0].slice(2, -2)).forEach(function (q) { q.b = true; out.push(q); });
+      else if (m[0].slice(0, 3) === "<u>") out.push({ t: m[0].slice(3, -4), u: true });
+      else if (m[0].charAt(0) === "`") out.push({ t: m[0].slice(1, -1), c: true });
       else out.push({ t: m[0].slice(1, -1), i: true });
       last = m.index + m[0].length;
     }
@@ -398,7 +400,8 @@ pre.codice{background:var(--code);border:1px solid var(--line);border-radius:7px
   var W = {
     run: function (p, opz) {
       opz = opz || {};
-      var rpr = (p.b || opz.b ? "<w:b/>" : "") + (p.i || opz.i ? "<w:i/>" : "") + (opz.size ? '<w:sz w:val="' + opz.size + '"/><w:szCs w:val="' + opz.size + '"/>' : "");
+      var rpr = (p.c || opz.mono ? '<w:rFonts w:ascii="Consolas" w:hAnsi="Consolas" w:cs="Consolas"/>' : "") + (p.b || opz.b ? "<w:b/>" : "") + (p.i || opz.i ? "<w:i/>" : "") +
+        (p.u ? '<w:u w:val="single"/>' : "") + (opz.size ? '<w:sz w:val="' + opz.size + '"/><w:szCs w:val="' + opz.size + '"/>' : "");
       return "<w:r>" + (rpr ? "<w:rPr>" + rpr + "</w:rPr>" : "") + '<w:t xml:space="preserve">' + esc(p.t) + "</w:t></w:r>";
     },
     par: function (testo, opz) {
@@ -516,23 +519,28 @@ pre.codice{background:var(--code);border:1px solid var(--line);border-radius:7px
   }
 
   var XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
-  var NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+  var NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"';
   function fileDocx(t, opz) {
     opz = opz || {};
     var c = corpoWord(t, !!opz.pdp);
+    return pacchetto(c.corpo, c.sezFinale, c.liste, t.titolo, null);
+  }
+  function pacchetto(corpo, sezFinale, liste, titolo, png) {
+    var c = { corpo: corpo, sezFinale: sezFinale, liste: liste };
     var nums = "";
     for (var i = 1; i <= c.liste; i++) nums += '<w:num w:numId="' + i + '"><w:abstractNumId w:val="0"/><w:lvlOverride w:ilvl="0"><w:startOverride w:val="1"/></w:lvlOverride></w:num>';
-    return {
-      "[Content_Types].xml": XML + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>' +
+    var out = {
+      "[Content_Types].xml": XML + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>' + (png ? '<Default Extension="png" ContentType="image/png"/>' : "") +
         '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>' +
         '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>' +
         '<Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>' +
         '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>',
       "_rels/.rels": XML + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>' +
         '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/></Relationships>',
-      "docProps/core.xml": XML + '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>' + esc(t.titolo) + "</dc:title><dc:creator>Moodle: quiz generator</dc:creator></cp:coreProperties>",
+      "docProps/core.xml": XML + '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>' + esc(titolo) + "</dc:title><dc:creator>Moodle: quiz generator</dc:creator></cp:coreProperties>",
       "word/_rels/document.xml.rels": XML + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
-        '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/></Relationships>',
+        '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/>' +
+        (png ? '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/diagramma.png"/>' : "") + "</Relationships>",
       "word/styles.xml": XML + "<w:styles " + NS + '><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:eastAsia="Arial" w:cs="Arial"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:lang w:val="it-IT"/></w:rPr></w:rPrDefault>' +
         '<w:pPrDefault><w:pPr><w:spacing w:after="120" w:line="264" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>' +
         '<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style>' +
@@ -540,6 +548,140 @@ pre.codice{background:var(--code);border:1px solid var(--line);border-radius:7px
       "word/numbering.xml": XML + "<w:numbering " + NS + '><w:abstractNum w:abstractNumId="0"><w:multiLevelType w:val="singleLevel"/><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="decimal"/><w:lvlText w:val="%1."/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="720" w:hanging="360"/></w:pPr></w:lvl></w:abstractNum>' + nums + "</w:numbering>",
       "word/document.xml": XML + "<w:document " + NS + "><w:body>" + c.corpo + c.sezFinale + "</w:body></w:document>"
     };
+    if (png) out["word/media/diagramma.png"] = png.byte;
+    return out;
+  }
+
+  /* ------------------------------------------------------------------ soluzione (Word e HTML)
+     Dalla soluzione salvata nella traccia (formato.md: diagramma PNG, documentazione e schema in Markdown,
+     query): traccia, ipotesi, diagramma, documentazione, schema relazionale, query, come la soluzione
+     completa di diagrammi-er. */
+  function mdBlocchi(testo) {
+    var righe = String(testo || "").split("\n"), out = [], i = 0;
+    var celle = function (x) { return x.trim().replace(/^\||\|$/g, "").split("|").map(function (c) { return c.trim(); }); };
+    while (i < righe.length) {
+      var r = righe[i];
+      if (/^\s*\|/.test(r)) {
+        var tab = []; while (i < righe.length && /^\s*\|/.test(righe[i])) { tab.push(righe[i]); i++; }
+        out.push({ tipo: "tabella", testa: celle(tab[0]), righe: tab.slice(2).map(celle) }); continue;
+      }
+      var h = /^#{1,4}\s+(.*)$/.exec(r) || /^\*\*([^*]+)\*\*\s*$/.exec(r);
+      if (h && !/\(/.test(h[1])) { out.push({ tipo: "titolo", testo: h[1] }); i++; continue; }
+      if (/^\s*[-*]\s/.test(r)) {
+        var v = []; while (i < righe.length && /^\s*[-*]\s/.test(righe[i])) { v.push(righe[i].replace(/^\s*[-*]\s/, "")); i++; }
+        out.push({ tipo: "elenco", voci: v }); continue;
+      }
+      if (r.trim()) out.push({ tipo: "p", testo: r.trim() });
+      i++;
+    }
+    return out;
+  }
+  /* la documentazione di diagrammi-er comincia con le ipotesi: si separano, perché nella soluzione vengono prima */
+  function dividiIpotesi(blocchi) {
+    var ip = [], resto = [], dentro = false;
+    blocchi.forEach(function (b) {
+      if (b.tipo === "titolo") dentro = /^ipotesi/i.test(b.testo);
+      if (dentro) { if (b.tipo === "elenco") ip = ip.concat(b.voci); else if (b.tipo === "p") ip.push(b.testo); }
+      else resto.push(b);
+    });
+    return { ipotesi: ip, resto: resto };
+  }
+  function datiSoluzione(t) {
+    var s = t.soluzione || {}, d = dividiIpotesi(mdBlocchi(s.documentazione));
+    var ipotesi = (s.ipotesi || []).concat(d.ipotesi.filter(function (x) { return (s.ipotesi || []).indexOf(x) < 0; }));
+    return { ipotesi: ipotesi, documentazione: d.resto, schema: mdBlocchi(s.schema), query: s.query || [] };
+  }
+  function dimPng(b) {
+    if (!b || b.length < 24) return null;
+    var u = function (o) { return ((b[o] << 24) >>> 0) + (b[o + 1] << 16) + (b[o + 2] << 8) + b[o + 3]; };
+    return { w: u(16), h: u(20) };
+  }
+  function immagineWord(png, maxW, maxH) {
+    var d = dimPng(png) || { w: 800, h: 400 }, emu = 914400 / 96;
+    var sc = Math.min(1, maxW / (d.w * emu), maxH / (d.h * emu)), cx = Math.round(d.w * emu * sc), cy = Math.round(d.h * emu * sc);
+    return '<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="' + cx + '" cy="' + cy + '"/><wp:docPr id="1" name="Diagramma E/R"/>' +
+      '<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">' +
+      '<pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="1" name="diagramma.png"/><pic:cNvPicPr/></pic:nvPicPr>' +
+      '<pic:blipFill><a:blip r:embed="rId3"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' + cx + '" cy="' + cy + '"/></a:xfrm>' +
+      '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>';
+  }
+  function tabellaWord(testa, righe, larghezza) {
+    var n = testa.length, w = Math.floor(larghezza / n);
+    var bordo = '<w:tblBorders>' + ["top", "left", "bottom", "right", "insideH", "insideV"].map(function (b) { return "<w:" + b + ' w:val="single" w:sz="4" w:space="0" w:color="808080"/>'; }).join("") + "</w:tblBorders>";
+    var cella = function (x, intest) {
+      return '<w:tc><w:tcPr><w:tcW w:w="' + w + '" w:type="dxa"/>' + (intest ? '<w:shd w:val="clear" w:color="auto" w:fill="E7E6E6"/>' : "") + "</w:tcPr>" + W.par(x, { dopo: 0, size: 16, b: intest }) + "</w:tc>";
+    };
+    return '<w:tbl><w:tblPr><w:tblW w:w="' + w * n + '" w:type="dxa"/>' + bordo + '<w:tblLayout w:type="fixed"/></w:tblPr><w:tblGrid>' +
+      testa.map(function () { return '<w:gridCol w:w="' + w + '"/>'; }).join("") + "</w:tblGrid>" +
+      '<w:tr><w:trPr><w:tblHeader/></w:trPr>' + testa.map(function (x) { return cella(x, true); }).join("") + "</w:tr>" +
+      righe.map(function (r) { return "<w:tr><w:trPr><w:cantSplit/></w:trPr>" + testa.map(function (_, k) { return cella(r[k] || "", false); }).join("") + "</w:tr>"; }).join("") + "</w:tbl>";
+  }
+  function blocchiWord(bl, larghezza) {
+    return bl.map(function (b) {
+      if (b.tipo === "tabella") return tabellaWord(b.testa, b.righe, larghezza) + W.par("", { dopo: 60 });
+      if (b.tipo === "titolo") return W.par([{ t: b.testo.replace(/\*\*/g, ""), b: true }], { prima: 120, dopo: 60 });
+      if (b.tipo === "elenco") return b.voci.map(function (v) { return W.par([{ t: "• " }].concat(pezzi(v)), { rientro: 360, dopo: 40 }); }).join("");
+      return W.par(b.testo, { dopo: 80 });
+    }).join("");
+  }
+  var titoloSez = function (s) { return W.par([{ t: s, b: true }], { prima: 240, dopo: 120, size: 28 }); };
+  function fileDocxSoluzione(t, png) {
+    var ds = datiSoluzione(t), x = t.testo || {}, b = [];
+    b.push(W.par([{ t: "Soluzione: " + (t.titolo || ""), b: true }], { size: 32, dopo: 200 }));
+    b.push(titoloSez("Traccia"));
+    paragrafi(x.realta).forEach(function (p) { b.push(W.par(p, { giustifica: true })); });
+    if (ds.ipotesi.length) { b.push(titoloSez("Ipotesi aggiuntive")); ds.ipotesi.forEach(function (v) { b.push(W.par([{ t: "• " }].concat(pezzi(v)), { rientro: 360, dopo: 40 })); }); }
+    /* diagramma e documentazione su pagine orizzontali: sono larghi */
+    b.push(W.par("", { dopo: 0, sez: SEZ_VERTICALE }));
+    b.push(titoloSez("Diagramma E/R"));
+    if (png) b.push(immagineWord(png, 15398 * 635, 8600 * 635));
+    else b.push(W.par([{ t: "(diagramma non disponibile)", i: true }]));
+    if (ds.documentazione.length) { b.push(titoloSez("Documentazione")); b.push(blocchiWord(ds.documentazione, 15398)); }
+    b.push(W.par("", { dopo: 0, sez: SEZ_ORIZZONTALE }));
+    b.push(titoloSez("Schema relazionale"));
+    b.push(blocchiWord(ds.schema, 9638));
+    if (ds.query.length) {
+      b.push(titoloSez("Query SQL"));
+      ds.query.forEach(function (q, i) {
+        b.push(W.par([{ t: (i + 1) + ". ", b: true }].concat(pezzi(q.richiesta)), { prima: 120, dopo: 60 }));
+        String(q.sql || "").split("\n").forEach(function (r) { b.push(W.par([{ t: r.replace(/\t/g, "    ") || " " }], { mono: true, size: 18, dopo: 0, rientro: 360 })); });
+      });
+    }
+    return pacchetto(b.join(""), SEZ_VERTICALE, 0, "Soluzione: " + (t.titolo || ""), png ? { byte: png } : null);
+  }
+  function docxSoluzione(t, png) { return zip(fileDocxSoluzione(t, png)); }
+  function base64(b) {
+    var s = "", tab = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    for (var i = 0; i < b.length; i += 3) {
+      var n = (b[i] << 16) | ((b[i + 1] || 0) << 8) | (b[i + 2] || 0);
+      s += tab[(n >> 18) & 63] + tab[(n >> 12) & 63] + (i + 1 < b.length ? tab[(n >> 6) & 63] : "=") + (i + 2 < b.length ? tab[n & 63] : "=");
+    }
+    return s;
+  }
+  function htmlBlocchi(bl) {
+    return bl.map(function (b) {
+      if (b.tipo === "tabella") return '<div class="tab"><table><thead><tr>' + b.testa.map(function (c) { return "<th>" + htmlInline(c) + "</th>"; }).join("") + "</tr></thead><tbody>" +
+        b.righe.map(function (r) { return "<tr>" + b.testa.map(function (_, k) { return "<td>" + htmlInline(r[k] || "") + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table></div>";
+      if (b.tipo === "titolo") return "<h3>" + htmlInline(b.testo.replace(/\*\*/g, "")) + "</h3>";
+      if (b.tipo === "elenco") return "<ul>" + b.voci.map(function (v) { return "<li>" + htmlInline(v) + "</li>"; }).join("") + "</ul>";
+      return "<p>" + htmlInline(b.testo) + "</p>";
+    }).join("\n");
+  }
+  function htmlSoluzione(t, png) {
+    var ds = datiSoluzione(t), x = t.testo || {}, o = [];
+    o.push('<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Soluzione: ' + esc(t.titolo) + "</title>");
+    o.push("<style>body{font:15px/1.5 Arial,Helvetica,sans-serif;color:#222;max-width:1100px;margin:24px auto;padding:0 16px}h1{font-size:1.5rem}h2{font-size:1.15rem;margin-top:28px;border-bottom:1px solid #ccc;padding-bottom:4px}h3{font-size:1rem;margin:18px 0 6px}" +
+      ".tab{overflow-x:auto}table{border-collapse:collapse;font-size:.85rem;width:100%}th,td{border:1px solid #999;padding:4px 7px;text-align:left;vertical-align:top}th{background:#eee}" +
+      "img{max-width:100%;height:auto}pre{background:#f4f4f4;border:1px solid #ddd;padding:10px;overflow-x:auto;font:13px/1.45 Consolas,monospace}@media print{h2{break-after:avoid}pre,tr{break-inside:avoid}}</style></head><body>");
+    o.push("<h1>Soluzione: " + esc(t.titolo) + "</h1>");
+    o.push("<h2>Traccia</h2>" + paragrafi(x.realta).map(function (p) { return "<p>" + htmlInline(p) + "</p>"; }).join(""));
+    if (ds.ipotesi.length) o.push("<h2>Ipotesi aggiuntive</h2><ul>" + ds.ipotesi.map(function (v) { return "<li>" + htmlInline(v) + "</li>"; }).join("") + "</ul>");
+    o.push("<h2>Diagramma E/R</h2>" + (png ? '<p><img alt="Diagramma E/R" src="data:image/png;base64,' + base64(png) + '"></p>' : "<p><em>(diagramma non disponibile)</em></p>"));
+    if (ds.documentazione.length) o.push("<h2>Documentazione</h2>" + htmlBlocchi(ds.documentazione));
+    o.push("<h2>Schema relazionale</h2>" + htmlBlocchi(ds.schema));
+    if (ds.query.length) o.push("<h2>Query SQL</h2>" + ds.query.map(function (q, i) { return "<p><strong>" + (i + 1) + ".</strong> " + htmlInline(q.richiesta) + "</p><pre>" + esc(q.sql) + "</pre>"; }).join(""));
+    o.push("</body></html>");
+    return o.join("\n");
   }
 
   /* ------------------------------------------------------------------ zip senza compressione */
@@ -579,13 +721,13 @@ pre.codice{background:var(--code);border:1px solid var(--line);border-radius:7px
     return { errori: err, avvisi: avv };
   }
 
-  return { html: html, docx: docx, fileDocx: fileDocx, griglia: griglia, fasce: fasce, distribuisci: distribuisci, nomeFile: nomeFile, controlla: controlla, pezzi: pezzi };
+  return { html: html, docx: docx, docxSoluzione: docxSoluzione, htmlSoluzione: htmlSoluzione, fileDocx: fileDocx, griglia: griglia, fasce: fasce, distribuisci: distribuisci, nomeFile: nomeFile, controlla: controlla, pezzi: pezzi };
 });
 
 /* ------------------------------------------------------------------ uso da riga di comando */
 if (typeof require !== "undefined" && typeof module !== "undefined" && require.main === module) {
   var fs = require("fs"), U = module.exports, a = process.argv.slice(2);
-  if (!a.length) { console.error("uso: node uscite_traccia.js TRACCIA.json [--word F.docx] [--pdp F.docx] [--html F.html] [--griglia]"); process.exit(2); }
+  if (!a.length) { console.error("uso: node uscite_traccia.js TRACCIA.json [--word F.docx] [--pdp F.docx] [--html F.html] [--griglia] [--soluzione-word F.docx] [--soluzione-html F.html] [--png DIAGRAMMA.png]"); process.exit(2); }
   var t = JSON.parse(fs.readFileSync(a[0], "utf8")), opt = function (k) { var i = a.indexOf(k); return i >= 0 ? (a[i + 1] && !/^--/.test(a[i + 1]) ? a[i + 1] : true) : null; };
   var c = U.controlla(t);
   c.errori.forEach(function (e) { console.log("ERRORE  " + e); });
@@ -595,6 +737,10 @@ if (typeof require !== "undefined" && typeof module !== "undefined" && require.m
   if (w) { var fw = w === true ? U.nomeFile(t) : w; fs.writeFileSync(fw, U.docx(t)); console.log("Word:     " + fw); }
   if (p) { var fp = p === true ? U.nomeFile(t, { pdp: true }) : p; fs.writeFileSync(fp, U.docx(t, { pdp: true })); console.log("Word PDP: " + fp); }
   if (h) { var fh = h === true ? U.nomeFile(t, { estensione: ".html" }) : h; fs.writeFileSync(fh, U.html(t)); console.log("HTML:     " + fh); }
+  var sw = opt("--soluzione-word"), sh = opt("--soluzione-html"), png = opt("--png"), pb = png && png !== true ? fs.readFileSync(png) : null;
+  if ((sw || sh) && !t.soluzione) { console.log("ERRORE  la traccia non ha ancora la soluzione"); process.exit(1); }
+  if (sw) { var fs1 = sw === true ? "Soluzione - " + U.nomeFile(t) : sw; fs.writeFileSync(fs1, U.docxSoluzione(t, pb && new Uint8Array(pb))); console.log("Soluzione Word: " + fs1); }
+  if (sh) { var fs2 = sh === true ? "Soluzione - " + U.nomeFile(t, { estensione: ".html" }) : sh; fs.writeFileSync(fs2, U.htmlSoluzione(t, pb && new Uint8Array(pb))); console.log("Soluzione HTML: " + fs2); }
   if (opt("--griglia")) {
     var g = U.griglia(t);
     g.righe.forEach(function (r) { if (r.max) console.log((r.area || r.macro).padEnd(32) + String(r.max).padStart(4) + "   " + r.fasce.join(" | ")); });
@@ -606,7 +752,7 @@ if (typeof require !== "undefined" && typeof module !== "undefined" && require.m
 <script>
 (function(){
 "use strict";
-var VERSIONE_PAGINA="1.0.2";
+var VERSIONE_PAGINA="1.0.3";
 var CONNETTORE="Claude Code Remote";
 var $=function(s){return document.querySelector(s);};
 var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
@@ -782,8 +928,10 @@ function noteHTML(t){
 function soluzioneHTML(t){
   var s=t.soluzione;
   if(!s)return'<div class="vuoto"><strong>Soluzione non ancora generata.</strong><br>Claude la ricava dal modello bersaglio con il diagramma, la documentazione, lo schema relazionale e le query provate.<div class="riga" style="justify-content:center;margin-top:12px"><button class="btn primario" data-act="soluzione"'+(S.inviando||t.inLavorazione?" disabled":"")+">Genera la soluzione</button></div>"+'<p class="mini muted" style="margin:10px auto 0;max-width:60ch">Il pulsante apre una chat nuova, che conosce solo ciò che è salvato nella traccia. Se della traccia hai parlato in una chat, chiedi lì «genera la soluzione»: resti nella stessa conversazione.</p></div>';
-  var h='<div class="foglio">';
-  if(s.png)h+='<div class="blocco"><div class="blocco-t"><h3>Diagramma E/R</h3></div><div class="diagramma"><img src="'+esc(/^https?:|^\//.test(s.png)?s.png:"/_blob/"+s.png)+'" alt="Diagramma E/R della soluzione"></div></div>';
+  var h='<section class="sezione"><h2>File della soluzione</h2><p class="sub">Con la traccia, le ipotesi, il diagramma, la documentazione, lo schema relazionale e le query.</p><div class="riga">'+
+    '<button class="btn primario" data-act="sol-word">Scarica Word</button><button class="btn" data-act="sol-html">Scarica HTML</button></div></section>';
+  h+='<div class="foglio">';
+  if(s.png)h+='<div class="blocco"><div class="blocco-t"><h3>Diagramma E/R</h3></div><div class="diagramma"><img src="'+esc(urlPng(s))+'" alt="Diagramma E/R della soluzione"></div></div>';
   if(s.ipotesi&&s.ipotesi.length)h+='<div class="blocco"><div class="blocco-t"><h3>Ipotesi aggiuntive</h3></div><ul class="lista-note">'+s.ipotesi.map(function(x){return"<li>"+inline(x)+"</li>";}).join("")+"</ul></div>";
   if(s.documentazione)h+='<div class="blocco md"><div class="blocco-t"><h3>Documentazione</h3></div>'+md(s.documentazione)+"</div>";
   if(s.schema)h+='<div class="blocco md"><div class="blocco-t"><h3>Schema relazionale</h3></div>'+md(s.schema)+"</div>";
@@ -871,6 +1019,9 @@ async function scarica(nome,dati){
   try{var dl=await window.claude.use("downloads");if(!dl){toast("In questa vista non si possono scaricare file.");return;}
     await dl.save({filename:nome,data:dati});}catch(e){if(e&&e.code!=="declined")toast("Download non riuscito"+(e&&e.code?" ("+e.code+")":"")+".");}
 }
+function urlPng(s){return s&&s.png?(/^https?:|^\//.test(s.png)?s.png:"/_blob/"+s.png):null;}
+function pngDi(s){var u=urlPng(s);if(!u)return Promise.resolve(null);
+  return fetch(u).then(function(r){if(!r.ok)throw new Error(r.status);return r.arrayBuffer();}).then(function(b){return new Uint8Array(b);}).catch(function(){return null;});}
 function copia(testo){
   try{navigator.clipboard.writeText(testo).then(function(){toast("HTML copiato: incollalo nella descrizione del Compito, in modalità codice sorgente.");},function(){toast("Copia non riuscita: seleziona e copia a mano.");});}
   catch(e){toast("Copia non riuscita: seleziona e copia a mano.");}
@@ -901,6 +1052,12 @@ document.addEventListener("click",function(e){
     case"word-pdp":tt=completa(t);scarica(U.nomeFile(tt,{pdp:true}),U.docx(tt,{pdp:true}));return;
     case"html":copia(U.html(completa(t)));return;
     case"html-file":tt=completa(t);scarica(U.nomeFile(tt,{estensione:".html"}),new TextEncoder().encode(U.html(tt)));return;
+    case"sol-word":case"sol-html":{tt=completa(t);var word=a.dataset.act==="sol-word";
+      pngDi(t.soluzione).then(function(png){
+        if(t.soluzione&&t.soluzione.png&&!png)toast("Diagramma non raggiungibile: il file esce senza diagramma.");
+        if(word)scarica("Soluzione - "+U.nomeFile(tt),U.docxSoluzione(tt,png));
+        else scarica("Soluzione - "+U.nomeFile(tt,{estensione:".html"}),new TextEncoder().encode(U.htmlSoluzione(tt,png)));
+      });return;}
     case"rid-doc":S.bozza.pdp=S.bozza.pdp||{riduzioni:{}};S.bozza.pdp.riduzioni=S.bozza.pdp.riduzioni||{};S.bozza.pdp.riduzioni["presentare.documentazione"]="Riduzione contenuti per PDP: fornire solo la prima riga delle tabelle di documentazione";segnaSporca();render();return;
     case"pesi-default":S.bozza.griglia={pesi:null};segnaSporca();render();return;
     case"archivia":salva(t.id,{archiviata:!t.archiviata}).then(function(){toast(t.archiviata?"Archiviata.":"Riportata tra le tracce.");});if(!t.archiviata)elenco();return;
