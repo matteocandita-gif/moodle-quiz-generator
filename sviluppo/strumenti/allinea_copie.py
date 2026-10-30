@@ -6,7 +6,8 @@ riferimento è una sola (ORIGINALI); le altre si rigenerano da lei con un'intest
 dice da dove vengono. Non modificare mai una copia: modifica l'originale e rilancia.
 
 Uso (dalla radice del repository):
-    python3 sviluppo/strumenti/allinea_copie.py              aggiorna le copie
+    python3 sviluppo/strumenti/allinea_copie.py              aggiorna le copie e i blocchi
+                                                             condivisi nelle pagine (BLOCCHI)
     python3 sviluppo/strumenti/allinea_copie.py --controlla  segnala le copie diverse
                                                              (esce con 1: da usare prima di
                                                              una nuova versione del plugin)
@@ -24,19 +25,75 @@ ORIGINALI = {
         "domande-coderunner-sql/scripts/moodle_lib.py",
         "domande-php-mysqli-mock/scripts/moodle_lib.py",
     ],
+    "progettazione-quiz/references/navigazione.md": [
+        "correzione-verifiche/references/navigazione.md",
+        "mappe-prerequisiti/references/navigazione.md",
+    ],
 }
 
 INTESTAZIONE = ("# COPIA di {orig}: non modificarla qui. Si rigenera con\n"
                 "# sviluppo/strumenti/allinea_copie.py dalla radice del repository.\n")
+
+# blocchi condivisi dentro le pagine: originale (relativo alla radice) -> pagine (relative alla radice).
+# Nella pagina il blocco sta tra la riga che comincia con INIZIO e quella con FINE, che
+# sono anche la prima e l'ultima riga dell'originale.
+BLOCCHI = {
+    "sviluppo/strumenti/barra-navigazione.html": [
+        "plugins/moodle-quiz-generator/skills/progettazione-quiz/assets/dashboard.html",
+        "plugins/moodle-quiz-generator/skills/correzione-verifiche/assets/dashboard-correzioni.html",
+        "sviluppo/mappe-prerequisiti/editor.src.html",
+        "plugins/moodle-quiz-generator/skills/mappe-prerequisiti/assets/editor.html",
+    ],
+}
+INIZIO, FINE = "<!-- barra-navigazione: inizio", "<!-- barra-navigazione: fine -->"
 
 
 def contenuto_copia(orig):
     testo = (SKILL / orig).read_text(encoding="utf-8")
     righe = testo.splitlines(keepends=True)
     testa = INTESTAZIONE.format(orig=orig)
+    if orig.endswith(".md"):                          # nel Markdown un commento HTML
+        testa = "<!-- " + testa.replace("# ", "").replace("\n", " ").strip() + " -->\n"
     if righe and righe[0].startswith("#!"):          # lo shebang resta in cima
         return righe[0] + testa + "".join(righe[1:])
     return testa + testo
+
+
+def con_blocco(pagina, blocco):
+    """La pagina con il blocco sostituito; None se mancano i segnaposto."""
+    righe = pagina.splitlines(keepends=True)
+    i = next((k for k, r in enumerate(righe) if r.lstrip().startswith(INIZIO)), None)
+    j = next((k for k, r in enumerate(righe) if r.lstrip().startswith(FINE)), None)
+    if i is None or j is None or j < i:
+        return None
+    return "".join(righe[:i]) + blocco + "".join(righe[j + 1:])
+
+
+def allinea_blocchi(controlla):
+    diverse = 0
+    for orig, pagine in BLOCCHI.items():
+        blocco = (RADICE / orig).read_text(encoding="utf-8")
+        if not blocco.endswith("\n"):
+            blocco += "\n"
+        for pg in pagine:
+            p = (RADICE / pg).resolve()
+            nome = p.relative_to(RADICE)
+            attuale = p.read_text(encoding="utf-8")
+            atteso = con_blocco(attuale, blocco)
+            if atteso is None:
+                diverse += 1
+                print("SEGNAPOSTO MANCANTE %s" % nome)
+                continue
+            if atteso == attuale:
+                print("ok         %s" % nome)
+                continue
+            diverse += 1
+            if controlla:
+                print("DIVERSA    %s (blocco: %s)" % (nome, orig))
+            else:
+                p.write_text(atteso, encoding="utf-8")
+                print("aggiornata %s" % nome)
+    return diverse
 
 
 def main():
@@ -56,6 +113,7 @@ def main():
             else:
                 p.write_text(atteso, encoding="utf-8")
                 print("aggiornata %s" % c)
+    diverse += allinea_blocchi(controlla)
     if controlla and diverse:
         sys.exit(1)
 

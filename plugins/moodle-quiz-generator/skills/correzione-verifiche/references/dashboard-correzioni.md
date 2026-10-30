@@ -36,7 +36,8 @@ Una domanda è un solo documento, con le righe degli studenti in una mappa: cos�
 1. `Artifact list`: se c'è già una pagina «Correzione verifiche», usa quella.
 2. Altrimenti pubblica `assets/dashboard-correzioni.html` con `capabilities: {"db": {"rules": [{"path": "", "read": "admin", "write": "admin"}]}, "user": {}}`, cioè lettura e scrittura solo per chi può modificare la pagina, e icona `grade`.
 3. Controllo: un `get` di un documento di `verifiche/<id>/valutazioni` con `as_level: "interact"` deve risultare inesistente.
-4. Per aggiornare la pagina di una versione nuova del plugin: leggila con `Artifact read`, poi ripubblica l'asset sullo stesso `url`. I dati restano.
+3b. **Collega le pagine del plugin** seguendo `references/navigazione.md`: scrive in ogni pagina installata gli indirizzi delle altre, per la barra di navigazione in cima.
+4. Per aggiornare la pagina di una versione nuova del plugin: leggila con `Artifact read` e confronta `VERSIONE_PAGINA` con quella di `assets/dashboard-correzioni.html` (una pagina senza `VERSIONE_PAGINA` è precedente alla barra di navigazione: va aggiornata); se è diversa, ripubblica l'asset sullo stesso `url`, poi collega le pagine come al passo 3b. I dati restano.
 
 ## Caricare una verifica
 

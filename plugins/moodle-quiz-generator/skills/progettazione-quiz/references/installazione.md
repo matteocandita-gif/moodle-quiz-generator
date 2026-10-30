@@ -16,6 +16,7 @@ Si fa quando l'utente lo chiede («installa la dashboard dei quiz», comando `in
 3. **Crea l'attività programmata** che il pulsante «Inizia» avvia. Con lo strumento delle attività programmate (`create_trigger` del connettore Claude Code Remote; cercalo con `ToolSearch` se è differito): nome «Avvia quiz dalla dashboard», nessun orario (né `cron_expression` né `run_once_at`), `initiation: "human_request"`, e come prompt il testo della sezione «Prompt dell'attività» qui sotto con l'URL della dashboard al posto di `{URL}`. Annota l'id (`trig_…`) del risultato. Se lo strumento non c'è, salta questo passo: «Inizia» darà all'utente una frase da incollare in chat, e l'attività si può aggiungere dopo.
 4. **Salva le impostazioni** nel database della pagina: `ArtifactData` `set` su `impostazioni` / `avvio` con `{"trigger": "<id>", "versione": "<VERSIONE_PAGINA della pagina>"}` (senza attività: solo `versione`).
 5. **Verifica**: `ArtifactData` `get` di `impostazioni` / `avvio` e `list` di `quiz` (vuota su una dashboard nuova).
+5b. **Collega le pagine del plugin** seguendo `references/navigazione.md`: scrive in ogni pagina installata gli indirizzi delle altre, per la barra di navigazione in cima.
 6. **Di' all'utente**, in poche righe: la pagina è pronta; la prima volta che preme «Inizia» la pagina gli chiede di autorizzare il connettore Claude Code Remote (va accettato); il connettore deve essere attivo nel suo account; le sessioni avviate dall'attività compaiono tra le sue sessioni di Claude; l'id dell'attività si può cambiare dalla pagina, nel riquadro «Impostazioni». Di' anche con che impostazione di approvazione è stata creata l'attività (lo dice il risultato): se le sue esecuzioni chiedono approvazione, nelle impostazioni dell'attività si può attivare l'approvazione automatica.
 
 ## Configurare l'avvio su una dashboard esistente
@@ -32,6 +33,7 @@ Quando una nuova versione del plugin porta una pagina nuova (la costante `VERSIO
 1. Leggi la pagina pubblicata (`Artifact`, `action: "read"`) e confronta `VERSIONE_PAGINA`. Se è uguale, non serve niente.
 2. Ripubblica `assets/dashboard.html` sullo **stesso URL**, senza `capabilities` (restano quelle salvate). Se la pagina nuova richiede capacità diverse (lo dice il changelog del plugin), passale tutte. I quiz e le impostazioni restano: stanno nel database, non nella pagina.
 3. Aggiorna `versione` in `impostazioni` / `avvio` (`update` con `if_version`).
+3a. **Collega le pagine del plugin** seguendo `references/navigazione.md`: scrive in ogni pagina installata gli indirizzi delle altre, per la barra di navigazione in cima. Va fatto anche se nessun indirizzo è cambiato: le pagine aggiornate prima della barra non hanno ancora il documento.
 3b. Se il changelog dice che è cambiato il prompt dell'attività programmata, aggiorna anche l'attività: prendi il suo id da `impostazioni` / `avvio` e sostituisci il prompt con il testo di «Prompt dell'attività», con l'URL della dashboard (`update_trigger` del connettore Claude Code Remote; cercalo con `ToolSearch` se è differito). Se lo strumento non c'è, dillo all'utente.
 4. Di' all'utente che cosa cambia nella pagina, in una riga.
 

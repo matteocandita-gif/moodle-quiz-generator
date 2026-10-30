@@ -146,6 +146,55 @@ select { padding-right: 28px; max-width: 100%; }
 </style>
 
 <div class="app">
+<!-- barra-navigazione: inizio. Originale in sviluppo/strumenti/barra-navigazione.html: non modificarla qui, si rigenera con sviluppo/strumenti/allinea_copie.py -->
+<nav class="mqg-nav" id="mqg-nav" aria-label="Pagine di Moodle: quiz generator" hidden></nav>
+<style>
+/* Barra di navigazione tra le pagine del plugin: discreta, prende colori e testo della pagina che la ospita. */
+.mqg-nav{display:flex;flex-wrap:wrap;align-items:center;gap:2px 2px;margin:0 0 8px;padding:5px 0;border-bottom:1px solid color-mix(in srgb,currentColor 13%,transparent);font:500 12.5px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+.mqg-nav[hidden]{display:none!important}
+.mqg-nav .mqg-l{margin-right:6px;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:color-mix(in srgb,currentColor 55%,transparent)}
+.mqg-nav a,.mqg-nav .mqg-qui{padding:2px 8px;border-radius:6px;white-space:nowrap;text-decoration:none}
+.mqg-nav a{color:color-mix(in srgb,currentColor 72%,transparent)}
+.mqg-nav a:hover{color:inherit;background:color-mix(in srgb,currentColor 8%,transparent)}
+.mqg-nav a:focus-visible{outline:2px solid currentColor;outline-offset:1px}
+.mqg-nav .mqg-qui{font-weight:700;background:color-mix(in srgb,currentColor 9%,transparent)}
+.mqg-nav .mqg-sep{width:1px;height:14px;margin:0 6px;background:color-mix(in srgb,currentColor 20%,transparent)}
+</style>
+<script>
+(function(){
+  "use strict";
+  /* Le pagine del plugin: chiave nel documento impostazioni/navigazione e titolo della pagina.
+     La pagina corrente si riconosce dal titolo (document.title comincia con il nome). */
+  var PAGINE=[["bozze","Bozze dei quiz"],["tracce","Tracce di progettazione"],["correzioni","Correzione verifiche"],["mappe","Mappe dei prerequisiti"]];
+  var nav=document.getElementById("mqg-nav");
+  if(!nav||!window.claude||!window.claude.use)return;
+  function ok(u,soloClaude){u=String(u||"");return soloClaude?/^https:\/\/claude\.ai\/(code\/)?artifact\//.test(u):/^https:\/\//.test(u);}
+  function link(url,testo){var a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener";a.textContent=testo;a.title="Apri «"+testo+"» in una nuova scheda";return a;}
+  window.claude.use("db").then(function(db){
+    if(!db)return null;
+    return db.doc("impostazioni/navigazione").get();
+  }).then(function(snap){
+    if(!snap||!snap.exists)return;
+    var d=snap.data()||{},p=d.pagine||{},titolo=document.title||"",voci=[];
+    PAGINE.forEach(function(x){
+      var qui=titolo.indexOf(x[1])===0;
+      if(qui)voci.push({qui:true,testo:x[1]});
+      else if(ok(p[x[0]],true))voci.push({url:p[x[0]],testo:x[1]});
+    });
+    var altri=(Array.isArray(d.altri)?d.altri:[]).filter(function(a){return a&&ok(a.url)&&a.titolo;});
+    if(voci.filter(function(v){return !v.qui;}).length+altri.length===0)return;
+    var l=document.createElement("span");l.className="mqg-l";l.textContent="Quiz generator";nav.appendChild(l);
+    voci.forEach(function(v){
+      if(v.qui){var s=document.createElement("span");s.className="mqg-qui";s.setAttribute("aria-current","page");s.textContent=v.testo;nav.appendChild(s);}
+      else nav.appendChild(link(v.url,v.testo));
+    });
+    if(altri.length){var sep=document.createElement("span");sep.className="mqg-sep";sep.setAttribute("aria-hidden","true");nav.appendChild(sep);
+      altri.forEach(function(a){nav.appendChild(link(a.url,String(a.titolo)));});}
+    nav.hidden=false;
+  }).catch(function(){});
+})();
+</script>
+<!-- barra-navigazione: fine -->
   <header class="bar">
     <div class="brand grow">
       <h1>Mappe dei prerequisiti</h1>
@@ -1885,7 +1934,7 @@ select { padding-right: 28px; max-width: 100%; }
 (function () {
   'use strict';
   // Versione della pagina: il plugin la confronta con quella pubblicata per proporre l'aggiornamento.
-  var VERSIONE_PAGINA = '1.0.0';
+  var VERSIONE_PAGINA = '1.0.1';
   window.VERSIONE_PAGINA = VERSIONE_PAGINA;
   var $ = function (id) { return document.getElementById(id); };
   var use = function (name) {
