@@ -6,7 +6,7 @@ Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Da
 
 Barra di navigazione tra le pagine:
 
-- **Dashboard**, **Editor mappe** e **Correzione verifiche**: in cima una barra discreta, «Quiz generator», con i link alle altre pagine del plugin installate (si aprono in una nuova scheda); la pagina corrente è evidenziata. Compare solo se c'è almeno un'altra pagina.
+- **Dashboard**, **Editor mappe** e **Correzione verifiche**: in cima una fascia scura, «Quiz generator», di colore diverso dalla pagina, con i link alle altre pagine del plugin installate (si aprono in una nuova scheda, con la freccia ↗); la pagina corrente è evidenziata. Compare solo se c'è almeno un'altra pagina.
 - Gli indirizzi li scrive Claude nel database di ogni pagina (`impostazioni/navigazione`) a ogni installazione o aggiornamento di una pagina: procedura in `references/navigazione.md`, la stessa in `progettazione-quiz`, `correzione-verifiche` e `mappe-prerequisiti`.
 - «Correzione verifiche» ha ora `VERSIONE_PAGINA` (1.1.0), come le altre due, per gli aggiornamenti.
 - Per chi modifica il plugin: il codice della barra è uno solo (`sviluppo/strumenti/barra-navigazione.html`) e `allinea_copie.py` lo copia nelle pagine.

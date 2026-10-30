@@ -1,6 +1,6 @@
 # Collegare le pagine del plugin (barra di navigazione)
 
-Le pagine del plugin hanno in cima una barra discreta, «Quiz generator», con i link alle altre pagine dello stesso utente. Ogni link si apre in una nuova scheda; la pagina corrente è evidenziata e non è un link. Le pagine sono:
+Le pagine del plugin hanno in cima una fascia scura, «Quiz generator», con i link alle altre pagine dello stesso utente: ha un colore diverso dalla pagina perché si capisca che da lì si cambia pagina, non è un menù della pagina. Ogni link si apre in una nuova scheda (lo dice la freccia ↗); la pagina corrente è evidenziata e non è un link. Le pagine sono:
 
 | Chiave | Pagina (titolo) | Skill che la installa |
 |---|---|---|

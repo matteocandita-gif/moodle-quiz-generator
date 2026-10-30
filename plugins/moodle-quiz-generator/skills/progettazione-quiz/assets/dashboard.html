@@ -356,16 +356,21 @@ tr.var td{background:var(--surface-2);border-bottom-color:var(--line)}
 <!-- barra-navigazione: inizio. Originale in sviluppo/strumenti/barra-navigazione.html: non modificarla qui, si rigenera con sviluppo/strumenti/allinea_copie.py -->
 <nav class="mqg-nav" id="mqg-nav" aria-label="Pagine di Moodle: quiz generator" hidden></nav>
 <style>
-/* Barra di navigazione tra le pagine del plugin: discreta, prende colori e testo della pagina che la ospita. */
-.mqg-nav{display:flex;flex-wrap:wrap;align-items:center;gap:2px 2px;margin:0 0 8px;padding:5px 0;border-bottom:1px solid color-mix(in srgb,currentColor 13%,transparent);font:500 12.5px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+/* Barra di navigazione tra le pagine del plugin: una fascia scura, di colore diverso dalla pagina che la ospita,
+   perché si capisca che da lì si cambia pagina (le voci si aprono in una nuova scheda) e non è un menù della pagina. */
+.mqg-nav{--mqg-bg:#24304f;--mqg-tx:#e8ecf7;--mqg-tx2:#aeb9d6;--mqg-hv:rgba(255,255,255,.12);--mqg-qbg:#e8ecf7;--mqg-qtx:#1b2440;
+  display:flex;flex-wrap:wrap;align-items:center;gap:4px 2px;margin:0 0 14px;padding:6px 10px;border-radius:8px;background:var(--mqg-bg);color:var(--mqg-tx);
+  font:500 12.5px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+@media (prefers-color-scheme:dark){.mqg-nav{--mqg-bg:#3a4c80;--mqg-tx:#f1f4fb;--mqg-tx2:#c3cde6;--mqg-hv:rgba(255,255,255,.14);--mqg-qbg:#f1f4fb;--mqg-qtx:#1b2440}}
 .mqg-nav[hidden]{display:none!important}
-.mqg-nav .mqg-l{margin-right:6px;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:color-mix(in srgb,currentColor 55%,transparent)}
-.mqg-nav a,.mqg-nav .mqg-qui{padding:2px 8px;border-radius:6px;white-space:nowrap;text-decoration:none}
-.mqg-nav a{color:color-mix(in srgb,currentColor 72%,transparent)}
-.mqg-nav a:hover{color:inherit;background:color-mix(in srgb,currentColor 8%,transparent)}
-.mqg-nav a:focus-visible{outline:2px solid currentColor;outline-offset:1px}
-.mqg-nav .mqg-qui{font-weight:700;background:color-mix(in srgb,currentColor 9%,transparent)}
-.mqg-nav .mqg-sep{width:1px;height:14px;margin:0 6px;background:color-mix(in srgb,currentColor 20%,transparent)}
+.mqg-nav .mqg-l{margin-right:8px;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mqg-tx2)}
+.mqg-nav a,.mqg-nav .mqg-qui{padding:2px 9px;border-radius:6px;white-space:nowrap;text-decoration:none}
+.mqg-nav a{color:var(--mqg-tx)}
+.mqg-nav a::after{content:"\2197";margin-left:4px;font-size:.85em;color:var(--mqg-tx2)}
+.mqg-nav a:hover{background:var(--mqg-hv);text-decoration:underline;text-underline-offset:2px}
+.mqg-nav a:focus-visible{outline:2px solid var(--mqg-tx);outline-offset:1px}
+.mqg-nav .mqg-qui{font-weight:700;background:var(--mqg-qbg);color:var(--mqg-qtx)}
+.mqg-nav .mqg-sep{width:1px;height:14px;margin:0 6px;background:var(--mqg-tx2);opacity:.6}
 </style>
 <script>
 (function(){
