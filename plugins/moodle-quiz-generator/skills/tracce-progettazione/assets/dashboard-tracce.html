@@ -363,48 +363,34 @@ pre.codice{background:var(--code);border:1px solid var(--line);border-radius:7px
     return parti + (opz.variante ? "-" + opz.variante : "") + (opz.pdp ? "-PDP" : "") + (opz.estensione || ".docx");
   }
 
-  /* ------------------------------------------------------------------ HTML per Moodle */
-  var H = {
-    box: "font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 900px; margin: 0 auto; color: #333333; line-height: 1.6;",
-    h2: "color: #c0392b; margin-top: 30px;",
-    h1: "color: #2c3e50; border-bottom: 3px solid #e74c3c; padding-bottom: 10px;",
-    nb: "background-color: #f9cb9c; border-left: 5px solid #e69138; padding: 12px 16px; border-radius: 4px; margin: 0 0 16px;",
-    nbT: "margin: 0 0 6px; color: #783f04;"
-  };
+  /* ------------------------------------------------------------------ HTML per Moodle
+     Eccezione allo stile delle pagine Moodle: la traccia deve avere lo stesso aspetto del Word della verifica,
+     così gli studenti la ritrovano uguale. Niente colori, riquadri o stili: paragrafi, elenchi numerati e
+     grassetto per le istruzioni, nello stesso ordine del Word (senza intestazione e griglia). */
   function htmlInline(s) {
     return pezzi(s).map(function (p) { var x = esc(p.t); return p.b ? "<strong>" + x + "</strong>" : p.i ? "<em>" + x + "</em>" : x; }).join("");
   }
-  /* parola chiave in grassetto negli elenchi di 4 o più voci (regola dei grassetti delle pagine Moodle) */
-  var CHIAVI_PRESENTARE = { er: "Modello E/R", documentazione: "Documentazione", relazionale: "modello relazionale", sql_tabelle: "Definizione in linguaggio SQL" };
   function html(t) {
     var x = t.testo || {}, v = vociPresentare(t), q = x.query || [], out = [];
-    out.push('<div style="' + H.box + '">');
-    out.push('<h1 style="' + H.h1 + '">' + esc(t.titolo) + "</h1>");
-    if (x.premessa) { out.push('<h2 style="' + H.h2 + '">Premessa</h2>'); paragrafi(x.premessa).forEach(function (p) { out.push("<p>" + htmlInline(p) + "</p>"); }); }
+    if (x.premessa) { out.push("<p><strong>Premessa</strong></p>"); paragrafi(x.premessa).forEach(function (p) { out.push("<p>" + htmlInline(p) + "</p>"); }); }
+    out.push("<p><strong>" + esc(t.titolo) + "</strong></p>");
     paragrafi(x.realta).forEach(function (p) { out.push("<p>" + htmlInline(p) + "</p>"); });
-    out.push('<h2 style="' + H.h2 + '">Che cosa realizzare</h2>');
-    out.push("<p>Fatte le opportune ipotesi aggiuntive" + (x.requisiti_query ? ", " + FRASE_REQUISITI : "") + ", realizzare:</p>");
-    var grassetto = v.length >= 4;
-    out.push("<ol>" + v.map(function (it) {
-      var s = esc(it.testo), k = CHIAVI_PRESENTARE[it.chiave];
-      if (grassetto && k && s.indexOf(k) >= 0) s = s.replace(k, "<strong>" + k + "</strong>");
-      return "<li>" + s + "</li>";
-    }).join("") + "</ol>");
-    out.push('<h2 style="' + H.h2 + '">Le query</h2>');
-    out.push("<p>" + esc(FRASE_QUERY) + "</p>");
+    var testaPres = esame(t) ? "Il candidato, fatte le opportune ipotesi aggiuntive" + (x.requisiti_query ? " e " + FRASE_REQUISITI : "") + ", sviluppi:"
+      : "Presentare" + (x.requisiti_query ? ", " + FRASE_REQUISITI : "") + ":";
+    out.push("<p><strong>" + esc(testaPres) + "</strong></p>");
+    out.push("<ol>" + v.map(function (it) { return "<li>" + esc(it.testo) + "</li>"; }).join("") + "</ol>");
+    out.push("<p><strong>" + esc(FRASE_QUERY) + "</strong></p>");
     out.push("<ol>" + q.map(function (r) { return "<li>" + htmlInline(r.testo) + "</li>"; }).join("") + "</ol>");
-    out.push("<p>Scrivere le query SQL che rispondono a queste domande.</p>");
+    out.push("<p><strong>Scrivere le query SQL</strong> che rispondono a queste domande.</p>");
     if (conPhp(t)) {
-      out.push('<h2 style="' + H.h2 + '">La pagina PHP</h2>');
+      out.push("<p><strong>Pagina PHP</strong></p>");
       paragrafi(x.php.testo).forEach(function (p) { out.push("<p>" + htmlInline(p) + "</p>"); });
       if (x.php.connessione) out.push("<p>" + htmlInline(x.php.connessione) + "</p>");
     }
-    out.push('<div style="' + H.nb + '"><p style="' + H.nbT + '"><strong>N.B.</strong></p><p style="margin: 0;">' + esc(FRASE_IPOTESI) + "</p></div>");
-    out.push('<h2 style="' + H.h2 + '">Consegna</h2>');
+    out.push("<p><em>" + esc(FRASE_ORDINE) + "</em></p>");
+    out.push("<p><strong>" + esc(FRASE_IPOTESI) + "</strong></p>");
     var cosa = "diagramma E/R, documentazione, modello relazionale e query" + (conPhp(t) ? ", più il codice della pagina PHP" : "");
-    out.push("<ul><li>Se lavorate su carta: le foto dei fogli, dritte e leggibili, una per pagina.</li>" +
-      "<li>Altrimenti: un unico file Word completo, con " + esc(cosa) + ".</li></ul>");
-    out.push("</div>");
+    out.push("<p><strong>Consegna:</strong> se lavorate su carta, le foto dei fogli, dritte e leggibili, una per pagina; altrimenti un unico file Word completo, con " + esc(cosa) + ".</p>");
     return out.join("\n");
   }
 
@@ -620,7 +606,7 @@ if (typeof require !== "undefined" && typeof module !== "undefined" && require.m
 <script>
 (function(){
 "use strict";
-var VERSIONE_PAGINA="1.0.1";
+var VERSIONE_PAGINA="1.0.2";
 var CONNETTORE="Claude Code Remote";
 var $=function(s){return document.querySelector(s);};
 var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
