@@ -1,21 +1,24 @@
 <!-- barra-navigazione: inizio. Originale in sviluppo/strumenti/barra-navigazione.html: non modificarla qui, si rigenera con sviluppo/strumenti/allinea_copie.py -->
 <nav class="mqg-nav" id="mqg-nav" aria-label="Pagine di Moodle: quiz generator" hidden></nav>
 <style>
-/* Barra di navigazione tra le pagine del plugin: una fascia scura, di colore diverso dalla pagina che la ospita,
-   perché si capisca che da lì si cambia pagina (le voci si aprono in una nuova scheda) e non è un menù della pagina. */
-.mqg-nav{--mqg-bg:#24304f;--mqg-tx:#e8ecf7;--mqg-tx2:#aeb9d6;--mqg-hv:rgba(255,255,255,.12);--mqg-qbg:#e8ecf7;--mqg-qtx:#1b2440;
-  display:flex;flex-wrap:wrap;align-items:center;gap:4px 2px;margin:0 0 14px;padding:6px 10px;border-radius:8px;background:var(--mqg-bg);color:var(--mqg-tx);
-  font:500 12.5px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
-@media (prefers-color-scheme:dark){.mqg-nav{--mqg-bg:#3a4c80;--mqg-tx:#f1f4fb;--mqg-tx2:#c3cde6;--mqg-hv:rgba(255,255,255,.14);--mqg-qbg:#f1f4fb;--mqg-qtx:#1b2440}}
+/* Barra di navigazione tra le pagine del plugin: una fascia chiara a tutta larghezza, in cima alla finestra,
+   fuori dai margini della pagina e separata da un bordo, perché si capisca che porta ad altre pagine
+   (le voci si aprono in una nuova scheda, con la freccia) e non è un menù della pagina. */
+.mqg-nav{--mqg-bg:#e4e9f1;--mqg-bordo:#c3ccda;--mqg-tx:#1f2a3d;--mqg-tx2:#5b6782;--mqg-hv:#d3dbe7;--mqg-qbg:#ffffff;
+  box-sizing:border-box;display:flex;flex-wrap:wrap;align-items:center;gap:4px 2px;margin:0 0 16px;padding:7px 16px;
+  background:var(--mqg-bg);color:var(--mqg-tx);border-bottom:1px solid var(--mqg-bordo);box-shadow:0 1px 3px rgba(20,30,50,.08);
+  font:500 13px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+@media (prefers-color-scheme:dark){.mqg-nav{--mqg-bg:#262d3a;--mqg-bordo:#3c4659;--mqg-tx:#e6eaf2;--mqg-tx2:#9aa6bb;--mqg-hv:#333c4d;--mqg-qbg:#11151c;box-shadow:0 1px 3px rgba(0,0,0,.35)}}
 .mqg-nav[hidden]{display:none!important}
-.mqg-nav .mqg-l{margin-right:8px;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mqg-tx2)}
-.mqg-nav a,.mqg-nav .mqg-qui{padding:2px 9px;border-radius:6px;white-space:nowrap;text-decoration:none}
+@media (max-width:640px){.mqg-nav{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin}}
+.mqg-nav .mqg-l{margin-right:10px;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mqg-tx2)}
+.mqg-nav a,.mqg-nav .mqg-qui{padding:3px 9px;border-radius:6px;white-space:nowrap;text-decoration:none;border:1px solid transparent}
 .mqg-nav a{color:var(--mqg-tx)}
 .mqg-nav a::after{content:"\2197";margin-left:4px;font-size:.85em;color:var(--mqg-tx2)}
 .mqg-nav a:hover{background:var(--mqg-hv);text-decoration:underline;text-underline-offset:2px}
 .mqg-nav a:focus-visible{outline:2px solid var(--mqg-tx);outline-offset:1px}
-.mqg-nav .mqg-qui{font-weight:700;background:var(--mqg-qbg);color:var(--mqg-qtx)}
-.mqg-nav .mqg-sep{width:1px;height:14px;margin:0 6px;background:var(--mqg-tx2);opacity:.6}
+.mqg-nav .mqg-qui{font-weight:700;background:var(--mqg-qbg);border-color:var(--mqg-bordo)}
+.mqg-nav .mqg-sep{width:1px;height:16px;margin:0 8px;background:var(--mqg-bordo)}
 </style>
 <script>
 (function(){
@@ -48,7 +51,21 @@
     if(altri.length){var sep=document.createElement("span");sep.className="mqg-sep";sep.setAttribute("aria-hidden","true");nav.appendChild(sep);
       altri.forEach(function(a){nav.appendChild(link(a.url,String(a.titolo)));});}
     nav.hidden=false;
+    a_tutta_larghezza();
   }).catch(function(){});
+  /* La fascia va da bordo a bordo della finestra e tocca il bordo in alto, qualunque siano i margini della pagina:
+     sta in cima al body e i margini negativi si calcolano sulla posizione reale (ricalcolati se la finestra cambia). */
+  function a_tutta_larghezza(){
+    if(document.body&&document.body.firstElementChild!==nav)document.body.insertBefore(nav,document.body.firstChild);
+    function allinea(){
+      nav.style.marginLeft=nav.style.marginRight=nav.style.marginTop="0";nav.style.paddingLeft=nav.style.paddingRight="";
+      var r=nav.getBoundingClientRect(),W=document.documentElement.clientWidth,sx=window.scrollX||0,sy=window.scrollY||0;
+      var sin=r.left+sx,des=W-(r.right+sx),su=r.top+sy;
+      nav.style.marginLeft=(-sin)+"px";nav.style.marginRight=(-des)+"px";nav.style.marginTop=(-su)+"px";
+      nav.style.paddingLeft=Math.max(sin,16)+"px";nav.style.paddingRight=Math.max(des,16)+"px";
+    }
+    allinea();window.addEventListener("resize",allinea);
+  }
 })();
 </script>
 <!-- barra-navigazione: fine -->
