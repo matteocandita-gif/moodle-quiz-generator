@@ -220,6 +220,8 @@
       opz = opz || {};
       var ppr = "";
       if (opz.stile) ppr += '<w:pStyle w:val="' + opz.stile + '"/>';
+      if (opz.keepNext) ppr += "<w:keepNext/>";
+      if (opz.keepLines) ppr += "<w:keepLines/>";
       if (opz.num) ppr += '<w:numPr><w:ilvl w:val="0"/><w:numId w:val="' + opz.num + '"/></w:numPr>';
       if (opz.dopo != null || opz.prima != null || opz.interlinea) ppr += '<w:spacing w:before="' + (opz.prima || 0) + '" w:after="' + (opz.dopo != null ? opz.dopo : 120) + '"' + (opz.interlinea ? ' w:line="' + opz.interlinea + '" w:lineRule="auto"' : '') + '/>';
       if (opz.rientro) ppr += '<w:ind w:left="' + opz.rientro + '"/>';
@@ -337,7 +339,8 @@
     var c = corpoWord(t, !!opz.pdp);
     return pacchetto(c.corpo, c.sezFinale, c.liste, t.titolo, null);
   }
-  function pacchetto(corpo, sezFinale, liste, titolo, png) {
+  function pacchetto(corpo, sezFinale, liste, titolo, png, extra) {
+    extra = extra || {};
     var c = { corpo: corpo, sezFinale: sezFinale, liste: liste };
     var nums = "";
     for (var i = 1; i <= c.liste; i++) nums += '<w:num w:numId="' + i + '"><w:abstractNumId w:val="0"/><w:lvlOverride w:ilvl="0"><w:startOverride w:val="1"/></w:lvlOverride></w:num>';
@@ -353,11 +356,11 @@
       "word/_rels/document.xml.rels": XML + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
         '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/>' +
         (png ? '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/diagramma.png"/>' : "") + "</Relationships>",
-      "word/styles.xml": XML + "<w:styles " + NS + '><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:eastAsia="Arial" w:cs="Arial"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:lang w:val="it-IT"/></w:rPr></w:rPrDefault>' +
-        '<w:pPrDefault><w:pPr><w:spacing w:after="120" w:line="264" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>' +
+      "word/styles.xml": XML + "<w:styles " + NS + '><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="' + (extra.font || "Arial") + '" w:hAnsi="' + (extra.font || "Arial") + '" w:eastAsia="' + (extra.font || "Arial") + '" w:cs="' + (extra.font || "Arial") + '"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:lang w:val="it-IT"/></w:rPr></w:rPrDefault>' +
+        '<w:pPrDefault><w:pPr><w:spacing w:after="' + (extra.dopo || 120) + '" w:line="' + (extra.linea || 264) + '" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>' + (extra.stili || "") +
         '<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style>' +
         '<w:style w:type="table" w:default="1" w:styleId="TableNormal"><w:name w:val="Normal Table"/><w:tblPr><w:tblInd w:w="0" w:type="dxa"/><w:tblCellMar><w:top w:w="0" w:type="dxa"/><w:left w:w="108" w:type="dxa"/><w:bottom w:w="0" w:type="dxa"/><w:right w:w="108" w:type="dxa"/></w:tblCellMar></w:tblPr></w:style></w:styles>',
-      "word/numbering.xml": XML + "<w:numbering " + NS + '><w:abstractNum w:abstractNumId="0"><w:multiLevelType w:val="singleLevel"/><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="decimal"/><w:lvlText w:val="%1."/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="720" w:hanging="360"/></w:pPr></w:lvl></w:abstractNum>' + nums + "</w:numbering>",
+      "word/numbering.xml": XML + "<w:numbering " + NS + '><w:abstractNum w:abstractNumId="0"><w:multiLevelType w:val="singleLevel"/><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="decimal"/><w:lvlText w:val="%1."/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="720" w:hanging="360"/></w:pPr></w:lvl></w:abstractNum>' + (extra.numerazione || "") + nums + (extra.num || "") + "</w:numbering>",
       "word/document.xml": XML + "<w:document " + NS + "><w:body>" + c.corpo + c.sezFinale + "</w:body></w:document>"
     };
     if (png) out["word/media/diagramma.png"] = png.byte;
@@ -411,55 +414,83 @@
   function immagineWord(png, maxW, maxH) {
     var d = dimPng(png) || { w: 800, h: 400 }, emu = 914400 / 96;
     var sc = Math.min(1, maxW / (d.w * emu), maxH / (d.h * emu)), cx = Math.round(d.w * emu * sc), cy = Math.round(d.h * emu * sc);
-    return '<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="' + cx + '" cy="' + cy + '"/><wp:docPr id="1" name="Diagramma E/R"/>' +
+    return '<w:p><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="' + cx + '" cy="' + cy + '"/><wp:docPr id="1" name="Diagramma E/R"/>' +
       '<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">' +
       '<pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="1" name="diagramma.png"/><pic:cNvPicPr/></pic:nvPicPr>' +
       '<pic:blipFill><a:blip r:embed="rId3"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' + cx + '" cy="' + cy + '"/></a:xfrm>' +
       '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>';
   }
-  function tabellaWord(testa, righe, larghezza) {
-    var n = testa.length, w = Math.floor(larghezza / n);
-    var bordo = '<w:tblBorders>' + ["top", "left", "bottom", "right", "insideH", "insideV"].map(function (b) { return "<w:" + b + ' w:val="single" w:sz="4" w:space="0" w:color="808080"/>'; }).join("") + "</w:tblBorders>";
-    var cella = function (x, intest) {
-      return '<w:tc><w:tcPr><w:tcW w:w="' + w + '" w:type="dxa"/>' + (intest ? '<w:shd w:val="clear" w:color="auto" w:fill="E7E6E6"/>' : "") + "</w:tcPr>" + W.par(x, { dopo: 0, size: 16, b: intest }) + "</w:tc>";
-    };
-    return '<w:tbl><w:tblPr><w:tblW w:w="' + w * n + '" w:type="dxa"/>' + bordo + '<w:tblLayout w:type="fixed"/></w:tblPr><w:tblGrid>' +
-      testa.map(function () { return '<w:gridCol w:w="' + w + '"/>'; }).join("") + "</w:tblGrid>" +
-      '<w:tr><w:trPr><w:tblHeader/></w:trPr>' + testa.map(function (x) { return cella(x, true); }).join("") + "</w:tr>" +
-      righe.map(function (r) { return "<w:tr><w:trPr><w:cantSplit/></w:trPr>" + testa.map(function (_, k) { return cella(r[k] || "", false); }).join("") + "</w:tr>"; }).join("") + "</w:tbl>";
+  /* Aspetto della soluzione di diagrammi-er (soluzione.py): Calibri 11, titolo grande con la riga blu sotto,
+     titoli di sezione blu, tabelle a griglia con le celle dell'entità o dell'associazione unite, query in Consolas. */
+  var BLU = "1C4587", CM = 567;
+  var LARGH_DOC = { 6: [2.4, 2.0, 3.4, 3.5, 2.3, 3.4], 7: [2.4, 2.6, 2.4, 3.2, 2.4, 2.0, 2.0] }, FISSE_DOC = { 6: 3, 7: 4 };
+  var STILI_SOL =
+    '<w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="8" w:space="4" w:color="4F81BD"/></w:pBdr><w:spacing w:after="300" w:line="240" w:lineRule="auto"/><w:contextualSpacing/></w:pPr><w:rPr><w:rFonts w:ascii="Calibri Light" w:hAnsi="Calibri Light" w:cs="Calibri Light"/><w:color w:val="' + BLU + '"/><w:spacing w:val="5"/><w:kern w:val="28"/><w:sz w:val="52"/><w:szCs w:val="52"/></w:rPr></w:style>' +
+    '<w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:keepLines/><w:spacing w:before="480" w:after="0"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:b/><w:bCs/><w:color w:val="' + BLU + '"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></w:style>' +
+    '<w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:keepLines/><w:spacing w:before="200" w:after="0"/><w:outlineLvl w:val="1"/></w:pPr><w:rPr><w:b/><w:bCs/><w:color w:val="' + BLU + '"/><w:sz w:val="26"/><w:szCs w:val="26"/></w:rPr></w:style>' +
+    '<w:style w:type="paragraph" w:styleId="ListBullet"><w:name w:val="List Bullet"/><w:basedOn w:val="Normal"/><w:pPr><w:numPr><w:numId w:val="900"/></w:numPr><w:contextualSpacing/></w:pPr></w:style>';
+  var NUM_PUNTI = '<w:abstractNum w:abstractNumId="9"><w:multiLevelType w:val="singleLevel"/><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="bullet"/><w:lvlText w:val="•"/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="360" w:hanging="360"/></w:pPr></w:lvl></w:abstractNum>';
+  var titoloW = function (s, livello) { return W.par([{ t: s }], { stile: livello === 0 ? "Title" : "Heading" + livello, dopo: livello === 0 ? 300 : 0, prima: livello === 0 ? 0 : livello === 1 ? 480 : 200 }); };
+  var puntoW = function (v) { return W.par(v, { stile: "ListBullet" }); };
+  /* gruppi di righe: una riga con la prima cella piena apre il gruppo (entità o associazione) */
+  function gruppiRighe(righe) {
+    var out = [];
+    righe.forEach(function (r) { if (!out.length || String(r[0] || "").trim()) out.push([r]); else out[out.length - 1].push(r); });
+    return out;
   }
-  function blocchiWord(bl, larghezza) {
+  function tabellaWord(testa, righe) {
+    var n = testa.length, fisse = FISSE_DOC[n] || 0;
+    var larg = (LARGH_DOC[n] || testa.map(function () { return 17 / n; })).map(function (c) { return Math.round(c * CM); });
+    var bordo = '<w:tblBorders>' + ["top", "left", "bottom", "right", "insideH", "insideV"].map(function (b) { return "<w:" + b + ' w:val="single" w:sz="4" w:space="0" w:color="auto"/>'; }).join("") + "</w:tblBorders>";
+    var cella = function (k, contenuto, opz) {
+      return '<w:tc><w:tcPr><w:tcW w:w="' + larg[k] + '" w:type="dxa"/>' + (opz.merge ? '<w:vMerge' + (opz.merge === "inizio" ? ' w:val="restart"' : "") + "/>" : "") +
+        (opz.intest ? '<w:shd w:val="clear" w:color="auto" w:fill="EEEEEE"/>' : "") + "</w:tcPr>" +
+        W.par(opz.merge === "segue" ? "" : contenuto, { dopo: 0, size: 18, b: opz.intest, interlinea: 240, keepNext: opz.insieme }) + "</w:tc>";
+    };
+    var out = '<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/><w:jc w:val="center"/>' + bordo + '<w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="108" w:type="dxa"/><w:right w:w="108" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>' +
+      larg.map(function (w) { return '<w:gridCol w:w="' + w + '"/>'; }).join("") + "</w:tblGrid>" +
+      "<w:tr><w:trPr><w:tblHeader/></w:trPr>" + testa.map(function (x, k) { return cella(k, x, { intest: true, insieme: true }); }).join("") + "</w:tr>";
+    gruppiRighe(righe).forEach(function (g) {
+      g.forEach(function (r, j) {
+        out += "<w:tr><w:trPr><w:cantSplit/></w:trPr>" + testa.map(function (_, k) {
+          var merge = k < fisse && g.length > 1 ? (j === 0 ? "inizio" : "segue") : null;
+          return cella(k, r[k] || "", { merge: merge, insieme: j < g.length - 1 });
+        }).join("") + "</w:tr>";
+      });
+    });
+    return out + "</w:tbl>";
+  }
+  function blocchiWord(bl) {
     return bl.map(function (b) {
-      if (b.tipo === "tabella") return tabellaWord(b.testa, b.righe, larghezza) + W.par("", { dopo: 60 });
-      if (b.tipo === "titolo") return W.par([{ t: b.testo.replace(/\*\*/g, ""), b: true }], { prima: 120, dopo: 60 });
-      if (b.tipo === "elenco") return b.voci.map(function (v) { return W.par([{ t: "• " }].concat(pezzi(v)), { rientro: 360, dopo: 40 }); }).join("");
-      return W.par(b.testo, { dopo: 80 });
+      if (b.tipo === "tabella") return tabellaWord(b.testa, b.righe) + W.par("");
+      if (b.tipo === "titolo") return titoloW(b.testo.replace(/\*\*/g, ""), 2);
+      if (b.tipo === "elenco") return b.voci.map(puntoW).join("");
+      return W.par(b.testo);
     }).join("");
   }
-  var titoloSez = function (s) { return W.par([{ t: s, b: true }], { prima: 240, dopo: 120, size: 28 }); };
+  function codiceWord(sql) {
+    var righe = String(sql || "").replace(/\t/g, "    ").split("\n");
+    var runs = righe.map(function (r, i) { return (i ? "<w:r><w:br/></w:r>" : "") + W.run({ t: r }, { mono: true, size: 20 }); }).join("");
+    return '<w:p><w:pPr><w:keepLines/><w:ind w:left="' + Math.round(0.5 * CM) + '"/></w:pPr>' + runs + "</w:p>";
+  }
   function fileDocxSoluzione(t, png) {
     var ds = datiSoluzione(t), x = t.testo || {}, b = [];
-    b.push(W.par([{ t: "Soluzione: " + (t.titolo || ""), b: true }], { size: 32, dopo: 200 }));
-    b.push(titoloSez("Traccia"));
-    paragrafi(x.realta).forEach(function (p) { b.push(W.par(p, { giustifica: true })); });
-    if (ds.ipotesi.length) { b.push(titoloSez("Ipotesi aggiuntive")); ds.ipotesi.forEach(function (v) { b.push(W.par([{ t: "• " }].concat(pezzi(v)), { rientro: 360, dopo: 40 })); }); }
-    /* diagramma e documentazione su pagine orizzontali: sono larghi */
-    b.push(W.par("", { dopo: 0, sez: SEZ_VERTICALE }));
-    b.push(titoloSez("Diagramma E/R"));
-    if (png) b.push(immagineWord(png, 15398 * 635, 8600 * 635));
+    b.push(titoloW(t.titolo || "Soluzione", 0));
+    b.push(titoloW("Traccia", 1));
+    paragrafi(x.realta).forEach(function (p) { b.push(W.par(p)); });
+    if (ds.ipotesi.length) { b.push(titoloW("Ipotesi aggiuntive", 1)); ds.ipotesi.forEach(function (v) { b.push(puntoW(v)); }); }
+    b.push(titoloW("Diagramma E/R", 1));
+    if (png) { var d = dimPng(png) || { w: 800 }; b.push(immagineWord(png, Math.min(17 * 360000, Math.round(d.w / 96 * 914400)), 24 * 360000)); }
     else b.push(W.par([{ t: "(diagramma non disponibile)", i: true }]));
-    if (ds.documentazione.length) { b.push(titoloSez("Documentazione")); b.push(blocchiWord(ds.documentazione, 15398)); }
-    b.push(W.par("", { dopo: 0, sez: SEZ_ORIZZONTALE }));
-    b.push(titoloSez("Schema relazionale"));
-    b.push(blocchiWord(ds.schema, 9638));
+    if (ds.documentazione.length) { b.push(titoloW("Documentazione", 1)); b.push(blocchiWord(ds.documentazione)); }
+    b.push(titoloW("Schema relazionale", 1));
+    b.push(blocchiWord(ds.schema));
     if (ds.query.length) {
-      b.push(titoloSez("Query SQL"));
-      ds.query.forEach(function (q, i) {
-        b.push(W.par([{ t: (i + 1) + ". ", b: true }].concat(pezzi(q.richiesta)), { prima: 120, dopo: 60 }));
-        String(q.sql || "").split("\n").forEach(function (r) { b.push(W.par([{ t: r.replace(/\t/g, "    ") || " " }], { mono: true, size: 18, dopo: 0, rientro: 360 })); });
-      });
+      b.push(titoloW("Query SQL", 1));
+      ds.query.forEach(function (q, i) { b.push(titoloW((i + 1) + ". " + q.richiesta, 2)); b.push(codiceWord(q.sql)); });
     }
-    return pacchetto(b.join(""), SEZ_VERTICALE, 0, "Soluzione: " + (t.titolo || ""), png ? { byte: png } : null);
+    return pacchetto(b.join(""), SEZ_VERTICALE, 0, t.titolo || "Soluzione", png ? { byte: png } : null,
+      { font: "Calibri", dopo: 200, linea: 276, stili: STILI_SOL, numerazione: NUM_PUNTI, num: '<w:num w:numId="900"><w:abstractNumId w:val="9"/></w:num>' });
   }
   function docxSoluzione(t, png) { return zip(fileDocxSoluzione(t, png)); }
   function base64(b) {
@@ -470,43 +501,61 @@
     }
     return s;
   }
-  /* Moodle toglie i <style>: nel frammento per Moodle gli stili delle tabelle stanno negli attributi */
-  var ST_MOODLE = { tab: ' style="overflow-x:auto"', table: ' style="border-collapse:collapse;width:100%"', cella: ' style="border:1px solid #999;padding:4px 7px;text-align:left;vertical-align:top"' };
-  function htmlBlocchi(bl, mo, h) {
-    var st = mo ? ST_MOODLE : { tab: ' class="tab"', table: "", cella: "" };
+  /* HTML della soluzione: lo stesso aspetto del Word (e della soluzione di diagrammi-er), con gli stili negli
+     attributi, perché Moodle toglie i <style>. Il frammento si incolla in Moodle; il file è il frammento in una pagina. */
+  var CSS_SOL = {
+    box: "font-family:Calibri,'Segoe UI',Helvetica,Arial,sans-serif;color:#1a1a1a;line-height:1.5;max-width:900px",
+    h1: "font-size:1.6em;font-weight:normal;color:#1c4587;border-bottom:2px solid #6c8ebf;padding-bottom:6px;margin:0 0 .8em",
+    h2: "font-size:1.25em;font-weight:bold;color:#1c4587;margin:2em 0 .4em",
+    h3: "font-size:1.05em;font-weight:bold;color:#1c4587;margin:1.4em 0 .4em",
+    p: "margin:0 0 .8em", ul: "margin:0 0 .8em;padding-left:1.6em",
+    img: "max-width:100%;height:auto;display:block;margin:12px 0",
+    table: "border-collapse:collapse;width:100%;font-size:.9em;margin:8px 0 16px",
+    th: "border:1px solid #999999;padding:4px 8px;text-align:left;vertical-align:top;background:#eeeeee",
+    td: "border:1px solid #999999;padding:4px 8px;text-align:left;vertical-align:top",
+    inizio: "border-top:2px solid #666666",
+    pre: "background:#f5f7fb;border:1px solid #c9d3e3;border-radius:4px;padding:10px 12px;overflow-x:auto;font-family:Consolas,'Courier New',monospace;font-size:.9em;line-height:1.4;margin:6px 0 12px"
+  };
+  var st = function (k) { return ' style="' + CSS_SOL[k] + '"'; };
+  var hS = function (livello, testo) { var tag = "h" + (livello + 1); return "<" + tag + st("h" + livello) + ">" + testo + "</" + tag + ">"; };
+  var pS = function (testo) { return "<p" + st("p") + ">" + htmlInline(testo) + "</p>"; };
+  var ulS = function (voci) { return "<ul" + st("ul") + ">" + voci.map(function (v) { return "<li>" + htmlInline(v) + "</li>"; }).join("") + "</ul>"; };
+  function tabellaHtml(testa, righe) {
+    var fisse = FISSE_DOC[testa.length] || 0, out = "<table" + st("table") + "><thead><tr>" + testa.map(function (c) { return "<th" + st("th") + ">" + htmlInline(c) + "</th>"; }).join("") + "</tr></thead><tbody>";
+    gruppiRighe(righe).forEach(function (g) {
+      g.forEach(function (r, j) {
+        out += "<tr>" + testa.map(function (_, k) {
+          if (k < fisse && j > 0) return "";
+          var span = k < fisse && g.length > 1 ? ' rowspan="' + g.length + '"' : "";
+          return "<td" + span + ' style="' + CSS_SOL.td + (j === 0 ? ";" + CSS_SOL.inizio : "") + '">' + htmlInline(r[k] || "") + "</td>";
+        }).join("") + "</tr>";
+      });
+    });
+    return out + "</tbody></table>";
+  }
+  function htmlBlocchi(bl) {
     return bl.map(function (b) {
-      if (b.tipo === "tabella") return "<div" + st.tab + "><table" + st.table + "><thead><tr>" + b.testa.map(function (c) { return "<th" + st.cella + ">" + htmlInline(c) + "</th>"; }).join("") + "</tr></thead><tbody>" +
-        b.righe.map(function (r) { return "<tr>" + b.testa.map(function (_, k) { return "<td" + st.cella + ">" + htmlInline(r[k] || "") + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table></div>";
-      if (b.tipo === "titolo") return "<" + h + ">" + htmlInline(b.testo.replace(/\*\*/g, "")) + "</" + h + ">";
-      if (b.tipo === "elenco") return "<ul>" + b.voci.map(function (v) { return "<li>" + htmlInline(v) + "</li>"; }).join("") + "</ul>";
-      return "<p>" + htmlInline(b.testo) + "</p>";
+      if (b.tipo === "tabella") return tabellaHtml(b.testa, b.righe);
+      if (b.tipo === "titolo") return hS(3, htmlInline(b.testo.replace(/\*\*/g, "")));
+      if (b.tipo === "elenco") return ulS(b.voci);
+      return pS(b.testo);
     }).join("\n");
   }
-  /* il corpo della soluzione; mo = frammento per Moodle (titoli h3/h4, stili negli attributi) */
-  function corpoSoluzione(t, png, mo) {
-    var ds = datiSoluzione(t), x = t.testo || {}, o = [], h2 = mo ? "h3" : "h2", h3 = mo ? "h4" : "h3";
-    var tit = function (s) { return "<" + h2 + ">" + s + "</" + h2 + ">"; };
-    o.push(tit("Traccia") + paragrafi(x.realta).map(function (p) { return "<p>" + htmlInline(p) + "</p>"; }).join(""));
-    if (ds.ipotesi.length) o.push(tit("Ipotesi aggiuntive") + "<ul>" + ds.ipotesi.map(function (v) { return "<li>" + htmlInline(v) + "</li>"; }).join("") + "</ul>");
-    o.push(tit("Diagramma E/R") + (png ? '<p><img alt="Diagramma E/R" src="data:image/png;base64,' + base64(png) + '"' + (mo ? ' style="max-width:100%;height:auto"' : "") + "></p>" : "<p><em>(diagramma non disponibile)</em></p>"));
-    if (ds.documentazione.length) o.push(tit("Documentazione") + htmlBlocchi(ds.documentazione, mo, h3));
-    o.push(tit("Schema relazionale") + htmlBlocchi(ds.schema, mo, h3));
-    if (ds.query.length) o.push(tit("Query SQL") + ds.query.map(function (q, i) { return "<p><strong>" + (i + 1) + ".</strong> " + htmlInline(q.richiesta) + "</p><pre>" + esc(q.sql) + "</pre>"; }).join(""));
-    return o.join("\n");
+  function htmlSoluzioneMoodle(t, png) {
+    var ds = datiSoluzione(t), x = t.testo || {}, o = [];
+    o.push(hS(1, esc(t.titolo || "Soluzione")));
+    o.push(hS(2, "Traccia") + paragrafi(x.realta).map(pS).join(""));
+    if (ds.ipotesi.length) o.push(hS(2, "Ipotesi aggiuntive") + ulS(ds.ipotesi));
+    o.push(hS(2, "Diagramma E/R") + (png ? '<img alt="Diagramma E/R: ' + esc(t.titolo) + '" src="data:image/png;base64,' + base64(png) + '"' + st("img") + ">" : pS("*(diagramma non disponibile)*")));
+    if (ds.documentazione.length) o.push(hS(2, "Documentazione") + htmlBlocchi(ds.documentazione));
+    o.push(hS(2, "Schema relazionale") + htmlBlocchi(ds.schema));
+    if (ds.query.length) o.push(hS(2, "Query SQL") + ds.query.map(function (q, i) { return hS(3, (i + 1) + ". " + htmlInline(q.richiesta)) + "<pre" + st("pre") + ">" + esc(q.sql) + "</pre>"; }).join(""));
+    return "<div" + st("box") + ">\n" + o.join("\n") + "\n</div>";
   }
   function htmlSoluzione(t, png) {
-    var o = [];
-    o.push('<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Soluzione: ' + esc(t.titolo) + "</title>");
-    o.push("<style>body{font:15px/1.5 Arial,Helvetica,sans-serif;color:#222;max-width:1100px;margin:24px auto;padding:0 16px}h1{font-size:1.5rem}h2{font-size:1.15rem;margin-top:28px;border-bottom:1px solid #ccc;padding-bottom:4px}h3{font-size:1rem;margin:18px 0 6px}" +
-      ".tab{overflow-x:auto}table{border-collapse:collapse;font-size:.85rem;width:100%}th,td{border:1px solid #999;padding:4px 7px;text-align:left;vertical-align:top}th{background:#eee}" +
-      "img{max-width:100%;height:auto}pre{background:#f4f4f4;border:1px solid #ddd;padding:10px;overflow-x:auto;font:13px/1.45 Consolas,monospace}@media print{h2{break-after:avoid}pre,tr{break-inside:avoid}}</style></head><body>");
-    o.push("<h1>Soluzione: " + esc(t.titolo) + "</h1>");
-    o.push(corpoSoluzione(t, png, false));
-    o.push("</body></html>");
-    return o.join("\n");
+    return '<!doctype html>\n<html lang="it">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>' + esc(t.titolo || "Soluzione") + "</title>\n</head>\n" +
+      '<body style="background:#ffffff;margin:32px auto;padding:0 20px;max-width:900px">\n' + htmlSoluzioneMoodle(t, png) + "\n</body>\n</html>\n";
   }
-  /* frammento da incollare in Moodle (codice sorgente dell'editor): niente <style>, diagramma come data URI */
-  function htmlSoluzioneMoodle(t, png) { return corpoSoluzione(t, png, true); }
 
   /* ------------------------------------------------------------------ zip senza compressione */
   var CRC = (function () { var t = []; for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t.push(c >>> 0); } return t; })();

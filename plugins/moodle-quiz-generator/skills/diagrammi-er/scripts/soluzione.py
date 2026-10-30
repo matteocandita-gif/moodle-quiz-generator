@@ -108,22 +108,28 @@ LARGHEZZE = {6: [2.4, 2.0, 3.4, 3.5, 2.3, 3.4], 7: [2.4, 2.6, 2.4, 3.2, 2.4, 2.0
 
 # ---------------------------------------------------------------- HTML (un file solo)
 
-CSS = """
-body { font-family: "Segoe UI", Helvetica, Arial, sans-serif; color: #1a1a1a; background: #ffffff;
-       max-width: 900px; margin: 32px auto; padding: 0 20px; line-height: 1.5; }
-h1 { font-size: 1.6em; border-bottom: 2px solid #6c8ebf; padding-bottom: 6px; }
-h2 { font-size: 1.25em; color: #1c4587; margin-top: 2em; }
-h3 { font-size: 1.05em; margin-top: 1.4em; }
-img { max-width: 100%; height: auto; display: block; margin: 12px 0; }
-table { border-collapse: collapse; width: 100%; font-size: 0.9em; margin: 8px 0 16px; }
-th, td { border: 1px solid #999999; padding: 4px 8px; text-align: left; vertical-align: top; }
-th { background: #eeeeee; }
-tr.inizio td { border-top: 2px solid #666666; }
-p.relazione { margin: 6px 0; font-size: 1.05em; }
-pre { background: #f5f7fb; border: 1px solid #c9d3e3; border-radius: 4px; padding: 10px 12px; overflow-x: auto;
-      font-size: 0.9em; line-height: 1.4; }
-@media print { body { margin: 0; max-width: none; } h2 { break-after: avoid; } table, img { break-inside: avoid; } }
-"""
+# Gli stili stanno negli attributi, non in un <style>: Moodle toglie i <style>, e la pagina si può incollare
+# nell'editor (codice sorgente) senza perdere l'aspetto. Lo stesso aspetto lo dà la dashboard «Tracce di
+# progettazione» (uscite_traccia.js di tracce-progettazione, CSS_SOL): se cambia qui, va cambiato anche lì.
+STILI = {
+    "box": "font-family:Calibri,'Segoe UI',Helvetica,Arial,sans-serif;color:#1a1a1a;line-height:1.5;max-width:900px",
+    "h1": "font-size:1.6em;font-weight:normal;color:#1c4587;border-bottom:2px solid #6c8ebf;padding-bottom:6px;margin:0 0 .8em",
+    "h2": "font-size:1.25em;font-weight:bold;color:#1c4587;margin:2em 0 .4em",
+    "h3": "font-size:1.05em;font-weight:bold;color:#1c4587;margin:1.4em 0 .4em",
+    "p": "margin:0 0 .8em", "ul": "margin:0 0 .8em;padding-left:1.6em",
+    "img": "max-width:100%;height:auto;display:block;margin:12px 0",
+    "table": "border-collapse:collapse;width:100%;font-size:.9em;margin:8px 0 16px",
+    "th": "border:1px solid #999999;padding:4px 8px;text-align:left;vertical-align:top;background:#eeeeee",
+    "td": "border:1px solid #999999;padding:4px 8px;text-align:left;vertical-align:top",
+    "inizio": "border-top:2px solid #666666",
+    "relazione": "margin:6px 0;font-size:1.05em",
+    "pre": "background:#f5f7fb;border:1px solid #c9d3e3;border-radius:4px;padding:10px 12px;overflow-x:auto;"
+           "font-family:Consolas,'Courier New',monospace;font-size:.9em;line-height:1.4;margin:6px 0 12px",
+}
+
+
+def st(k):
+    return ' style="%s"' % STILI[k]
 
 
 def inline_html(testo):
@@ -142,14 +148,14 @@ def rendi_html(blocchi):
         if k in ("h1", "h2", "h3"):
             if k == "h1":
                 titolo = bl[1]
-            corpo.append("<%s>%s</%s>" % (k, html.escape(bl[1]), k))
+            corpo.append("<%s%s>%s</%s>" % (k, st(k), html.escape(bl[1]), k))
         elif k == "p":
-            corpo.append("<p>%s</p>" % inline_html(bl[1]))
+            corpo.append("<p%s>%s</p>" % (st("p"), inline_html(bl[1])))
         elif k == "ul":
-            corpo.append("<ul>\n%s\n</ul>" % "\n".join("<li>%s</li>" % inline_html(x) for x in bl[1]))
+            corpo.append("<ul%s>\n%s\n</ul>" % (st("ul"), "\n".join("<li>%s</li>" % inline_html(x) for x in bl[1])))
         elif k == "img":
             dati = base64.b64encode(open(bl[1], "rb").read()).decode("ascii")
-            corpo.append('<img src="data:image/png;base64,%s" alt="%s">' % (dati, html.escape(bl[2], quote=True)))
+            corpo.append('<img src="data:image/png;base64,%s" alt="%s"%s>' % (dati, html.escape(bl[2], quote=True), st("img")))
         elif k == "tabella":
             intest, righe = bl[1], bl[2]
             fisse = FISSE.get(len(intest), 0)
@@ -162,12 +168,13 @@ def rendi_html(blocchi):
                             continue
                         span = ' rowspan="%d"' % len(g) if i < fisse and len(g) > 1 else ""
                         testo = "<strong>%s</strong>" % html.escape(c[0]) if isinstance(c, tuple) else html.escape(c)
-                        celle.append("<td%s>%s</td>" % (span, testo))
-                    r_html.append("<tr%s>%s</tr>" % (' class="inizio"' if j == 0 else "", "".join(celle)))
-            corpo.append("<table>\n<thead><tr>%s</tr></thead>\n<tbody>\n%s\n</tbody>\n</table>"
-                         % ("".join("<th>%s</th>" % html.escape(h) for h in intest), "\n".join(r_html)))
+                        stile = STILI["td"] + (";" + STILI["inizio"] if j == 0 else "")
+                        celle.append('<td%s style="%s">%s</td>' % (span, stile, testo))
+                    r_html.append("<tr>%s</tr>" % "".join(celle))
+            corpo.append("<table%s>\n<thead><tr>%s</tr></thead>\n<tbody>\n%s\n</tbody>\n</table>"
+                         % (st("table"), "".join("<th%s>%s</th>" % (st("th"), html.escape(h)) for h in intest), "\n".join(r_html)))
         elif k == "codice":
-            corpo.append("<pre><code>%s</code></pre>" % html.escape(bl[1]))
+            corpo.append("<pre%s>%s</pre>" % (st("pre"), html.escape(bl[1])))
         elif k == "schema":
             relazioni, vincoli = bl[1], bl[2]
             for r in relazioni:
@@ -177,12 +184,13 @@ def rendi_html(blocchi):
                     if c.pk:
                         t = "<u>%s</u>" % t
                     campi.append(t + ("*" if c.fk else ""))
-                corpo.append('<p class="relazione"><strong>%s</strong>(%s)</p>' % (html.escape(r.nome), ", ".join(campi)))
+                corpo.append('<p%s><strong>%s</strong>(%s)</p>' % (st("relazione"), html.escape(r.nome), ", ".join(campi)))
             if vincoli:
-                corpo.append("<h3>Vincoli</h3>\n<ul>\n%s\n</ul>" % "\n".join("<li>%s</li>" % html.escape(v) for v in vincoli))
+                corpo.append("<h3%s>Vincoli</h3>\n<ul%s>\n%s\n</ul>" % (st("h3"), st("ul"), "\n".join("<li>%s</li>" % html.escape(v) for v in vincoli)))
     return ('<!doctype html>\n<html lang="it">\n<head>\n<meta charset="utf-8">\n'
             '<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>%s</title>\n'
-            '<style>%s</style>\n</head>\n<body>\n%s\n</body>\n</html>\n' % (html.escape(titolo), CSS, "\n".join(corpo)))
+            '</head>\n<body style="background:#ffffff;margin:32px auto;padding:0 20px;max-width:900px">\n'
+            '<div%s>\n%s\n</div>\n</body>\n</html>\n' % (html.escape(titolo), st("box"), "\n".join(corpo)))
 
 
 # ---------------------------------------------------------------- Markdown (per il libro)
