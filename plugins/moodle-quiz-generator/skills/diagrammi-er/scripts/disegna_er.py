@@ -135,18 +135,43 @@ ST_CARD = ("edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;point
 
 # ---------------------------------------------------------------- impaginazione
 
+DUE_FILE = 5     # da quanti attributi sopra o sotto le etichette si dispongono su due file
+GAMBO_FILA = 20  # di quanto è più lungo il gambetto della seconda fila
+
+
+def file_sopra_sotto(nomi):
+    """Fila di ogni attributo di un lato sopra o sotto: 0 vicina al rettangolo, 1 lontana (gambetto più lungo).
+    Con molti attributi le etichette si alternano su due file, così il rettangolo non diventa lunghissimo."""
+    return [i % 2 if len(nomi) >= DUE_FILE else 0 for i in range(len(nomi))]
+
+
 def centri_sopra_sotto(nomi, opzionali=()):
     """Centri dei gambetti di un lato sopra o sotto, dal primo: le etichette affiancate a 14 px, più lo
-    spazio della cardinalità (0,1) a destra del gambetto di un attributo opzionale."""
+    spazio della cardinalità (0,1) a destra del gambetto di un attributo opzionale. Su due file: le etichette
+    della stessa fila restano a 14 px; un'etichetta della fila vicina sta lontana dal gambetto lungo accanto."""
     larg = [lw(a.lstrip("*")) for a in nomi]
-    centri, cur = [], 0.0
+    fila = file_sopra_sotto(nomi)
+    extra = lambda j: max(0, lw(OPZ) + 6 - larg[j] / 2) if nomi[j] in opzionali else 0
+    centri = []
     for i, l in enumerate(larg):
-        if i:
-            cur += larg[i - 1] / 2 + 14 + l / 2
-            if nomi[i - 1] in opzionali:
-                cur += max(0, lw(OPZ) + 6 - larg[i - 1] / 2)
-        centri.append(cur)
+        if not i:
+            centri.append(0.0)
+            continue
+        if not any(fila):
+            centri.append(centri[-1] + larg[i - 1] / 2 + 14 + l / 2 + extra(i - 1))
+            continue
+        vicina = i if fila[i] == 0 else i - 1          # la sua etichetta incontra il gambetto lungo dell'altra
+        c = centri[-1] + larg[vicina] / 2 + 8 + (extra(vicina) if vicina == i - 1 else 0)
+        if i >= 2:
+            c = max(c, centri[i - 2] + larg[i - 2] / 2 + 14 + l / 2 + extra(i - 2))
+        centri.append(c)
     return larg, centri
+
+
+def passi_fianco(nomi, opzionali=()):
+    """Spazio verticale di ogni attributo di un fianco: più spazio solo per quelli opzionali, che hanno la
+    cardinalità sotto il gambetto."""
+    return [PASSO_OPZ if a in opzionali else PASSO_O for a in nomi]
 
 
 def attributi_lato(lato, nomi, box, gambo, allinea="centro", opzionali=()):
@@ -157,6 +182,7 @@ def attributi_lato(lato, nomi, box, gambo, allinea="centro", opzionali=()):
         # posizione dei gambetti: si centra l'arco dei gambetti (dal primo all'ultimo), così i gambetti
         # restano dentro il rettangolo anche se le etichette escono
         larg, centri = centri_sopra_sotto(nomi, opzionali)
+        fila = file_sopra_sotto(nomi)
         arco = centri[-1]
         if allinea == "sinistra":
             base = x + 12
@@ -164,10 +190,11 @@ def attributi_lato(lato, nomi, box, gambo, allinea="centro", opzionali=()):
             base = x + w - 12 - arco
         else:
             base = x + w / 2 - arco / 2
-        for a, l, c0 in zip(nomi, larg, centri):
+        for a, l, c0, f in zip(nomi, larg, centri, fila):
             cx = base + c0
             y0 = y if lato == "sopra" else y + h
-            yc = y0 - gambo if lato == "sopra" else y0 + gambo
+            g = gambo + GAMBO_FILA * f
+            yc = y0 - g if lato == "sopra" else y0 + g
             et = (cx - l / 2 - 2, yc - R - 2 - 16, l + 4, 16, "center", "bottom") if lato == "sopra" else \
                  (cx - l / 2 - 2, yc + R + 1, l + 4, 16, "center", "top")
             out.append({"nome": a.lstrip("*"), "chiave": a.startswith("*"), "opzionale": a in opzionali,
@@ -175,11 +202,13 @@ def attributi_lato(lato, nomi, box, gambo, allinea="centro", opzionali=()):
                         "fx": (cx - x) / w, "fy": 0 if lato == "sopra" else 1, "pallino": (cx, yc),
                         "etichetta": et})
     else:
-        k = len(nomi)
         if any(a in opzionali for a in nomi):
             gambo += GAMBO_OPZ
+        passi = passi_fianco(nomi, opzionali)
+        cur = y + h / 2 - sum(passi) / 2
         for i, a in enumerate(nomi):
-            cy = y + h * (i + 1) / (k + 1)
+            cy = cur + passi[i] / 2
+            cur += passi[i]
             x0 = x if lato == "sinistra" else x + w
             xc = x0 - gambo if lato == "sinistra" else x0 + gambo
             l = lw(a.lstrip("*"))
@@ -202,8 +231,7 @@ def dimensioni_entita(e):
     h = H_ENT
     for lato in ("sinistra", "destra"):
         nomi = e["attr"].get(lato, [])
-        passo = PASSO_OPZ if any(a in e["opzionali"] for a in nomi) else PASSO_O
-        h = max(h, passo * len(nomi) + 10)
+        h = max(h, sum(passi_fianco(nomi, e["opzionali"])) + 10)
     return w, h
 
 
@@ -218,6 +246,19 @@ def impagina(diag):
         c, r = e["pos"]
         e["box"] = (c * gx - w / 2, r * gy - h / 2, w, h)
         e["centro"] = (c * gx, r * gy)
+    # entità di grandezza paragonabile: un rettangolo molto più largo o più alto degli altri si nota subito
+    ws = sorted(e["box"][2] for e in diag["entita"].values())
+    hs = sorted(e["box"][3] for e in diag["entita"].values())
+    if len(ws) >= 3:
+        mw, mh = ws[len(ws) // 2], hs[len(hs) // 2]
+        for e in diag["entita"].values():
+            w, h = e["box"][2], e["box"][3]
+            if w > 2.2 * mw:
+                print("AVVISO: «%s» è molto più larga delle altre entità (%d px, di solito %d): dividi gli attributi "
+                      "sopra e sotto, o togli «larghezza:» se non serve" % (e["nome"], w, mw))
+            if h > 2 * mh:
+                print("AVVISO: «%s» è molto più alta delle altre entità (%d px, di solito %d): sposta qualche "
+                      "attributo sopra o sotto" % (e["nome"], h, mh))
     for a in diag["associazioni"]:
         e1, e2 = diag["entita"][a["e1"]], diag["entita"][a["e2"]]
         tw = lw(a["nome"])

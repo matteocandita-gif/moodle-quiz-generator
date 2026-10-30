@@ -99,7 +99,7 @@ Con «lasciare tutto» ogni specializzazione ha come chiave la chiave esterna ve
 - Gli attributi vanno sui lati da cui **non** arrivano linee: lo script avvisa quando una linea arriva sul lato degli attributi.
 - Su un lato possono arrivare più linee (un'entità collegata a molte altre): ognuna parte dal punto del lato di fronte al suo rombo, quindi i rombi vanno messi con `@` di fronte al lato, a una distanza di almeno 40 px l'uno dall'altro; se il lato è troppo corto si allarga l'entità con `larghezza:`. Lo script avvisa quando una linea verrebbe obliqua o due linee sono troppo vicine. Una generalizzazione ha la gerarchia sotto, una specializzazione sopra.
 - Tra due righe di entità con attributi sotto e sopra servono più di 170 px: usa righe a 1.4 o 1.5.
-- Molti attributi su un lato allargano molto il rettangolo: dividili tra due lati.
+- **Entità di grandezza paragonabile**: nessun rettangolo molto più largo o più alto degli altri. Da 5 attributi in su, sopra o sotto, le etichette si dispongono da sole su due file (gambetti alternati corti e lunghi); ai fianchi conviene non andare oltre 4 attributi. Con più attributi dividili tra due lati liberi, e usa `larghezza:` solo quando serve davvero (più rombi sullo stesso lato). Lo script avvisa quando un'entità è molto più grande delle altre.
 - Nomi delle entità al **singolare** e verbo delle associazioni al singolare, anche se la traccia parla al plurale: lo script avvisa quando un nome sembra plurale. Attributi senza spazi, come nel libro (`DataNascita`, `Ore_settimanali`).
 
 ## Ritocchi in draw.io
