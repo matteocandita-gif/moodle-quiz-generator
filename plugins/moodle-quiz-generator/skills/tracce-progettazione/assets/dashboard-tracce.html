@@ -1,0 +1,995 @@
+<title>Tracce di progettazione</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: elenco delle tracce, poi una scheda per traccia con quattro viste (traccia, note, soluzione, uscite).
+   Colori del diagramma E/R del libro: l'azzurro delle entità come accento, neutri con una punta di blu. */
+:root{
+  --bg:#f3f5f9; --panel:#ffffff; --panel-2:#eaeef5; --ink:#18212e; --muted:#566275; --line:#d4dbe6; --line-2:#e4e9f0;
+  --accent:#2c5d93; --accent-ink:#ffffff; --entity:#dae8fc; --entity-line:#6c8ebf; --sheet:#ffffff;
+  --st-richiesta:#5a6678; --st-richiesta-bg:#e8ecf2; --st-lavoro:#6a4aa0; --st-lavoro-bg:#ece5f7;
+  --st-rivedere:#8a5a00; --st-rivedere-bg:#fbeacb; --st-approvata:#1f7346; --st-approvata-bg:#dcf0e3;
+  --st-usata:#2c5d93; --st-usata-bg:#dde9f8; --bad:#ad2f25; --bad-bg:#fbe2df; --code:#eef2f7;
+  --f-body:"Instrument Sans","Segoe UI",system-ui,sans-serif; --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10151d; --panel:#18202b; --panel-2:#212b38; --ink:#e3e9f1; --muted:#9aa7b8; --line:#2c3847; --line-2:#253040;
+  --accent:#86b3e6; --accent-ink:#0d1622; --entity:#1f3550; --entity-line:#5f86b8; --sheet:#1b2430;
+  --st-richiesta:#a8b4c4; --st-richiesta-bg:#253040; --st-lavoro:#bba2ec; --st-lavoro-bg:#2a2140;
+  --st-rivedere:#f0bc5e; --st-rivedere-bg:#3a2b10; --st-approvata:#6ccb95; --st-approvata-bg:#173225;
+  --st-usata:#86b3e6; --st-usata-bg:#18283b; --bad:#ff8e84; --bad-bg:#40201c; --code:#141b25; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10151d; --panel:#18202b; --panel-2:#212b38; --ink:#e3e9f1; --muted:#9aa7b8; --line:#2c3847; --line-2:#253040;
+  --accent:#86b3e6; --accent-ink:#0d1622; --entity:#1f3550; --entity-line:#5f86b8; --sheet:#1b2430;
+  --st-richiesta:#a8b4c4; --st-richiesta-bg:#253040; --st-lavoro:#bba2ec; --st-lavoro-bg:#2a2140;
+  --st-rivedere:#f0bc5e; --st-rivedere-bg:#3a2b10; --st-approvata:#6ccb95; --st-approvata-bg:#173225;
+  --st-usata:#86b3e6; --st-usata-bg:#18283b; --bad:#ff8e84; --bad-bg:#40201c; --code:#141b25; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3{margin:0;text-wrap:balance}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 64px;display:flex;flex-direction:column;gap:18px}
+#main{display:flex;flex-direction:column;gap:16px;min-width:0}
+.testa{display:flex;flex-wrap:wrap;gap:10px 20px;align-items:flex-end;justify-content:space-between}
+.testa h1{font-size:1.6rem;font-weight:700;letter-spacing:-.01em}
+.testa p{margin:2px 0 0;color:var(--muted);font-size:.92rem}
+.muted{color:var(--muted)}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 13px;font-weight:600;font-size:.88rem}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primario{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primario:hover{filter:brightness(1.07);color:var(--accent-ink)}
+.btn.piccolo{padding:3px 9px;font-size:.8rem}
+.btn.pericolo{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,var(--line))}
+.btn.pericolo.pieno{background:var(--bad);color:var(--panel);border-color:var(--bad)}
+.btn:disabled{opacity:.45;cursor:default}
+.ctl{border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:6px 9px;min-width:0;max-width:100%}
+textarea.ctl{width:100%;resize:vertical;line-height:1.5}
+.ctl:focus{border-color:var(--accent);outline:none}
+.vuoto{background:var(--panel);border:1px dashed var(--line);border-radius:10px;padding:26px 20px;text-align:center;color:var(--muted)}
+.vuoto strong{color:var(--ink)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:8px 15px;border-radius:8px;font-size:.88rem;z-index:40;max-width:calc(100% - 32px)}
+/* stati */
+.st{display:inline-flex;align-items:center;gap:5px;font-size:.74rem;font-weight:700;letter-spacing:.02em;border-radius:99px;padding:1px 9px;white-space:nowrap}
+.st::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.st-richiesta{color:var(--st-richiesta);background:var(--st-richiesta-bg)}
+.st-lavoro{color:var(--st-lavoro);background:var(--st-lavoro-bg)}
+.st-da-rivedere{color:var(--st-rivedere);background:var(--st-rivedere-bg)}
+.st-approvata{color:var(--st-approvata);background:var(--st-approvata-bg)}
+.st-usata{color:var(--st-usata);background:var(--st-usata-bg)}
+.chip{font-size:.74rem;font-weight:600;color:var(--muted);background:var(--panel-2);border-radius:5px;padding:1px 7px;white-space:nowrap}
+.chip.preset{background:var(--entity);color:var(--ink);border:1px solid var(--entity-line)}
+/* elenco */
+.filtri{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.filtri .ctl{flex:1 1 200px}
+.elenco{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.carta{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px 15px;display:flex;flex-direction:column;gap:8px;text-align:left;min-width:0}
+.carta:hover{border-color:var(--accent)}
+.carta h3{font-size:1.02rem;font-weight:700;overflow-wrap:anywhere}
+.carta .meta{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.carta .desc{font-size:.86rem;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.carta .data{font-family:var(--f-mono);font-size:.74rem;color:var(--muted)}
+details.riquadro{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+details.riquadro>summary{cursor:pointer;padding:10px 14px;font-weight:600;list-style:none}
+details.riquadro>summary::-webkit-details-marker{display:none}
+details.riquadro>.dentro{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}
+/* moduli */
+.sezione{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.sezione h2{font-size:1.08rem;font-weight:700}
+.sezione .sub{font-size:.86rem;color:var(--muted);margin:-6px 0 0}
+.preset{display:flex;flex-wrap:wrap;gap:8px}
+.preset button{border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:8px 14px;text-align:left;min-width:150px;flex:1 1 150px}
+.preset button b{display:block}
+.preset button span{font-size:.8rem;color:var(--muted)}
+.preset button[aria-pressed="true"]{border-color:var(--entity-line);background:var(--entity)}
+.voci{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px 14px}
+.campo{display:flex;flex-direction:column;gap:4px;min-width:0}
+.campo>span{font-size:.74rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.campo.cambiato>span::after{content:" · modificato";text-transform:none;letter-spacing:0;font-weight:600;color:var(--st-rivedere)}
+.riga{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.errore{color:var(--bad);font-size:.88rem}
+.avviso{background:var(--st-rivedere-bg);border-radius:9px;padding:10px 14px;font-size:.9rem}
+.avviso.ok{background:var(--st-approvata-bg)}
+.avviso textarea{margin-top:8px;font-family:var(--f-mono);font-size:.8rem}
+/* scheda */
+.indietro{border:0;background:none;color:var(--accent);font-weight:600;padding:0}
+.schede{display:flex;gap:2px;border-bottom:1px solid var(--line);overflow-x:auto}
+.schede button{border:0;background:none;padding:9px 14px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
+.schede button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.foglio{background:var(--sheet);border:1px solid var(--line);border-radius:4px;padding:22px clamp(16px,4vw,40px);box-shadow:0 1px 0 var(--line-2);display:flex;flex-direction:column;gap:12px;min-width:0}
+.foglio .titolo-c{font-weight:700;font-size:1.06rem}
+.foglio p{margin:0;max-width:72ch}
+.foglio ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:3px}
+.foglio .etic{font-weight:700}
+.blocco{display:flex;flex-direction:column;gap:6px}
+.blocco-t{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.blocco-t h3{font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.query-riga{display:grid;grid-template-columns:28px minmax(0,1fr) 110px;gap:8px;align-items:start;border-top:1px solid var(--line-2);padding-top:8px}
+.query-riga .n{font-family:var(--f-mono);font-weight:600;padding-top:6px;color:var(--muted)}
+.query-riga .req{grid-column:2 / -1}
+.lista-note{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:3px}
+pre.codice{background:var(--code);border:1px solid var(--line);border-radius:7px;padding:10px 12px;font:12.5px/1.5 var(--f-mono);overflow-x:auto;white-space:pre;margin:0}
+.md table{border-collapse:collapse;font-size:.84rem;width:100%}
+.md th,.md td{border:1px solid var(--line);padding:4px 7px;text-align:left;vertical-align:top}
+.md th{background:var(--panel-2)}
+.md .tabella{overflow-x:auto}
+.md p{margin:0 0 8px}
+.diagramma{background:#ffffff;border:1px solid var(--line);border-radius:8px;padding:8px;overflow-x:auto}
+.diagramma img{display:block;width:100%;min-width:680px;height:auto}
+.griglia{overflow-x:auto}
+.griglia table{border-collapse:collapse;font-size:.86rem;min-width:520px;width:100%}
+.griglia th,.griglia td{border-bottom:1px solid var(--line-2);padding:6px 8px;text-align:left}
+.griglia td.num,.griglia th.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--f-mono);font-size:.8rem}
+.griglia input{width:4.2em;text-align:right}
+.griglia tfoot td{font-weight:700;border-bottom:0}
+.conferma{display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--bad);font-size:.9rem}
+.mini{font-size:.8rem}
+@media (max-width:620px){.query-riga{grid-template-columns:24px minmax(0,1fr)}.query-riga select{grid-column:2}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+<!-- barra-navigazione: inizio. Originale in sviluppo/strumenti/barra-navigazione.html: non modificarla qui, si rigenera con sviluppo/strumenti/allinea_copie.py -->
+<nav class="mqg-nav" id="mqg-nav" aria-label="Pagine di Moodle: quiz generator" hidden></nav>
+<style>
+/* Barra di navigazione tra le pagine del plugin: discreta, prende colori e testo della pagina che la ospita. */
+.mqg-nav{display:flex;flex-wrap:wrap;align-items:center;gap:2px 2px;margin:0 0 8px;padding:5px 0;border-bottom:1px solid color-mix(in srgb,currentColor 13%,transparent);font:500 12.5px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+.mqg-nav[hidden]{display:none!important}
+.mqg-nav .mqg-l{margin-right:6px;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:color-mix(in srgb,currentColor 55%,transparent)}
+.mqg-nav a,.mqg-nav .mqg-qui{padding:2px 8px;border-radius:6px;white-space:nowrap;text-decoration:none}
+.mqg-nav a{color:color-mix(in srgb,currentColor 72%,transparent)}
+.mqg-nav a:hover{color:inherit;background:color-mix(in srgb,currentColor 8%,transparent)}
+.mqg-nav a:focus-visible{outline:2px solid currentColor;outline-offset:1px}
+.mqg-nav .mqg-qui{font-weight:700;background:color-mix(in srgb,currentColor 9%,transparent)}
+.mqg-nav .mqg-sep{width:1px;height:14px;margin:0 6px;background:color-mix(in srgb,currentColor 20%,transparent)}
+</style>
+<script>
+(function(){
+  "use strict";
+  /* Le pagine del plugin: chiave nel documento impostazioni/navigazione e titolo della pagina.
+     La pagina corrente si riconosce dal titolo (document.title comincia con il nome). */
+  var PAGINE=[["bozze","Bozze dei quiz"],["tracce","Tracce di progettazione"],["correzioni","Correzione verifiche"],["mappe","Mappe dei prerequisiti"]];
+  var nav=document.getElementById("mqg-nav");
+  if(!nav||!window.claude||!window.claude.use)return;
+  function ok(u,soloClaude){u=String(u||"");return soloClaude?/^https:\/\/claude\.ai\/(code\/)?artifact\//.test(u):/^https:\/\//.test(u);}
+  function link(url,testo){var a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener";a.textContent=testo;a.title="Apri «"+testo+"» in una nuova scheda";return a;}
+  window.claude.use("db").then(function(db){
+    if(!db)return null;
+    return db.doc("impostazioni/navigazione").get();
+  }).then(function(snap){
+    if(!snap||!snap.exists)return;
+    var d=snap.data()||{},p=d.pagine||{},titolo=document.title||"",voci=[];
+    PAGINE.forEach(function(x){
+      var qui=titolo.indexOf(x[1])===0;
+      if(qui)voci.push({qui:true,testo:x[1]});
+      else if(ok(p[x[0]],true))voci.push({url:p[x[0]],testo:x[1]});
+    });
+    var altri=(Array.isArray(d.altri)?d.altri:[]).filter(function(a){return a&&ok(a.url)&&a.titolo;});
+    if(voci.filter(function(v){return !v.qui;}).length+altri.length===0)return;
+    var l=document.createElement("span");l.className="mqg-l";l.textContent="Quiz generator";nav.appendChild(l);
+    voci.forEach(function(v){
+      if(v.qui){var s=document.createElement("span");s.className="mqg-qui";s.setAttribute("aria-current","page");s.textContent=v.testo;nav.appendChild(s);}
+      else nav.appendChild(link(v.url,v.testo));
+    });
+    if(altri.length){var sep=document.createElement("span");sep.className="mqg-sep";sep.setAttribute("aria-hidden","true");nav.appendChild(sep);
+      altri.forEach(function(a){nav.appendChild(link(a.url,String(a.titolo)));});}
+    nav.hidden=false;
+  }).catch(function(){});
+})();
+</script>
+<!-- barra-navigazione: fine -->
+<main id="main"><div class="vuoto">Caricamento delle tracce…</div></main>
+</div>
+<div id="slot-toast"></div>
+
+<script>
+/* incluso: uscite_traccia.js — inizio */
+/* Uscite di una traccia di progettazione: Word della verifica (anche la copia PDP, con la griglia di
+   valutazione) e HTML per la descrizione di un Compito Moodle.
+   Un solo modulo per la dashboard «Tracce di progettazione» (nel browser) e per Claude in chat (Node):
+     node scripts/uscite_traccia.js TRACCIA.json [--word FILE.docx] [--pdp FILE.docx] [--html FILE.html] [--griglia]
+   La traccia è il documento JSON descritto in references/formato.md. Nessuna libreria esterna: il .docx
+   è uno zip (non compresso) di XML scritto qui. */
+(function (root, factory) {
+  var api = factory();
+  if (typeof module === "object" && module.exports) module.exports = api;
+  else root.UsciteTraccia = api;
+})(typeof self !== "undefined" ? self : this, function () {
+  "use strict";
+
+  /* ------------------------------------------------------------------ testo */
+  var esc = function (s) {
+    return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  };
+  /* **grassetto** e *corsivo* in pezzi {t, b, i} */
+  function pezzi(testo) {
+    var out = [], re = /(\*\*[^*]+\*\*|\*[^*]+\*)/g, s = String(testo || ""), last = 0, m;
+    while ((m = re.exec(s))) {
+      if (m.index > last) out.push({ t: s.slice(last, m.index) });
+      if (m[0].slice(0, 2) === "**") out.push({ t: m[0].slice(2, -2), b: true });
+      else out.push({ t: m[0].slice(1, -1), i: true });
+      last = m.index + m[0].length;
+    }
+    if (last < s.length) out.push({ t: s.slice(last) });
+    return out;
+  }
+  var paragrafi = function (s) { return String(s || "").split(/\n\s*\n|\n/).map(function (x) { return x.trim(); }).filter(Boolean); };
+
+  /* ------------------------------------------------------------------ contenuto comune */
+  var PRESENTARE = [
+    ["er", "Modello E/R completo in tutte le sue componenti."],
+    ["documentazione", "Documentazione del progetto."],
+    ["relazionale", "Equivalente modello relazionale."],
+    ["sql_tabelle", "Definizione in linguaggio SQL di alcune tabelle, con i vincoli di integrità referenziale e di dominio."]
+  ];
+  function vociPresentare(t) {
+    var p = (t.testo && t.testo.presentare) || {};
+    return PRESENTARE.filter(function (v) {
+      if (v[0] === "documentazione") return p.documentazione !== false;
+      if (v[0] === "sql_tabelle") return !!p.sql_tabelle;
+      return true;
+    }).map(function (v, i) { return { chiave: v[0], testo: v[1], n: i + 1 }; });
+  }
+  var conPhp = function (t) { return !!(t.testo && t.testo.php && t.testo.php.testo); };
+  var conIsa = function (t) {
+    var o = t.opzioni || {};
+    return o.isa === true || o.isa === "sì" || /\bgerarchia\b/.test((t.docente && t.docente.er) || "");
+  };
+  var esame = function (t) { return t.uso === "esame"; };
+  function riduzione(t, chiave, pdp) {
+    if (!pdp) return "";
+    var r = (t.pdp && t.pdp.riduzioni) || {};
+    return r[chiave] || "";
+  }
+  var FRASE_IPOTESI = "Tutti gli elementi non esplicitati rimangono a scelta dello studente. Motivare eventualmente le scelte fatte.";
+  var FRASE_ORDINE = "Oltre alla correttezza del codice, costituiranno elementi di valutazione anche la struttura e l'ordine dell'esercizio consegnato.";
+  var FRASE_QUERY = "Il database così ottenuto dovrà consentire di ricavare le seguenti informazioni:";
+  var FRASE_REQUISITI = "tenendo conto anche delle informazioni richieste dalle query";
+
+  /* ------------------------------------------------------------------ griglia */
+  var PESI = {
+    senzaPhp: { entita: 15, associazioni: 15, vincoli: 15, documentazione: 10, relazionale: 15, query: 30, php: 0 },
+    conPhp: { entita: 15, associazioni: 15, vincoli: 10, documentazione: 10, relazionale: 15, query: 20, php: 15 }
+  };
+  var LIVELLI = ["Insufficiente", "Base (2)", "Sufficiente (3)", "Buono (4)", "Ottimo (5)"];
+  var DESCRITTORI = {
+    entita: [
+      "Il modello presenta gravi mancanze: entità essenziali assenti o scorrette, attributi incompleti o collocati in modo errato, chiavi mancanti o sbagliate e notazione grafica molto imprecisa o incoerente.",
+      "Il modello individua solo parte delle entità necessarie; gli attributi sono parzialmente corretti ma non sempre ben posizionati; le chiavi sono individuate in modo incerto; la notazione è irregolare ma ancora interpretabile.",
+      "Il modello contiene la maggior parte delle entità corrette e gli attributi principali sono ben collocati; le chiavi sono individuate con solo lievi imprecisioni; la notazione è nel complesso corretta con minimi errori formali.",
+      "Tutte le entità e gli attributi richiesti sono presenti e correttamente collocati; le chiavi sono individuate correttamente; la notazione è chiara, coerente e senza errori sostanziali. Qualche imprecisione o scelta non ottimale.",
+      "Entità e attributi scelti sono corretti, chiari ed efficaci, senza ridondanze; i dati multipli e quelli derivati sono trattati correttamente. Struttura ordinata e leggibile; eventuali imprecisioni sono marginali."
+    ],
+    associazioni: [
+      "Le associazioni tra le entità sono in gran parte assenti, errate o incoerenti; notazione confusa o scorretta.",
+      "Alcune associazioni sono corrette, ma ne mancano di importanti o ne compaiono di non pertinenti; notazione incompleta ma ancora comprensibile.",
+      "La maggior parte delle associazioni è modellata in modo corretto; i loro attributi sono generalmente ben collocati; la notazione è chiara salvo imprecisioni minori.",
+      "Tutte le associazioni richieste sono presenti, corrette e coerenti con il testo; eventuali attributi sono ben collocati; la notazione è chiara e priva di errori. Qualche imprecisione o scelta non ottimale.",
+      "Le associazioni sono corrette e modellate in modo chiaro, efficace e senza ridondanze; i loro attributi sono corretti e ben identificati. Eventuali inesattezze grafiche o formali sono marginali."
+    ],
+    vincoliIsa: [
+      "Le cardinalità sono spesso errate o mancanti e le eventuali gerarchie ISA sono assenti o totalmente scorrette; la notazione dei vincoli è confusa.",
+      "Alcune cardinalità sono corrette ma altre presentano errori significativi; le ISA sono incomplete o solo parzialmente corrette; la notazione è imprecisa.",
+      "Le cardinalità sono nel complesso corrette con pochi errori; le ISA sono adeguate salvo dettagli minori; la notazione dei vincoli è generalmente corretta.",
+      "Cardinalità e ISA sono tutte corrette e coerenti con la realtà descritta; la notazione è chiara, omogenea e senza errori sostanziali. Qualche imprecisione o scelta non ottimale.",
+      "Cardinalità e partecipazioni sono corrette e motivate; le ISA sono modellate in modo corretto sia nel significato sia nel disegno; la notazione dei vincoli è completa, rigorosa e coerente."
+    ],
+    vincoli: [
+      "Le cardinalità sono spesso errate o mancanti; la notazione dei vincoli è confusa.",
+      "Alcune cardinalità sono corrette ma altre presentano errori significativi; la notazione è imprecisa.",
+      "Le cardinalità sono nel complesso corrette con pochi errori; la notazione dei vincoli è generalmente corretta.",
+      "Le cardinalità sono tutte corrette e coerenti con la realtà descritta; la notazione è chiara, omogenea e senza errori sostanziali. Qualche imprecisione o scelta non ottimale.",
+      "Cardinalità e partecipazioni sono corrette e motivate; la notazione dei vincoli è completa, rigorosa e coerente."
+    ],
+    documentazione: [
+      "Assente, gravemente incompleta o strutturalmente errata.",
+      "Incompleta, con errori strutturali rilevanti o informazioni poco pertinenti.",
+      "Documentazione parzialmente completa: alcuni tipi di dato o vincoli sono corretti, altri imprecisi o mancanti; struttura comunque corretta.",
+      "Documentazione completa negli elementi essenziali, con scelte di tipo di dato e vincoli generalmente corrette; ipotesi aggiuntive indicate; nessun errore sostanziale.",
+      "Documentazione completa e chiara, con scelte di tipo di dato e vincoli appropriate e coerenti; ipotesi aggiuntive indicate e motivate; eventuali imprecisioni sono marginali."
+    ],
+    relazionale: [
+      "Modello assente o ampiamente errato: mancano relazioni, campi, chiavi primarie ed esterne.",
+      "Modello incompleto o con errori strutturali rilevanti: relazioni mancanti o mal derivate, campi non presenti, chiavi primarie mancanti o scorrette.",
+      "Modello nel complesso corretto ma con alcune imprecisioni: tutte le relazioni sono presenti con i loro campi; le chiavi primarie sono indicate; la traduzione delle associazioni è talvolta imprecisa.",
+      "Modello corretto con poche imprecisioni: tutte le relazioni sono presenti; le chiavi primarie sono indicate correttamente; quasi tutte le associazioni e le gerarchie sono tradotte correttamente.",
+      "Modello corretto e coerente con il diagramma E/R: tutte le relazioni sono presenti; chiavi primarie ed esterne, associazioni e gerarchie sono ricavate e indicate correttamente."
+    ],
+    query: [
+      "Query assente, non eseguibile o completamente errata; sintassi non valida o logica incoerente rispetto al modello.",
+      "Query parzialmente eseguibile ma con errori logici rilevanti (JOIN errati, condizioni scorrette, tabelle o attributi sbagliati); risultato non utilizzabile.",
+      "Query strutturalmente corretta e quasi del tutto eseguibile; logica generalmente corretta ma con imprecisioni (condizioni o JOIN incompleti, ambiguità minori); risultato solo parzialmente corretto.",
+      "Query eseguibile e quasi corretta nel risultato; uso adeguato di JOIN, condizioni e attributi; qualche errore nelle condizioni o nelle formule.",
+      "Query corretta, chiara e ben strutturata, con scelta efficace delle condizioni e dei JOIN; eventuali imprecisioni sono marginali e non cambiano il risultato."
+    ],
+    php: [
+      "Pagina assente o non funzionante: connessione, query o visualizzazione mancanti o completamente errate.",
+      "Pagina incompleta: alcune parti sono presenti (connessione, form o query) ma con errori che impediscono di ottenere il risultato richiesto.",
+      "Pagina nel complesso funzionante: connessione e query corrette, con imprecisioni nella lettura dei dati del form o nella visualizzazione dei risultati.",
+      "Pagina funzionante e coerente con il proprio database: form, query e visualizzazione corretti; qualche imprecisione o controllo mancante.",
+      "Pagina corretta, chiara e ordinata: form, connessione, query e visualizzazione dei risultati completi; gestisce anche il caso senza risultati o l'errore della query."
+    ]
+  };
+  /* parti intere quasi uguali che fanno esattamente il totale (30 su 4 query: 8, 8, 7, 7) */
+  function distribuisci(totale, n) {
+    if (n <= 0) return [];
+    var base = Math.floor(totale / n), resto = totale - base * n, out = [];
+    for (var i = 0; i < n; i++) out.push(base + (i < resto ? 1 : 0));
+    return out;
+  }
+  /* fasce dei cinque livelli in proporzione al massimo: 15 → 0-3, 4-6, 7-9, 10-12, 13-15 */
+  function fasce(max) {
+    /* sotto i 5 punti i livelli non stanno in punti interi: si usano i mezzi punti (4 → 0-1, 1,5, 2-2,5, 3, 3,5-4) */
+    var passo = max < 5 ? 0.5 : 1, arr = function (v) { return Math.round(v / passo) * passo; };
+    var num = function (v) { return String(v).replace(".", ","); };
+    var su = [1, 2, 3, 4, 5].map(function (k) { return arr(max * k / 5); }), out = [], giu = 0;
+    for (var k = 0; k < 5; k++) { var a = giu, b = Math.min(Math.max(su[k], a), max); out.push(a === b ? num(b) : num(a) + "-" + num(b)); giu = b + passo; }
+    return out;
+  }
+  function pesi(t) {
+    var p = conPhp(t) ? PESI.conPhp : PESI.senzaPhp, pers = (t.griglia && t.griglia.pesi) || null, out = {};
+    Object.keys(p).forEach(function (k) { out[k] = pers && pers[k] != null ? Number(pers[k]) : p[k]; });
+    if (!conPhp(t)) out.php = 0;
+    return out;
+  }
+  /* righe della griglia: {macro, area, max, descrittori, fasce, tipo} */
+  function griglia(t) {
+    var w = pesi(t), q = (t.testo && t.testo.query) || [], isa = conIsa(t), righe = [];
+    var riga = function (macro, area, chiave, max) { righe.push({ macro: macro, area: area, max: max, descrittori: DESCRITTORI[chiave], fasce: fasce(max), tipo: chiave }); };
+    riga("Modello concettuale (E/R)", "Entità e attributi", "entita", w.entita);
+    riga("Modello concettuale (E/R)", "Associazioni", "associazioni", w.associazioni);
+    riga("Modello concettuale (E/R)", isa ? "Vincoli (cardinalità, ISA)" : "Vincoli (cardinalità)", isa ? "vincoliIsa" : "vincoli", w.vincoli);
+    riga("Documentazione tecnica (entità e associazioni)", "", "documentazione", w.documentazione);
+    riga("Modello relazionale (coerenza con il proprio E/R)", "", "relazionale", w.relazionale);
+    righe.push({ macro: "Query SQL", area: "Descrizione (valutate sul proprio modello)", max: null, descrittori: DESCRITTORI.query, fasce: null, tipo: "query-descrizione" });
+    distribuisci(w.query, q.length).forEach(function (m, i) {
+      righe.push({ macro: "Query SQL", area: "Query " + (i + 1), max: m, descrittori: null, fasce: fasce(m), tipo: "query" });
+    });
+    if (conPhp(t)) riga("Pagina PHP", "", "php", w.php);
+    var totale = righe.reduce(function (s, r) { return s + (r.max || 0); }, 0);
+    return { righe: righe, totale: totale, pesi: w };
+  }
+
+  /* ------------------------------------------------------------------ nome dei file */
+  var MESI = ["GEN", "FEB", "MAR", "APR", "MAG", "GIU", "LUG", "AGO", "SET", "OTT", "NOV", "DIC"];
+  function nomeFile(t, opz) {
+    opz = opz || {};
+    var d = String(t.data || new Date().toISOString().slice(0, 10)), mese = MESI[Number(d.slice(5, 7)) - 1] || "", anno = d.slice(0, 4);
+    var contesto = String(t.breve || t.titolo || "traccia").normalize("NFD").replace(/[̀-ͯ]/g, "")
+      .replace(/[^A-Za-z0-9]+(.)?/g, function (_, c) { return c ? c.toUpperCase() : ""; }).replace(/^./, function (c) { return c.toLowerCase(); });
+    var parti = [t.classe || "", mese, anno, contesto].filter(Boolean).join("-");
+    return parti + (opz.variante ? "-" + opz.variante : "") + (opz.pdp ? "-PDP" : "") + (opz.estensione || ".docx");
+  }
+
+  /* ------------------------------------------------------------------ HTML per Moodle */
+  var H = {
+    box: "font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 900px; margin: 0 auto; color: #333333; line-height: 1.6;",
+    h2: "color: #c0392b; margin-top: 30px;",
+    h1: "color: #2c3e50; border-bottom: 3px solid #e74c3c; padding-bottom: 10px;",
+    nb: "background-color: #f9cb9c; border-left: 5px solid #e69138; padding: 12px 16px; border-radius: 4px; margin: 0 0 16px;",
+    nbT: "margin: 0 0 6px; color: #783f04;"
+  };
+  function htmlInline(s) {
+    return pezzi(s).map(function (p) { var x = esc(p.t); return p.b ? "<strong>" + x + "</strong>" : p.i ? "<em>" + x + "</em>" : x; }).join("");
+  }
+  /* parola chiave in grassetto negli elenchi di 4 o più voci (regola dei grassetti delle pagine Moodle) */
+  var CHIAVI_PRESENTARE = { er: "Modello E/R", documentazione: "Documentazione", relazionale: "modello relazionale", sql_tabelle: "Definizione in linguaggio SQL" };
+  function html(t) {
+    var x = t.testo || {}, v = vociPresentare(t), q = x.query || [], out = [];
+    out.push('<div style="' + H.box + '">');
+    out.push('<h1 style="' + H.h1 + '">' + esc(t.titolo) + "</h1>");
+    if (x.premessa) { out.push('<h2 style="' + H.h2 + '">Premessa</h2>'); paragrafi(x.premessa).forEach(function (p) { out.push("<p>" + htmlInline(p) + "</p>"); }); }
+    paragrafi(x.realta).forEach(function (p) { out.push("<p>" + htmlInline(p) + "</p>"); });
+    out.push('<h2 style="' + H.h2 + '">Che cosa realizzare</h2>');
+    out.push("<p>Fatte le opportune ipotesi aggiuntive" + (x.requisiti_query ? ", " + FRASE_REQUISITI : "") + ", realizzare:</p>");
+    var grassetto = v.length >= 4;
+    out.push("<ol>" + v.map(function (it) {
+      var s = esc(it.testo), k = CHIAVI_PRESENTARE[it.chiave];
+      if (grassetto && k && s.indexOf(k) >= 0) s = s.replace(k, "<strong>" + k + "</strong>");
+      return "<li>" + s + "</li>";
+    }).join("") + "</ol>");
+    out.push('<h2 style="' + H.h2 + '">Le query</h2>');
+    out.push("<p>" + esc(FRASE_QUERY) + "</p>");
+    out.push("<ol>" + q.map(function (r) { return "<li>" + htmlInline(r.testo) + "</li>"; }).join("") + "</ol>");
+    out.push("<p>Scrivere le query SQL che rispondono a queste domande.</p>");
+    if (conPhp(t)) {
+      out.push('<h2 style="' + H.h2 + '">La pagina PHP</h2>');
+      paragrafi(x.php.testo).forEach(function (p) { out.push("<p>" + htmlInline(p) + "</p>"); });
+      if (x.php.connessione) out.push("<p>" + htmlInline(x.php.connessione) + "</p>");
+    }
+    out.push('<div style="' + H.nb + '"><p style="' + H.nbT + '"><strong>N.B.</strong></p><p style="margin: 0;">' + esc(FRASE_IPOTESI) + "</p></div>");
+    out.push('<h2 style="' + H.h2 + '">Consegna</h2>');
+    var cosa = "diagramma E/R, documentazione, modello relazionale e query" + (conPhp(t) ? ", più il codice della pagina PHP" : "");
+    out.push("<ul><li>Se lavorate su carta: le foto dei fogli, dritte e leggibili, una per pagina.</li>" +
+      "<li>Altrimenti: un unico file Word completo, con " + esc(cosa) + ".</li></ul>");
+    out.push("</div>");
+    return out.join("\n");
+  }
+
+  /* ------------------------------------------------------------------ Word (WordprocessingML) */
+  var W = {
+    run: function (p, opz) {
+      opz = opz || {};
+      var rpr = (p.b || opz.b ? "<w:b/>" : "") + (p.i || opz.i ? "<w:i/>" : "") + (opz.size ? '<w:sz w:val="' + opz.size + '"/><w:szCs w:val="' + opz.size + '"/>' : "");
+      return "<w:r>" + (rpr ? "<w:rPr>" + rpr + "</w:rPr>" : "") + '<w:t xml:space="preserve">' + esc(p.t) + "</w:t></w:r>";
+    },
+    par: function (testo, opz) {
+      opz = opz || {};
+      var ppr = "";
+      if (opz.stile) ppr += '<w:pStyle w:val="' + opz.stile + '"/>';
+      if (opz.num) ppr += '<w:numPr><w:ilvl w:val="0"/><w:numId w:val="' + opz.num + '"/></w:numPr>';
+      if (opz.dopo != null || opz.prima != null || opz.interlinea) ppr += '<w:spacing w:before="' + (opz.prima || 0) + '" w:after="' + (opz.dopo != null ? opz.dopo : 120) + '"' + (opz.interlinea ? ' w:line="' + opz.interlinea + '" w:lineRule="auto"' : '') + '/>';
+      if (opz.rientro) ppr += '<w:ind w:left="' + opz.rientro + '"/>';
+      if (opz.centro) ppr += '<w:jc w:val="center"/>';
+      if (opz.destra) ppr += '<w:jc w:val="right"/>';
+      if (opz.giustifica) ppr += '<w:jc w:val="both"/>';
+      if (opz.sez) ppr += opz.sez;
+      var runs = (Array.isArray(testo) ? testo : pezzi(testo)).map(function (p) { return W.run(p, opz); }).join("");
+      return "<w:p>" + (ppr ? "<w:pPr>" + ppr + "</w:pPr>" : "") + runs + "</w:p>";
+    }
+  };
+  var SEZ_VERTICALE = '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="567" w:footer="567" w:gutter="0"/></w:sectPr>';
+  var SEZ_ORIZZONTALE = '<w:sectPr><w:pgSz w:w="16838" w:h="11906" w:orient="landscape"/><w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="720" w:header="360" w:footer="360" w:gutter="0"/></w:sectPr>';
+
+  function tabellaGriglia(g) {
+    var larg = [1300, 1500, 2400, 2400, 2400, 2400, 2400, 1000], tot = larg.reduce(function (a, b) { return a + b; }, 0);
+    var bordo = '<w:tblBorders>' + ["top", "left", "bottom", "right", "insideH", "insideV"].map(function (b) { return "<w:" + b + ' w:val="single" w:sz="4" w:space="0" w:color="000000"/>'; }).join("") + "</w:tblBorders>";
+    var cella = function (contenuto, opz) {
+      opz = opz || {};
+      var tcpr = '<w:tcW w:w="' + opz.w + '" w:type="dxa"/>' + (opz.span ? '<w:gridSpan w:val="' + opz.span + '"/>' : "") +
+        (opz.vm === "inizio" ? '<w:vMerge w:val="restart"/>' : opz.vm === "segue" ? "<w:vMerge/>" : "") +
+        (opz.sfondo ? '<w:shd w:val="clear" w:color="auto" w:fill="' + opz.sfondo + '"/>' : "") + '<w:vAlign w:val="' + (opz.va || "top") + '"/>';
+      return "<w:tc><w:tcPr>" + tcpr + "</w:tcPr>" + (contenuto || W.par("", { dopo: 0, size: 16 })) + "</w:tc>";
+    };
+    var piccolo = function (s, o) { o = o || {}; return W.par(s, { dopo: 0, size: o.size || 14, b: o.b, centro: o.centro, destra: o.destra, interlinea: 220 }); };
+    var righe = [];
+    righe.push("<w:tr><w:trPr><w:tblHeader/></w:trPr>" +
+      cella(piccolo("Macroarea", { b: true, centro: true }), { w: larg[0], vm: "inizio", sfondo: "E7E6E6", va: "center" }) +
+      cella(piccolo("Area di valutazione", { b: true, centro: true }), { w: larg[1], vm: "inizio", sfondo: "E7E6E6", va: "center" }) +
+      cella(piccolo("Livello (descrizione e punteggio)", { b: true, centro: true }), { w: larg[2] * 5, span: 5, sfondo: "E7E6E6" }) +
+      cella(piccolo("Punteggio assegnato", { b: true, centro: true }), { w: larg[7], vm: "inizio", sfondo: "E7E6E6", va: "center" }) + "</w:tr>");
+    righe.push("<w:tr><w:trPr><w:tblHeader/></w:trPr>" + cella("", { w: larg[0], vm: "segue", sfondo: "E7E6E6" }) + cella("", { w: larg[1], vm: "segue", sfondo: "E7E6E6" }) +
+      LIVELLI.map(function (l, i) { return cella(piccolo(l, { b: true, centro: true }), { w: larg[2 + i], sfondo: "E7E6E6" }); }).join("") +
+      cella("", { w: larg[7], vm: "segue", sfondo: "E7E6E6" }) + "</w:tr>");
+    var prima = {};
+    g.righe.forEach(function (r) {
+      var nuova = !prima[r.macro]; prima[r.macro] = true;
+      var gruppo = g.righe.filter(function (x) { return x.macro === r.macro; }).length;
+      var celleNome;
+      if (!r.area) celleNome = cella(piccolo(r.macro, { b: true, centro: true, size: 18 }), { w: larg[0] + larg[1], span: 2, va: "center" });
+      else celleNome = cella(nuova ? piccolo(r.macro, { b: true, centro: true, size: 18 }) : "", { w: larg[0], vm: gruppo > 1 ? (nuova ? "inizio" : "segue") : null, va: "center" }) +
+        cella(piccolo(r.area + (r.max ? " (" + r.max + ")" : ""), { b: true }), { w: larg[1], va: "center" });
+      var livelli = [0, 1, 2, 3, 4].map(function (k) {
+        var c = "";
+        if (r.descrittori) c += piccolo(r.descrittori[k]);
+        if (r.fasce) c += piccolo(r.fasce[k], { b: true, destra: true });
+        return cella(c, { w: larg[2 + k], va: r.descrittori ? "top" : "center" });
+      }).join("");
+      var punteggio = cella(r.max ? piccolo("/ " + r.max, { destra: true }) : "", { w: larg[7], va: "bottom" });
+      righe.push("<w:tr><w:trPr><w:cantSplit/></w:trPr>" + celleNome + livelli + punteggio + "</w:tr>");
+    });
+    righe.push("<w:tr>" + cella(piccolo("Totale", { b: true, size: 18 }), { w: tot - larg[7], span: 7, va: "center" }) +
+      cella(piccolo("/ " + g.totale, { b: true, destra: true, size: 18 }), { w: larg[7] }) + "</w:tr>");
+    return '<w:tbl><w:tblPr><w:tblW w:w="' + tot + '" w:type="dxa"/>' + bordo +
+      '<w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="57" w:type="dxa"/><w:right w:w="57" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>' +
+      larg.map(function (x) { return '<w:gridCol w:w="' + x + '"/>'; }).join("") + "</w:tblGrid>" + righe.join("") + "</w:tbl>";
+  }
+
+  function corpoWord(t, pdp) {
+    var x = t.testo || {}, v = vociPresentare(t), q = x.query || [], b = [], numeri = 0;
+    var nuovaLista = function () { numeri += 1; return numeri; };
+    var intest = (t.verifica && t.verifica.intestazione) || (String(t.classe || "").charAt(0) + " SIA Verifica Modello E/R").trim();
+    b.push(W.par(intest, { centro: true, dopo: 120 }));
+    b.push(W.par("Nome ____________________________   Data ______________   Classe ____", { centro: true, dopo: 240 }));
+    if (x.premessa) { b.push(W.par("**Premessa**", { dopo: 60 })); paragrafi(x.premessa).forEach(function (p) { b.push(W.par(p, { giustifica: true })); }); }
+    b.push(W.par([{ t: t.titolo || "", b: true }], { prima: 120, dopo: 120 }));
+    paragrafi(x.realta).forEach(function (p) { b.push(W.par(p, { giustifica: true })); });
+    var testaPres = esame(t) ? "Il candidato, fatte le opportune ipotesi aggiuntive" + (x.requisiti_query ? " e " + FRASE_REQUISITI : "") + ", sviluppi:"
+      : "Presentare" + (x.requisiti_query ? ", " + FRASE_REQUISITI : "") + ":";
+    b.push(W.par([{ t: testaPres, b: true }], { prima: 120, dopo: 60 }));
+    var n1 = nuovaLista();
+    v.forEach(function (it) {
+      b.push(W.par(it.testo, { num: n1, dopo: 40 }));
+      var rid = riduzione(t, "presentare." + it.chiave, pdp);
+      if (rid) b.push(W.par([{ t: rid, b: true }], { rientro: 720, dopo: 40 }));
+    });
+    b.push(W.par([{ t: FRASE_QUERY, b: true }], { prima: 160, dopo: 60 }));
+    var n2 = nuovaLista();
+    q.forEach(function (r, i) {
+      b.push(W.par(r.testo, { num: n2, dopo: 40 }));
+      var rid = riduzione(t, "query." + (i + 1), pdp);
+      if (rid) b.push(W.par([{ t: rid, b: true }], { rientro: 720, dopo: 40 }));
+    });
+    b.push(W.par([{ t: "Scrivere le query SQL", b: true }, { t: " che rispondono a queste domande." }], { prima: 120 }));
+    if (conPhp(t)) {
+      b.push(W.par([{ t: "Pagina PHP", b: true }], { prima: 160, dopo: 60 }));
+      paragrafi(x.php.testo).forEach(function (p) { b.push(W.par(p, { giustifica: true })); });
+      if (x.php.connessione) b.push(W.par(x.php.connessione));
+      var rid = riduzione(t, "php", pdp);
+      if (rid) b.push(W.par([{ t: rid, b: true }], { dopo: 60 }));
+    }
+    b.push(W.par([{ t: FRASE_ORDINE, i: true }], { prima: 160 }));
+    b.push(W.par([{ t: FRASE_IPOTESI, b: true }], { giustifica: true }));
+    if (pdp) {
+      b.push(W.par([{ t: "Per la verifica si ricordano le colonne delle tabelle di ", i: true }, { t: "documentazione", i: true, b: true }, { t: ".", i: true }], { prima: 160, dopo: 40 }));
+      b.push(W.par([{ t: "Entità", i: true, b: true }, { t: ": nome, sinonimi, descrizione, attributo, tipo di dato, vincoli", i: true }], { dopo: 40 }));
+      b.push(W.par([{ t: "Associazioni", i: true, b: true }, { t: ": nome, descrizione, tipo di associazione, entità collegate, attributo, tipo di dato, vincoli", i: true }]));
+    }
+    var conGriglia = !(t.verifica && t.verifica.griglia === false);
+    if (conGriglia) {
+      b.push(W.par("", { dopo: 0, sez: SEZ_VERTICALE }));
+      b.push(W.par("La correzione della prova verrà effettuata con la seguente griglia di valutazione" +
+        (pdp ? " e tenendo conto dei criteri di valutazione personalizzata previsti dal PDP." : "."), { dopo: 120 }));
+      b.push(tabellaGriglia(griglia(t)));
+      b.push(W.par("Per ottenere il voto si divide il punteggio per 10 e si arrotonda al mezzo voto più vicino.", { prima: 120 }));
+      return { corpo: b.join(""), sezFinale: SEZ_ORIZZONTALE, liste: numeri };
+    }
+    return { corpo: b.join(""), sezFinale: SEZ_VERTICALE, liste: numeri };
+  }
+
+  var XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+  var NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+  function fileDocx(t, opz) {
+    opz = opz || {};
+    var c = corpoWord(t, !!opz.pdp);
+    var nums = "";
+    for (var i = 1; i <= c.liste; i++) nums += '<w:num w:numId="' + i + '"><w:abstractNumId w:val="0"/><w:lvlOverride w:ilvl="0"><w:startOverride w:val="1"/></w:lvlOverride></w:num>';
+    return {
+      "[Content_Types].xml": XML + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>' +
+        '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>' +
+        '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>' +
+        '<Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>' +
+        '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>',
+      "_rels/.rels": XML + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>' +
+        '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/></Relationships>',
+      "docProps/core.xml": XML + '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>' + esc(t.titolo) + "</dc:title><dc:creator>Moodle: quiz generator</dc:creator></cp:coreProperties>",
+      "word/_rels/document.xml.rels": XML + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
+        '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/></Relationships>',
+      "word/styles.xml": XML + "<w:styles " + NS + '><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:eastAsia="Arial" w:cs="Arial"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:lang w:val="it-IT"/></w:rPr></w:rPrDefault>' +
+        '<w:pPrDefault><w:pPr><w:spacing w:after="120" w:line="264" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>' +
+        '<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style>' +
+        '<w:style w:type="table" w:default="1" w:styleId="TableNormal"><w:name w:val="Normal Table"/><w:tblPr><w:tblInd w:w="0" w:type="dxa"/><w:tblCellMar><w:top w:w="0" w:type="dxa"/><w:left w:w="108" w:type="dxa"/><w:bottom w:w="0" w:type="dxa"/><w:right w:w="108" w:type="dxa"/></w:tblCellMar></w:tblPr></w:style></w:styles>',
+      "word/numbering.xml": XML + "<w:numbering " + NS + '><w:abstractNum w:abstractNumId="0"><w:multiLevelType w:val="singleLevel"/><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="decimal"/><w:lvlText w:val="%1."/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="720" w:hanging="360"/></w:pPr></w:lvl></w:abstractNum>' + nums + "</w:numbering>",
+      "word/document.xml": XML + "<w:document " + NS + "><w:body>" + c.corpo + c.sezFinale + "</w:body></w:document>"
+    };
+  }
+
+  /* ------------------------------------------------------------------ zip senza compressione */
+  var CRC = (function () { var t = []; for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t.push(c >>> 0); } return t; })();
+  function crc32(b) { var c = 0xFFFFFFFF; for (var i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+  function zip(files) {
+    var enc = new TextEncoder(), parti = [], centrale = [], off = 0;
+    var u16 = function (v) { return [v & 255, (v >>> 8) & 255]; }, u32 = function (v) { return [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255]; };
+    Object.keys(files).forEach(function (nome) {
+      var dati = typeof files[nome] === "string" ? enc.encode(files[nome]) : files[nome], n = enc.encode(nome), c = crc32(dati);
+      var comune = [].concat(u16(20), u16(0x0800), u16(0), u16(0), u16(0x21), u32(c), u32(dati.length), u32(dati.length), u16(n.length), u16(0));
+      var loc = new Uint8Array([].concat(u32(0x04034b50), comune));
+      parti.push(loc, n, dati);
+      centrale.push(new Uint8Array([].concat(u32(0x02014b50), u16(20), comune, u16(0), u16(0), u16(0), u32(0), u32(off))), n);
+      off += loc.length + n.length + dati.length;
+    });
+    var dimC = centrale.reduce(function (s, a) { return s + a.length; }, 0), nf = Object.keys(files).length;
+    var fine = new Uint8Array([].concat(u32(0x06054b50), u16(0), u16(0), u16(nf), u16(nf), u32(dimC), u32(off), u16(0)));
+    var tutte = parti.concat(centrale, [fine]), tot = tutte.reduce(function (s, a) { return s + a.length; }, 0), out = new Uint8Array(tot), p = 0;
+    tutte.forEach(function (a) { out.set(a, p); p += a.length; });
+    return out;
+  }
+  function docx(t, opz) { return zip(fileDocx(t, opz)); }
+
+  /* ------------------------------------------------------------------ controlli */
+  function controlla(t) {
+    var err = [], avv = [], x = t.testo || {};
+    if (!t.titolo) err.push("manca il titolo del contesto");
+    if (!paragrafi(x.realta).length) err.push("manca il testo della realtà");
+    if (!(x.query || []).length) err.push("mancano le query (ci sono sempre)");
+    (x.query || []).forEach(function (r, i) { if (!r.requisito) avv.push("query " + (i + 1) + ": manca il requisito che verifica (note per il docente)"); });
+    var g = griglia(t);
+    if (g.totale !== 100) avv.push("la griglia fa " + g.totale + " punti invece di 100: controlla i pesi");
+    if (t.pdp && t.pdp.riduzioni) Object.keys(t.pdp.riduzioni).forEach(function (k) {
+      if (!/^(presentare\.(er|documentazione|relazionale|sql_tabelle)|query\.\d+|php)$/.test(k)) avv.push("riduzione PDP con una chiave sconosciuta: " + k);
+    });
+    return { errori: err, avvisi: avv };
+  }
+
+  return { html: html, docx: docx, fileDocx: fileDocx, griglia: griglia, fasce: fasce, distribuisci: distribuisci, nomeFile: nomeFile, controlla: controlla, pezzi: pezzi };
+});
+
+/* ------------------------------------------------------------------ uso da riga di comando */
+if (typeof require !== "undefined" && typeof module !== "undefined" && require.main === module) {
+  var fs = require("fs"), U = module.exports, a = process.argv.slice(2);
+  if (!a.length) { console.error("uso: node uscite_traccia.js TRACCIA.json [--word F.docx] [--pdp F.docx] [--html F.html] [--griglia]"); process.exit(2); }
+  var t = JSON.parse(fs.readFileSync(a[0], "utf8")), opt = function (k) { var i = a.indexOf(k); return i >= 0 ? (a[i + 1] && !/^--/.test(a[i + 1]) ? a[i + 1] : true) : null; };
+  var c = U.controlla(t);
+  c.errori.forEach(function (e) { console.log("ERRORE  " + e); });
+  c.avvisi.forEach(function (e) { console.log("AVVISO  " + e); });
+  if (c.errori.length) process.exit(1);
+  var w = opt("--word"), p = opt("--pdp"), h = opt("--html");
+  if (w) { var fw = w === true ? U.nomeFile(t) : w; fs.writeFileSync(fw, U.docx(t)); console.log("Word:     " + fw); }
+  if (p) { var fp = p === true ? U.nomeFile(t, { pdp: true }) : p; fs.writeFileSync(fp, U.docx(t, { pdp: true })); console.log("Word PDP: " + fp); }
+  if (h) { var fh = h === true ? U.nomeFile(t, { estensione: ".html" }) : h; fs.writeFileSync(fh, U.html(t)); console.log("HTML:     " + fh); }
+  if (opt("--griglia")) {
+    var g = U.griglia(t);
+    g.righe.forEach(function (r) { if (r.max) console.log((r.area || r.macro).padEnd(32) + String(r.max).padStart(4) + "   " + r.fasce.join(" | ")); });
+    console.log("Totale".padEnd(32) + String(g.totale).padStart(4));
+  }
+}
+/* incluso: uscite_traccia.js — fine */
+</script>
+<script>
+(function(){
+"use strict";
+var VERSIONE_PAGINA="1.0.0";
+var CONNETTORE="Claude Code Remote";
+var $=function(s){return document.querySelector(s);};
+var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
+var U=window.UsciteTraccia;
+var S={db:null,pronto:false,tracce:{},imp:null,vista:"elenco",id:null,tab:"traccia",filtro:"",fstato:"",nuova:null,nuovaErr:[],bozza:null,sporca:false,confermaElimina:false,avvio:null,inviando:false,modifica:""};
+
+/* ------------------------------------------------------------------ voci e preset (references/opzioni.md) */
+var VOCI=[
+  ["entita","Entità nella soluzione",["3-4","5-6","7-9"]],
+  ["nn","Associazioni N a N",[["1","1, senza attributi"],["1-2","1-2, almeno una con attributi"],["2+","2 o più, con attributi"]]],
+  ["uno_uno","Associazione 1 a 1",["no","sì","a scelta"]],
+  ["ricorsiva","Associazione ricorsiva",["no","sì","a scelta"]],
+  ["debole","Entità debole",["no","sì"]],
+  ["isa","Gerarchia ISA",["no","sì","a scelta"]],
+  ["opzionali","Attributi opzionali (0,1)",["no","sì"]],
+  ["ristrutturare","Elementi da ristrutturare",["0","1","1-2","2"]],
+  ["chiavi","Chiavi",[["date","date dal testo"],["in parte","in parte date"],["da scegliere","da scegliere"]]],
+  ["testo","Livello del testo",["guidato","intermedio","aperto"]],
+  ["ipotesi","Ipotesi aggiuntive richieste",["1","2","3-4"]],
+  ["documentazione","Documentazione",["sì","no"]],
+  ["sql_tabelle","Definizione SQL delle tabelle",["no","sì","a scelta"]],
+  ["query","Numero di query",["3","3-4","4-5","5"]],
+  ["gradino","Gradino massimo delle query",[["1","1: JOIN e filtri"],["2","2: GROUP BY, HAVING"],["3","3: LEFT JOIN, primi N"]]],
+  ["requisiti_query","Requisiti aggiunti dalle query",["0","1"]],
+  ["php","Pagina PHP",[["no","no"],["elenco","elenco"],["ricerca","ricerca da form (GET)"],["inserimento","inserimento (POST)"],["a scelta","a scelta"]]]
+];
+var PRESET={
+  base:{nome:"Base",desc:"3-4 entità, testo guidato",v:{entita:"3-4",nn:"1",uno_uno:"no",ricorsiva:"no",debole:"no",isa:"no",opzionali:"no",ristrutturare:"0",chiavi:"date",testo:"guidato",ipotesi:"1",documentazione:"sì",sql_tabelle:"no",query:"3",gradino:"1",requisiti_query:"0",php:"no"}},
+  intermedio:{nome:"Intermedio",desc:"5-6 entità, una ISA",v:{entita:"5-6",nn:"1-2",uno_uno:"sì",ricorsiva:"no",debole:"no",isa:"sì",opzionali:"sì",ristrutturare:"1",chiavi:"in parte",testo:"intermedio",ipotesi:"2",documentazione:"sì",sql_tabelle:"no",query:"3-4",gradino:"2",requisiti_query:"0",php:"no"}},
+  avanzato:{nome:"Avanzato",desc:"7-9 entità, tutti i costrutti",v:{entita:"7-9",nn:"2+",uno_uno:"sì",ricorsiva:"sì",debole:"sì",isa:"sì",opzionali:"sì",ristrutturare:"2",chiavi:"da scegliere",testo:"aperto",ipotesi:"3-4",documentazione:"sì",sql_tabelle:"a scelta",query:"4-5",gradino:"3",requisiti_query:"1",php:"a scelta"}},
+  esame:{nome:"Esame",desc:"simulazione della seconda prova",v:{entita:"7-9",nn:"2+",uno_uno:"a scelta",ricorsiva:"a scelta",debole:"no",isa:"a scelta",opzionali:"sì",ristrutturare:"1-2",chiavi:"da scegliere",testo:"aperto",ipotesi:"3-4",documentazione:"sì",sql_tabelle:"sì",query:"3-4",gradino:"3",requisiti_query:"1",php:"a scelta"}}
+};
+var USI=[["verifica","Verifica (Word con griglia)"],["compito","Compito Moodle (HTML)"],["esercizio","Esercizio in classe (HTML)"],["esame","Simulazione d'esame (Word)"]];
+var STATI=[["richiesta","Richiesta"],["da-rivedere","Da rivedere"],["approvata","Approvata"],["usata","Usata"]];
+var NOME_STATO={richiesta:"Richiesta","da-rivedere":"Da rivedere",approvata:"Approvata",usata:"Usata"};
+var MESI=["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
+
+/* ------------------------------------------------------------------ utilità */
+function oggi(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function fmtD(s){var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(s||""));return m?Number(m[3])+" "+MESI[Number(m[2])-1]+" "+m[1]:"";}
+function toast(t){var el=document.createElement("div");el.className="toast";el.setAttribute("role","status");el.textContent=t;$("#slot-toast").append(el);setTimeout(function(){el.remove();},3200);}
+function errore(e){var c=e&&e.code;toast(c==="not_granted"||c==="invalid_argument"?"Non hai il permesso di modificare questa pagina.":"Salvataggio non riuscito"+(c?" ("+c+")":"")+": riprova.");}
+var coda={};
+function salva(id,patch){if(!S.db)return Promise.resolve();var p=(coda[id]||Promise.resolve()).then(function(){return S.db.doc("tracce/"+id).update(patch);}).catch(errore);coda[id]=p;return p;}
+function inline(s){return esc(s).replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>").replace(/`([^`]+)`/g,"<code>$1</code>").replace(/&lt;u&gt;(.*?)&lt;\/u&gt;/g,"<u>$1</u>");}
+/* Markdown minimo per documentazione e schema: titoli, tabelle a barre, elenchi, paragrafi */
+function md(t){
+  var righe=String(t||"").split("\n"),out=[],i=0;
+  while(i<righe.length){
+    var r=righe[i];
+    if(/^\s*\|/.test(r)){var tab=[];while(i<righe.length&&/^\s*\|/.test(righe[i])){tab.push(righe[i]);i++;}
+      var celle=function(x){return x.trim().replace(/^\||\|$/g,"").split("|").map(function(c){return c.trim();});};
+      var h=celle(tab[0]),corpo=tab.slice(2).map(celle);
+      out.push('<div class="tabella"><table><thead><tr>'+h.map(function(c){return"<th>"+inline(c)+"</th>";}).join("")+"</tr></thead><tbody>"+corpo.map(function(rr){return"<tr>"+rr.map(function(c){return"<td>"+inline(c)+"</td>";}).join("")+"</tr>";}).join("")+"</tbody></table></div>");continue;}
+    if(/^#{1,4}\s/.test(r)){out.push("<p><strong>"+inline(r.replace(/^#+\s*/,""))+"</strong></p>");i++;continue;}
+    if(/^\s*[-*]\s/.test(r)){var li=[];while(i<righe.length&&/^\s*[-*]\s/.test(righe[i])){li.push("<li>"+inline(righe[i].replace(/^\s*[-*]\s/,""))+"</li>");i++;}out.push('<ul class="lista-note">'+li.join("")+"</ul>");continue;}
+    if(r.trim()){out.push("<p>"+inline(r)+"</p>");}
+    i++;
+  }
+  return out.join("");
+}
+function lista(t){return Object.keys(S.tracce).map(function(k){return S.tracce[k];});}
+function opzioniDi(t){return (t&&t.opzioni)||{};}
+
+/* ------------------------------------------------------------------ elenco */
+function cartaHTML(t){
+  var st=t.inLavorazione?'<span class="st st-lavoro">Claude ci lavora</span>':'<span class="st st-'+esc(t.stato||"richiesta")+'">'+esc(NOME_STATO[t.stato]||"Richiesta")+"</span>";
+  var uso=(USI.filter(function(u){return u[0]===t.uso;})[0]||[,""])[1].replace(/ \(.*\)$/,"");
+  var desc=t.testo&&t.testo.realta?String(t.testo.realta).split("\n")[0]:(t.richiesta||"");
+  return '<button class="carta" data-apri="'+esc(t.id)+'"><span class="meta">'+st+(t.preset&&PRESET[t.preset]?'<span class="chip preset">'+esc(PRESET[t.preset].nome)+"</span>":"")+(uso?'<span class="chip">'+esc(uso)+"</span>":"")+(t.classe?'<span class="chip">'+esc(t.classe)+"</span>":"")+"</span>"+
+    "<h3>"+esc(t.titolo||"Traccia in preparazione")+'</h3><span class="desc">'+esc(desc)+'</span><span class="data">creata il '+esc(fmtD(t.creato))+"</span></button>";
+}
+function elencoHTML(){
+  var tutte=lista().sort(function(a,b){return String(b.creato||"").localeCompare(String(a.creato||""));});
+  var f=S.filtro.trim().toLowerCase();
+  var vis=tutte.filter(function(t){return !f||(String(t.titolo||"")+" "+String(t.breve||"")+" "+String(t.richiesta||"")+" "+String(t.classe||"")).toLowerCase().indexOf(f)>=0;})
+    .filter(function(t){return !S.fstato||t.stato===S.fstato;});
+  var attive=vis.filter(function(t){return !t.archiviata;}),arch=vis.filter(function(t){return t.archiviata;});
+  var h='<header class="testa"><div><h1>Tracce di progettazione</h1><p>Tracce di database per le quinte: modello E/R, schema, query. Ogni traccia ha la sua soluzione e le uscite per la verifica o per Moodle.</p></div>'+
+    '<button class="btn primario" data-act="nuova">Nuova traccia</button></header>';
+  h+='<div class="filtri"><input class="ctl" id="filtro" type="search" placeholder="Cerca per contesto, classe o richiesta" value="'+esc(S.filtro)+'" aria-label="Cerca tra le tracce">'+
+    '<select class="ctl" id="fstato" aria-label="Stato"><option value="">Tutti gli stati</option>'+STATI.map(function(s){return'<option value="'+s[0]+'"'+(S.fstato===s[0]?" selected":"")+">"+s[1]+"</option>";}).join("")+"</select></div>";
+  if(!tutte.length)h+='<div class="vuoto"><strong>Nessuna traccia ancora.</strong><br>Con «Nuova traccia» scegli il preset e scrivi che cosa ti serve: Claude propone la traccia, la soluzione e le note per la correzione.</div>';
+  else if(!attive.length&&!arch.length)h+='<div class="vuoto">Nessuna traccia corrisponde alla ricerca.</div>';
+  else h+='<div class="elenco">'+attive.map(cartaHTML).join("")+"</div>";
+  if(arch.length)h+='<details class="riquadro"><summary>Archiviate ('+arch.length+')</summary><div class="dentro"><div class="elenco">'+arch.map(cartaHTML).join("")+"</div></div></details>";
+  var trig=S.imp&&S.imp.trigger;
+  h+='<details class="riquadro"><summary>Impostazioni</summary><div class="dentro"><p class="mini muted">«Inizia», «Applica le modifiche» e «Genera la soluzione» avviano una sessione di Claude con un\'attività programmata del tuo account, che Claude crea quando installa la pagina. Senza, la pagina ti dà una frase da incollare in chat.</p>'+
+    '<label class="campo"><span>Attività programmata (id)</span><input class="ctl" id="imp-trigger" value="'+esc(trig||"")+'" placeholder="trig_…"></label><div class="riga"><button class="btn piccolo" data-act="salva-imp">Salva</button><span class="mini muted">Versione della pagina '+esc(VERSIONE_PAGINA)+"</span></div></div></details>";
+  return h;
+}
+
+/* ------------------------------------------------------------------ nuova traccia */
+function nuovaVuota(){return {preset:"intermedio",opzioni:Object.assign({},PRESET.intermedio.v),uso:"verifica",classe:"",data:oggi(),contesto:"",pdp:false,richiesta:""};}
+function nuovaHTML(){
+  var n=S.nuova||(S.nuova=nuovaVuota()),pv=PRESET[n.preset]?PRESET[n.preset].v:{};
+  var h='<header class="testa"><div><button class="indietro" data-act="elenco">← Tutte le tracce</button><h1>Nuova traccia</h1><p>Scegli il preset, ritocca le voci se serve e scrivi che cosa ti serve. Claude parte dal modello, prova le query e ti propone la traccia da rivedere.</p></div></header>';
+  h+='<section class="sezione"><h2>Difficoltà</h2><div class="preset" role="group" aria-label="Preset">'+Object.keys(PRESET).map(function(k){return'<button data-preset="'+k+'" aria-pressed="'+(n.preset===k)+'"><b>'+esc(PRESET[k].nome)+"</b><span>"+esc(PRESET[k].desc)+"</span></button>";}).join("")+"</div>";
+  h+='<div class="voci">'+VOCI.map(function(v){
+    var val=String(n.opzioni[v[0]]==null?"":n.opzioni[v[0]]),cambiato=pv[v[0]]!=null&&String(pv[v[0]])!==val;
+    return'<label class="campo'+(cambiato?" cambiato":"")+'"><span>'+esc(v[1])+'</span><select class="ctl" id="op-'+v[0]+'" data-op="'+v[0]+'">'+v[2].map(function(o){var k=Array.isArray(o)?o[0]:o,l=Array.isArray(o)?o[1]:o;return'<option value="'+esc(k)+'"'+(k===val?" selected":"")+">"+esc(l)+"</option>";}).join("")+"</select></label>";
+  }).join("")+"</div></section>";
+  h+='<section class="sezione"><h2>Destinazione</h2><div class="voci">'+
+    '<label class="campo"><span>Uso</span><select class="ctl" id="n-uso">'+USI.map(function(u){return'<option value="'+u[0]+'"'+(n.uso===u[0]?" selected":"")+">"+u[1]+"</option>";}).join("")+"</select></label>"+
+    '<label class="campo"><span>Classe</span><input class="ctl" id="n-classe" value="'+esc(n.classe)+'" placeholder="5R"></label>'+
+    '<label class="campo"><span>Data</span><input class="ctl" type="date" id="n-data" value="'+esc(n.data)+'"></label>'+
+    '<label class="campo"><span>Contesto (facoltativo)</span><input class="ctl" id="n-contesto" value="'+esc(n.contesto)+'" placeholder="lo propone Claude"></label>'+
+    '<label class="campo"><span>Copia PDP</span><select class="ctl" id="n-pdp"><option value="no"'+(n.pdp?"":" selected")+'>no</option><option value="sì"'+(n.pdp?" selected":"")+'>sì, con le riduzioni</option></select></label>'+
+    '</div><label class="campo"><span>Richiesta</span><textarea class="ctl" id="n-richiesta" rows="4" placeholder="Per esempio: verifica di fine modulo sulle ISA, un\'ora, contesto vicino agli studenti">'+esc(n.richiesta)+"</textarea></label>";
+  if(S.nuovaErr.length)h+='<p class="errore">Manca: '+esc(S.nuovaErr.join(", "))+".</p>";
+  h+='<div class="riga"><button class="btn primario" data-act="inizia"'+(S.inviando?" disabled":"")+">"+(S.inviando?"Avvio…":"Inizia")+'</button><button class="btn" data-act="elenco">Annulla</button></div></section>';
+  return h;
+}
+function idNuovo(n){var base=(n.classe||"tr").replace(/[^A-Za-z0-9]/g,"").toLowerCase()||"tr";return"t-"+n.data.replace(/-/g,"")+"-"+base+"-"+Math.random().toString(36).slice(2,6);}
+
+/* ------------------------------------------------------------------ scheda */
+function bozzaDi(t){return JSON.parse(JSON.stringify({titolo:t.titolo||"",breve:t.breve||"",classe:t.classe||"",data:t.data||"",uso:t.uso||"verifica",testo:t.testo||{realta:"",presentare:{documentazione:true,sql_tabelle:false},requisiti_query:false,query:[],php:null},pdp:t.pdp||{riduzioni:{}},griglia:t.griglia||{pesi:null},verifica:t.verifica||{}}));}
+function traccia(){return S.id?S.tracce[S.id]:null;}
+function completa(t){return Object.assign({},t,S.bozza||{});}
+function schedaHTML(){
+  var t=traccia();
+  if(!t)return'<div class="vuoto">Questa traccia non c\'è più. <button class="btn piccolo" data-act="elenco">Torna all\'elenco</button></div>';
+  if(!S.bozza)S.bozza=bozzaDi(t);
+  var st=t.inLavorazione?'<span class="st st-lavoro">Claude ci lavora</span>':"";
+  var h='<header class="testa"><div><button class="indietro" data-act="elenco">← Tutte le tracce</button><h1>'+esc(t.titolo||"Traccia in preparazione")+'</h1><p class="riga">'+st+
+    (t.preset&&PRESET[t.preset]?'<span class="chip preset">'+esc(PRESET[t.preset].nome)+"</span>":"")+(t.classe?'<span class="chip">'+esc(t.classe)+"</span>":"")+'<span class="muted mini">creata il '+esc(fmtD(t.creato))+"</span></p></div>"+
+    '<label class="campo"><span>Stato</span><select class="ctl" id="stato">'+STATI.map(function(s){return'<option value="'+s[0]+'"'+((t.stato||"richiesta")===s[0]?" selected":"")+">"+s[1]+"</option>";}).join("")+"</select></label></header>";
+  if(S.avvio&&S.avvio.id===t.id)h+=avvioHTML();
+  if(t.nota)h+='<div class="avviso">'+inline(t.nota)+"</div>";
+  if(!t.testo||!t.testo.realta){
+    h+='<div class="vuoto"><strong>'+(t.inLavorazione?"Claude sta scrivendo la traccia.":"Traccia richiesta, non ancora scritta.")+"</strong><br>Richiesta: "+esc(t.richiesta||"—")+"</div>";
+    if(!t.inLavorazione)h+='<div class="riga"><button class="btn" data-act="riavvia">Avvia di nuovo la sessione</button></div>';
+    return h+eliminaHTML(t);
+  }
+  var TAB=[["traccia","Traccia"],["note","Note per il docente"],["soluzione","Soluzione"],["uscite","Uscite"]];
+  h+='<nav class="schede" role="tablist">'+TAB.map(function(x){return'<button role="tab" data-tab="'+x[0]+'" aria-selected="'+(S.tab===x[0])+'">'+x[1]+"</button>";}).join("")+"</nav>";
+  if(S.tab==="note")h+=noteHTML(t);else if(S.tab==="soluzione")h+=soluzioneHTML(t);else if(S.tab==="uscite")h+=usciteHTML(t);else h+=tracciaHTML(t);
+  return h+eliminaHTML(t);
+}
+function tracciaHTML(t){
+  var b=S.bozza,x=b.testo,q=x.query||[],php=x.php||{};
+  var h='<div class="foglio">';
+  h+='<div class="blocco"><div class="blocco-t"><h3>Titolo del contesto</h3></div><input class="ctl" id="b-titolo" value="'+esc(b.titolo)+'"></div>';
+  if(b.uso==="esame")h+='<div class="blocco"><div class="blocco-t"><h3>Premessa</h3></div><textarea class="ctl" id="b-premessa" rows="4">'+esc(x.premessa||"")+"</textarea></div>";
+  h+='<div class="blocco"><div class="blocco-t"><h3>Realtà</h3><span class="mini muted">un paragrafo per riga vuota</span></div><textarea class="ctl" id="b-realta" rows="12">'+esc(x.realta||"")+"</textarea></div>";
+  h+='<div class="blocco"><div class="blocco-t"><h3>Presentare</h3></div><p class="mini muted">Modello E/R e modello relazionale ci sono sempre.</p><div class="riga">'+
+    '<label class="riga"><input type="checkbox" id="b-doc"'+(x.presentare&&x.presentare.documentazione===false?"":" checked")+"> Documentazione</label>"+
+    '<label class="riga"><input type="checkbox" id="b-sql"'+(x.presentare&&x.presentare.sql_tabelle?" checked":"")+"> Definizione SQL delle tabelle</label>"+
+    '<label class="riga"><input type="checkbox" id="b-req"'+(x.requisiti_query?" checked":"")+"> Le query aggiungono un requisito</label></div></div>";
+  h+='<div class="blocco"><div class="blocco-t"><h3>Query</h3><button class="btn piccolo" data-act="q-aggiungi">Aggiungi query</button></div>'+q.map(function(r,i){
+    return'<div class="query-riga"><span class="n">'+(i+1)+'.</span><textarea class="ctl" id="q-t-'+i+'" data-q="'+i+'" data-qc="testo" rows="2">'+esc(r.testo)+'</textarea><select class="ctl" id="q-g-'+i+'" data-q="'+i+'" data-qc="gradino" aria-label="Gradino">'+[1,2,3].map(function(g){return'<option value="'+g+'"'+(Number(r.gradino)===g?" selected":"")+">gradino "+g+"</option>";}).join("")+"</select>"+
+      '<div class="req riga"><input class="ctl" style="flex:1 1 240px" id="q-r-'+i+'" data-q="'+i+'" data-qc="requisito" value="'+esc(r.requisito||"")+'" placeholder="Requisito che verifica (solo per te)"><button class="btn piccolo" data-qsu="'+i+'"'+(i?"":" disabled")+' aria-label="Sposta su">↑</button><button class="btn piccolo pericolo" data-qvia="'+i+'">Togli</button></div></div>';
+  }).join("")+"</div>";
+  h+='<div class="blocco"><div class="blocco-t"><h3>Pagina PHP</h3><span class="mini muted">vuota = nessuna pagina</span></div><textarea class="ctl" id="b-php" rows="3" placeholder="Realizzare la pagina PHP che…">'+esc(php.testo||"")+'</textarea><input class="ctl" id="b-conn" value="'+esc(php.connessione||"")+'" placeholder="Dati per la connessione al DBMS a scelta dello studente."></div>';
+  h+="</div>";
+  h+='<div class="riga"><button class="btn primario" data-act="salva"'+(S.sporca?"":" disabled")+'>Salva le modifiche</button>'+(S.sporca?'<button class="btn" data-act="annulla">Annulla le modifiche</button><span class="mini muted">Modifiche non salvate</span>':'<span class="mini muted">Salvato</span>')+"</div>";
+  h+='<section class="sezione"><h2>Chiedi a Claude</h2><p class="sub">Una modifica che tocca il modello (più difficile, un\'altra ISA, una query in più): Claude cambia prima il modello, poi il testo, prova le query e riporta la traccia a «Da rivedere».</p>'+
+    '<textarea class="ctl" id="modifica" rows="3" placeholder="Per esempio: togli l\'entità debole e aggiungi una query di secondo gradino sulle ISA">'+esc(S.modifica)+'</textarea><div class="riga"><button class="btn" data-act="chiedi"'+(S.inviando?" disabled":"")+'>Applica le modifiche</button></div></section>';
+  return h;
+}
+function noteHTML(t){
+  var d=t.docente||{},o=opzioniDi(t);
+  var el=function(tit,arr){arr=arr||[];return'<div class="blocco"><div class="blocco-t"><h3>'+tit+"</h3></div>"+(arr.length?'<ul class="lista-note">'+arr.map(function(x){return"<li>"+inline(x)+"</li>";}).join("")+"</ul>":'<p class="muted mini">Niente.</p>')+"</div>";};
+  var h='<div class="foglio">'+el("Costrutti",d.costrutti)+el("Ipotesi attese",d.ipotesi_attese)+el("Punti delicati per la correzione",d.punti_delicati);
+  h+='<div class="blocco"><div class="blocco-t"><h3>Query e requisiti</h3></div><ol>'+((t.testo&&t.testo.query)||[]).map(function(r){return"<li>"+inline(r.testo)+' <span class="chip">gradino '+esc(r.gradino)+'</span><br><span class="muted mini">'+inline(r.requisito||"requisito non indicato")+"</span></li>";}).join("")+"</ol></div>";
+  h+='<div class="blocco"><div class="blocco-t"><h3>Durata stimata</h3></div><p>'+esc(d.durata||"—")+"</p></div>";
+  h+='<div class="blocco"><div class="blocco-t"><h3>Opzioni</h3></div><p class="mini">'+VOCI.map(function(v){return esc(v[1])+": <strong>"+esc(o[v[0]]==null?"—":o[v[0]])+"</strong>";}).join(" · ")+"</p></div>";
+  if(t.richiesta)h+='<div class="blocco"><div class="blocco-t"><h3>Richiesta iniziale</h3></div><p>'+esc(t.richiesta)+"</p></div>";
+  if(d.er)h+='<details class="riquadro"><summary>Modello bersaglio (.er)</summary><div class="dentro"><pre class="codice">'+esc(d.er)+"</pre></div></details>";
+  return h+"</div>";
+}
+function soluzioneHTML(t){
+  var s=t.soluzione;
+  if(!s)return'<div class="vuoto"><strong>Soluzione non ancora generata.</strong><br>Claude la ricava dal modello bersaglio con il diagramma, la documentazione, lo schema relazionale e le query provate.<div class="riga" style="justify-content:center;margin-top:12px"><button class="btn primario" data-act="soluzione"'+(S.inviando||t.inLavorazione?" disabled":"")+">Genera la soluzione</button></div></div>";
+  var h='<div class="foglio">';
+  if(s.png)h+='<div class="blocco"><div class="blocco-t"><h3>Diagramma E/R</h3></div><div class="diagramma"><img src="'+esc(/^https?:|^\//.test(s.png)?s.png:"/_blob/"+s.png)+'" alt="Diagramma E/R della soluzione"></div></div>';
+  if(s.ipotesi&&s.ipotesi.length)h+='<div class="blocco"><div class="blocco-t"><h3>Ipotesi aggiuntive</h3></div><ul class="lista-note">'+s.ipotesi.map(function(x){return"<li>"+inline(x)+"</li>";}).join("")+"</ul></div>";
+  if(s.documentazione)h+='<div class="blocco md"><div class="blocco-t"><h3>Documentazione</h3></div>'+md(s.documentazione)+"</div>";
+  if(s.schema)h+='<div class="blocco md"><div class="blocco-t"><h3>Schema relazionale</h3></div>'+md(s.schema)+"</div>";
+  if(s.query&&s.query.length)h+='<div class="blocco"><div class="blocco-t"><h3>Query</h3></div>'+s.query.map(function(q,i){return'<p><strong>'+(i+1)+".</strong> "+inline(q.richiesta)+'</p><pre class="codice">'+esc(q.sql)+"</pre>";}).join("")+"</div>";
+  h+='<p class="mini muted">Generata il '+esc(fmtD(s.generata))+". I file (HTML e Word della soluzione, .drawio da ritoccare) Claude li consegna nella sessione.</p>";
+  h+='<div class="riga"><button class="btn" data-act="soluzione"'+(S.inviando||t.inLavorazione?" disabled":"")+">Rigenera la soluzione</button></div>";
+  return h+"</div>";
+}
+function usciteHTML(t){
+  var tt=completa(t),g=U.griglia(tt),cons=U.controlla(tt),w=g.pesi,php=!!(tt.testo&&tt.testo.php&&tt.testo.php.testo);
+  var h="";
+  if(S.sporca)h+='<div class="avviso">Ci sono modifiche non salvate nella traccia: le uscite le comprendono già.</div>';
+  if(cons.errori.length)h+='<div class="avviso">'+esc(cons.errori.join("; "))+"</div>";
+  h+='<section class="sezione"><h2>File per gli studenti</h2><p class="sub">Uso: '+esc(((USI.filter(function(u){return u[0]===tt.uso;})[0])||[,""])[1])+'.</p><div class="riga">'+
+    '<button class="btn primario" data-act="word">Scarica Word</button>'+
+    '<button class="btn" data-act="word-pdp">Scarica Word PDP</button>'+
+    '<button class="btn" data-act="html">Copia HTML per Moodle</button>'+
+    '<button class="btn" data-act="html-file">Scarica HTML</button></div><p class="mini muted">'+esc(U.nomeFile(tt))+" · la griglia va su una pagina orizzontale in fondo al Word.</p></section>";
+  var CH=[["presentare.er","Modello E/R"],["presentare.documentazione","Documentazione"],["presentare.relazionale","Modello relazionale"]];
+  if(tt.testo&&tt.testo.presentare&&tt.testo.presentare.sql_tabelle)CH.push(["presentare.sql_tabelle","Definizione SQL"]);
+  ((tt.testo&&tt.testo.query)||[]).forEach(function(q,i){CH.push(["query."+(i+1),"Query "+(i+1)]);});
+  if(php)CH.push(["php","Pagina PHP"]);
+  var rid=(S.bozza.pdp&&S.bozza.pdp.riduzioni)||{};
+  h+='<section class="sezione"><h2>Copia PDP</h2><p class="sub">La frase compare in grassetto sotto il punto. La copia PDP ha anche il promemoria delle colonne della documentazione.</p>'+
+    CH.map(function(c){return'<label class="campo"><span>'+esc(c[1])+'</span><input class="ctl" data-rid="'+c[0]+'" id="rid-'+c[0].replace(".","-")+'" value="'+esc(rid[c[0]]||"")+'" placeholder="nessuna riduzione"></label>';}).join("")+
+    '<div class="riga"><button class="btn piccolo" data-act="rid-doc">Proponi: documentazione ridotta</button><button class="btn" data-act="salva"'+(S.sporca?"":" disabled")+">Salva</button></div></section>";
+  var RIGHE=[["entita","Entità e attributi"],["associazioni","Associazioni"],["vincoli","Vincoli (cardinalità"+(/gerarchia/.test((t.docente&&t.docente.er)||"")?", ISA":"")+")"],["documentazione","Documentazione"],["relazionale","Modello relazionale"],["query","Query (in parti uguali)"]];
+  if(php)RIGHE.push(["php","Pagina PHP"]);
+  var pers=!!(S.bozza.griglia&&S.bozza.griglia.pesi);
+  h+='<section class="sezione"><h2>Griglia di valutazione</h2><p class="sub">'+(pers?"Pesi personalizzati per questa verifica.":"Pesi predefiniti.")+" Il voto è il punteggio diviso 10, arrotondato al mezzo voto.</p>"+
+    '<div class="griglia"><table><thead><tr><th>Area</th><th class="num">Punti</th><th>Fasce dei livelli</th></tr></thead><tbody>'+
+    RIGHE.map(function(r){var righeG=g.righe.filter(function(x){return x.tipo===r[0]||(r[0]==="vincoli"&&x.tipo==="vincoliIsa")||(r[0]==="query"&&x.tipo==="query");});
+      var fasce=r[0]==="query"?righeG.map(function(x){return x.area+": "+x.max;}).join(" · "):(righeG[0]&&righeG[0].fasce?righeG[0].fasce.join(" | "):"");
+      return"<tr><td>"+esc(r[1])+'</td><td class="num"><input class="ctl" type="number" min="0" max="100" id="peso-'+r[0]+'" data-peso="'+r[0]+'" value="'+esc(w[r[0]])+'" aria-label="Punti per '+esc(r[1])+'"></td><td class="mini muted">'+esc(fasce)+"</td></tr>";}).join("")+
+    '</tbody><tfoot><tr><td>Totale</td><td class="num"'+(g.totale!==100?' style="color:var(--bad)"':"")+">"+g.totale+"</td><td>"+(g.totale!==100?'<span class="errore mini">deve fare 100</span>':"")+"</td></tr></tfoot></table></div>"+
+    '<div class="riga">'+(pers?'<button class="btn piccolo" data-act="pesi-default">Torna ai pesi predefiniti</button>':"")+'<button class="btn" data-act="salva"'+(S.sporca?"":" disabled")+">Salva</button></div></section>";
+  if(cons.avvisi.length)h+='<p class="mini muted">'+esc(cons.avvisi.join(" · "))+"</p>";
+  return h;
+}
+function eliminaHTML(t){
+  return'<details class="riquadro"><summary>Archivia o elimina la traccia</summary><div class="dentro"><p class="mini muted">Archiviata, la traccia resta in fondo all\'elenco e si può riprendere. Eliminata, si perdono testo, note e soluzione.</p><div class="riga">'+
+    '<button class="btn" data-act="archivia">'+(t.archiviata?"Riporta tra le tracce":"Archivia")+'</button><button class="btn pericolo" data-act="elimina-chiedi">Elimina…</button></div>'+
+    (S.confermaElimina?'<div class="conferma">Eliminare definitivamente «'+esc(t.titolo||t.id)+'»? <button class="btn pericolo pieno piccolo" data-act="elimina">Elimina</button><button class="btn piccolo" data-act="elimina-no">Annulla</button></div>':"")+"</div></details>";
+}
+function avvioHTML(){
+  var a=S.avvio;
+  if(a.ok)return'<div class="avviso ok" role="status"><strong>Sessione avviata.</strong> '+esc(a.cosa)+" La trovi tra le sessioni di Claude; la pagina si aggiorna da sola quando Claude scrive.</div>";
+  return'<div class="avviso" role="status"><strong>Sessione non avviata.</strong> '+esc(a.motivo)+' Copia questa frase e incollala in una chat con Claude: legge tutto da questa pagina.<textarea class="ctl" id="testo-avvio" rows="2" readonly>'+esc(a.frase)+'</textarea><div class="riga" style="margin-top:6px"><button class="btn piccolo" data-act="copia-avvio">Copia la frase</button></div></div>';
+}
+
+/* ------------------------------------------------------------------ avvio delle sessioni */
+async function avvia(id,messaggio,cosa){
+  var frase=messaggio+" (dashboard «Tracce di progettazione»: usa la skill tracce-progettazione)",motivo="";
+  try{
+    var trig=S.imp&&S.imp.trigger,mcp=trig?await window.claude.use("mcp"):null;
+    if(!trig)motivo="L'avvio automatico non è configurato: chiedi a Claude «installa la dashboard delle tracce».";
+    else if(!mcp)motivo="Da questa vista la pagina non può usare il connettore Claude Code Remote.";
+    else{await mcp.callTool(CONNETTORE,"fire_trigger",{trigger_id:trig,text:messaggio});S.avvio={id:id,ok:true,cosa:cosa};S.inviando=false;render();return true;}
+  }catch(e){var c=e&&e.code;
+    motivo=c==="not_in_manifest"||c==="consent_required"||c==="approval_required"?"Il connettore Claude Code Remote non è stato autorizzato per questa pagina.":
+      c==="server_not_connected"||c==="needs_reauth"?"Il connettore Claude Code Remote non è collegato al tuo account (Impostazioni → Connettori).":"Avvio non riuscito"+(c?" ("+c+")":"")+".";}
+  S.avvio={id:id,ok:false,motivo:motivo,frase:frase};S.inviando=false;render();return false;
+}
+async function inizia(){
+  var n=S.nuova,manca=[];
+  if(!String(n.classe).trim())manca.push("classe");if(!String(n.richiesta).trim())manca.push("richiesta");
+  S.nuovaErr=manca;if(manca.length)return render();
+  if(!S.db)return;
+  S.inviando=true;render();
+  var id=idNuovo(n),doc={id:id,stato:"richiesta",creato:new Date().toISOString(),archiviata:false,preset:n.preset,opzioni:n.opzioni,uso:n.uso,classe:n.classe.trim(),data:n.data,
+    contesto:n.contesto.trim(),pdpRichiesta:!!n.pdp,richiesta:n.richiesta.trim(),titolo:"",testo:null};
+  try{await S.db.doc("tracce/"+id).set(doc);}catch(e){S.inviando=false;errore(e);return render();}
+  S.tracce[id]=doc;S.nuova=null;S.vista="scheda";S.id=id;S.tab="traccia";S.bozza=null;S.sporca=false;vaiHash();
+  avvia(id,"Traccia da creare: "+id,"Claude scrive la traccia e la porta a «Da rivedere».");
+}
+
+/* ------------------------------------------------------------------ azioni */
+function vaiHash(){try{history.replaceState(null,"",S.vista==="scheda"&&S.id?"#"+S.id:S.vista==="nuova"?"#nuova":location.pathname+location.search);}catch(e){}}
+function apri(id){S.vista="scheda";S.id=id;S.tab="traccia";S.bozza=null;S.sporca=false;S.confermaElimina=false;S.avvio=null;S.modifica="";vaiHash();render();window.scrollTo(0,0);}
+function elenco(){if(S.sporca&&!confirmaUscita())return;S.vista="elenco";S.id=null;S.bozza=null;S.sporca=false;S.avvio=null;vaiHash();render();window.scrollTo(0,0);}
+var uscitaChiesta=false;
+function confirmaUscita(){if(uscitaChiesta){uscitaChiesta=false;return true;}uscitaChiesta=true;toast("Ci sono modifiche non salvate: salva, oppure premi di nuovo per uscire senza salvare.");return false;}
+function segnaSporca(){if(!S.sporca){S.sporca=true;render();}}
+async function scarica(nome,dati){
+  try{var dl=await window.claude.use("downloads");if(!dl){toast("In questa vista non si possono scaricare file.");return;}
+    await dl.save({filename:nome,data:dati});}catch(e){if(e&&e.code!=="declined")toast("Download non riuscito"+(e&&e.code?" ("+e.code+")":"")+".");}
+}
+function copia(testo){
+  try{navigator.clipboard.writeText(testo).then(function(){toast("HTML copiato: incollalo nella descrizione del Compito, in modalità codice sorgente.");},function(){toast("Copia non riuscita: seleziona e copia a mano.");});}
+  catch(e){toast("Copia non riuscita: seleziona e copia a mano.");}
+}
+document.addEventListener("click",function(e){
+  var a;
+  if((a=e.target.closest("[data-apri]"))){apri(a.dataset.apri);return;}
+  if((a=e.target.closest("[data-tab]"))){S.tab=a.dataset.tab;render();return;}
+  if((a=e.target.closest("[data-preset]"))){var n=S.nuova;n.preset=a.dataset.preset;n.opzioni=Object.assign({},PRESET[n.preset].v);if(n.preset==="esame")n.uso="esame";render();return;}
+  if((a=e.target.closest("[data-qvia]"))){S.bozza.testo.query.splice(Number(a.dataset.qvia),1);segnaSporca();render();return;}
+  if((a=e.target.closest("[data-qsu]"))){var i=Number(a.dataset.qsu),q=S.bozza.testo.query;if(i>0){var x=q[i];q[i]=q[i-1];q[i-1]=x;segnaSporca();render();}return;}
+  if(!(a=e.target.closest("[data-act]")))return;
+  var t=traccia(),tt;
+  switch(a.dataset.act){
+    case"nuova":S.vista="nuova";S.nuova=nuovaVuota();S.nuovaErr=[];vaiHash();render();window.scrollTo(0,0);return;
+    case"elenco":elenco();return;
+    case"inizia":inizia();return;
+    case"salva-imp":{var v=$("#imp-trigger").value.trim();S.db&&S.db.doc("impostazioni/avvio").set(Object.assign({},S.imp||{},{trigger:v,versione:VERSIONE_PAGINA})).then(function(){S.imp=Object.assign({},S.imp||{},{trigger:v});toast("Impostazioni salvate.");}).catch(errore);return;}
+    case"q-aggiungi":S.bozza.testo.query=(S.bozza.testo.query||[]).concat([{testo:"",gradino:1,requisito:""}]);segnaSporca();render();return;
+    case"salva":salvaBozza();return;
+    case"annulla":S.bozza=null;S.sporca=false;render();return;
+    case"chiedi":{var m=($("#modifica")||{}).value||"";if(!m.trim()){toast("Scrivi prima che cosa cambiare.");return;}
+      S.inviando=true;render();salva(t.id,{richiestaModifica:m.trim(),stato:"da-rivedere"}).then(function(){S.modifica="";avvia(t.id,"Traccia da modificare: "+t.id,"Claude applica la modifica e riporta la traccia a «Da rivedere».");});return;}
+    case"soluzione":S.inviando=true;render();avvia(t.id,"Soluzione da generare: "+t.id,"Claude genera la soluzione e la scrive nella vista «Soluzione».");return;
+    case"riavvia":S.inviando=true;render();avvia(t.id,"Traccia da creare: "+t.id,"Claude scrive la traccia e la porta a «Da rivedere».");return;
+    case"copia-avvio":{var ta=$("#testo-avvio");if(ta){ta.select();try{navigator.clipboard.writeText(ta.value).then(function(){toast("Frase copiata.");},function(){toast("Seleziona la frase e copiala a mano.");});}catch(_){toast("Seleziona la frase e copiala a mano.");}}return;}
+    case"word":tt=completa(t);scarica(U.nomeFile(tt),U.docx(tt));return;
+    case"word-pdp":tt=completa(t);scarica(U.nomeFile(tt,{pdp:true}),U.docx(tt,{pdp:true}));return;
+    case"html":copia(U.html(completa(t)));return;
+    case"html-file":tt=completa(t);scarica(U.nomeFile(tt,{estensione:".html"}),new TextEncoder().encode(U.html(tt)));return;
+    case"rid-doc":S.bozza.pdp=S.bozza.pdp||{riduzioni:{}};S.bozza.pdp.riduzioni=S.bozza.pdp.riduzioni||{};S.bozza.pdp.riduzioni["presentare.documentazione"]="Riduzione contenuti per PDP: fornire solo la prima riga delle tabelle di documentazione";segnaSporca();render();return;
+    case"pesi-default":S.bozza.griglia={pesi:null};segnaSporca();render();return;
+    case"archivia":salva(t.id,{archiviata:!t.archiviata}).then(function(){toast(t.archiviata?"Archiviata.":"Riportata tra le tracce.");});if(!t.archiviata)elenco();return;
+    case"elimina-chiedi":S.confermaElimina=true;render();return;
+    case"elimina-no":S.confermaElimina=false;render();return;
+    case"elimina":S.db.doc("tracce/"+t.id).delete().then(function(){toast("Traccia eliminata.");}).catch(errore);S.sporca=false;S.confermaElimina=false;elenco();return;
+  }
+});
+function salvaBozza(){
+  var t=traccia();if(!t)return;var b=S.bozza;
+  b.testo.query=(b.testo.query||[]).filter(function(q){return String(q.testo||"").trim();});
+  if(b.testo.php&&!String(b.testo.php.testo||"").trim())b.testo.php=null;
+  salva(t.id,{titolo:b.titolo,testo:b.testo,pdp:b.pdp,griglia:b.griglia,aggiornato:new Date().toISOString()}).then(function(){S.sporca=false;S.bozza=null;toast("Traccia salvata.");render();});
+}
+document.addEventListener("input",function(e){
+  var el=e.target,b=S.bozza;
+  if(el.id==="filtro"){S.filtro=el.value;var pos=el.selectionStart;render();var f=$("#filtro");if(f){f.focus();try{f.setSelectionRange(pos,pos);}catch(_){}}return;}
+  if(el.id==="modifica"){S.modifica=el.value;return;}
+  if(S.vista==="nuova"&&S.nuova){var n=S.nuova;
+    if(el.id==="n-classe")n.classe=el.value;else if(el.id==="n-contesto")n.contesto=el.value;else if(el.id==="n-richiesta")n.richiesta=el.value;return;}
+  if(!b)return;
+  var x=b.testo;
+  if(el.id==="b-titolo")b.titolo=el.value;
+  else if(el.id==="b-realta")x.realta=el.value;
+  else if(el.id==="b-premessa")x.premessa=el.value;
+  else if(el.id==="b-php"){x.php=x.php||{testo:"",connessione:""};x.php.testo=el.value;}
+  else if(el.id==="b-conn"){x.php=x.php||{testo:"",connessione:""};x.php.connessione=el.value;}
+  else if(el.dataset.q!=null&&el.dataset.qc!=="gradino"){x.query[Number(el.dataset.q)][el.dataset.qc]=el.value;}
+  else if(el.dataset.rid){b.pdp=b.pdp||{riduzioni:{}};b.pdp.riduzioni=b.pdp.riduzioni||{};if(el.value.trim())b.pdp.riduzioni[el.dataset.rid]=el.value;else delete b.pdp.riduzioni[el.dataset.rid];}
+  else if(el.dataset.peso){var t=traccia(),g=U.griglia(completa(t));b.griglia={pesi:Object.assign({},g.pesi,b.griglia&&b.griglia.pesi||{})};b.griglia.pesi[el.dataset.peso]=Number(el.value)||0;
+    if(!S.sporca){S.sporca=true;}var pos=el.id;render();var f=document.getElementById(pos);if(f){f.focus();}return;}
+  else return;
+  if(!S.sporca){S.sporca=true;var id=el.id,p=el.selectionStart;render();var f2=document.getElementById(id);if(f2){f2.focus();try{f2.setSelectionRange(p,p);}catch(_){}}}
+});
+document.addEventListener("change",function(e){
+  var el=e.target;
+  if(el.id==="fstato"){S.fstato=el.value;render();return;}
+  if(el.dataset&&el.dataset.op&&S.nuova){S.nuova.opzioni[el.dataset.op]=el.value;render();return;}
+  if(el.id==="n-uso"&&S.nuova){S.nuova.uso=el.value;return;}
+  if(el.id==="n-data"&&S.nuova){S.nuova.data=el.value||oggi();return;}
+  if(el.id==="n-pdp"&&S.nuova){S.nuova.pdp=el.value==="sì";return;}
+  if(el.id==="stato"){var t=traccia();if(t)salva(t.id,{stato:el.value,aggiornato:new Date().toISOString()}).then(function(){toast("Stato: "+NOME_STATO[el.value]+".");});return;}
+  var b=S.bozza;if(!b)return;
+  if(el.id==="b-doc"){b.testo.presentare=b.testo.presentare||{};b.testo.presentare.documentazione=el.checked;segnaSporca();return;}
+  if(el.id==="b-sql"){b.testo.presentare=b.testo.presentare||{};b.testo.presentare.sql_tabelle=el.checked;segnaSporca();return;}
+  if(el.id==="b-req"){b.testo.requisiti_query=el.checked;segnaSporca();return;}
+  if(el.dataset&&el.dataset.qc==="gradino"){b.testo.query[Number(el.dataset.q)].gradino=Number(el.value);segnaSporca();return;}
+});
+
+/* ------------------------------------------------------------------ render e dati */
+function render(){
+  var main=$("#main");
+  if(!S.pronto){main.innerHTML=S.senzaDb?'<div class="vuoto"><strong>Le tracce non sono disponibili in questa vista.</strong><br>Apri la pagina da claude.ai, con il tuo account.</div>':'<div class="vuoto">Caricamento delle tracce…</div>';return;}
+  var att=document.activeElement,fid=att&&main.contains(att)&&att.id?att.id:null,sel=fid&&"selectionStart" in att?att.selectionStart:null;
+  main.innerHTML=S.vista==="nuova"?nuovaHTML():S.vista==="scheda"?schedaHTML():elencoHTML();
+  if(fid){var f=document.getElementById(fid);if(f&&f!==document.activeElement){f.focus();if(sel!=null)try{f.setSelectionRange(sel,sel);}catch(_){}}}
+}
+function daHash(){var h=decodeURIComponent((location.hash||"").slice(1));if(h==="nuova"){S.vista="nuova";S.nuova=S.nuova||nuovaVuota();}else if(h&&S.tracce[h]){S.vista="scheda";S.id=h;}}
+window.addEventListener("hashchange",function(){daHash();render();});
+render();
+(async function(){
+  var db=null;
+  try{db=window.claude&&window.claude.use?await window.claude.use("db"):null;}catch(e){db=null;}
+  if(!db){S.senzaDb=true;render();return;}
+  S.db=db;
+  db.doc("impostazioni/avvio").get().then(function(s){S.imp=s.exists?s.data():{};render();}).catch(function(){S.imp={};});
+  var primo=true;
+  db.collection("tracce").onSnapshot(function(snap){
+    var m={};snap.docs.forEach(function(d){var x=d.data();x.id=d.id;m[d.id]=x;});
+    S.tracce=m;S.pronto=true;
+    if(primo){primo=false;daHash();}
+    var foc=document.activeElement;
+    if(S.sporca&&foc&&/TEXTAREA|INPUT/.test(foc.tagName))return;   // non disturbare chi sta scrivendo
+    if(S.vista==="scheda"&&!S.sporca)S.bozza=null;
+    render();
+  },function(){S.pronto=true;render();});
+})();
+})();
+</script>

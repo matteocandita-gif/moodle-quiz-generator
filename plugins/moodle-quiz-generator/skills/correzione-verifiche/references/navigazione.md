@@ -6,7 +6,7 @@ Le pagine del plugin hanno in cima una barra discreta, «Quiz generator», con i
 | Chiave | Pagina (titolo) | Skill che la installa |
 |---|---|---|
 | `bozze` | Bozze dei quiz | `progettazione-quiz` (`references/installazione.md`) |
-| `tracce` | Tracce di progettazione | (in preparazione) |
+| `tracce` | Tracce di progettazione | `tracce-progettazione` (`references/dashboard.md`) |
 | `correzioni` | Correzione verifiche | `correzione-verifiche` (`references/dashboard-correzioni.md`) |
 | `mappe` | Mappe dei prerequisiti | `mappe-prerequisiti` (`references/installazione.md`) |
 

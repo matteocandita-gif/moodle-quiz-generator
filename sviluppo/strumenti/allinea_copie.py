@@ -43,6 +43,13 @@ BLOCCHI = {
         "plugins/moodle-quiz-generator/skills/correzione-verifiche/assets/dashboard-correzioni.html",
         "sviluppo/mappe-prerequisiti/editor.src.html",
         "plugins/moodle-quiz-generator/skills/mappe-prerequisiti/assets/editor.html",
+        "plugins/moodle-quiz-generator/skills/tracce-progettazione/assets/dashboard-tracce.html",
+    ],
+}
+# file JavaScript inclusi interi in una pagina, tra le righe «/* incluso: NOME — inizio */» e «… — fine */»
+INCLUSI = {
+    "plugins/moodle-quiz-generator/skills/tracce-progettazione/scripts/uscite_traccia.js": [
+        "plugins/moodle-quiz-generator/skills/tracce-progettazione/assets/dashboard-tracce.html",
     ],
 }
 INIZIO, FINE = "<!-- barra-navigazione: inizio", "<!-- barra-navigazione: fine -->"
@@ -59,11 +66,13 @@ def contenuto_copia(orig):
     return testa + testo
 
 
-def con_blocco(pagina, blocco):
+def con_blocco(pagina, blocco, incluso=None):
     """La pagina con il blocco sostituito; None se mancano i segnaposto."""
+    ini, fin = (("/* incluso: %s — inizio */" % incluso, "/* incluso: %s — fine */" % incluso) if incluso
+                else (INIZIO, FINE))
     righe = pagina.splitlines(keepends=True)
-    i = next((k for k, r in enumerate(righe) if r.lstrip().startswith(INIZIO)), None)
-    j = next((k for k, r in enumerate(righe) if r.lstrip().startswith(FINE)), None)
+    i = next((k for k, r in enumerate(righe) if r.lstrip().startswith(ini)), None)
+    j = next((k for k, r in enumerate(righe) if r.lstrip().startswith(fin)), None)
     if i is None or j is None or j < i:
         return None
     return "".join(righe[:i]) + blocco + "".join(righe[j + 1:])
@@ -71,15 +80,20 @@ def con_blocco(pagina, blocco):
 
 def allinea_blocchi(controlla):
     diverse = 0
-    for orig, pagine in BLOCCHI.items():
+    voci = [(o, pg, None) for o, pp in BLOCCHI.items() for pg in pp] + \
+           [(o, pg, pathlib.Path(o).name) for o, pp in INCLUSI.items() for pg in pp]
+    for orig, pg, incluso in voci:
         blocco = (RADICE / orig).read_text(encoding="utf-8")
         if not blocco.endswith("\n"):
             blocco += "\n"
-        for pg in pagine:
+        if incluso:
+            # il file intero, tra i due commenti che lo delimitano nella pagina (che restano)
+            blocco = "/* incluso: %s — inizio */\n%s/* incluso: %s — fine */\n" % (incluso, blocco, incluso)
+        for pg in [pg]:
             p = (RADICE / pg).resolve()
             nome = p.relative_to(RADICE)
             attuale = p.read_text(encoding="utf-8")
-            atteso = con_blocco(attuale, blocco)
+            atteso = con_blocco(attuale, blocco, incluso)
             if atteso is None:
                 diverse += 1
                 print("SEGNAPOSTO MANCANTE %s" % nome)
