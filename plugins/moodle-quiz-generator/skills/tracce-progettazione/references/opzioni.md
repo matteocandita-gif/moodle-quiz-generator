@@ -16,7 +16,7 @@ Il preset imposta tutte le voci; l'utente può cambiarne qualcuna. Nel JSON dell
 | `ristrutturare` | elementi da ristrutturare | `0`, `1`, `2` (dato multiplo che diventa entità, dato derivato o ridondante da non salvare) |
 | `chiavi` | chiavi | `date` dal testo · `in parte` · `da scegliere` |
 | `testo` | livello del testo | `guidato` · `intermedio` · `aperto` |
-| `ipotesi` | ipotesi aggiuntive richieste | numero, almeno 1; la scelta delle chiavi primarie non si conta (vedi SKILL.md) |
+| `ipotesi` | ipotesi aggiuntive richieste | numero di ipotesi intere (cambiano lo schema relazionale), almeno 1; minime, vincoli e chiavi primarie non si contano (vedi SKILL.md) |
 | `documentazione` | documentazione da consegnare | `sì` / `no` |
 | `sql_tabelle` | definizione SQL di alcune tabelle con i vincoli | `sì` / `no` |
 | `query` | numero di query | numero |
