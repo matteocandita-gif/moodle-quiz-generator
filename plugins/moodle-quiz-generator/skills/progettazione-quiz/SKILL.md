@@ -113,7 +113,8 @@ La dashboard segnala negli avvisi le tracce che non rispettano le convenzioni (o
 | Convenzioni delle domande CodeRunner JavaScript, SQL, PHP (la parte 2 le usa per produrle) | `domande-coderunner-js`, `domande-coderunner-sql`, `domande-php-mysqli-mock` |
 | Database di prova per SQL e PHP: catalogo, creazione, controllo delle query | `database-didattici` |
 | Diagrammi E/R nella notazione del libro (domande e pagine sui diagrammi) | `diagrammi-er` |
-| Tracce e domande di progettazione (E/R, schema relazionale), anche senza diagramma: notazione e regole (niente associazioni ternarie né attributi multipli, tracce senza legami tra tre entità) | `diagrammi-er` |
+| Tracce di progettazione da dare agli studenti (realtà da modellare, query mirate, difficoltà): regole e formato | `tracce-progettazione` |
+| Domande di progettazione (E/R, schema relazionale), anche senza diagramma: notazione e regole (niente associazioni ternarie né attributi multipli) | `diagrammi-er` |
 
 ## Punti aperti
 
