@@ -29,7 +29,7 @@ Una traccia è un documento JSON: lo stesso che sta nella dashboard (collezione 
   "verifica": {"intestazione": "5 SIA Verifica Modello E/R", "griglia": true},
   "docente": {
     "costrutti": ["N a N con attributo (ruolo da protagonista)", "1 a N", "attributi opzionali", "dato derivato (costo della serie)"],
-    "ipotesi_attese": ["identificatore dell'attore", "…"],
+    "ipotesi_attese": ["un attore può avere più ruoli nello stesso episodio? (la traccia non lo dice)", "…"],
     "punti_delicati": ["il regista dell'episodio può essere diverso da quello della serie: due associazioni distinte"],
     "durata": "70 minuti",
     "er": "titolo: Piattaforma di streaming\n…"
@@ -52,7 +52,7 @@ Una traccia è un documento JSON: lo stesso che sta nella dashboard (collezione 
 | `pdp.riduzioni` | per la copia PDP: una frase in grassetto sotto il punto ridotto. Chiavi: `presentare.er`, `presentare.documentazione`, `presentare.relazionale`, `presentare.sql_tabelle`, `query.N` (dalla 1), `php` |
 | `griglia.pesi` | `null` per i pesi predefiniti, oppure i pesi della verifica (`griglia.md`) |
 | `verifica` | `intestazione` (predefinita «5 SIA Verifica Modello E/R», dalla prima cifra della classe); `griglia: false` per un Word senza griglia |
-| `docente` | note per il docente, mai nelle uscite per gli studenti: costrutti, ipotesi attese, punti delicati, durata, il `.er` del modello bersaglio |
+| `docente` | note per il docente, mai nelle uscite per gli studenti: costrutti, ipotesi attese (scelte di progettazione, non le chiavi primarie da scegliere, che vanno nei punti delicati), punti delicati, durata, il `.er` del modello bersaglio |
 
 ## Le uscite
 
