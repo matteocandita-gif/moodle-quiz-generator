@@ -182,7 +182,7 @@
      così gli studenti la ritrovano uguale. Niente colori, riquadri o stili: paragrafi, elenchi numerati e
      grassetto per le istruzioni, nello stesso ordine del Word (senza intestazione e griglia). */
   function htmlInline(s) {
-    return pezzi(s).map(function (p) { var x = esc(p.t); return p.b ? "<strong>" + x + "</strong>" : p.i ? "<em>" + x + "</em>" : x; }).join("");
+    return pezzi(s).map(function (p) { var x = esc(p.t); if (p.c) x = "<code>" + x + "</code>"; if (p.u) x = "<u>" + x + "</u>"; return p.b ? "<strong>" + x + "</strong>" : p.i ? "<em>" + x + "</em>" : x; }).join("");
   }
   function html(t) {
     var x = t.testo || {}, v = vociPresentare(t), q = x.query || [], out = [];
@@ -470,31 +470,43 @@
     }
     return s;
   }
-  function htmlBlocchi(bl) {
+  /* Moodle toglie i <style>: nel frammento per Moodle gli stili delle tabelle stanno negli attributi */
+  var ST_MOODLE = { tab: ' style="overflow-x:auto"', table: ' style="border-collapse:collapse;width:100%"', cella: ' style="border:1px solid #999;padding:4px 7px;text-align:left;vertical-align:top"' };
+  function htmlBlocchi(bl, mo, h) {
+    var st = mo ? ST_MOODLE : { tab: ' class="tab"', table: "", cella: "" };
     return bl.map(function (b) {
-      if (b.tipo === "tabella") return '<div class="tab"><table><thead><tr>' + b.testa.map(function (c) { return "<th>" + htmlInline(c) + "</th>"; }).join("") + "</tr></thead><tbody>" +
-        b.righe.map(function (r) { return "<tr>" + b.testa.map(function (_, k) { return "<td>" + htmlInline(r[k] || "") + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table></div>";
-      if (b.tipo === "titolo") return "<h3>" + htmlInline(b.testo.replace(/\*\*/g, "")) + "</h3>";
+      if (b.tipo === "tabella") return "<div" + st.tab + "><table" + st.table + "><thead><tr>" + b.testa.map(function (c) { return "<th" + st.cella + ">" + htmlInline(c) + "</th>"; }).join("") + "</tr></thead><tbody>" +
+        b.righe.map(function (r) { return "<tr>" + b.testa.map(function (_, k) { return "<td" + st.cella + ">" + htmlInline(r[k] || "") + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table></div>";
+      if (b.tipo === "titolo") return "<" + h + ">" + htmlInline(b.testo.replace(/\*\*/g, "")) + "</" + h + ">";
       if (b.tipo === "elenco") return "<ul>" + b.voci.map(function (v) { return "<li>" + htmlInline(v) + "</li>"; }).join("") + "</ul>";
       return "<p>" + htmlInline(b.testo) + "</p>";
     }).join("\n");
   }
+  /* il corpo della soluzione; mo = frammento per Moodle (titoli h3/h4, stili negli attributi) */
+  function corpoSoluzione(t, png, mo) {
+    var ds = datiSoluzione(t), x = t.testo || {}, o = [], h2 = mo ? "h3" : "h2", h3 = mo ? "h4" : "h3";
+    var tit = function (s) { return "<" + h2 + ">" + s + "</" + h2 + ">"; };
+    o.push(tit("Traccia") + paragrafi(x.realta).map(function (p) { return "<p>" + htmlInline(p) + "</p>"; }).join(""));
+    if (ds.ipotesi.length) o.push(tit("Ipotesi aggiuntive") + "<ul>" + ds.ipotesi.map(function (v) { return "<li>" + htmlInline(v) + "</li>"; }).join("") + "</ul>");
+    o.push(tit("Diagramma E/R") + (png ? '<p><img alt="Diagramma E/R" src="data:image/png;base64,' + base64(png) + '"' + (mo ? ' style="max-width:100%;height:auto"' : "") + "></p>" : "<p><em>(diagramma non disponibile)</em></p>"));
+    if (ds.documentazione.length) o.push(tit("Documentazione") + htmlBlocchi(ds.documentazione, mo, h3));
+    o.push(tit("Schema relazionale") + htmlBlocchi(ds.schema, mo, h3));
+    if (ds.query.length) o.push(tit("Query SQL") + ds.query.map(function (q, i) { return "<p><strong>" + (i + 1) + ".</strong> " + htmlInline(q.richiesta) + "</p><pre>" + esc(q.sql) + "</pre>"; }).join(""));
+    return o.join("\n");
+  }
   function htmlSoluzione(t, png) {
-    var ds = datiSoluzione(t), x = t.testo || {}, o = [];
+    var o = [];
     o.push('<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Soluzione: ' + esc(t.titolo) + "</title>");
     o.push("<style>body{font:15px/1.5 Arial,Helvetica,sans-serif;color:#222;max-width:1100px;margin:24px auto;padding:0 16px}h1{font-size:1.5rem}h2{font-size:1.15rem;margin-top:28px;border-bottom:1px solid #ccc;padding-bottom:4px}h3{font-size:1rem;margin:18px 0 6px}" +
       ".tab{overflow-x:auto}table{border-collapse:collapse;font-size:.85rem;width:100%}th,td{border:1px solid #999;padding:4px 7px;text-align:left;vertical-align:top}th{background:#eee}" +
       "img{max-width:100%;height:auto}pre{background:#f4f4f4;border:1px solid #ddd;padding:10px;overflow-x:auto;font:13px/1.45 Consolas,monospace}@media print{h2{break-after:avoid}pre,tr{break-inside:avoid}}</style></head><body>");
     o.push("<h1>Soluzione: " + esc(t.titolo) + "</h1>");
-    o.push("<h2>Traccia</h2>" + paragrafi(x.realta).map(function (p) { return "<p>" + htmlInline(p) + "</p>"; }).join(""));
-    if (ds.ipotesi.length) o.push("<h2>Ipotesi aggiuntive</h2><ul>" + ds.ipotesi.map(function (v) { return "<li>" + htmlInline(v) + "</li>"; }).join("") + "</ul>");
-    o.push("<h2>Diagramma E/R</h2>" + (png ? '<p><img alt="Diagramma E/R" src="data:image/png;base64,' + base64(png) + '"></p>' : "<p><em>(diagramma non disponibile)</em></p>"));
-    if (ds.documentazione.length) o.push("<h2>Documentazione</h2>" + htmlBlocchi(ds.documentazione));
-    o.push("<h2>Schema relazionale</h2>" + htmlBlocchi(ds.schema));
-    if (ds.query.length) o.push("<h2>Query SQL</h2>" + ds.query.map(function (q, i) { return "<p><strong>" + (i + 1) + ".</strong> " + htmlInline(q.richiesta) + "</p><pre>" + esc(q.sql) + "</pre>"; }).join(""));
+    o.push(corpoSoluzione(t, png, false));
     o.push("</body></html>");
     return o.join("\n");
   }
+  /* frammento da incollare in Moodle (codice sorgente dell'editor): niente <style>, diagramma come data URI */
+  function htmlSoluzioneMoodle(t, png) { return corpoSoluzione(t, png, true); }
 
   /* ------------------------------------------------------------------ zip senza compressione */
   var CRC = (function () { var t = []; for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t.push(c >>> 0); } return t; })();
@@ -533,7 +545,7 @@
     return { errori: err, avvisi: avv };
   }
 
-  return { html: html, docx: docx, docxSoluzione: docxSoluzione, htmlSoluzione: htmlSoluzione, fileDocx: fileDocx, griglia: griglia, fasce: fasce, distribuisci: distribuisci, nomeFile: nomeFile, controlla: controlla, pezzi: pezzi };
+  return { html: html, docx: docx, docxSoluzione: docxSoluzione, htmlSoluzione: htmlSoluzione, htmlSoluzioneMoodle: htmlSoluzioneMoodle, fileDocx: fileDocx, griglia: griglia, fasce: fasce, distribuisci: distribuisci, nomeFile: nomeFile, controlla: controlla, pezzi: pezzi };
 });
 
 /* ------------------------------------------------------------------ uso da riga di comando */
