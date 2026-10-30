@@ -979,10 +979,10 @@ render();
   try{db=window.claude&&window.claude.use?await window.claude.use("db"):null;}catch(e){db=null;}
   if(!db){S.senzaDb=true;render();return;}
   S.db=db;
-  db.doc("impostazioni/avvio").get().then(function(s){S.imp=s.exists?s.data():{};render();}).catch(function(){S.imp={};});
+  db.doc("impostazioni/avvio").get().then(function(s){S.imp=s.exists?Object.assign({},s.data()):{};render();}).catch(function(){S.imp={};});
   var primo=true;
   db.collection("tracce").onSnapshot(function(snap){
-    var m={};snap.docs.forEach(function(d){var x=d.data();x.id=d.id;m[d.id]=x;});
+    var m={};snap.docs.forEach(function(d){m[d.id]=Object.assign({},d.data(),{id:d.id});});   /* i documenti arrivano congelati: si copiano */
     S.tracce=m;S.pronto=true;
     if(primo){primo=false;daHash();}
     var foc=document.activeElement;
