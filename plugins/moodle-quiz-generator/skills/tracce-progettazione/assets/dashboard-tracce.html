@@ -620,7 +620,7 @@ if (typeof require !== "undefined" && typeof module !== "undefined" && require.m
 <script>
 (function(){
 "use strict";
-var VERSIONE_PAGINA="1.0.0";
+var VERSIONE_PAGINA="1.0.1";
 var CONNETTORE="Claude Code Remote";
 var $=function(s){return document.querySelector(s);};
 var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
@@ -750,6 +750,7 @@ function schedaHTML(){
     '<label class="campo"><span>Stato</span><select class="ctl" id="stato">'+STATI.map(function(s){return'<option value="'+s[0]+'"'+((t.stato||"richiesta")===s[0]?" selected":"")+">"+s[1]+"</option>";}).join("")+"</select></label></header>";
   if(S.avvio&&S.avvio.id===t.id)h+=avvioHTML();
   if(t.nota)h+='<div class="avviso">'+inline(t.nota)+"</div>";
+  if(/^https:\/\/claude\.ai\//.test(String(t.sessione||"")))h+='<p class="mini muted" style="margin:0">Conversazione in cui Claude ha scritto la traccia: <a href="'+esc(t.sessione)+'" target="_blank" rel="noopener" style="color:var(--accent)">apri la chat</a>. Per continuare a parlarne, anche per chiedere la soluzione, scrivi lì.</p>';
   if(!t.testo||!t.testo.realta){
     h+='<div class="vuoto"><strong>'+(t.inLavorazione?"Claude sta scrivendo la traccia.":"Traccia richiesta, non ancora scritta.")+"</strong><br>Richiesta: "+esc(t.richiesta||"—")+"</div>";
     if(!t.inLavorazione)h+='<div class="riga"><button class="btn" data-act="riavvia">Avvia di nuovo la sessione</button></div>';
@@ -794,7 +795,7 @@ function noteHTML(t){
 }
 function soluzioneHTML(t){
   var s=t.soluzione;
-  if(!s)return'<div class="vuoto"><strong>Soluzione non ancora generata.</strong><br>Claude la ricava dal modello bersaglio con il diagramma, la documentazione, lo schema relazionale e le query provate.<div class="riga" style="justify-content:center;margin-top:12px"><button class="btn primario" data-act="soluzione"'+(S.inviando||t.inLavorazione?" disabled":"")+">Genera la soluzione</button></div></div>";
+  if(!s)return'<div class="vuoto"><strong>Soluzione non ancora generata.</strong><br>Claude la ricava dal modello bersaglio con il diagramma, la documentazione, lo schema relazionale e le query provate.<div class="riga" style="justify-content:center;margin-top:12px"><button class="btn primario" data-act="soluzione"'+(S.inviando||t.inLavorazione?" disabled":"")+">Genera la soluzione</button></div>"+'<p class="mini muted" style="margin:10px auto 0;max-width:60ch">Il pulsante apre una chat nuova, che conosce solo ciò che è salvato nella traccia. Se della traccia hai parlato in una chat, chiedi lì «genera la soluzione»: resti nella stessa conversazione.</p></div>';
   var h='<div class="foglio">';
   if(s.png)h+='<div class="blocco"><div class="blocco-t"><h3>Diagramma E/R</h3></div><div class="diagramma"><img src="'+esc(/^https?:|^\//.test(s.png)?s.png:"/_blob/"+s.png)+'" alt="Diagramma E/R della soluzione"></div></div>';
   if(s.ipotesi&&s.ipotesi.length)h+='<div class="blocco"><div class="blocco-t"><h3>Ipotesi aggiuntive</h3></div><ul class="lista-note">'+s.ipotesi.map(function(x){return"<li>"+inline(x)+"</li>";}).join("")+"</ul></div>";

@@ -11,6 +11,13 @@ Barra di navigazione tra le pagine:
 - «Correzione verifiche» ha ora `VERSIONE_PAGINA` (1.1.0), come le altre due, per gli aggiornamenti.
 - Per chi modifica il plugin: il codice della barra è uno solo (`sviluppo/strumenti/barra-navigazione.html`) e `allinea_copie.py` lo copia nelle pagine.
 
+Tracce di progettazione, sessioni avviate dalla pagina (pagina 1.0.1):
+
+- Ogni pulsante apre una chat nuova: sotto «Genera la soluzione» una riga lo dice e consiglia, se della traccia si è parlato in una chat, di chiedere la soluzione lì per restare nella stessa conversazione.
+- La sessione che scrive la traccia salva l'indirizzo della propria chat (`sessione`): in testa alla scheda compare il link «apri la chat».
+- Il prompt dell'attività aspetta il messaggio con l'id invece di cercare da solo le tracce in stato «richiesta» (prima rispondeva «nessuna indicazione» al primo dei due messaggi).
+- Le decisioni prese in chat dopo la creazione si salvano subito nella traccia, così la sessione della soluzione le vede; la soluzione si può chiedere anche in chat.
+
 ## 0.8.6 — 30/10/2026
 
 Risultato nel browser nei materiali HTML (sostituisce la regola «mai l'anteprima nell'esempio svolto»):
