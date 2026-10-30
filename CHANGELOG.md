@@ -1,22 +1,38 @@
 # Changelog
 
-Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
+Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
-## In preparazione (ramo navigazione-tracce)
+## 0.9.0 — 30/10/2026
+
+Nuova skill **`tracce-progettazione`** e nuova pagina **«Tracce di progettazione»**: tracce di progettazione di database da dare agli studenti di quinta, con la soluzione nella stessa pagina.
+
+- **Preset** Base, Intermedio, Avanzato, Esame, e le voci ritoccabili una per una: numero di entità, associazioni N a N (con o senza attributi), 1 a 1, ricorsive, entità deboli, gerarchie ISA, attributi opzionali, elementi da ristrutturare, chiavi date o da scegliere, livello del testo (guidato, intermedio, aperto), ipotesi aggiuntive, documentazione, SQL di alcune tabelle, numero e gradino delle query, requisiti aggiunti dalle query, pagina PHP facoltativa (`references/opzioni.md`).
+- **Formato standard** della traccia, a blocchi: realtà, «Presentare:», query, pagina PHP, nota sull'ordine e sulle scelte dello studente; per l'Esame la premessa e «Il candidato, fatte le opportune ipotesi aggiuntive, sviluppi:» (`references/formato.md`).
+- **Regole di progettazione**: Claude parte dal modello bersaglio (file `.er`), poi scrive il testo e lo rilegge come uno studente. Niente legami a tre né attributi multipli; chiavi semplici, con un codice artificiale e il vincolo di unicità sui campi naturali; chiave esterna composta solo quando serve davvero (entità deboli). Le ipotesi aggiuntive richieste contano solo quelle che cambiano lo schema relazionale.
+- **Query mirate**: ognuna verifica un requisito preciso del progetto (per esempio la disponibilità di un libro), su tre gradini senza sottoquery; il gradino è un tetto, non una quota. LIMIT è ammesso. Una query può aggiungere un requisito, e allora la consegna lo dice. Le query si provano su SQLite prima di consegnare.
+- **Uscite**: il **Word della verifica** sul modello delle tue tracce, con la griglia di valutazione su una pagina orizzontale; la **copia PDP** con le riduzioni sotto i punti scelti e il promemoria delle colonne della documentazione; l'**HTML per la descrizione di un Compito Moodle**, che fa eccezione allo stile delle pagine Moodle: stesso aspetto del Word, senza colori né riquadri, con in fondo la riga sulla consegna (foto dei fogli o un unico Word completo).
+- **Griglia**: pesi predefiniti (entità 15, associazioni 15, vincoli 15 o 10, documentazione 10, relazionale 15, query 30 o 20 divise in parti uguali, PHP 15), personalizzabili per una singola verifica; il relazionale si valuta per coerenza con il proprio E/R (`references/griglia.md`).
+- **Tracce**: la pagina, una per tutte le tracce. In cima la più recente; ricerca e filtro per stato; archivia ed elimina con conferma nella pagina. Nella scheda:
+  - la **traccia** con i blocchi modificabili e «Chiedi a Claude» per le modifiche;
+  - le **note per il docente**: costrutti, ipotesi attese, punti delicati, durata stimata, il modello;
+  - la **soluzione**, con il diagramma, che «Genera la soluzione» prepara con `diagrammi-er`. Da lì «Scarica Word», «Scarica HTML» e «Copia HTML per Moodle», con lo stesso aspetto della soluzione completa di `diagrammi-er`;
+  - le **uscite**: Word, Word PDP, HTML, riduzioni PDP e pesi della griglia.
+- **Tracce**: «Inizia», «Chiedi a Claude» e «Genera la soluzione» aprono ogni volta una chat nuova (con l'attività programmata, come la dashboard dei quiz); in testa alla scheda il link alla chat in cui è stata scritta la traccia, dove si può continuare a discuterla. Le decisioni prese in chat si salvano subito nella traccia.
+- Installazione: «installa la dashboard delle tracce» o il comando **`installa-tracce`**.
 
 Barra di navigazione tra le pagine:
 
-- **Dashboard**, **Editor mappe** e **Correzione verifiche**: in cima una fascia chiara a tutta larghezza, «Quiz generator», fuori dai margini della pagina, con i link alle altre pagine del plugin installate (si aprono in una nuova scheda, con la freccia ↗); la pagina corrente è evidenziata. Compare solo se c'è almeno un'altra pagina.
-- Gli indirizzi li scrive Claude nel database di ogni pagina (`impostazioni/navigazione`) a ogni installazione o aggiornamento di una pagina: procedura in `references/navigazione.md`, la stessa in `progettazione-quiz`, `correzione-verifiche` e `mappe-prerequisiti`.
-- «Correzione verifiche» ha ora `VERSIONE_PAGINA` (1.1.0), come le altre due, per gli aggiornamenti.
-- Per chi modifica il plugin: il codice della barra è uno solo (`sviluppo/strumenti/barra-navigazione.html`) e `allinea_copie.py` lo copia nelle pagine.
+- **Dashboard**, **Editor mappe**, **Correzione verifiche** e **Tracce**: in cima una fascia chiara a tutta larghezza, «Quiz generator», fuori dai margini della pagina, con i link alle altre pagine del plugin installate (si aprono in una nuova scheda, con la freccia ↗); la pagina corrente è evidenziata. Compare solo se c'è almeno un'altra pagina; sul telefono resta su una riga e scorre di lato.
+- Gli indirizzi li scrive Claude nel database di ogni pagina (`impostazioni/navigazione`) a ogni installazione o aggiornamento di una pagina: procedura in `references/navigazione.md`, la stessa in `progettazione-quiz`, `correzione-verifiche` e `mappe-prerequisiti`. Si possono aggiungere link a pagine proprie, fuori dal plugin.
+- «Correzione verifiche» ha ora `VERSIONE_PAGINA` (1.1.0), come le altre pagine, per gli aggiornamenti.
+- Per chi modifica il plugin: il codice della barra è uno solo (`sviluppo/strumenti/barra-navigazione.html`) e `allinea_copie.py` lo copia nelle pagine, insieme a `uscite_traccia.js` nella pagina delle tracce.
 
-Tracce di progettazione, sessioni avviate dalla pagina (pagina 1.0.1):
+Progettazione dei database (`diagrammi-er`):
 
-- Ogni pulsante apre una chat nuova: sotto «Genera la soluzione» una riga lo dice e consiglia, se della traccia si è parlato in una chat, di chiedere la soluzione lì per restare nella stessa conversazione.
-- La sessione che scrive la traccia salva l'indirizzo della propria chat (`sessione`): in testa alla scheda compare il link «apri la chat».
-- Il prompt dell'attività aspetta il messaggio con l'id invece di cercare da solo le tracce in stato «richiesta» (prima rispondeva «nessuna indicazione» al primo dei due messaggi).
-- Le decisioni prese in chat dopo la creazione si salvano subito nella traccia, così la sessione della soluzione le vede; la soluzione si può chiedere anche in chat.
+- **Entità di grandezza paragonabile** nei diagrammi: da 5 attributi in su, sopra o sotto, le etichette vanno su due file; lo spazio in più ai fianchi solo per gli attributi opzionali; lo script avvisa quando un'entità è molto più grande delle altre.
+- Chiavi semplici con codice artificiale e vincolo di unicità; la coppia che si ripete (lo stesso spettatore prenota due volte lo stesso concerto) diventa un'entità. LIMIT ammesso nelle query («i primi N», «il massimo»).
+- La **soluzione completa in HTML** ha gli stili dentro i tag, non più in un blocco `<style>`: si incolla in Moodle senza perdere l'aspetto.
+- Le tracce da dare agli studenti si creano con `tracce-progettazione`; `progettazione-quiz` e `diagrammi-er` rimandano lì.
 
 ## 0.8.6 — 30/10/2026
 

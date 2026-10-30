@@ -2,6 +2,8 @@
 
 Plugin per Claude che prepara i quiz Moodle di informatica del triennio SIA: esercitazioni con spiegazione, verifiche di programmazione e di teoria, ripassi. Si parte da una richiesta a parole; Claude propone la scaletta e scrive le domande in una dashboard dove le rivedi e le approvi; alla fine ricevi il backup `.mbz` del quiz, da ripristinare nel corso Moodle con pagine, sezioni, punti e impostazioni già a posto.
 
+Crea anche le **tracce di progettazione** di database per le quinte, con difficoltà regolabile, soluzione, Word della verifica con griglia e HTML per Moodle, nella pagina «Tracce di progettazione».
+
 Contiene anche le **mappe dei prerequisiti**: un argomento scomposto in competenze collegate da prerequisiti, che in Moodle diventa un'attività in cui ogni studente spunta ciò che sa fare e tu vedi il riepilogo della classe.
 
 Le domande coprono Cloze, risposta multipla, vero/falso, risposta breve, aperta, corrispondenza e CodeRunner JavaScript, SQL, PHP, HTML e CSS. Le domande CodeRunner arrivano con gli output attesi già calcolati eseguendo la soluzione, e quelle SQL e PHP con il database allegato.
@@ -72,12 +74,13 @@ Le regole didattiche (punti, tempi, struttura delle verifiche, stile delle doman
 | `domande-php-mysqli-mock` | Domande CodeRunner PHP con database simulato |
 | `database-didattici` | Database di prova coerenti in tre taglie, per CodeRunner e phpMyAdmin, con un catalogo |
 | `diagrammi-er` | Progettazione nella notazione del libro, da una descrizione testuale: diagramma E/R (file draw.io e PNG), schema relazionale, documentazione, soluzione completa in HTML o Word |
+| `tracce-progettazione` | Tracce di progettazione di database da dare agli studenti: preset di difficoltà, query mirate, note per il docente, Word della verifica con griglia e copia PDP, HTML per Moodle; la dashboard «Tracce di progettazione» con la soluzione |
 | `mappe-prerequisiti` | Mappe dei prerequisiti per l'autovalutazione: l'editor «Mappe dei prerequisiti» e il backup `.mbz` dell'attività Database |
 | `correzione-verifiche` | Correzione di una verifica svolta: dall'export delle risposte, punteggi e commenti proposti domanda per domanda, codice rieseguito con i test, dashboard «Correzione verifiche» con vista per domanda e per studente, tabella dei voti |
 
-Il comando `installa-dashboard` installa o aggiorna la dashboard, `installa-mappe` l'editor delle mappe.
+Il comando `installa-dashboard` installa o aggiorna la dashboard, `installa-mappe` l'editor delle mappe, `installa-tracce` la pagina delle tracce. Le pagine installate sono collegate da una barra in cima, per passare dall'una all'altra.
 
-Le skill si usano anche da sole, fuori dalla dashboard: «una Cloze sulle JOIN», «un esercizio sui cicli while da correggere in automatico», «un database con tre tabelle per una lezione in phpMyAdmin», «disegna lo schema E/R della biblioteca», «risolvi questa traccia di progettazione», «una mappa dei prerequisiti su HTML per le quarte», «correggi la verifica V5R · 5Q» (dopo averla caricata con «Nuova correzione»).
+Le skill si usano anche da sole, fuori dalla dashboard: «una Cloze sulle JOIN», «un esercizio sui cicli while da correggere in automatico», «un database con tre tabelle per una lezione in phpMyAdmin», «disegna lo schema E/R della biblioteca», «risolvi questa traccia di progettazione», «una traccia di progettazione di livello intermedio per la verifica della 5R», «una mappa dei prerequisiti su HTML per le quarte», «correggi la verifica V5R · 5Q» (dopo averla caricata con «Nuova correzione»).
 
 ## Autore e licenza
 

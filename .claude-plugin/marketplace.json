@@ -8,7 +8,7 @@
     {
       "name": "moodle-quiz-generator",
       "source": "./plugins/moodle-quiz-generator",
-      "description": "Dalla richiesta al quiz Moodle: scaletta e tracce nella dashboard, poi Moodle XML e backup .mbz. Mappe dei prerequisiti per l'autovalutazione degli studenti"
+      "description": "Dalla richiesta al quiz Moodle: scaletta e tracce nella dashboard, poi Moodle XML e backup .mbz. Mappe dei prerequisiti per l'autovalutazione degli studenti. Tracce di progettazione di database con soluzione. Correzione delle verifiche svolte"
     }
   ]
 }

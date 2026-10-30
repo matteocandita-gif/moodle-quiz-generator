@@ -69,6 +69,14 @@ Dopo la verifica Claude propone punteggi e commenti; tu rivedi e li riporti in M
 
 Se preferisci non usare la dashboard per il caricamento, puoi allegare in chat l'Excel anonimizzato da te: elimina le colonne con email o username, metti in due colonne nuove `=STRINGA.ESTRAI(A2;1;2)` e `=STRINGA.ESTRAI(B2;1;2)` (A = Cognome, B = Nome), incollale su Cognome e Nome con **Incolla speciale → Valori** ed elimina le colonne nuove. Una riga dimenticata si aggiunge dopo, con **Importa da Moodle** dentro la verifica.
 
+## Tracce di progettazione
+
+1. La prima volta: «installa la dashboard delle tracce» (comando `installa-tracce`). Claude pubblica la tua pagina «Tracce di progettazione», privata.
+2. **Nuova traccia**: scegli il preset (Base, Intermedio, Avanzato, Esame), ritocca le voci che vuoi, indica uso (verifica, compito, esercizio, esame), classe e data e scrivi la richiesta a parole («una piattaforma di streaming», «con una gerarchia»). **Inizia** apre una sessione di Claude che scrive la traccia.
+3. Rivedi la traccia e le **note per il docente** (costrutti, ipotesi attese, punti delicati, durata). Le correzioni piccole le fai nei blocchi; per le altre scrivi in «Chiedi a Claude» oppure continua nella chat della traccia (link in testa alla scheda).
+4. **Uscite**: per una verifica il Word con la griglia, e la copia PDP con le riduzioni; per un compito Moodle «Copia HTML» e incollalo nella descrizione, in modalità codice sorgente. I pesi della griglia si cambiano lì, per quella verifica.
+5. **Genera la soluzione**: diagramma, documentazione, schema relazionale e query. Dalla scheda Soluzione la scarichi in Word o HTML, o copi l'HTML per Moodle.
+
 ## Mappe dei prerequisiti
 
 Una mappa dei prerequisiti mostra le competenze di un argomento e quali servono prima di quali. In Moodle diventa un'attività in cui ogni studente spunta ciò che sa fare; tu vedi il riepilogo della classe.

@@ -19,6 +19,7 @@ Una panoramica delle funzioni del plugin «Moodle: quiz generator». Non corrisp
 
 - Diagrammi E/R nella notazione del libro, come file `.drawio` e PNG.
 - Schema relazionale con le regole di traduzione del libro, documentazione della base di dati e soluzione completa di una traccia. I moduli si usano separatamente: per un quiz basta il diagramma.
+- **Tracce di progettazione** da dare agli studenti, con preset di difficoltà e query mirate, in una pagina propria con la soluzione, il Word della verifica con griglia e copia PDP e l'HTML per Moodle.
 
 ## Consegna in Moodle
 

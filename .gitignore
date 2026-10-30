@@ -3,3 +3,6 @@ __pycache__/
 *.db
 .DS_Store
 Thumbs.db
+
+# schermate di prova
+/*.png
