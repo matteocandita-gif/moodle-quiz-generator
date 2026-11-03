@@ -38,7 +38,7 @@ flowchart LR
   F --> G["Ripristino<br/>nel corso Moodle"]
 ```
 
-1. **Nuovo quiz.** Nella dashboard: tipo di quiz, titolo, classe, argomento, tempo e la richiesta a parole; lezione o codice sono facoltativi. «Inizia» avvia una sessione di Claude che scrive la scaletta.
+1. **Nuovo quiz.** Nella dashboard: tipo di quiz, titolo, classe, argomento, categoria Moodle, tempo e la richiesta a parole; lezione o codice sono facoltativi. «Inizia» avvia una sessione di Claude che scrive la scaletta.
 2. **Scaletta.** Una riga per pagina o domanda, con tipologia, punti, minuti e pagina del quiz. La rivedi nella vista Scaletta, correggi, commenti, approvi.
 3. **Dettaglio.** In chat chiedi a Claude di scrivere il dettaglio: il testo di ogni domanda come lo vedrà lo studente, la correzione, le soluzioni e i test delle CodeRunner. Lo rivedi nella vista Dettaglio e lo approvi.
 4. **Generazione.** In chat: «genera il quiz». Ricevi il backup `.mbz` (e, se serve, il Moodle XML delle domande).

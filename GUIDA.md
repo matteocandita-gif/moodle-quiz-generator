@@ -52,7 +52,7 @@ Per una domanda sola o poche domande per la banca non serve la dashboard: «una 
 
 ## Tenere ordinata la dashboard
 
-I quiz conclusi archiviali (riquadro «Archivia o elimina il quiz», in fondo alla scaletta): restano consultabili tra gli archiviati. Eliminare un quiz lo cancella con tutte le righe; se lo chiedi a Claude, prima ne salva una copia.
+In «Tutti i quiz» trovi in cima i quiz da finire o da esportare e sotto tutti gli altri, per classe e argomento: dentro un argomento sono in ordine di lezione, con le verifiche in coda, e con «Riordina» cambi l'ordine a mano. I quiz conclusi archiviali (riquadro «Archivia o elimina il quiz», in fondo alla scaletta): restano consultabili nel loro argomento, nella riga «Archiviati». Eliminare un quiz lo cancella con tutte le righe; se lo chiedi a Claude, prima ne salva una copia.
 
 ## Correggere una verifica
 

@@ -2,6 +2,18 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.10.0 — 03/11/2026
+
+Organizzazione dei quiz nella dashboard «Bozze dei quiz».
+
+- **Dashboard** (0.4.0): «Tutti i quiz» è ordinata per classe e argomento, con sezioni richiudibili. In cima «Da finire o da esportare»: i quiz con il dettaglio non approvato o non ancora esportati, dal più recente.
+- **Dashboard**: nuovo campo **Argomento** (`area`), breve, con i suggerimenti dei valori già usati e proposto dal linguaggio. Il vecchio campo Argomento si chiama ora **Categoria Moodle**: resta lo stesso campo e i nomi in Moodle non cambiano. Nei dati del quiz, in cima alla scaletta, si cambiano anche classe e argomento.
+- **Dashboard**: dentro un argomento l'ordine automatico è per lezione o codice, con le verifiche in coda. «Riordina» sposta i quiz a mano, «Ordine automatico» annulla.
+- **Dashboard**: etichetta «Verifica» sulle schede, ricavata dal tipo; gli archiviati restano nel loro argomento, in una riga chiusa; il menù in alto ha gli stessi gruppi («Quarta · HTML»).
+- **Dashboard**: stato «Esportato» o «Da esportare» sulle schede. Riapprovando il dettaglio il quiz torna da esportare; «Segna come già esportato» e «Segna come da esportare» correggono a mano.
+- Cambia il prompt dell'attività programmata «Avvia quiz dalla dashboard» (campo `area`): l'aggiornamento della dashboard lo sostituisce.
+- Chi ha già dei quiz: dopo l'aggiornamento finiscono in «Senza argomento» finché non si compila l'argomento; lo può fare Claude su richiesta.
+
 ## 0.9.0 — 30/10/2026
 
 Nuova skill **`tracce-progettazione`** e nuova pagina **«Tracce di progettazione»**: tracce di progettazione di database da dare agli studenti di quinta, con la soluzione nella stessa pagina.

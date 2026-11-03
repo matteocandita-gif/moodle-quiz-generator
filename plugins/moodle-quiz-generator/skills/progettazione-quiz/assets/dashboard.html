@@ -296,7 +296,24 @@ textarea.ctl.mono{font:12.5px/1.5 var(--mono)}
 .qcard:hover{border-color:var(--accent)}
 .qct{font-weight:700;font-size:15px;overflow-wrap:anywhere}
 .qcm{font-size:12.5px;color:var(--fg-2);overflow-wrap:anywhere}
-.qcard .tag{margin-top:4px}
+.qtags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.tag.ver{background:var(--accent-soft);color:var(--accent)}
+/* tutti i quiz: da finire in cima, poi classe > argomento */
+.qsez{display:grid;gap:8px}
+.qsez h3{font-size:15px;display:flex;align-items:center;gap:8px}
+.qclasse>summary{font-size:16px}
+.qclasse .panel-body{padding-bottom:6px}
+.qarea{display:grid;gap:8px;padding-block:12px;border-top:1px solid var(--line)}
+.qah{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.qah h4{font-size:14px}
+.qah .muted{font-size:12.5px}
+.qah .btn{margin-left:auto}
+.qarc>summary{cursor:pointer;font-size:12.5px;color:var(--fg-2);width:fit-content}
+.qarc[open]>summary{margin-bottom:8px}
+.qrord{list-style:none;margin:0;padding:0;display:grid;gap:2px;max-width:640px}
+.qrord li{display:flex;align-items:center;gap:6px;padding:3px 4px 3px 10px;border-radius:6px;background:var(--surface-2)}
+.qrord .t{min-width:0;margin-right:auto;overflow-wrap:anywhere}
+.qrord .ib[disabled]{opacity:.35;cursor:not-allowed}
 .req{color:var(--err)}
 textarea.note.big{min-height:12em}
 .chk{display:flex;gap:8px;align-items:flex-start;font-size:13.5px}
@@ -921,13 +938,16 @@ function controlliRiga(q,r,add){
 
 /* ------------------------------------------------------------------ stato */
 const S={db:null,comments:null,quizzes:[],quizId:null,quiz:null,rows:[],rowsFor:null,view:"home",sel:null,edit:null,
-  error:null,ready:false,avvisiOpen:true,noteOpen:true,dirty:{},del:null,confirmApprove:false,focusKey:null,unsubRows:null};
+  error:null,ready:false,avvisiOpen:true,noteOpen:true,dirty:{},del:null,confirmApprove:false,focusKey:null,unsubRows:null,ap:{},riordina:null};
 const main=$("#main");
 const PREF="bozze-quiz-prefs";
 /* la pagina riapre dove era stata lasciata (in questo browser): vista, quiz, domanda del dettaglio, posizione di scorrimento */
 try{const p=JSON.parse(localStorage.getItem(PREF)||"{}");if(p.quizId)S.quizId=p.quizId;if(p.sel)S.sel=p.sel;
   if(["home","scaletta","dettaglio"].indexOf(p.view)>=0)S.view=p.view;
   if(p.y>0&&p.yView===S.view)S.restoreY=p.y;}catch(e){}
+/* sezioni aperte o chiuse in «Tutti i quiz»: solo in questo browser */
+const PREF_AP="bozze-quiz-sezioni";
+try{const p=JSON.parse(localStorage.getItem(PREF_AP)||"{}");if(p&&typeof p==="object")S.ap=p;}catch(e){}
 function persist(){if(S.restoreY!=null)return;try{localStorage.setItem(PREF,JSON.stringify({view:S.view,quizId:S.quizId,sel:S.sel,y:Math.round(window.scrollY),yView:S.view}));}catch(e){}}
 let persistT=null;
 window.addEventListener("scroll",function(){clearTimeout(persistT);persistT=setTimeout(persist,300);},{passive:true});
@@ -1110,13 +1130,14 @@ function off(val,t){return val<t.a-t.tol-1e-9||val>t.b+t.tol+1e-9;}
 function renderHeader(){
   const qs=$("#quizSel");
   const opt=function(q){return '<option value="'+esc(q.id)+'"'+(q.id===S.quizId?" selected":"")+">"+esc(q.titolo||q.id)+"</option>";};
-  const att=S.quizzes.filter(function(q){return !q.archiviato;}),arc=S.quizzes.filter(function(q){return q.archiviato;});
-  qs.innerHTML=S.quizzes.length?att.map(opt).join("")+(arc.length?'<optgroup label="Archiviati ('+arc.length+')">'+arc.map(opt).join("")+"</optgroup>":""):"<option>Nessun quiz</option>";
+  const G=struttura(),gr=function(pre,c,g,L){return L.length?'<optgroup label="'+esc(pre+classeNome(c.classe)+" · "+g.nome)+'">'+L.map(opt).join("")+"</optgroup>":"";};
+  const tutti=function(pre,f){return G.map(function(c){return c.gruppi.map(function(g){return gr(pre,c,g,g[f]);}).join("");}).join("");};
+  qs.innerHTML=S.quizzes.length?tutti("","att")+tutti("Archiviati · ","arc"):"<option>Nessun quiz</option>";
   qs.disabled=!S.quizzes.length;
   ["home","scaletta","dettaglio"].forEach(function(v){$("#tab-"+v).setAttribute("aria-selected",(S.view===v||(v==="home"&&S.view==="nuovo"))?"true":"false");});
 }
 /* ------------------------------------------------------------------ vista iniziale e nuovo quiz */
-const VERSIONE_PAGINA="0.3.15";
+const VERSIONE_PAGINA="0.4.0";
 const PERCORSO_IMPOSTAZIONI="impostazioni/avvio";
 /* depositi delle domande (banche qbank dei corsi deposito): li scrive Claude leggendo un backup */
 const PERCORSO_DEPOSITI="impostazioni/depositi";
@@ -1153,19 +1174,101 @@ function codiceCasuale(classe){
 /* una ED è una lezione di due ore: propone 105 minuti se il tempo è vuoto (o era stato proposto dalla pagina) */
 const TEMPO_PROPOSTO={ED:"105",SD:"40"};
 function tempoProposto(n){const vuoto=!String(n.tempo||"").trim(),t=TEMPO_PROPOSTO[n.tipoQuiz];if(t){if(vuoto||n.tempoAuto){n.tempo=t;n.tempoAuto=true;}}else if(n.tempoAuto){n.tempo="";n.tempoAuto=false;}}
-function nuovoVuoto(){return {tipoQuiz:"",titolo:"",lezione:"",classe:"",argomento:"",tempo:"",linguaggio:"",varianti:"1",avanzata:"",richiesta:"",materiale:false,presetMbz:"esercitazione",prototipoHtml:"php_con_test"};}
+function nuovoVuoto(){return {tipoQuiz:"",titolo:"",lezione:"",classe:"",area:"",argomento:"",tempo:"",linguaggio:"",varianti:"1",avanzata:"",richiesta:"",materiale:false,presetMbz:"esercitazione",prototipoHtml:"php_con_test"};}
 function faseLabel(f){return label(FASI,f)||"Senza fase";}
+/* ------------------------------------------------------------------ organizzazione: classe > argomento */
+const CLASSI_ORDINE=["terza","quarta","quinta"];
+/* argomento proposto nel modulo «Nuovo quiz» quando si sceglie il linguaggio */
+const AREA_LINGUAGGIO={"html-css":"HTML",javascript:"JavaScript",sql:"SQL",php:"PHP"};
+function classeNome(c){return CLASSI_ORDINE.indexOf(c)>=0?label(CLASSI,c):"Senza classe";}
+function areaDi(q){return String(q.area||"").trim();}
+function areeNote(){const v={};S.quizzes.forEach(function(q){const a=areaDi(q);if(a&&!v[a.toLowerCase()])v[a.toLowerCase()]=a;});return Object.keys(v).sort().map(function(k){return v[k];});}
+function areeHTML(){return '<datalist id="areeNote">'+areeNote().map(function(a){return '<option value="'+esc(a)+'"></option>';}).join("")+"</datalist>";}
+function areaProposta(n){if(!String(n.area||"").trim()||n.areaAuto){const a=AREA_LINGUAGGIO[n.linguaggio]||"";n.area=a;n.areaAuto=!!a;}}
+/* verifica o esercitazione si ricava dal tipo; un quiz libero o importato dice come si comporta in Moodle (presetMbz) */
+function eVerifica(q){return haPDP(q);}
+/* esportato: lo dice l'utente con «Segna come…» (esportato vero o falso), altrimenti un'esportazione riuscita dopo l'ultima approvazione */
+function esportato(q){
+  if(q.esportato===true)return true;
+  if(q.esportato===false)return false;
+  const e=q.esportazione;if(!e||e.stato!=="fatta")return false;
+  const a=Date.parse(q.approvato||""),f=Date.parse(e.fine||"");
+  return !isFinite(a)||!isFinite(f)||f>=a;
+}
+function daFinire(q){return !q.archiviato&&(q.fase!=="dettaglio-approvato"||!esportato(q));}
+/* approvando il dettaglio il quiz torna «da esportare»: il backup di prima non ha le ultime modifiche */
+function patchFase(f){const o={fase:f};if(f==="dettaglio-approvato"){o.approvato=new Date().toISOString();o.esportato=null;}return o;}
+/* ordine automatico: per lezione o codice (HTML2 prima di HTML10), le verifiche in coda */
+function perLezione(a,b){return (eVerifica(a)?1:0)-(eVerifica(b)?1:0)||String(a.lezione||"").localeCompare(String(b.lezione||""),"it",{numeric:true,sensitivity:"base"})||String(a.titolo||a.id).localeCompare(String(b.titolo||b.id),"it");}
+/* l'ordine a mano (campo ordine) vale per i quiz che ce l'hanno; un quiz nuovo entra al suo posto automatico */
+function ordinaGruppo(L){
+  const auto=L.slice().sort(perLezione),man=auto.filter(function(q){return typeof q.ordine==="number";}).sort(function(a,b){return a.ordine-b.ordine;});
+  if(!man.length)return auto;
+  const out=man.slice();
+  auto.filter(function(q){return typeof q.ordine!=="number";}).forEach(function(q){let i=out.findIndex(function(m){return perLezione(q,m)<0;});if(i<0)i=out.length;out.splice(i,0,q);});
+  return out;
+}
+function struttura(){
+  const cl={};
+  S.quizzes.forEach(function(q){
+    const ck=CLASSI_ORDINE.indexOf(q.classe)>=0?q.classe:"",a=areaDi(q),ak=a.toLowerCase();
+    const c=cl[ck]=cl[ck]||{classe:ck,aree:{}},g=c.aree[ak]=c.aree[ak]||{chiave:ck+"|"+ak,nome:a||"Senza argomento",vuoto:!a,quiz:[]};
+    g.quiz.push(q);
+  });
+  return CLASSI_ORDINE.concat([""]).filter(function(k){return cl[k];}).map(function(k){
+    const c=cl[k];
+    c.gruppi=Object.keys(c.aree).map(function(x){return c.aree[x];}).sort(function(a,b){return (a.vuoto?1:0)-(b.vuoto?1:0)||a.nome.localeCompare(b.nome,"it");});
+    c.gruppi.forEach(function(g){g.quiz=ordinaGruppo(g.quiz);g.att=g.quiz.filter(function(q){return !q.archiviato;});g.arc=g.quiz.filter(function(q){return q.archiviato;});});
+    return c;
+  });
+}
+function gruppoDi(ch){let t=null;struttura().forEach(function(c){c.gruppi.forEach(function(g){if(g.chiave===ch)t=g;});});return t;}
+/* sposta un quiz attivo di un posto tra gli attivi del suo argomento; la prima volta fissa l'ordine di tutto il gruppo */
+function spostaQuiz(ch,id,d){
+  const g=gruppoDi(ch);if(!g)return;
+  const i=g.att.findIndex(function(q){return q.id===id;}),o=g.att[i+d];if(i<0||!o)return;
+  const L=g.quiz.slice(),a=L.indexOf(g.att[i]),b=L.indexOf(o);L[a]=o;L[b]=g.att[i];
+  L.forEach(function(q,k){const v=(k+1)*10;if(q.ordine!==v){q.ordine=v;save("quiz/"+q.id,{ordine:v});}});
+  render();
+}
+function ordineAuto(ch){
+  const g=gruppoDi(ch);if(!g)return;
+  g.quiz.forEach(function(q){if(typeof q.ordine==="number"){delete q.ordine;save("quiz/"+q.id,{ordine:null});}});
+  toast("Ripristinato l'ordine automatico di «"+g.nome+"».");render();
+}
+function aperta(k,def){return S.ap[k]===undefined?def:!!S.ap[k];}
+function statoQuiz(q){
+  if(q.fase==="richiesta")return tag("info","info",q.inLavorazione?"Claude sta scrivendo la scaletta":"In attesa della scaletta");
+  if(q.fase!=="dettaglio-approvato"||q.archiviato)return tag(q.fase==="dettaglio-approvato"?"ok":"plain",q.fase==="dettaglio-approvato"?"check":"info",faseLabel(q.fase));
+  if(esportato(q))return tag("ok","check","Esportato");
+  if(espInCorso(q))return tag("info","info","Esportazione in corso");
+  if(q.esportazione&&q.esportazione.stato==="errore")return tag("err","warn","Esportazione non riuscita");
+  return tag("warn","warn","Da esportare");
+}
 function homeHTML(){
-  const att=S.quizzes.filter(function(q){return !q.archiviato;}),arc=S.quizzes.filter(function(q){return q.archiviato;});
-  const card=function(q){const P=TIPI[q.tipoQuiz];return '<button class="qcard" data-act="apri-quiz" data-id="'+esc(q.id)+'"><span class="qct">'+esc(q.titolo||q.id)+'</span><span class="qcm">'+esc(P?P.nome:"Tipo da scegliere")+(q.lezione?" · "+esc(q.lezione):"")+(q.tempo?" · "+esc(q.tempo)+" min":"")+'</span><span class="qcm">'+esc(q.argomento||"")+"</span>"+(q.fase==="richiesta"?tag("info","info",q.inLavorazione?"Claude sta scrivendo la scaletta":"In attesa della scaletta"):tag(q.fase==="dettaglio-approvato"?"ok":"plain",q.fase==="dettaglio-approvato"?"check":"info",faseLabel(q.fase)))+"</button>";};
-  return '<div class="stack"><div class="tbar"><h2>Quiz attivi</h2><div class="sp"><button class="btn primary" data-act="nuovo-quiz">'+ico("plus")+"Nuovo quiz</button></div></div>"+
-    (!S.quizzes.length?benvenutoHTML():att.length?'<div class="qgrid">'+att.map(card).join("")+"</div>":'<p class="muted">Nessun quiz attivo. Crea il primo con «Nuovo quiz».</p>')+
-    (arc.length?'<details class="panel"><summary>Archiviati ('+arc.length+")"+ico("chev","chev")+'</summary><div class="panel-body"><div class="qgrid">'+arc.map(card).join("")+"</div></div></details>":"")+impostazioniHTML()+"</div>";
+  const card=function(q,dove){const P=TIPI[q.tipoQuiz];return '<button class="qcard" data-act="apri-quiz" data-id="'+esc(q.id)+'"><span class="qct">'+esc(q.titolo||q.id)+'</span><span class="qcm">'+esc(P?P.nome:"Tipo da scegliere")+(q.lezione?" · "+esc(q.lezione):"")+(q.tempo?" · "+esc(q.tempo)+" min":"")+"</span>"+(dove?'<span class="qcm">'+esc(classeNome(q.classe)+" · "+(areaDi(q)||"Senza argomento"))+"</span>":'<span class="qcm">'+esc(q.argomento||"")+"</span>")+'<span class="qtags">'+(eVerifica(q)?tag("ver","pencil","Verifica"):"")+statoQuiz(q)+"</span></button>";};
+  const griglia=function(L,dove){return '<div class="qgrid">'+L.map(function(q){return card(q,dove);}).join("")+"</div>";};
+  const conta=function(n,uno,molti){return n+" "+(n===1?uno:molti);};
+  const riordino=function(g){return '<ol class="qrord">'+g.att.map(function(q,i){return '<li><span class="t">'+esc(q.lezione?q.lezione+" · ":"")+esc(q.titolo||q.id)+'</span><button class="ib" data-act="sposta" data-g="'+esc(g.chiave)+'" data-id="'+esc(q.id)+'" data-d="-1" aria-label="Sposta su «'+esc(q.titolo||q.id)+'»"'+(i?"":" disabled")+">"+ico("up")+'</button><button class="ib" data-act="sposta" data-g="'+esc(g.chiave)+'" data-id="'+esc(q.id)+'" data-d="1" aria-label="Sposta giù «'+esc(q.titolo||q.id)+'»"'+(i<g.att.length-1?"":" disabled")+">"+ico("down")+"</button></li>";}).join("")+'</ol><div class="actrow"><button class="btn sm primary" data-act="riordina" data-g="'+esc(g.chiave)+'">Fatto</button><button class="btn sm" data-act="ordine-auto" data-g="'+esc(g.chiave)+'">'+ico("undo")+"Ordine automatico</button></div>";};
+  const area=function(g){
+    const rio=S.riordina===g.chiave&&g.att.length>1,ka="arc|"+g.chiave;
+    return '<div class="qarea"><div class="qah"><h4>'+esc(g.nome)+'</h4><span class="muted">'+esc([g.att.length?conta(g.att.length,"attivo","attivi"):"",g.arc.length?conta(g.arc.length,"archiviato","archiviati"):""].filter(Boolean).join(" · "))+"</span>"+(g.att.length>1&&!rio?'<button class="btn sm" data-act="riordina" data-g="'+esc(g.chiave)+'">Riordina</button>':"")+"</div>"+
+      (rio?riordino(g):g.att.length?griglia(g.att):"")+
+      (g.arc.length?'<details class="qarc" data-ap="'+esc(ka)+'"'+(aperta(ka,false)?" open":"")+"><summary>Archiviati ("+g.arc.length+")</summary>"+griglia(g.arc)+"</details>":"")+"</div>";
+  };
+  const classe=function(c){
+    const ka="cl|"+c.classe,n=c.gruppi.reduce(function(t,g){return t+g.att.length;},0),m=c.gruppi.reduce(function(t,g){return t+g.arc.length;},0);
+    return '<details class="panel qclasse" data-ap="'+esc(ka)+'"'+(aperta(ka,true)?" open":"")+"><summary>"+esc(classeNome(c.classe))+' <span class="tag plain">'+esc(n?conta(n,"attivo","attivi"):conta(m,"archiviato","archiviati"))+"</span>"+ico("chev","chev")+'</summary><div class="panel-body">'+c.gruppi.map(area).join("")+"</div></details>";
+  };
+  const fin=S.quizzes.filter(daFinire);
+  return '<div class="stack"><div class="tbar"><h2>Tutti i quiz</h2><div class="sp"><button class="btn primary" data-act="nuovo-quiz">'+ico("plus")+"Nuovo quiz</button></div></div>"+
+    (!S.quizzes.length?benvenutoHTML():(fin.length?'<section class="qsez" aria-label="Quiz da finire o da esportare"><h3>Da finire o da esportare <span class="tag plain">'+fin.length+"</span></h3>"+griglia(fin,true)+"</section>":"")+struttura().map(classe).join(""))+
+    impostazioniHTML()+"</div>";
 }
 function benvenutoHTML(){
   return '<div class="rivbox infobox" role="status"><div class="rivt">'+ico("info")+'<strong>Benvenuto nella dashboard dei quiz</strong></div>'+
     '<p>Qui prepari i quiz Moodle insieme a Claude. Il percorso:</p><ol class="welcome">'+
-    "<li><strong>Nuovo quiz</strong>: tipo, titolo, lezione, classe, argomento, tempo e la richiesta a parole. «Inizia» salva il quiz e avvia una sessione di Claude.</li>"+
+    "<li><strong>Nuovo quiz</strong>: tipo, titolo, lezione, classe, argomento, categoria Moodle, tempo e la richiesta a parole. «Inizia» salva il quiz e avvia una sessione di Claude.</li>"+
     "<li>Claude scrive la <strong>scaletta</strong>: la rivedi nella vista Scaletta, correggi o commenti, e la approvi.</li>"+
     "<li>In chat chiedi a Claude di scrivere il <strong>dettaglio</strong> (tracce, correzioni, soluzioni e test): lo rivedi nella vista Dettaglio e lo approvi.</li>"+
     "<li>Chiedi in chat di <strong>generare il quiz</strong>: ricevi il backup .mbz da ripristinare nel corso Moodle.</li></ol>"+
@@ -1197,7 +1300,8 @@ function nuovoHTML(){
     fld("Titolo",'<input class="ctl" '+k("titolo")+' value="'+esc(n.titolo)+'" placeholder="Compare nel menù" aria-required="true">',true,true)+
     fld("Lezione o codice",'<input class="ctl" '+k("lezione")+' value="'+esc(n.lezione)+'" placeholder="Facoltativo: 3, V5R…" title="Se lo lasci vuoto, il quiz riceve un codice di tre caratteri che comincia con la classe, per esempio 4K7."><small class="muted">Vuoto: codice automatico (es. 4K7)</small>',false)+
     fld("Classe",'<select class="ctl" '+k("classe")+' aria-required="true">'+opts(CLASSI,n.classe)+"</select>",true)+
-    fld("Argomento",'<input class="ctl" '+k("argomento")+' value="'+esc(n.argomento)+'" placeholder="Diventa la categoria in Moodle" aria-required="true">',true,true)+
+    fld("Argomento",'<input class="ctl" list="areeNote" '+k("area")+' value="'+esc(n.area)+'" placeholder="HTML, JavaScript, SQL…" aria-required="true"><small class="muted">Raggruppa i quiz della classe in «Tutti i quiz»</small>'+areeHTML(),true)+
+    fld("Categoria Moodle",'<input class="ctl" '+k("argomento")+' value="'+esc(n.argomento)+'" placeholder="Per esempio: HTML: le tabelle" aria-required="true"><small class="muted">Il nome della categoria delle domande in Moodle</small>',true,true)+
     fld("Tempo disponibile (minuti)",'<input class="ctl" type="number" min="1" '+k("tempo")+' value="'+esc(n.tempo)+'" aria-required="true">',true)+
     fld("Linguaggio",'<select class="ctl" '+k("linguaggio")+">"+opts(LINGUAGGI,n.linguaggio)+"</select>",false)+
     (n.tipoQuiz==="LIB"?fld("In Moodle si comporta come",'<select class="ctl" '+k("presetMbz")+">"+opts([["esercitazione","Esercitazione: feedback subito, tentativi illimitati"],["verifica","Verifica: un tentativo, feedback alla restituzione"]],n.presetMbz||"esercitazione")+"</select>",false,true):"")+
@@ -1258,7 +1362,7 @@ async function esporta(q){
     if(!trig)motivo="L'avvio automatico non è configurato in questa dashboard: chiedi a Claude di installarlo («installa la dashboard dei quiz»).";
     else if(!mcp)motivo="Da questa vista la pagina non può usare il connettore Claude Code Remote.";
     else{await mcp.callTool(CONNETTORE,"fire_trigger",{trigger_id:trig,text:"Quiz da esportare: "+q.id});
-      await save("quiz/"+q.id,{esportazione:{stato:"richiesta",richiesta:new Date().toISOString(),inizio:null,fine:null,esito:null,file:null}});
+      await save("quiz/"+q.id,{esportato:null,esportazione:{stato:"richiesta",richiesta:new Date().toISOString(),inizio:null,fine:null,esito:null,file:null}});
       S.esportando=false;S.esporta={id:q.id,ok:true};toast("Esportazione avviata: i file arrivano nella sessione di Claude.");render();return;}
   }catch(e){
     const c=e&&e.code;
@@ -1289,13 +1393,13 @@ async function avviaSessione(id,titolo,materiale){
 async function inizia(){
   const n=S.nuovo||nuovoVuoto(),manca=[];
   if(!n.tipoQuiz)manca.push("tipo di quiz");if(!String(n.titolo).trim())manca.push("titolo");
-  if(!n.classe)manca.push("classe");if(!String(n.argomento).trim())manca.push("argomento");if(!(num(n.tempo)>0))manca.push("tempo");if(!String(n.richiesta).trim())manca.push("richiesta");
+  if(!n.classe)manca.push("classe");if(!String(n.area).trim())manca.push("argomento");if(!String(n.argomento).trim())manca.push("categoria Moodle");if(!(num(n.tempo)>0))manca.push("tempo");if(!String(n.richiesta).trim())manca.push("richiesta");
   S.nuovoErr=manca;if(manca.length)return render();
   if(!S.db)return;
   S.inviando=true;render();
   if(!String(n.lezione||"").trim())n.lezione=codiceCasuale(n.classe);
   const id=idNuovo(n),ver=n.tipoQuiz==="V"||n.tipoQuiz==="VT";
-  const doc={titolo:String(n.titolo).trim(),tipoQuiz:n.tipoQuiz,lezione:String(n.lezione).trim(),classe:n.classe,argomento:String(n.argomento).trim(),tempo:num(n.tempo),
+  const doc={titolo:String(n.titolo).trim(),tipoQuiz:n.tipoQuiz,lezione:String(n.lezione).trim(),classe:n.classe,area:String(n.area).trim(),argomento:String(n.argomento).trim(),tempo:num(n.tempo),
     linguaggio:n.linguaggio||"",varianti:ver?Number(n.varianti)||1:1,avanzata:n.tipoQuiz==="V"?String(n.avanzata||"").trim():"",richiesta:String(n.richiesta).trim(),materiale:!!n.materiale,
     fase:"richiesta",note:"",creato:new Date().toISOString()};
   if(n.tipoQuiz==="LIB")doc.presetMbz=n.presetMbz==="verifica"?"verifica":"esercitazione";
@@ -1334,11 +1438,14 @@ function metaHTML(q){
   btn='<div class="actrow">'+btn+"</div>";
   if(hint)btn+='<div class="hint">'+esc(hint)+"</div>";
   btn+=esportazioneHTML(q);
+  if(q.fase==="dettaglio-approvato"&&!espInCorso(q))btn+='<div class="actrow"><button class="btn sm" data-act="segna-esportato">'+(esportato(q)?"Segna come da esportare":"Segna come già esportato")+'</button><span class="hint">Se hai generato il backup in un altro modo, o se lo devi rifare.</span></div>';
   return '<section class="meta" aria-label="Dati del quiz">'+
     '<label class="fld wide"><span>Nome del quiz (menù e attività in Moodle)</span><input class="ctl" '+k("titolo")+' value="'+esc(q.titolo)+'" aria-label="Nome del quiz"></label>'+
     '<label class="fld"><span>Tipo di quiz</span><select class="ctl" '+k("tipoQuiz")+' aria-label="Tipo di quiz">'+opts(tipiScelta(q.tipoQuiz).map(function(t){return [t,TIPI[t].nome];}),q.tipoQuiz)+"</select></label>"+
     '<label class="fld"><span>Lezione (numero, o codice della verifica)</span><input class="ctl" '+k("lezione")+' value="'+esc(q.lezione)+'" placeholder="3, oppure V5R" aria-label="Numero di lezione o codice della verifica"></label>'+
-    '<label class="fld wide"><span>Argomento</span><input class="ctl" '+k("argomento")+' value="'+esc(q.argomento)+'" aria-label="Argomento"></label>'+
+    '<label class="fld"><span>Classe</span><select class="ctl" '+k("classe")+' aria-label="Classe">'+opts(CLASSI,q.classe||"")+"</select></label>"+
+    '<label class="fld"><span>Argomento (gruppo in «Tutti i quiz»)</span><input class="ctl" list="areeNote" '+k("area")+' value="'+esc(q.area||"")+'" placeholder="HTML, JavaScript, SQL…" aria-label="Argomento">'+areeHTML()+"</label>"+
+    '<label class="fld wide"><span>Categoria Moodle</span><input class="ctl" '+k("argomento")+' value="'+esc(q.argomento)+'" aria-label="Categoria Moodle"></label>'+
     '<label class="fld"><span>Tempo disponibile (minuti)</span><input class="ctl" type="number" min="0" data-t="n" '+k("tempo")+' value="'+esc(q.tempo)+'" aria-label="Tempo disponibile in minuti"></label>'+
     '<label class="fld"><span>Fase</span><select class="ctl" '+k("fase")+' aria-label="Fase">'+opts(FASI,q.fase).replace('value="dettaglio-approvato"',mancanti()>0?'value="dettaglio-approvato" disabled':'value="dettaglio-approvato"')+"</select></label>"+
     (q.linguaggio==="html-css"||q.prototipoHtml||S.rows.some(function(r){return r.tipologia==="libero_html";})?'<label class="fld wide"><span>Esercizi HTML</span><select class="ctl" '+k("prototipoHtml")+' aria-label="Esercizi HTML">'+opts(PROTO_HTML,q.prototipoHtml||"php_con_test")+"</select></label>":"")+
@@ -1486,7 +1593,7 @@ function dbPanelHTML(q,rows){
 function gestioneHTML(q){
   const conf=S.delQuiz===q.id,n=S.rows.length;
   return '<details class="panel" id="gestione"'+(S.gestOpen?" open":"")+'><summary>Archivia o elimina il quiz'+ico("chev","chev")+'</summary><div class="panel-body dbbox">'+
-    '<p class="hint" style="max-width:none">Archiviare toglie il quiz dall\'elenco dei quiz attivi (resta in fondo al menù, tra gli archiviati) e si può annullare. Eliminare cancella dal database il quiz e tutte le sue '+n+(n===1?" riga":" righe")+': non si può annullare. Prima di eliminare un quiz che serve ancora, chiedi a Claude di salvarne una copia.</p>'+
+    '<p class="hint" style="max-width:none">Archiviare sposta il quiz nella riga «Archiviati» del suo argomento e in fondo al menù, e si può annullare. Eliminare cancella dal database il quiz e tutte le sue '+n+(n===1?" riga":" righe")+': non si può annullare. Prima di eliminare un quiz che serve ancora, chiedi a Claude di salvarne una copia.</p>'+
     '<div class="actrow">'+(q.archiviato?'<button class="btn" data-act="riattiva">'+ico("undo")+"Riattiva</button>":'<button class="btn" data-act="archivia">'+ico("lock")+"Archivia</button>")+
     (conf?'<button class="btn danger" data-act="elimina-quiz"'+(S.deleting?" disabled":"")+">"+ico("trash")+(S.deleting?"Eliminazione in corso…":"Conferma: elimina «"+esc(q.titolo||q.id)+"» e le sue righe")+"</button>":'<button class="btn danger" data-act="elimina-quiz">'+ico("trash")+"Elimina definitivamente</button>")+
     "</div></div></details>";
@@ -1750,6 +1857,10 @@ function act(a,d){
     case "del":
       if(S.del===d.id){S.del=null;return removeRow(d.id);}
       S.del=d.id;clearTimeout(S.delT);S.delT=setTimeout(function(){S.del=null;render();},4000);return render();
+    case "riordina":S.riordina=S.riordina===d.g?null:d.g;return render();
+    case "sposta":return spostaQuiz(d.g,d.id,Number(d.d));
+    case "ordine-auto":return ordineAuto(d.g);
+    case "segna-esportato":return void save(quizPath(),{esportato:!esportato(S.quiz)});
     case "nuovo-quiz":S.view="nuovo";S.avvio=null;S.nuovo=S.nuovo||nuovoVuoto();render();window.scrollTo(0,0);return;
     case "annulla-nuovo":S.view="home";S.nuovo=null;S.nuovoErr=[];S.avvio=null;render();return;
     case "apri-quiz":S.quizId=d.id;S.sel=null;S.edit=null;S.dirty={};S.view="scaletta";if(S.avvio&&S.avvio.ok)S.avvio=null;selectQuiz();render();window.scrollTo(0,0);return;
@@ -1807,9 +1918,9 @@ function act(a,d){
       if(q.fase==="dettaglio-revisione"&&mancanti()>0){toast("Mancano ancora delle tracce: il dettaglio non si può approvare.",true);return;}
       const errs=S.avvCount?S.avvCount.err:0;
       if(errs&&!S.confirmApprove){S.confirmApprove=true;clearTimeout(S.apT);S.apT=setTimeout(function(){S.confirmApprove=false;render();},5000);return render();}
-      S.confirmApprove=false;save(quizPath(),{fase:nx[0]});if(nx[0]==="dettaglio-approvato")approvaRighe();return;
+      S.confirmApprove=false;save(quizPath(),patchFase(nx[0]));if(nx[0]==="dettaglio-approvato")approvaRighe();return;
     }
-    case "archivia":save(quizPath(),{archiviato:true}).then(function(){toast("Quiz archiviato: lo trovi in fondo al menù, tra gli archiviati.");});return;
+    case "archivia":save(quizPath(),{archiviato:true}).then(function(){toast("Quiz archiviato: lo trovi nel suo argomento, nella riga «Archiviati».");});return;
     case "riattiva":save(quizPath(),{archiviato:false});return;
     case "elimina-quiz":
       if(S.deleting)return;
@@ -1824,10 +1935,17 @@ function act(a,d){
   }
 }
 main.addEventListener("click",function(e){const b=e.target.closest("[data-act]");if(b&&main.contains(b))act(b.dataset.act,b.dataset);});
+/* toggle non risale: si ascolta in cattura */
+main.addEventListener("toggle",function(e){
+  const x=e.target;if(!x.dataset||x.dataset.ap===undefined)return;
+  if(aperta(x.dataset.ap,x.classList.contains("qclasse"))===x.open)return;
+  S.ap[x.dataset.ap]=x.open;
+  try{localStorage.setItem(PREF_AP,JSON.stringify(S.ap));}catch(err){}
+},true);
 main.addEventListener("input",function(e){
   const t=e.target;
   if(t.dataset.draft&&S.edit){S.edit[t.dataset.draft]=t.value;return;}
-  if(t.dataset.nv){S.nuovo[t.dataset.nv]=t.type==="checkbox"?t.checked:t.value;if(t.dataset.nv==="tempo")S.nuovo.tempoAuto=false;if(t.dataset.nv==="tipoQuiz")tempoProposto(S.nuovo);if(t.dataset.nv==="tipoQuiz"||t.dataset.nv==="linguaggio"){render();}return;}
+  if(t.dataset.nv){S.nuovo[t.dataset.nv]=t.type==="checkbox"?t.checked:t.value;if(t.dataset.nv==="tempo")S.nuovo.tempoAuto=false;if(t.dataset.nv==="tipoQuiz")tempoProposto(S.nuovo);if(t.dataset.nv==="area")S.nuovo.areaAuto=false;if(t.dataset.nv==="linguaggio")areaProposta(S.nuovo);if(t.dataset.nv==="tipoQuiz"||t.dataset.nv==="linguaggio"){render();}return;}
   if(t.dataset.k)S.dirty[t.dataset.k]=t.value;
 });
 main.addEventListener("change",function(e){
@@ -1856,6 +1974,7 @@ main.addEventListener("change",function(e){
     let v=t.value;if(t.dataset.t==="n")v=Math.max(0,num(v));
     delete S.dirty[t.dataset.k];
     if(t.dataset.q==="fase"&&v==="dettaglio-approvato")approvaRighe();
+    if(t.dataset.q==="fase")return void save(quizPath(),patchFase(v));
     return void save(quizPath(),(function(){const o={};o[t.dataset.q]=v;return o;})());
   }
   if(t.dataset.sec!==undefined){
