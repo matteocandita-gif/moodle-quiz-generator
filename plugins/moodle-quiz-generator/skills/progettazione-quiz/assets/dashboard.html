@@ -1194,7 +1194,7 @@ function avanzateHTML(q,k){
   const sel=function(f,lbl,L){return '<label class="fld"><span>'+lbl+'</span><select class="ctl" '+k(f)+' aria-label="'+lbl+'">'+opts(opzioniAvanzata(q,f,L),avanzataDi(q,f))+"</select></label>";};
   const v={n:avanzataDi(q,"navigazione"),f:avanzataDi(q,"feedback"),s:avanzataDi(q,"seb")};
   const riass=["scorrimento "+(v.n==="sequenziale"?"forzato":"libero"),"feedback "+v.f,v.s==="no"?"senza SEB":v.s==="file"?"SEB con file":"SEB manuale",String(q.password||"").trim()?"con password":"senza password"].join(" · ");
-  const notaSeb=v.s==="file"?(S.sebFile?"File in uso: "+S.sebFile+". Per cambiarlo, allegalo in chat.":"Nessun file salvato: allegalo in chat prima di esportare."):v.s==="manuale"?"Moodle usa le sue impostazioni standard di Safe Exam Browser.":"";
+  const notaSeb=v.s==="file"?(S.sebFile?"File in uso: "+S.sebFile+". Per cambiarlo, allegalo in chat.":"Nessun file salvato: allegalo in chat prima di esportare."):v.s==="manuale"?"Impostazioni standard di Moodle, senza il pulsante per scaricare Safe Exam Browser.":"";
   return '<details class="panel avanzate" data-ap="impostazioni-avanzate"'+(aperta("impostazioni-avanzate",false)?" open":"")+'><summary>Impostazioni avanzate <small>'+esc(riass)+"</small>"+ico("chev","chev")+'</summary><div class="panel-body"><div class="meta">'+
     sel("navigazione","Scorrimento del quiz",NAVIGAZIONE)+sel("feedback","Feedback",FEEDBACK)+sel("seb","Safe Exam Browser",SEB)+
     '<label class="fld"><span>Password di accesso</span><input class="ctl" type="text" autocomplete="off" spellcheck="false" '+k("password")+' value="'+esc(q.password||"")+'" aria-label="Password di accesso"></label>'+

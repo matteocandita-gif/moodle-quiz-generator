@@ -598,7 +598,8 @@ def seb_con_file(seb):
 
 def seb_xml(seb, ids, ora):
     """Safe Exam Browser: stessi campi di un backup reale (Moodle 5.2). Con il file (3) i campi restano vuoti;
-    con la configurazione manuale (1) hanno i valori standard di Moodle."""
+    con la configurazione manuale (1) hanno i valori standard di Moodle, ma senza il pulsante per scaricare
+    SEB: le verifiche si fanno in laboratorio, dove è già installato."""
     manuale = {"showsebtaskbar": 1, "showwificontrol": 0, "showreloadbutton": 1, "showtime": 1, "showkeyboardlayout": 1,
                "allowuserquitseb": 1, "quitpassword": NULL, "linkquitseb": NULL, "userconfirmquit": 1,
                "enableaudiocontrol": 0, "muteonstartup": 0, "allowcapturecamera": 0, "allowcapturemicrophone": 0,
@@ -611,7 +612,7 @@ def seb_xml(seb, ids, ora):
         <cmid>{ids['mid']}</cmid>
         <templateid>0</templateid>
         <requiresafeexambrowser>{3 if con_file else 1}</requiresafeexambrowser>
-{campi}        <showsebdownloadlink>1</showsebdownloadlink>
+{campi}        <showsebdownloadlink>{1 if con_file else 0}</showsebdownloadlink>
         <allowedbrowserexamkeys></allowedbrowserexamkeys>
         <timecreated>{ora}</timecreated>
       </quizaccess_seb_quizsettings>

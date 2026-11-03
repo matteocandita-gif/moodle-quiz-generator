@@ -2,6 +2,15 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.12.0 — 04/11/2026
+
+Impostazioni avanzate dei quiz e Safe Exam Browser (pagina «Bozze dei quiz» 0.5.0).
+
+- **Dashboard**: nuovo pannello richiudibile **Impostazioni avanzate**, in «Nuovo quiz» e nei dati del quiz, con scorrimento, feedback, Safe Exam Browser e password di accesso. Li propone il tipo di quiz e si cambiano quiz per quiz; il campo «Scorrimento del quiz» si è spostato qui e ora vale anche per «Studio e domande».
+- Il backup porta le quattro impostazioni. **Feedback**: se è diverso da quello del tipo cambiano insieme comportamento e opzioni di revisione. **Password**: si scrive nel quiz dalla pagina.
+- **Safe Exam Browser**: tre modi, no, manuale e con file. Di norma le verifiche di programmazione usano il file, le verifiche teoriche la configurazione manuale senza il pulsante per scaricare SEB, gli altri quiz niente. Il file sta nel documento `impostazioni/seb` della propria dashboard, non nel plugin.
+- L'importazione da un backup legge feedback, SEB e password del quiz.
+
 ## 0.11.0 — 03/11/2026
 
 Controllo delle somiglianze nella correzione delle verifiche (pagina «Correzione verifiche» 1.3.0).
