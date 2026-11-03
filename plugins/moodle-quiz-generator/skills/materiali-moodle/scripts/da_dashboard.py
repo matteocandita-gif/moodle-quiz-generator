@@ -57,7 +57,7 @@ CATALOGO = {
     "consegna_file": ("essay", "Consegna"),
 }
 # domande di lettura: lo studente risponde leggendo il codice, senza eseguirlo. Nella traccia
-# il codice JavaScript, PHP e SQL diventa non eseguibile (rendi_non_eseguibile di moodle_lib);
+# il codice JavaScript, PHP, SQL e HTML diventa non eseguibile (rendi_non_eseguibile di moodle_lib);
 # ```js esempio lo lascia com'è (codice di riferimento), ```js leggere lo chiede in ogni tipologia.
 LETTURA = {"tracciamento", "lettura_output", "trova_errore", "teoria_aperta", "debug_motivazione"}
 LINGUE_LETTURA = {"js", "javascript", "php", "sql", "html"}
@@ -642,11 +642,11 @@ def domanda_php(quiz, r):
     return "\n".join(s)
 
 
-AVVISO_WEB = """:::arancio Attenzione al controllo automatico
-Il pulsante di controllo sotto il campo della risposta **non esegue alcun test sul codice** e non dice se la pagina è corretta: serve solo a salvare il codice. I requisiti vanno verificati aprendo la pagina nel browser; la correzione la fa il docente.
+AVVISO_WEB = """:::arancio Nessun controllo automatico
+Questo esercizio **non ha un controllo automatico**: i requisiti vanno verificati aprendo la pagina nel browser, e la correzione la fa il docente. Il codice del campo Risposta viene salvato quando si cambia pagina.
 :::"""
-AVVISO_SCRATCHPAD = """:::arancio Attenzione al controllo automatico
-Il pulsante di controllo sotto il campo della risposta **non esegue alcun test sul codice** e non dice se la pagina è corretta: serve solo a salvare il codice. Per vedere come appare la pagina usate l'area di prova (scratchpad) sotto la risposta: mostra l'HTML interpretato, come nel browser. La correzione la fa il docente.
+AVVISO_SCRATCHPAD = """:::arancio Nessun controllo automatico
+Questo esercizio **non ha un controllo automatico**: la correzione la fa il docente. Per vedere come appare la pagina premete **Prova**: compare sotto il pulsante, come nel browser. Viene salvato solo il campo Risposta, quando si cambia pagina: lo Scratchpad lasciatelo vuoto.
 :::"""
 
 
@@ -1018,6 +1018,9 @@ def main():
            "sezioni": sezioni}
     if preset in ("verifica", "studio") and quiz.get("tempo"):
         imp["impostazioni"] = {"timelimit": int(float(quiz["tempo"])) * 60}
+    # scorrimento solo avanti, scelto quiz per quiz (il preset «studio» lo ha già)
+    if quiz.get("navigazione") == "sequenziale":
+        imp.setdefault("impostazioni", {})["navmethod"] = "sequential"
     # domande già in un deposito (importate da un backup): il loro stamp d'origine, per riusarle senza doppioni
     stamp_o = {nome_moodle(quiz, r): r["stampOrigine"] for r in righe if (r.get("stampOrigine") or "").strip()}
     if stamp_o:

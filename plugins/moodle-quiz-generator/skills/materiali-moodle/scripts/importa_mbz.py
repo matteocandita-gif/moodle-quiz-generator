@@ -906,7 +906,8 @@ class Importatore:
                 sez.append(("preload", preload.strip("\n")))
             sez.append(("answer", answer.strip("\n")))
             tip = "libero_css" if tl == "css" else "libero_html"
-            testo = rimuovi_riquadro(testo, "Attenzione al controllo automatico")
+            testo = rimuovi_riquadro(testo, "Attenzione al controllo automatico")   # domande vecchie
+            testo = rimuovi_riquadro(testo, "Nessun controllo automatico")
         elif tl.startswith("javascript"):
             gap = "gapfiller" in tl
             tp = {}
@@ -1184,6 +1185,8 @@ def importa(bk, cartella_quiz, qz, qid=None):
     }
     if dbs:
         quiz["database"] = dbs
+    if tx(qz, "navmethod", "free") == "sequential":
+        quiz["navigazione"] = "sequenziale"
     if imp.proto_html == {"html"}:
         quiz["prototipoHtml"] = "html"     # esercizi HTML senza anteprima (prototipo html)
     elif len(imp.proto_html) > 1:

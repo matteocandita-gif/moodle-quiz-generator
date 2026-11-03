@@ -14,6 +14,13 @@ Organizzazione dei quiz nella dashboard «Bozze dei quiz».
 - Cambia il prompt dell'attività programmata «Avvia quiz dalla dashboard» (campo `area`): l'aggiornamento della dashboard lo sostituisce.
 - Chi ha già dei quiz: dopo l'aggiornamento finiscono in «Senza argomento» finché non si compila l'argomento; lo può fare Claude su richiesta.
 
+Esercizi HTML e scorrimento del quiz:
+
+- **Dashboard**: nuovo campo **Scorrimento del quiz** (`navigazione`), nel modulo «Nuovo quiz» e nei dati del quiz: «Solo avanti» rende il quiz sequenziale con qualsiasi tipo. Di norma resta libero; l'importazione da un backup lo riconosce.
+- Esercizi HTML e CSS senza test: il pulsante **Verifica risposta** è nascosto, perché il test è fittizio e dà sempre esito positivo. Con `php_con_test` lo Scratchpad parte aperto.
+- Nuovo riquadro **Nessun controllo automatico** al posto di «Attenzione al controllo automatico»: spiega che cosa si salva e, con l'anteprima, come si prova la pagina.
+- **Codice da leggere** anche in HTML: uno spazio a larghezza zero nel nome di ogni tag lascia il codice identico a schermo, ma copiato nell'anteprima o in un file i tag non vengono riconosciuti.
+
 Correzione delle verifiche (pagina «Correzione verifiche» 1.2.0):
 
 - **Correzione verifiche**: l'ordine per cognome è ora vero. La pagina ordina gli studenti per cognome e nome al caricamento, nel browser, qualunque sia l'ordine dell'Excel, e non salva i nomi. Vale per le verifiche nuove: quelle già caricate restano come sono.

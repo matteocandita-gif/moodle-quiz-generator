@@ -53,7 +53,7 @@ Una tabella con, per ogni domanda: pagina, posizione, argomento, tipo, che cosa 
 
 Il quiz resta in **feedback differito** (impostazioni «verifica» del `.mbz`): le domande di teoria, i Cloze e le risposte multiple non mostrano il feedback fino alla restituzione. Le domande **CodeRunner** seguono le loro opzioni: lo studente esegue il codice e vede il risultato dei test, in tutti i linguaggi. Quindi:
 
-- non nascondere il pulsante di controllo (`hidecheck` resta 0) e non ridurre il controllo alla sola sintassi;
+- non nascondere il pulsante di controllo (`hidecheck` resta 0; gli esercizi HTML e CSS, che hanno un test fittizio, lo nascondono) e non ridurre il controllo alla sola sintassi;
 - scrivi i test pensando che lo studente li vede: descrizioni chiare, casi diversi tra loro;
 - aggiungi almeno un **test nascosto** con dati diversi da quelli visibili, così una risposta costruita sui valori degli esempi non passa.
 

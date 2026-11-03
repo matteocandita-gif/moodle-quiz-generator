@@ -70,7 +70,7 @@ L'impaginazione dice nome del quiz, preset, voto (10) e sufficienza (6), e per o
 - **verifica**: feedback differito, un tentativo, tempo del quiz, durante la prova solo il tentativo e il punteggio massimo; alla restituzione l'utente apre feedback e risposte dalle opzioni di revisione (ricordalo nella consegna). Le domande CodeRunner seguono le loro opzioni anche con il feedback differito: lo studente prova il codice e vede il risultato dei test;
 - **studio** (tipo «Esercitazione con studio e domande sequenziale», SD): navigazione sequenziale, feedback differito, un tentativo, tempo del quiz (40 minuti se manca); durante il tentativo nessuna verifica, revisione completa subito dopo la consegna e dopo, a quiz aperto. Nella consegna ricorda che voto ed elementi di valutazione compaiono solo dopo la correzione delle aperte («Valutazione manuale», per domanda), mentre l'esito delle chiuse si vede subito domanda per domanda.
 
-Il preset viene dal tipo di quiz della dashboard; `impostazioni` nell'impaginazione sovrascrive singoli campi del quiz (es. `{"timelimit": 5400}`).
+Il preset viene dal tipo di quiz della dashboard; `impostazioni` nell'impaginazione sovrascrive singoli campi del quiz (es. `{"timelimit": 5400}`). Il campo `navigazione: sequenziale` del quiz della dashboard rende il quiz solo avanti con qualsiasi preset: `da_dashboard.py` lo scrive in `impostazioni` come `navmethod`.
 
 **Depositi** (domande direttamente nella banca di un corso deposito, verificato con ripristini reali il 24/10/2026). Di norma le domande stanno nella banca del quiz e l'utente le sposta poi nel deposito. Se il quiz della dashboard ha `deposito`, invece, vanno nella banca qbank di quel deposito (impaginazione `banca`, scritta da `da_dashboard.py`). Regole di Moodle:
 
