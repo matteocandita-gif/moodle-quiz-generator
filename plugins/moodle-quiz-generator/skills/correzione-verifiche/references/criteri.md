@@ -40,6 +40,12 @@ L'utente lo incolla in Moodle per lo studente, che lo legge alla restituzione.
 
 - **Solo se il punteggio non è pieno.** Con il punteggio pieno il campo resta vuoto.
 - **Breve e fattuale**: due o quattro frasi. Prima che cosa è giusto, in poche parole, poi ciò che manca o è sbagliato e **la forma corretta**, cioè la condizione, la clausola o il passaggio giusto, scritto in chiaro. Niente lodi generiche, niente «ottimo lavoro ma».
+- **Prima l'errore commesso, poi la forma corretta.** La forma corretta da sola non basta: per molti studenti va detto in modo esplicito che cosa hanno sbagliato nel loro codice, altrimenti non sanno dove guardare.
+  - **Nominare l'errore**: una frase breve dice che cosa è sbagliato in quel codice («hai usato male le parentesi»); se serve, si cita tra apici inversi il pezzo scritto dallo studente.
+  - **Una frase sola per lo stesso errore**: se si ripete su più righe si nomina una volta, senza elencare le righe.
+  - **La forma corretta in contrasto con l'errore**: fa vedere la differenza con ciò che lo studente ha fatto («e **solo** il codice tra le graffe», se tra le graffe aveva messo anche la condizione).
+  - **Il blocco di codice legato al caso**: una breve frase lo introduce («Qui sarebbe:») e il codice usa le variabili dello studente, così si capisce che è il suo esercizio corretto e non un esempio generico.
+  - Errore e correzione stanno sulla stessa riga, perché parlano della stessa cosa. Esempio: «**Sintassi:** hai usato male le parentesi. La condizione deve stare tra le tonde subito dopo `if`, e solo il codice tra le graffe. Qui sarebbe:», seguito dal blocco di codice.
 - Per gli errori di sintassi, «Sintassi:» seguito dall'errore e dalla forma corretta, in una frase a parte, così lo studente distingue la logica dalla forma.
 - Nella teoria, per le richieste sbagliate o mancanti, la risposta attesa in una o due frasi. Un commento lungo che rispiega tutta la domanda non serve.
 - **Paragrafi**: con più richieste, un paragrafo per richiesta (a capo prima di «Richiesta 2: …», «Manca la richiesta 3. …»); la frase «Sintassi:» in un paragrafo a parte; nei commenti lunghi su una pagina intera (HTML, PHP) un paragrafo per ogni parte. Gli a capo si scrivono come \n nel testo: la pagina li copia in Moodle come paragrafi.
@@ -50,4 +56,4 @@ L'utente lo incolla in Moodle per lo studente, che lo legge alla restituzione.
 - **La frase sull'IA non va nel commento**: la aggiunge la pagina, in corsivo, quando si copia («Il seguente feedback è stato scritto con l'aiuto di una IA generativa. La valutazione è stata svolta dal docente.»). Se l'utente vuole un'altra frase, si cambia con `--disclaimer` di `prepara_revisione.py`.
 - **Risposta non svolta**: «Risposta non svolta.» Se c'è solo lo schema: «Risposta appena impostata: …» e che cosa manca.
 - **Domande CodeRunner non svolte o completamente sbagliate** (fino al 20% del massimo, oppure con il codice di un'altra domanda): ogni domanda CodeRunner ha la soluzione dell'autore, quindi niente soluzione intera nel commento. Una o due frasi sull'errore principale (e l'eventuale «Sintassi:»), poi a capo: «Clicca su «Mostra/Nascondi soluzione dell'autore» per vedere un esempio di soluzione corretta.» Per gli errori puntuali, invece, il commento li indica e riporta il pezzo di codice giusto.
-- Tono neutro e rispettoso: si parla della risposta, mai dello studente.
+- Tono neutro e rispettoso: si parla della risposta e di ciò che lo studente ha fatto, anche in seconda persona («hai usato male le parentesi»), mai di come è lui: niente giudizi come «non hai capito».
