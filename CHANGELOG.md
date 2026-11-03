@@ -2,7 +2,7 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
-## Prossima versione (in preparazione)
+## 0.11.0 — 03/11/2026
 
 Controllo delle somiglianze nella correzione delle verifiche (pagina «Correzione verifiche» 1.3.0).
 

@@ -76,7 +76,7 @@ Le regole didattiche (punti, tempi, struttura delle verifiche, stile delle doman
 | `diagrammi-er` | Progettazione nella notazione del libro, da una descrizione testuale: diagramma E/R (file draw.io e PNG), schema relazionale, documentazione, soluzione completa in HTML o Word |
 | `tracce-progettazione` | Tracce di progettazione di database da dare agli studenti: preset di difficoltà, query mirate, note per il docente, Word della verifica con griglia e copia PDP, HTML per Moodle; la dashboard «Tracce di progettazione» con la soluzione |
 | `mappe-prerequisiti` | Mappe dei prerequisiti per l'autovalutazione: l'editor «Mappe dei prerequisiti» e il backup `.mbz` dell'attività Database |
-| `correzione-verifiche` | Correzione di una verifica svolta: dall'export delle risposte, punteggi e commenti proposti domanda per domanda, codice rieseguito con i test, dashboard «Correzione verifiche» con vista per domanda e per studente, tabella dei voti |
+| `correzione-verifiche` | Correzione di una verifica svolta: dall'export delle risposte, punteggi e commenti proposti domanda per domanda, codice rieseguito con i test, dashboard «Correzione verifiche» con vista per domanda e per studente, controllo automatico delle possibili copiature, tabella dei voti |
 
 Il comando `installa-dashboard` installa o aggiorna la dashboard, `installa-mappe` l'editor delle mappe, `installa-tracce` la pagina delle tracce. Le pagine installate sono collegate da una barra in cima, per passare dall'una all'altra.
 
