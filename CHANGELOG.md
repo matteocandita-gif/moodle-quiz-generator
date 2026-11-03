@@ -16,7 +16,7 @@ Organizzazione dei quiz nella dashboard «Bozze dei quiz».
 
 Esercizi HTML e scorrimento del quiz:
 
-- **Dashboard**: nuovo campo **Scorrimento del quiz** (`navigazione`), nel modulo «Nuovo quiz» e nei dati del quiz: «Solo avanti» rende il quiz sequenziale con qualsiasi tipo. Di norma resta libero; l'importazione da un backup lo riconosce.
+- **Dashboard** (0.4.1): nuovo campo **Scorrimento del quiz** (`navigazione`), nel modulo «Nuovo quiz» e nei dati del quiz: «Solo avanti» rende il quiz sequenziale con qualsiasi tipo. Di norma resta libero; l'importazione da un backup lo riconosce.
 - Esercizi HTML e CSS senza test: il pulsante **Verifica risposta** è nascosto, perché il test è fittizio e dà sempre esito positivo. Con `php_con_test` lo Scratchpad parte aperto.
 - Nuovo riquadro **Nessun controllo automatico** al posto di «Attenzione al controllo automatico»: spiega che cosa si salva e, con l'anteprima, come si prova la pagina.
 - **Codice da leggere** anche in HTML: uno spazio a larghezza zero nel nome di ogni tag lascia il codice identico a schermo, ma copiato nell'anteprima o in un file i tag non vengono riconosciuti.
