@@ -29,6 +29,8 @@ Riprendili tali e quali se si ripresentano. Se una verifica nuova li contraddice
 - **Condizione rovesciata** (`IS NOT NULL` per le iscrizioni attive, `>` al posto di `<`): errore logico lieve se tutto il resto è giusto, il 60% circa.
 - **GROUP BY sul nome invece che sulla chiave**, quando ci sono omonimi nei dati (corsi Yoga di livelli diversi, due istruttori con lo stesso nome): errore logico, il 60% circa. È di solito la trappola della domanda.
 - **Manca il GROUP BY** in una domanda di raggruppamento: è il concetto della domanda, quindi il 40%, anche se JOIN, COUNT e ordinamento sono giusti.
+- **Errore solo di stampa** (una maiuscola, uno spazio, una parola diversa dalla traccia) con il programma corretto: punteggio pieno anche se Moodle ha dato 0, con il commento «Programma corretto» e la «Sintassi:» da seguire.
+- **Manca solo il caso del valore sentinella subito** (il primo 0): si toglie un punto.
 - **Pagina PHP**: si valutano le fasi (lettura dei dati del form, connessione, query, esecuzione, chiusura, elaborazione con il controllo delle righe e il ciclo). Ripartizione usata su 18 punti: dati 2, connessione 3, query 6, esecuzione 2, elaborazione 5. Poi si applica la griglia generale. I tag HTML dentro le `echo` non si vedono nell'export e non si valutano.
 - **Teoria aperta**: punti per richiesta, come nella griglia della riga. Una risposta che risponde ad altro vale 0 su quella richiesta, anche se ciò che dice è giusto.
 

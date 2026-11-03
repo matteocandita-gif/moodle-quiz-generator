@@ -244,7 +244,7 @@ input.sigla-in{font-family:var(--f-mono);width:6.5em;font-size:.9rem;padding:2px
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
-const VERSIONE_PAGINA="1.1.0"; /* alzala a ogni modifica della pagina: la skill propone l'aggiornamento */
+const VERSIONE_PAGINA="1.2.0"; /* alzala a ogni modifica della pagina: la skill propone l'aggiornamento */
 const DISCLAIMER_STD = "Il seguente feedback è stato scritto con l'aiuto di una IA generativa. La valutazione è stata svolta dal docente.";
 const st = { nuova:false, verifiche:{}, vid:null, domande:{}, val:{}, res:{}, resClasse:null, vista:"domanda", ordine:1, tab:null, stud:null, soloMoodle:false, nascondiRisp:false, db:null, unsub:[] };
 const $ = s => document.querySelector(s);
@@ -258,14 +258,18 @@ function salvaUI(){ try{ localStorage.setItem(CHIAVE_UI, JSON.stringify({vid:st.
 const info = () => st.verifiche[st.vid] || {};
 const disclaimer = () => info().disclaimer || DISCLAIMER_STD;
 const domOrd = () => Object.values(st.domande).sort((a,b)=>a.n-b.n);
-// ord è la posizione nell'export, che Moodle ordina per cognome: crescente o rovesciato
-function righe(d){ return Object.values(st.val).filter(v => v.d === d).sort((a,b)=>(a.ord-b.ord)*st.ordine); }
+// ord è la posizione per cognome, fissata al caricamento (perCognome): crescente o rovesciata, con gli studenti PDP sempre in fondo
+const ordStud = (a, b) => (!!a.pdp - !!b.pdp) || (a.ord - b.ord) * st.ordine;
+function righe(d){ return Object.values(st.val).filter(v => v.d === d).sort(ordStud); }
 function studenti(){
-  const m = {}; Object.values(st.val).forEach(v => { if (!m[v.k]) m[v.k] = {k:v.k, s:v.s, ord:v.ord}; });
-  return Object.values(m).sort((a,b)=>(a.ord-b.ord)*st.ordine);
+  const m = {}; Object.values(st.val).forEach(v => { if (!m[v.k]) m[v.k] = {k:v.k, s:v.s, ord:v.ord, pdp:!!v.pdp}; });
+  return Object.values(m).sort(ordStud);
 }
-const nStud = () => info().studenti || studenti().length;
-const posiz = ord => st.ordine === 1 ? ord + 1 : nStud() - ord;   // posizione nell'ordine scelto, come in Moodle
+// posizione nell'ordine scelto, come in Moodle: gli studenti PDP stanno in un quiz a parte, quindi hanno una numerazione loro
+function posiz(k){
+  const tutti = studenti(), me = tutti.find(s => s.k === k), gruppo = tutti.filter(s => s.pdp === !!me?.pdp);
+  return `${me?.pdp ? "PDP " : ""}${gruppo.findIndex(s => s.k === k) + 1} di ${gruppo.length}`;
+}
 function rigaDi(d, k){ return st.val[d + "__" + k]; }
 // Un commento da riportare in Moodle: non vuoto e diverso da «Risposta non svolta.»
 function commentoDaInserire(v){ const c = (v.commento || "").trim(); return !!c && !/^risposta non svolta\.?$/i.test(c); }
@@ -293,7 +297,11 @@ const votoDi = k => { const {tot, manca} = totale(k); return {tot, manca, M: mas
 // Nel commento il codice in linea sta tra apici inversi (`let i = 0`) e diventa <code>; un blocco sta tra due righe ```js … ``` e diventa
 // <pre><code>, con gli a capo e i rientri. Ogni altra riga è un paragrafo. Nel testo semplice gli apici si tolgono.
 // **parola** diventa grassetto, ma non dentro il codice.
-const paraHtml = p => esc(p).split(/(`[^`]+`)/).map(t => /^`[^`]+`$/.test(t) ? "<code>" + t.slice(1, -1) + "</code>" : t.replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")).join("");
+function paraHtml(p){                                // il codice esce prima dal testo, così il grassetto può contenerlo
+  const codici = [];
+  const testo = esc(p).replace(/`([^`]+)`/g, (_, c) => { codici.push(c); return `\u0001${codici.length - 1}\u0002`; });
+  return testo.replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>").replace(/\u0001(\d+)\u0002/g, (_, i) => "<code>" + codici[i] + "</code>");
+}
 const corpoHtml = c => String(c||"").split(/```(\w*)\n?([\s\S]*?)\n?```/).map((t,i,a) => i % 3 === 1 ? "" : i % 3 === 2
   ? `<pre><code${a[i-1] ? ` class="language-${a[i-1] === "js" ? "javascript" : a[i-1]}"` : ""}>${esc(t)}</code></pre>`
   : t.split(/\n+/).filter(p=>p.trim()).map(p=>"<p>"+paraHtml(p)+"</p>").join("")).join("");
@@ -343,16 +351,38 @@ async function copia(testo, html){
 const pending = {};
 function scrivi(id, campi){
   Object.assign(st.val[id], campi);
-  const vid = st.vid;
   clearTimeout(pending[id]?.t);
-  pending[id] = { t: setTimeout(async () => {
-    const p = pending[id]; delete pending[id];
-    if (!st.db) return;
-    const [docId, chiave] = id.split("__");
-    try { await st.db.collection(`verifiche/${vid}/valutazioni`).doc(docId).update({righe: {[chiave]: p.campi}}); segnaSalvato(id, "Salvato"); }
-    catch(e){ segnaSalvato(id, "Non salvato: " + (e.code||"errore")); }
-  }, 600), campi: Object.assign(pending[id]?.campi || {}, campi) };
+  pending[id] = { t: setTimeout(() => salvaRiga(id), 600), vid: st.vid, campi: Object.assign(pending[id]?.campi || {}, campi) };
   segnaSalvato(id, "…");
+}
+async function salvaRiga(id){
+  const p = pending[id]; if (!p) return;
+  clearTimeout(p.t); delete pending[id];
+  if (!st.db) return;
+  const [docId, chiave] = id.split("__");
+  try { await st.db.collection(`verifiche/${p.vid}/valutazioni`).doc(docId).update({righe: {[chiave]: p.campi}}); segnaSalvato(id, "Salvato"); }
+  catch(e){ segnaSalvato(id, "Non salvato: " + (e.code||"errore")); }
+}
+async function svuotaScritture(){ for (const id of Object.keys(pending)) await salvaRiga(id); }   // una alla volta: più righe stanno nello stesso documento
+
+/* ---------- rinominare o eliminare uno studente da una verifica ---------- */
+async function rinominaStudente(k, sigla){
+  await svuotaScritture();
+  for (const d of domOrd()) await st.db.collection(`verifiche/${st.vid}/valutazioni`).doc(d.id).update({righe: {[k]: {s: sigla}}});
+}
+// update unisce e non toglie: per togliere la riga si riscrive il documento, riletto subito prima. In Moodle il tentativo resta.
+async function togliRiga(ref, k){
+  const snap = await ref.get(); if (!snap.exists) return;
+  const dati = JSON.parse(JSON.stringify(snap.data()));   // i dati letti sono congelati
+  if (!dati.righe?.[k]) return;
+  delete dati.righe[k]; await ref.set(dati);
+}
+async function eliminaStudente(k, {conta = true} = {}){
+  await svuotaScritture();
+  const vid = st.vid, base = `verifiche/${vid}`;
+  for (const d of domOrd()) await togliRiga(st.db.collection(base + "/valutazioni").doc(d.id), k);
+  await togliRiga(st.db.collection(base + "/resoconti").doc("studenti"), k);
+  if (conta) await st.db.doc(base).update({studenti: Math.max(0, studenti().filter(s => s.k !== k).length)});
 }
 function segnaSalvato(id, t){ const el=document.querySelector(`[data-salv="${id}"]`); if(el) el.textContent=t; }
 
@@ -469,7 +499,7 @@ function titoloDi(v, dom){
 const nomeDom = dom => `D${dom.n}${dom.breve && dom.breve !== "D" + dom.n ? " · " + esc(dom.breve) : ""}`;
 const varianti = dom => (dom.testi || []).length > 1;
 function cardHtml(v, dom, modo){
-  const pdpChip = v.pdp ? `<span class="chip muted">PDP</span>` : "";
+  const pdpChip = v.pdp && (esclusa(v) || modo !== "domanda") ? `<span class="chip muted">PDP</span>` : "";   // nella vista per domanda lo dice la posizione
   if (esclusa(v)) {
     const testa = modo === "domanda" ? `<span class="sigla">${esc(v.s)}</span>` : `<span class="dom-tit">${nomeDom(dom)} · ${esc(titoloDi(v, dom))}</span>`;
     return `<article class="card escl"><div class="chi">${testa}${pdpChip}<span class="chip muted">esclusa dal PDP</span>
@@ -481,7 +511,7 @@ function cardHtml(v, dom, modo){
   const autoTxt = dom.tipo === "auto" ? `Automatico in Moodle (stimato rieseguendo i test): ${fmt(v.auto)}` : "";
   const perc = (v.punti!=null && dom.max) ? Math.round(v.punti/dom.max*100)+"%" : "";
   const testa = modo === "domanda"
-    ? `<span class="sigla">${esc(v.s)}</span><span class="n">${posiz(v.ord)} di ${nStud()}${varianti(dom) ? " · " + esc(titoloDi(v, dom)) : ""}</span>`
+    ? `<span class="sigla">${esc(v.s)}</span><span class="n">${posiz(v.k)}${varianti(dom) ? " · " + esc(titoloDi(v, dom)) : ""}</span>`
     : `<span class="dom-tit">${nomeDom(dom)} · ${esc(titoloDi(v, dom))}</span><span class="n">max ${fmt(dom.max)}</span>`;
   return `<article class="card ${v.inserito?'inserito':(m?'da-moodle':'')}">
     <div class="chi">${testa}${pdpChip}${chip}
@@ -556,14 +586,39 @@ function renderStudente(k){
   const s = studenti().find(x => x.k === k); if (!s) return;
   const lista = domOrd().map(d => [rigaDi(d.id, k), d]).filter(([v]) => v);
   const vis = st.soloMoodle ? lista.filter(([v]) => daMoodle(v) && !v.inserito) : lista;
-  let h = `<section class="intesta"><h2><span class="sigla">${esc(s.s)}</span>${isPdp(k)?' <span class="chip muted">PDP</span>':''} <span class="n">${posiz(s.ord)} di ${nStud()}</span></h2>
+  let h = `<section class="intesta"><h2><span class="sigla">${esc(s.s)}</span><span class="n">${posiz(k)}</span></h2>
     <div class="totale-stud" id="tot-stud">${totStudHtml(k)}</div>
     ${resocontoHtml("stud", "Resoconto", st.res[k], "Nessun resoconto per questo studente: chiedi a Claude di preparare i resoconti della verifica.")}
     <div class="criteri">Tutte le domande di questo studente. Utile per controllare il voto complessivo, o per inserire in Moodle dalla revisione del tentativo («Commenta o modifica la valutazione»).</div>${filtriHtml()}</section><div class="lista">`;
   if (!vis.length) h += `<div class="vuoto">Niente da inserire in Moodle per questo studente.</div>`;
   h += vis.map(([v, d]) => cardHtml(v, d, "studente")).join("") + `</div>`;
+  h += `<section class="riquadro" aria-labelledby="t-gest"><h3 id="t-gest">Rinomina o elimina lo studente</h3>
+    <p class="n">Valgono solo per questa pagina: in Moodle il tentativo resta com'è.</p>
+    <div class="riga"><label for="g-sigla">Sigla</label><input id="g-sigla" class="sigla-in" maxlength="10" value="${esc(s.s)}" aria-describedby="g-nota"><button class="btn" id="g-rinomina">Rinomina</button><span class="n" id="g-nota">Solo una sigla, mai il nome completo.</span></div>
+    <div class="riga"><button class="btn pericolo" id="g-elimina">Elimina lo studente</button></div>
+    <div class="conferma" id="g-conferma" hidden><p>Eliminare definitivamente <b>${esc(s.s)}</b> da questa verifica, con punteggi, commenti e resoconto? Non si può annullare.</p>
+      <div class="riga"><button class="btn pericolo pieno" id="g-ok">Elimina definitivamente</button><button class="btn" id="g-no">Annulla</button></div></div></section>`;
   $("#vista").innerHTML = h; collega();
   collegaRes("stud", testo => salvaResStud(k, testo));
+  collegaGestione(s);
+}
+function collegaGestione(s){
+  $("#g-rinomina").onclick = async () => {
+    const sigla = $("#g-sigla").value.toUpperCase().replace(/\s+/g, " ").trim();
+    if (!sigla) { toast("Scrivi una sigla"); return; }
+    if (sigla === s.s) return;
+    if (studenti().some(x => x.k !== s.k && x.s === sigla)) { toast("Questa sigla c'è già: scegline un'altra"); return; }
+    $("#g-rinomina").disabled = true;
+    try { await rinominaStudente(s.k, sigla); toast("Rinominato"); render(); }
+    catch(e) { $("#g-rinomina").disabled = false; toast("Non rinominato: " + (e.code || "errore")); }
+  };
+  $("#g-elimina").onclick = () => { $("#g-conferma").hidden = false; $("#g-ok").focus(); };
+  $("#g-no").onclick = () => { $("#g-conferma").hidden = true; };
+  $("#g-ok").onclick = async () => {
+    const b = $("#g-ok"); b.disabled = true; b.textContent = "Eliminazione…";
+    try { await eliminaStudente(s.k); st.stud = null; toast("Studente eliminato"); render(); }
+    catch(e) { b.disabled = false; b.textContent = "Elimina definitivamente"; toast("Eliminazione non riuscita: " + (e.code || "errore")); }
+  };
 }
 
 // Istogramma dei voti a fasce di mezzo voto (0–0,5 … 9,5–10; il 10 va nell'ultima), con la linea della sufficienza.
@@ -676,14 +731,23 @@ function fondi(E, I){
    I nomi degli studenti restano in questa pagina, nel browser: si salvano solo sigla e risposta. */
 const imp = { righe: null, colonne: [], assegna: {}, scelte: new Set() };
 const piano = s => String(s||"").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase();
-function candidatiSigla(nome){
-  const p = nome.trim().split(/\s+/); const out = [];
+const compatto = t => String(t ?? "").replace(/[^\p{L}\p{N}]+/gu, "").toUpperCase();
+// Una sigla può avere più lettere (GI MAT) o un numero finale (GI MA2, nelle verifiche già caricate):
+// vale per un nome se cognome e nome cominciano con le sue lettere, in tutte le divisioni del nome completo.
+function siglaCombacia(sigla, nome){
+  const [c, n = ""] = piano(sigla).replace(/\d+$/, "").trim().split(/\s+/).map(compatto);
+  const p = nome.trim().split(/\s+/);
   for (let i = 1; i < p.length; i++) {
-    for (const [n, c] of [[p.slice(0,i).join(" "), p.slice(i).join(" ")], [p.slice(i).join(" "), p.slice(0,i).join(" ")]]) {
-      out.push(piano(c).slice(0,2) + " " + piano(n).slice(0,2));
-    }
+    const x = compatto(piano(p.slice(0, i).join(" "))), y = compatto(piano(p.slice(i).join(" ")));
+    if ((x.startsWith(c) && y.startsWith(n)) || (y.startsWith(c) && x.startsWith(n))) return true;
   }
-  return out;
+  return false;
+}
+// Il nome dello studente non resta nelle risposte. \b non basta: non vede le lettere accentate (Nicolò, Àlfieri).
+function togliNomi(t, nome){
+  for (const w of new Set(nome.split(/\s+/).filter(w => w.length > 2)))
+    t = t.replace(new RegExp("(?<![\\p{L}\\p{N}_])" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\p{L}\\p{N}_])", "giu"), "[nome]");
+  return t;
 }
 function testoCella(td){
   const el = td.querySelector(".que span") || td.querySelector(".que") || td;
@@ -708,22 +772,19 @@ function leggiTabella(html){
     if (!nome) return;
     const risposte = {};
     colonne.forEach(c => { let t = td[c.i] ? testoCella(td[c.i]) : ""; if (t === "-") t = "";
-      for (const w of new Set(nome.split(/\s+/).filter(w => w.length > 2)))      // il nome non resta nel codice
-        t = t.replace(new RegExp("\\b" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "gi"), "[nome]");
-      risposte[c.n] = t; });
+      risposte[c.n] = togliNomi(t, nome); });
     righe.push({nome, risposte});
   });
   if (!righe.length) return {errore: "Non trovo righe di studenti nella tabella copiata."};
   return {righe, colonne};
 }
-function abbina(){
-  const sigle = studenti(); const libere = new Set(sigle.map(s => s.k)); imp.assegna = {};
-  const perSigla = Object.fromEntries(sigle.map(s => [piano(s.s).replace(/\s+/g, " ").trim(), s.k]));
-  imp.righe.forEach((r, i) => { const c = candidatiSigla(r.nome).find(x => perSigla[x] && libere.has(perSigla[x]));
-    if (c) { imp.assegna[i] = perSigla[c]; libere.delete(perSigla[c]); } });
-  imp.righe.forEach((r, i) => { if (imp.assegna[i]) return;            // sigle di una sola parte (nome vuoto nell'export)
-    const c = candidatiSigla(r.nome).map(x => x.split(" ")[0]).find(x => perSigla[x] && libere.has(perSigla[x]));
-    if (c) { imp.assegna[i] = perSigla[c]; libere.delete(perSigla[c]); } });
+function abbina(){                                   // si abbina solo quando la sigla è una: se due sigle vanno bene, la scelta resta al docente
+  const sigle = studenti(), libere = new Set(sigle.map(s => s.k)); imp.assegna = {};
+  const candidati = imp.righe.map(r => sigle.filter(s => siglaCombacia(s.s, r.nome)));
+  for (let ancora = true; ancora;) { ancora = false;
+    imp.righe.forEach((r, i) => { if (imp.assegna[i]) return;
+      const c = candidati[i].filter(s => libere.has(s.k));
+      if (c.length === 1) { imp.assegna[i] = c[0].k; libere.delete(c[0].k); ancora = true; } }); }
 }
 // proposte: le domande in cui la tabella ha codice con i tag diverso da quello salvato (l'export li aveva tolti)
 const norm = t => String(t || "").replace(/\s+/g, " ").trim();   // spazi e a capo non contano nel confronto
@@ -809,21 +870,25 @@ function preparaAggiunta(righe){
   h.forEach((x, i) => { let m = x.match(/^(?:Domanda|Question)\s+(\d+)$/i); if (m) qD[m[1]] = i; m = x.match(/^(?:Risposta data|Response)\s+(\d+)$/i); if (m) qR[m[1]] = i; });
   const num = Object.keys(qR).map(Number).sort((a, b) => a - b);
   if (!num.length) throw new Error("mancano le colonne «Risposta data N»: scarica il report Risposte, non quello dei voti.");
-  const usate = new Set(studenti().filter(s => !isPdp(s.k)).map(s => s.s)), studs = [];   // una sigla PDP già presente si riusa: lo studente viene sostituito
+  const classe = studenti().filter(s => !isPdp(s.k)), studs = [], grezzi = [];
   righe.slice(1).forEach(r => {
     const cog = iC >= 0 ? String(r[iC] || "").trim() : "", nom = iN >= 0 ? String(r[iN] || "").trim() : "";
     const stato = iS >= 0 ? String(r[iS] || "").trim() : "";
     if (!cog && !stato) return;                      // righe vuote o di media
     if (iS >= 0 && !stato) return;
-    let base = cog ? (cog.slice(0,2) + " " + nom.slice(0,2)).toUpperCase().trim() : "PDP " + (studs.length + 1);
-    let s = base, i = 2; while (usate.has(s)) s = base + (i++); usate.add(s);
-    const pw = [...new Set((cog + " " + nom).split(/\s+/).filter(w => w.length > 2))];
-    const pulisci = t => { t = String(t ?? ""); if (t.trim() === "-") t = "";
-      for (const w of pw) t = t.replace(new RegExp("\\b" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "gi"), "[nome]"); return t; };
-    studs.push({s, risposte: Object.fromEntries(num.map(n => [n, pulisci(r[qR[n]])])), testi: Object.fromEntries(num.map(n => [n, String(r[qD[n]] ?? "")]))});
+    grezzi.push({r, cog, nom});
+  });
+  const conNomi = grezzi.filter(x => x.cog).sort(perCognome), senzaNomi = grezzi.filter(x => !x.cog);
+  creaSigle(conNomi, new Set(classe.map(s => s.s)));  // una sigla PDP già presente si riusa: lo studente viene sostituito
+  senzaNomi.forEach((x, i) => { x.s = "PDP " + (conNomi.length + i + 1); });
+  [...conNomi, ...senzaNomi].forEach(({r, cog, nom, s}) => {
+    const pulisci = t => { t = String(t ?? ""); return t.trim() === "-" ? "" : togliNomi(t, cog + " " + nom); };
+    // stesse iniziali di uno studente della classe: forse ha aperto la verifica sbagliata, lo decide il docente
+    const doppio = cog ? classe.find(c => siglaCombacia(c.s, cog + " " + nom)) : null;
+    studs.push({s, sProposta: s, doppio: doppio || null, stessa: false, risposte: Object.fromEntries(num.map(n => [n, pulisci(r[qR[n]])])), testi: Object.fromEntries(num.map(n => [n, String(r[qD[n]] ?? "")]))});
   });
   if (!studs.length) throw new Error("nel file non trovo righe di studenti");
-  return {studenti: studs, colonne: num};
+  return {studenti: studs, colonne: num, conNomi: conNomi.length > 0};
 }
 function abbinaColonne(){
   const doms = domOrd(); agg.mappa = {}; agg.punteggi = {};
@@ -876,6 +941,7 @@ function aggiungiHtml(){
     const mancanti = doms.filter(d => colonnaDi(d.id) == null);
     h += `<p class="n">Sigle dei nuovi studenti${a.studenti.some(s => /^PDP /.test(s.s)) ? " (nel file mancano i nomi: scrivile tu, prime due lettere di cognome e nome)" : ""}:</p>
       <div class="riga">${a.studenti.map((s, i) => `<input class="sigla-in" data-agg-s="${i}" value="${esc(s.s)}" aria-label="Sigla dello studente ${i + 1}">`).join("")}</div>
+      ${a.studenti.map((s, i) => s.doppio ? `<label class="n" style="color:var(--warn);display:flex;gap:6px;align-items:baseline"><input type="checkbox" data-agg-d="${i}" ${s.stessa ? "checked" : ""}><span>${esc(s.sProposta)} ha le iniziali di ${esc(s.doppio.s)}, che è nella classe. Spunta se sono la stessa persona: salvando, il tentativo di ${esc(s.doppio.s)} viene eliminato da questa verifica e lo studente PDP prende la sua sigla. Non si può annullare.</span></label>` : "").join("")}
       <p class="n">Abbinamento delle colonne alle domande della verifica:</p>
       <div class="tab-wrap"><table class="mappa"><thead><tr><th>Colonna</th><th>Inizio del testo</th><th>Domanda</th><th>Somiglianza</th></tr></thead><tbody>
       ${a.colonne.map(n => { const t = (a.studenti.find(s => s.testi[n])?.testi[n] || "").replace(/\s+/g, " ").slice(0, 90);
@@ -915,6 +981,7 @@ function collegaAggiungi(){
   zp.addEventListener("dragover", e => e.preventDefault());
   zp.addEventListener("drop", e => { e.preventDefault(); caricaPesi(e.dataTransfer.files[0]); });
   document.querySelectorAll("[data-agg-s]").forEach(i => i.oninput = () => { agg.studenti[i.dataset.aggS].s = i.value.toUpperCase().replace(/\s+/g, " ").trim(); });
+  document.querySelectorAll("[data-agg-d]").forEach(c => c.onchange = () => { const x = agg.studenti[c.dataset.aggD]; x.stessa = c.checked; x.s = c.checked ? x.doppio.s : x.sProposta; renderImporta(); });
   document.querySelectorAll("[data-agg-c]").forEach(s => s.onchange = () => { agg.mappa[s.dataset.aggC] = s.value; proponiEscluse(); renderImporta(); });
   document.querySelectorAll("[data-agg-e]").forEach(c => c.onchange = () => { c.checked ? agg.escluse.add(c.dataset.aggE) : agg.escluse.delete(c.dataset.aggE); });
   $("#agg-annulla")?.addEventListener("click", () => { agg.reset(); renderImporta(); });
@@ -924,15 +991,21 @@ async function salvaAggiunta(){
   const vid = st.vid, doms = domOrd(), esistenti = studenti();
   const sigle = agg.studenti.map(s => s.s.trim());
   if (sigle.some(s => !s)) { toast("Manca una sigla"); return; }
-  if (new Set(sigle).size !== sigle.length || sigle.some(s => esistenti.some(e => e.s === s && !isPdp(e.k)))) { toast("Due studenti hanno la stessa sigla: cambiane una"); return; }
+  const rimossi = new Set(agg.studenti.filter(s => s.stessa).map(s => s.doppio.k));   // lo stesso studente aveva aperto anche la verifica della classe
+  if (new Set(sigle).size !== sigle.length || sigle.some(s => esistenti.some(e => e.s === s && !isPdp(e.k) && !rimossi.has(e.k)))) { toast("Due studenti hanno la stessa sigla: cambiane una"); return; }
   const chiavi = new Set(esistenti.map(e => e.k));
   let ordNuovo = Math.max(-1, ...Object.values(st.val).map(v => Number(v.ord) || 0)) + 1, aggiunti = 0;
-  // in coda alla classe, ma in ordine di sigla tra loro (l'export può essere in ordine di tentativo, e senza nomi non c'è il cognome)
-  const nuovi = [...agg.studenti].sort((x, y) => x.s.localeCompare(y.s)).map(s => {
+  // agg.studenti è già per cognome; senza nomi nel file si ordina per sigla
+  const inOrdine = agg.conNomi ? agg.studenti : [...agg.studenti].sort((x, y) => x.s.localeCompare(y.s));
+  const nuovi = inOrdine.map(s => {
     const gia = esistenti.find(e => e.s === s.s && isPdp(e.k));         // già importato: stessa chiave e stessa posizione, righe sostituite
     if (gia) return {...s, k: gia.k, ord: gia.ord};
     let k = s.s.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "") || "PDP", base = k, i = 2;
     while (chiavi.has(k)) k = base + "-" + (i++); chiavi.add(k); aggiunti++; return {...s, k, ord: ordNuovo++}; });
+  // studenti PDP di un altro file: il cognome completo non c'è più, quindi tutti insieme per sigla
+  const altri = esistenti.filter(e => isPdp(e.k) && !nuovi.some(n => n.k === e.k));
+  if (altri.length) { const inizio = Math.min(...altri.map(x => x.ord), ...nuovi.map(x => x.ord));
+    [...altri, ...nuovi].sort((x, y) => x.s.localeCompare(y.s)).forEach((x, i) => { x.ord = inizio + i; }); }
   agg.salvo = true; renderImporta();
   try {
     for (const d of doms) {
@@ -945,10 +1018,12 @@ async function salvaAggiunta(){
         righeDoc[s.k] = {s: s.s, ord: s.ord, risposta: n == null ? "" : s.risposte[n] || "", esito: escl ? "esclusa" : "in attesa", auto: null,
           punti: null, commento: "", inserito: false, pdp: true, esclusa: escl, ...(variante != null ? {variante} : {})};
       });
+      altri.forEach(s => { righeDoc[s.k] = {ord: s.ord}; });
       if (testi.length !== (d.testi || []).length) await st.db.collection(`verifiche/${vid}/domande`).doc(d.id).update({testi});
       await st.db.collection(`verifiche/${vid}/valutazioni`).doc(d.id).update({righe: righeDoc});
     }
-    if (aggiunti) await st.db.doc(`verifiche/${vid}`).update({studenti: (info().studenti || esistenti.length) + aggiunti});
+    for (const k of rimossi) await eliminaStudente(k, {conta: false});
+    if (aggiunti || rimossi.size) await st.db.doc(`verifiche/${vid}`).update({studenti: esistenti.length + aggiunti - rimossi.size});
     toast(aggiunti === nuovi.length ? `${nuovi.length} studenti aggiunti` : `${nuovi.length} studenti PDP salvati (${nuovi.length - aggiunti} sostituiti)`); agg.reset(); renderImporta();
   } catch (e) { agg.salvo = false; renderImporta(); toast("Salvataggio non riuscito: " + (e.code || e.message || "errore")); }
 }
@@ -1005,6 +1080,25 @@ function leggiCsv(t){
     else if (c === "\n") { righe.at(-1).push(cella.replace(/\r$/, "")); cella = ""; righe.push([]); } else cella += c; }
   righe.at(-1).push(cella); return righe.filter(r => r.some(x => x !== ""));
 }
+// L'ordine di Valutazione manuale: cognome, poi nome, qualunque sia l'ordine dell'Excel. I nomi servono solo qui, nel browser.
+const perCognome = (a, b) => a.cog.localeCompare(b.cog, "it", {sensitivity: "base"}) || a.nom.localeCompare(b.nom, "it", {sensitivity: "base"});
+// Prime due lettere di cognome e nome, senza accenti. Se due persone coincidono: più lettere (GI MAT, GI MAR), al massimo quattro per parte,
+// perché resti una sigla. Il numero solo quando le lettere non bastano, per esempio per due tentativi dello stesso studente.
+const MISURE = [[2, 2], [2, 3], [2, 4], [3, 2], [3, 3], [4, 2], [4, 4]];
+function creaSigle(lista, occupate = new Set()){
+  const lettere = t => compatto(piano(t));
+  const sigla = (x, c, n) => (lettere(x.cog).slice(0, c) + " " + lettere(x.nom).slice(0, n)).trim();
+  const gruppi = {}; lista.forEach(x => { (gruppi[sigla(x, 2, 2)] ||= []).push(x); });
+  Object.values(gruppi).forEach(g => {
+    const persone = [...new Map(g.map(x => [lettere(x.cog) + " " + lettere(x.nom), x])).values()];
+    const m = MISURE.find(([c, n]) => { const t = persone.map(x => sigla(x, c, n)); return new Set(t).size === persone.length && !t.some(s => occupate.has(s)); }) || [2, 2];
+    g.forEach(x => {
+      const base = sigla(x, ...m); let s = base;
+      for (let i = 2; occupate.has(s); i++) s = base + i;
+      x.s = s; occupate.add(s);
+    });
+  });
+}
 const nuova = { reset(){ Object.assign(this, {studenti:null, domande:[], errore:null, avvisi:[], titolo:"", sottotitolo:"", salvo:false}); } };
 nuova.reset();
 function preparaDaTabella(righe){
@@ -1016,15 +1110,15 @@ function preparaDaTabella(righe){
   const num = Object.keys(qR).map(Number).sort((a,b)=>a-b);
   if (!num.length) throw new Error("mancano le colonne «Risposta data N»: scarica il report Risposte, non quello dei voti.");
   const iS = h.findIndex(x => /^(stato|state)$/i.test(x));
-  const studenti = [], viste = {};
+  const studenti = [], grezzi = [];
   righe.slice(1).forEach(r => {
     const cog = String(r[iC] || "").trim(), nom = String(r[iN] || "").trim();
     if (!cog || (iS >= 0 && !String(r[iS] || "").trim())) return;          // righe vuote o di media
-    let s = (cog.slice(0,2) + " " + nom.slice(0,2)).toUpperCase().trim();
-    viste[s] = (viste[s] || 0) + 1; if (viste[s] > 1) s += viste[s];
-    const parole = [...new Set((cog + " " + nom).split(/\s+/).filter(w => w.length > 2))];
-    const pulisci = t => { t = String(t ?? ""); if (t.trim() === "-") t = "";
-      for (const w of parole) t = t.replace(new RegExp("\\b" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "gi"), "[nome]"); return t; };
+    grezzi.push({r, cog, nom});
+  });
+  grezzi.sort(perCognome); creaSigle(grezzi);
+  grezzi.forEach(({r, cog, nom, s}) => {
+    const pulisci = t => { t = String(t ?? ""); return t.trim() === "-" ? "" : togliNomi(t, cog + " " + nom); };
     studenti.push({s, k: s.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "") || "S" + studenti.length,
       completo: piano(nom + " " + cog).replace(/\s+/g, " ").trim(), completo2: piano(cog + " " + nom).replace(/\s+/g, " ").trim(),
       risposte: Object.fromEntries(num.map(n => [n, pulisci(r[qR[n]])])), testi: Object.fromEntries(num.map(n => [n, String(r[qD[n]] ?? "")])), pulisci});
@@ -1066,7 +1160,7 @@ function renderNuova(){
     <div class="riquadro"><h3>3 · Anteprima e salvataggio</h3>
       <div class="riga"><label for="n-tit">Titolo</label><input id="n-tit" class="campo" value="${esc(n.titolo)}" placeholder="V5R · 5Q SIA" style="flex:1;min-width:12em;font:inherit;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)"></div>
       <div class="riga"><label for="n-sot">Verifica</label><input id="n-sot" class="campo" value="${esc(n.sottotitolo)}" placeholder="Verifica di ripasso SQL e PHP" style="flex:1;min-width:12em;font:inherit;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)"></div>
-      <p class="n">Sigle, in ordine di cognome come nel file: ${n.studenti.map(s => `<span class="sigla">${esc(s.s)}</span>`).join(" ")}</p>
+      <p class="n">Sigle, in ordine di cognome: ${n.studenti.map(s => `<span class="sigla">${esc(s.s)}</span>`).join(" ")}</p>
       <p class="n">Domande: ${n.domande.map(d => `D${d.n}${d.testi.length > 1 ? ` (${d.testi.length} varianti)` : ""}`).join(" · ")}. Risposte con tag HTML: ${n.studenti.reduce((a, s) => a + Object.values(s.risposte).filter(t => /<[a-z!?]/i.test(t)).length, 0)}.</p>
       <div class="riga"><button class="btn pieno" id="n-salva" ${n.salvo?'disabled':''}>${n.salvo ? "Salvataggio…" : "Salva e apri la verifica"}</button><button class="btn" id="n-annulla">Annulla</button></div></div>`;
   }

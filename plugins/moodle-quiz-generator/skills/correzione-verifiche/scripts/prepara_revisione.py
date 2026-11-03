@@ -4,7 +4,7 @@
 Uso:
     python3 prepara_revisione.py LAVORO --id=v5r-5q --titolo="V5R · 5Q SIA" --sottotitolo="Verifica di ripasso SQL e PHP"
                                  [--quiz=ID_DASHBOARD_QUIZ] [--disclaimer="…"] [--solo=D11]
-    python3 prepara_revisione.py LAVORO --id=prova-5q --esistente    (verifica creata con «Nuova correzione»)
+    python3 prepara_revisione.py LAVORO --id=prova-5q --unisci=VERIFICA   (verifica creata con «Nuova correzione»)
 
 LAVORO   la cartella di leggi_export.py, con dati.json, esiti.json (se c'è) e voti/DNN.json:
          una proposta per domanda, scritta da Claude, nella forma
@@ -21,11 +21,17 @@ Scrive in LAVORO/revisione/:
 - domande/DNN.json        un documento per domanda (collezione «verifiche/ID/domande»)
 - valutazioni/DNN.json    le righe degli studenti di quella domanda («verifiche/ID/valutazioni»)
 e stampa le voci del batch per ArtifactData. --solo=D11,D12 rigenera solo quelle domande (e non il
-documento della verifica). --esistente: la verifica c'è già nella dashboard (creata dall'utente con
-«Nuova correzione»): non riscrive il suo documento, solo domande e valutazioni, e i `set` vanno fatti
-con `if_version` (le versioni le dà un `list`).
+documento della verifica).
+
+--unisci=VERIFICA  la verifica c'è già nella dashboard (creata con «Nuova correzione», forse con gli
+         studenti PDP): VERIFICA è la sua esportazione (ArtifactData list con out_dir di domande e
+         valutazioni). Il documento della verifica non si tocca. Ogni riga resta com'è (risposta, sigla,
+         ordine, variante, pdp, esclusa, importata, inserito) e prende solo punti, commento, esito e auto
+         della proposta; le righe escluse non cambiano. Per ogni domanda si aggiornano max, tipo, criteri,
+         breve e titolo. I `set` si fanno con `if_version`: le versioni le dà lo stesso `list`.
 """
 import datetime
+import glob
 import json
 import os
 import re
@@ -35,10 +41,22 @@ DISCLAIMER = ("Il seguente feedback è stato scritto con l'aiuto di una IA gener
               "La valutazione è stata svolta dal docente.")
 
 
+def leggi_verifica(cartella):
+    """L'esportazione di una verifica della dashboard → {"domande": {DNN: doc}, "valutazioni": {DNN: doc}}."""
+    out = {}
+    for nome in ("domande", "valutazioni"):
+        out[nome] = {os.path.basename(f)[:-5]: json.load(open(f, encoding="utf-8"))
+                     for f in glob.glob(os.path.join(cartella, "**", nome, "*.json"), recursive=True)}
+    if not out["domande"] or not out["valutazioni"]:
+        sys.exit(f"In {cartella} non trovo domande/ e valutazioni/ della verifica.")
+    return out
+
+
 def main():
     arg = [a for a in sys.argv[1:] if not a.startswith("--")]
     opz = dict(a[2:].split("=", 1) for a in sys.argv[1:] if a.startswith("--") and "=" in a)
-    esistente = "--esistente" in sys.argv
+    esistenti = leggi_verifica(opz["unisci"]) if opz.get("unisci") else None
+    esistente = esistenti is not None
     if len(arg) != 1 or "id" not in opz or ("titolo" not in opz and not esistente):
         sys.exit(__doc__)
     vid = opz["id"]
@@ -65,22 +83,35 @@ def main():
         massimo = dom.get("punti") or prop.get("max")
         if massimo is None:
             sys.exit(f"{did}: punti sconosciuti (riga della dashboard non abbinata): mettili in voti/{did}.json come «max».")
-        json.dump({"n": int(k), "breve": dom.get("pos") or f"D{k}", "titolo": dom.get("titolo") or f"Domanda {k}",
+        pos = dom.get("pos") or f"D{k}"
+        if len(dom.get("righe") or []) > 1:           # con le varianti la posizione è una sola: T1, non T1a
+            pos = re.sub(r"[a-z]$", "", pos)
+        doc_dom = {"n": int(k), "breve": pos, "titolo": dom.get("titolo") or f"Domanda {k}",
                    "max": massimo, "tipo": "auto" if auto else "manuale",
-                   "criteri": prop.get("criteri", "") or ("IN ATTESA: proposte non ancora scritte." if not voti else "")},
-                  open(os.path.join(out, "domande", did + ".json"), "w", encoding="utf-8"), ensure_ascii=False)
+                   "criteri": prop.get("criteri", "") or ("IN ATTESA: proposte non ancora scritte." if not voti else "")}
+        if esistenti:
+            doc_dom = {**esistenti["domande"].get(did, {}), **doc_dom}
+        json.dump(doc_dom, open(os.path.join(out, "domande", did + ".json"), "w", encoding="utf-8"), ensure_ascii=False)
         righe = {}
+        gia = (esistenti["valutazioni"].get(did) or {}).get("righe", {}) if esistenti else {}
         for i, s in enumerate(dati["studenti"]):
             p, c = voti.get(s["chiave"], [None, ""])
+            if gia.get(s["chiave"], {}).get("esclusa"):
+                if s["chiave"] in voti:
+                    sys.exit(f"{did} {s['sigla']}: la domanda è esclusa dal PDP, non va corretta.")
+                righe[s["chiave"]] = gia[s["chiave"]]
+                continue
             if voti and s["chiave"] not in voti:
                 mancanti.append(f"{did} {s['sigla']}")
             if p is not None and not (0 <= float(p) <= float(massimo)):
                 sys.exit(f"{did} {s['sigla']}: {p} fuori da 0–{massimo}")
             ea = (auto or {}).get("studenti", {}).get(s["chiave"], {})
-            righe[s["chiave"]] = {"s": s["sigla"], "ord": i, "risposta": s["risposte"][k],
-                                  "esito": ea.get("esito", "" if voti else "in attesa"),
-                                  "auto": ea.get("auto"), "punti": p, "commento": c or "",
-                                  "inserito": False}
+            nuovi = {"esito": ea.get("esito", "" if voti else "in attesa"), "auto": ea.get("auto"),
+                     "punti": p, "commento": c or ""}
+            if s["chiave"] in gia:
+                righe[s["chiave"]] = {**gia[s["chiave"]], **nuovi}
+            else:
+                righe[s["chiave"]] = {"s": s["sigla"], "ord": i, "risposta": s["risposte"][k], **nuovi, "inserito": False}
         json.dump({"righe": righe}, open(os.path.join(out, "valutazioni", did + ".json"), "w", encoding="utf-8"),
                   ensure_ascii=False)
         voci += [(f"verifiche/{vid}/domande", did, os.path.join(out, "domande", did + ".json")),

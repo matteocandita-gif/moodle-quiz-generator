@@ -15,11 +15,13 @@ USCITA    cartella dove scrivere dati.json e un file di lettura per domanda (D01
           esportazione del database della dashboard (ArtifactData con out_dir: CARTELLA/quiz/ID.json
           e CARTELLA/quiz/ID/domande/*.json). Ogni «Domanda N» dell'export viene abbinata alla riga
           con la traccia più simile; l'abbinamento si stampa e va controllato.
---mappa   abbinamento forzato N=idRiga, per le domande che lo script abbina male (vale per tutte le
-          varianti della domanda).
+--mappa   abbinamento forzato: N=idRiga vale per tutte le varianti della domanda N, N:V=idRiga solo per
+          la variante V (il numero che lo script stampa accanto alla traccia).
 
 Con le domande casuali (varianti per tag) ogni traccia diversa dell'export viene abbinata alla sua riga:
 in dati.json ogni studente ha «righe» (domanda → riga della sua variante) e ogni domanda l'elenco «righe».
+Le tracce di una domanda si cercano tra le righe di una sola posizione (lo stesso tag), una riga per traccia.
+Se una traccia resta senza riga sicura lo script si ferma: si risolve con --mappa, dopo averla letta.
 
 Lo script non stampa mai nomi: identifica gli studenti con la sigla «COGNOME NOME» delle colonne
 dell'export. Se quelle colonne sembrano contenere nomi completi si ferma e chiede di anonimizzare.
@@ -40,8 +42,44 @@ def leggi_tabella(percorso):
 
 
 def pulisci(testo):
-    testo = re.sub(r"[*_`#>|]", " ", str(testo or ""))
+    """Testo per il confronto: la dashboard e l'export scrivono diversamente elenchi, tabelle e blocchi."""
+    testo = re.sub(r"(?m)^\s*```.*$", " ", str(testo or ""))
+    testo = re.sub(r"(?m)^\s*(\d+\.|[-*•])\s+", " ", testo)
+    testo = re.sub(r"(?m)^[\s|:-]+$", " ", testo)
+    testo = re.sub(r"[*_`#>|]", " ", testo)
     return re.sub(r"\s+", " ", testo).strip().lower()
+
+
+def simile(a, b):
+    return difflib.SequenceMatcher(None, a, b, autojunk=False).ratio()
+
+
+SICURA = 0.5                                         # sotto questa somiglianza una traccia non ha una riga sicura
+
+
+def abbina_varianti(varianti, righe, forzate_varianti):
+    """Le tracce di una domanda → {traccia: (somiglianza, riga)}, tra le righe di una sola posizione, una riga per traccia."""
+    testi = {t: pulisci(t) for t in varianti}
+    puliti = {rid: pulisci(r.get("traccia", "")) for rid, r in righe.items()}
+    sim = {t: {rid: simile(testi[t], p) for rid, p in puliti.items()} for t in varianti}
+    gruppi = {}
+    for rid, r in righe.items():
+        gruppi.setdefault(r.get("tag") or re.sub(r"[a-z]$", "", r.get("pos") or rid), []).append(rid)
+    # la posizione giusta è quella in cui le tracce si riconoscono meglio, ciascuna con la sua riga migliore
+    gruppo = max(gruppi.values(), key=lambda g: sum(max(sim[t][rid] for rid in g) for t in varianti))
+    coppie = sorted(((sim[t][rid], varianti.index(t), rid) for t in varianti for rid in gruppo), reverse=True)
+    esito, libere = {}, set(gruppo)
+    for s, i, rid in coppie:
+        if varianti[i] not in esito and rid in libere:
+            esito[varianti[i]] = (s, rid)
+            libere.discard(rid)
+    for t in varianti:                                # più tracce che righe: la copia PDP riscrive le tracce
+        if t not in esito:
+            esito[t] = max((sim[t][rid], rid) for rid in gruppo)
+    for i, t in enumerate(varianti):
+        if i in forzate_varianti:
+            esito[t] = (None, forzate_varianti[i])
+    return esito
 
 
 def da_dashboard(cartella):
@@ -127,10 +165,7 @@ def abbina_e_scrivi(export, uscita, opz, studenti, num):
             if r.get("tipologia") not in ("istruzioni", "descrizione") and r.get("punti", 0):
                 righe[os.path.basename(f)[:-5]] = r
     forzate = dict(x.split("=") for x in opz.get("mappa", "").split(",") if "=" in x)
-    def migliore(testo):
-        t = pulisci(testo)[:600]
-        return max(((difflib.SequenceMatcher(None, t, pulisci(r.get("traccia", ""))[:600]).ratio(), rid)
-                    for rid, r in righe.items()))
+    dubbi = []
     domande = {}
     for k in num:
         testi = [s["testi"][str(k)] for s in studenti if s["testi"][str(k)]]
@@ -138,8 +173,13 @@ def abbina_e_scrivi(export, uscita, opz, studenti, num):
         per_testo = {}                                   # con le domande casuali ogni variante ha la sua riga
         if forzate.get(str(k)):
             per_testo = {t: (None, forzate[str(k)]) for t in varianti}
-        elif righe:
-            per_testo = {t: migliore(t) for t in varianti}
+        elif righe and varianti:
+            f_var = {int(c.split(":")[1]): v for c, v in forzate.items() if c.startswith(f"{k}:")}
+            per_testo = abbina_varianti(varianti, righe, f_var)
+            for i, t in enumerate(varianti):
+                sim, rid = per_testo[t]
+                if sim is not None and sim < SICURA:
+                    dubbi.append(f"D{k:02d} variante {i} ({sim:.2f}, proposta {rid}): {pulisci(t)[:80]}…")
         for s in studenti:
             s.setdefault("righe", {})[str(k)] = per_testo.get(s["testi"][str(k)], (None, None))[1]
         usate = []
@@ -161,7 +201,10 @@ def abbina_e_scrivi(export, uscita, opz, studenti, num):
               f" · {info.get('titolo', '')} ({info.get('punti', '?')} punti, {info.get('tipologia', '?')}; "
               f"varianti: {len(varianti)}){'  ← somiglianza bassa: ' + ', '.join(basse) if basse else ''}")
         if len(usate) < len(varianti):
-            print(f"   ATTENZIONE: {len(varianti)} varianti nell'export ma {len(usate)} righe diverse nella dashboard")
+            print(f"   ATTENZIONE: {len(varianti)} varianti nell'export ma {len(usate)} righe diverse nella dashboard: "
+                  "è normale solo se la copia PDP ha le tracce riscritte")
+    if dubbi:
+        sys.exit("Tracce senza una riga sicura: leggile e abbinale con --mappa=N:V=idRiga.\n" + "\n".join(dubbi))
     for s in studenti:
         s.pop("testi")
     json.dump({"export": os.path.basename(export), "domande": domande, "studenti": studenti},

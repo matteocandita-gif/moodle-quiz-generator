@@ -14,6 +14,21 @@ Organizzazione dei quiz nella dashboard «Bozze dei quiz».
 - Cambia il prompt dell'attività programmata «Avvia quiz dalla dashboard» (campo `area`): l'aggiornamento della dashboard lo sostituisce.
 - Chi ha già dei quiz: dopo l'aggiornamento finiscono in «Senza argomento» finché non si compila l'argomento; lo può fare Claude su richiesta.
 
+Correzione delle verifiche (pagina «Correzione verifiche» 1.2.0):
+
+- **Correzione verifiche**: l'ordine per cognome è ora vero. La pagina ordina gli studenti per cognome e nome al caricamento, nel browser, qualunque sia l'ordine dell'Excel, e non salva i nomi. Vale per le verifiche nuove: quelle già caricate restano come sono.
+- **Correzione verifiche**: gli studenti PDP stanno sempre in fondo, anche con «Z → A», in ordine di cognome tra loro (di sigla, se nel file non ci sono i nomi), con una numerazione loro: «PDP 2 di 4».
+- **Correzione verifiche**: sigle uguali. Al posto di «GI MA2» più lettere del nome, «GI MAT» e «GI MAR», fino a quattro per parte; il numero solo quando le lettere non bastano. Sigle senza accenti.
+- **Correzione verifiche**: **Rinomina o elimina lo studente**, in fondo alla vista per studente. L'eliminazione è definitiva e chiede conferma; in Moodle il tentativo resta.
+- **Correzione verifiche**: se uno studente PDP ha le iniziali di uno della classe la pagina lo segnala, e con «stessa persona» elimina il tentativo della classe.
+- **Correzione verifiche**: «Importa da Moodle» riconosce le sigle con più lettere e abbina da sola solo quando la sigla possibile è una: con due sigle possibili sceglie il docente, così due studenti simili non si scambiano.
+- **Correzione verifiche**: i nomi con lettere accentate (Nicolò, Àlfieri) restavano nelle risposte: ora vengono tolti come gli altri.
+- **Correzione verifiche**: nei commenti il grassetto può contenere del codice.
+- `leggi_export.py`: le tracce di una domanda si cercano tra le righe di una sola posizione, una riga per traccia, e lo script si ferma se una traccia resta senza riga sicura (`--mappa=N:V=idRiga` per una sola variante). Prima due varianti simili potevano finire sulla stessa riga, con i test sbagliati.
+- `prepara_revisione.py`: `--unisci=CARTELLA` al posto di `--esistente`, per le verifiche già nella dashboard: conserva sigle, ordine, varianti, PDP ed esclusioni.
+- `progettazione-quiz`: nelle verifiche ogni esercizio CodeRunner ha la griglia dei punti parziali nelle note interne (riga `Griglia:`), che `correzione-verifiche` usa per chi non supera i test.
+- Criteri di correzione: errore solo di stampa a punteggio pieno con il commento; un punto in meno se manca solo il caso del primo valore sentinella.
+
 ## 0.9.0 — 30/10/2026
 
 Nuova skill **`tracce-progettazione`** e nuova pagina **«Tracce di progettazione»**: tracce di progettazione di database da dare agli studenti di quinta, con la soluzione nella stessa pagina.

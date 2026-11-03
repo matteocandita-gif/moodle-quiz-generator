@@ -35,7 +35,7 @@ Lo script si ferma con l'elenco delle righe che non rispettano le convenzioni; l
 | `correzione` | sì | domande aperte: indicazioni per chi corregge (criteri, mezzo punto, soluzione); altre domande: feedback generale |
 | `coderunner` | sì | solo domande CodeRunner: soluzione, codice di partenza e test (sotto) |
 | `tag` | sì | solo verifiche ripetibili: il tag della posizione; le righe con lo stesso tag sono varianti (sotto) |
-| `docente` | no | note interne: il ragionamento sulla domanda |
+| `docente` | no | note interne: il ragionamento sulla domanda; nelle verifiche, per gli esercizi CodeRunner, in fondo la riga `Griglia:` con i punti parziali |
 | `nota` | no | spiegazione di una modifica «da rivedere» |
 | `sezione`, `pag`, `punti`, `pos`, `titolo`, `tipologia` | sì | sezione del quiz, pagina, punti nel quiz, nome della domanda, tipo Moodle |
 
