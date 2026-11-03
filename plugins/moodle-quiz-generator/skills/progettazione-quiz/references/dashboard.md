@@ -16,7 +16,7 @@ Si legge e si scrive con `ArtifactData` sull'URL della pagina. Ogni scrittura su
 
 **Banca PDP**: documento `impostazioni/pdp`, `{banca: {nome, corso, contextid, cmid, top_id, top_stamp, categoria_id, categoria_nome, categoria_stamp}, domande: {nome: XML della voce}}`: le descrizioni «Riduzione contenuti PDP/PEI -k» e le dichiarazioni della banca condivisa, per le copie PDP (`crea_pdp.py --prepara-banca`).
 
-**Safe Exam Browser**: documento `impostazioni/seb`, `{nome, contenuto, nota}`: il file `.seb` messo in tutte le verifiche generate (`materiali-moodle`, «Safe Exam Browser»). È facoltativo; una verifica si esclude con `seb: false` nel quiz.
+**Safe Exam Browser**: documento `impostazioni/seb`, `{nome, contenuto, nota}`: il file `.seb` dei quiz con `seb: file` (`materiali-moodle`, «Safe Exam Browser»). La pagina ne mostra il nome nel pannello «Impostazioni avanzate».
 
 **Impostazioni**: documento `impostazioni/avvio` con `trigger` (id dell'attività «Avvia quiz dalla dashboard», `trig_…`; vuoto o assente: «Inizia» dà la frase da incollare) e `versione` (la `VERSIONE_PAGINA` con cui è stato scritto). Lo scrive l'installazione; l'utente può cambiare l'id dal riquadro «Impostazioni» della vista iniziale.
 
@@ -40,7 +40,10 @@ Si legge e si scrive con `ArtifactData` sull'URL della pagina. Ogni scrittura su
 | `esportato` | la scelta di «Segna come già esportato» o «Segna come da esportare»: `true`, `false`, oppure assente o `null`, e allora decide `esportazione` (`stato: "fatta"`, con `fine` successiva ad `approvato`) |
 | `ordine` | numero, facoltativo: il posto scelto a mano con «Riordina» dentro l'argomento. Assente o `null`: ordine automatico |
 | `prototipoHtml` | solo con esercizi HTML (`libero_html`): `php_con_test` (con anteprima, lo scratchpad; è anche il valore se il campo manca) o `html` (senza anteprima: il campo serve solo a incollare il codice provato nel browser). Nella pagina è «Esercizi HTML», nel modulo «Nuovo quiz» (linguaggio HTML e CSS) e nei dati del quiz; l'importazione da un backup lo mette a `html` se gli esercizi HTML usano quel prototipo |
-| `navigazione` | facoltativo: `sequenziale` per lo scorrimento solo avanti (non si torna alle pagine precedenti); vuoto o assente: navigazione libera. Nella pagina è «Scorrimento del quiz», nel modulo «Nuovo quiz» e nei dati del quiz, tranne che in SD, sempre sequenziale. L'importazione da un backup lo mette se il quiz era sequenziale |
+| `navigazione` | facoltativo, nel pannello «Impostazioni avanzate»: `sequenziale` (solo avanti, non si torna alle pagine precedenti) o `libero`; vuoto o assente: quello del tipo di quiz (SD sequenziale, gli altri libero). L'importazione da un backup lo mette se il quiz era sequenziale |
+| `feedback` | facoltativo, nello stesso pannello: `immediato` o `differito`; vuoto o assente: quello del tipo di quiz (esercitazioni immediato, verifiche e SD differito). Se è diverso dal tipo cambiano insieme comportamento e opzioni di revisione: `immediato` come un'esercitazione, `differito` come SD |
+| `seb` | facoltativo, nello stesso pannello: `no`, `manuale` (configurazione manuale con i valori standard di Moodle) o `file` (il file di `impostazioni/seb`); vuoto o assente: quello del tipo di quiz (V `file`; VT e gli altri quiz con impostazioni da verifica `manuale`; il resto `no`). Con `file` e il documento mancante, se la scelta è esplicita lo script si ferma, altrimenti usa `manuale` con un avviso |
+| `password` | facoltativo, nello stesso pannello: la password di accesso al quiz in Moodle; vuoto o assente: nessuna |
 | `deposito` | facoltativo: l'`id` di un deposito di `impostazioni/depositi`; le domande vanno nella banca di quel deposito invece che in quella del quiz (pagina: «Dove vanno le domande»). La categoria deve esistere già nel deposito e il backup va ripristinato nel corso del deposito: la pagina lo ricorda negli avvisi |
 | facoltativi | `titoliSezioni` (oggetto sezione → titolo nel quiz), `nomeQuiz`, `voto` (10), `sufficienza` (6), `presetMbz` (`verifica` o `esercitazione`: le impostazioni dell'.mbz di un quiz `IMP`, prese dal backup) |
 

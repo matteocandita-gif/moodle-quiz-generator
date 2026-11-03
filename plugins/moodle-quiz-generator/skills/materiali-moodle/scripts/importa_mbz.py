@@ -1187,6 +1187,11 @@ def importa(bk, cartella_quiz, qz, qid=None):
         quiz["database"] = dbs
     if tx(qz, "navmethod", "free") == "sequential":
         quiz["navigazione"] = "sequenziale"
+    quiz["feedback"] = "immediato" if tx(qz, "preferredbehaviour") in ("interactive", "immediatefeedback") else "differito"
+    richiede_seb = tx(qz.find("subplugin_quizaccess_seb_quiz/quizaccess_seb_quizsettings"), "requiresafeexambrowser", "0")
+    quiz["seb"] = {"1": "manuale", "2": "manuale", "3": "file"}.get(richiede_seb, "no")
+    if tx(qz, "password"):
+        quiz["password"] = tx(qz, "password")
     if imp.proto_html == {"html"}:
         quiz["prototipoHtml"] = "html"     # esercizi HTML senza anteprima (prototipo html)
     elif len(imp.proto_html) > 1:

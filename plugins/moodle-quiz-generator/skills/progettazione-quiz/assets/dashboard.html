@@ -334,6 +334,9 @@ ol.welcome li{margin:4px 0}
 textarea.copia{width:100%;min-height:4em;margin-bottom:8px}
 .nform small{display:block;margin-top:2px}
 .meta.nform{align-items:start}
+.meta>details.avanzate{grid-column:1/-1}
+.avanzate>summary small{font-size:12.5px;font-weight:400;color:var(--fg-3)}
+.avanzate .panel-body{overflow-x:visible}
 tr.grp td{background:color-mix(in srgb,var(--accent-soft) 35%,transparent)}
 tr.var td{background:var(--surface-2);border-bottom-color:var(--line)}
 .vtog{display:block;width:100%;text-align:left;border:0;background:none;color:var(--accent);font-size:12.5px;font-weight:600;padding:4px 6px;cursor:pointer;overflow-wrap:anywhere}
@@ -717,7 +720,17 @@ const CR_WEB={libero_html:"html",libero_css:"css"};
 /* prototipo Moodle degli esercizi liberi: l'HTML usa php_con_test, che ha lo scratchpad (come da_dashboard.py) */
 const PROTO_WEB={html:"php_con_test",css:"css"};
 /* esercizi HTML: con anteprima (php_con_test, scratchpad) o senza (prototipo html), scelto nei dati del quiz */
-const NAVIGAZIONE=[["","Libero: si può tornare alle pagine precedenti"],["sequenziale","Solo avanti: non si torna indietro"]];
+/* impostazioni avanzate: le valorizza il tipo di quiz (stessa regola di da_dashboard.py); nel quiz resta solo ciò che si è cambiato */
+const NAVIGAZIONE=[["libero","Libero"],["sequenziale","Forzato: solo avanti"]];
+const FEEDBACK=[["immediato","Immediato"],["differito","Differito"]];
+const SEB=[["no","No"],["manuale","Sì, con configurazione manuale"],["file","Sì, con file"]];
+const AVANZATE=["navigazione","feedback","seb"];
+function presetQuiz(q){const t=q.tipoQuiz;if(t==="V"||t==="VT")return "verifica";if(t==="SD")return "studio";if(t==="LIB"||t==="IMP")return q.presetMbz==="verifica"?"verifica":"esercitazione";return "esercitazione";}
+function avanzateTipo(q){const p=presetQuiz(q);return {navigazione:p==="studio"?"sequenziale":"libero",feedback:p==="esercitazione"?"immediato":"differito",seb:q.tipoQuiz==="V"?"file":p==="verifica"?"manuale":"no"};}
+function avanzataDi(q,f){return q[f]||avanzateTipo(q)[f];}
+/* il valore uguale a quello del tipo non si salva: se il tipo cambia, segue il tipo */
+function valoreAvanzata(q,f,v){return v===avanzateTipo(q)[f]?"":v;}
+function opzioniAvanzata(q,f,L){const d=avanzateTipo(q)[f];return L.map(function(o){return [o[0],o[0]===d?o[1]+" (dal tipo)":o[1]];});}
 const PROTO_HTML=[["php_con_test","Con anteprima: area di prova sotto la risposta (php_con_test)"],["html","Senza anteprima: solo il campo dove incollare il codice (prototipo html)"]];
 function protoWeb(web,q){q=q||S.quiz;if(web==="html"&&q&&q.prototipoHtml==="html")return "html";return PROTO_WEB[web];}
 const CR_SQL=["query","create_tabelle","query_due_passi","vincoli","campo_prova"],CR_PHP=["pagina_php"];
@@ -1138,10 +1151,11 @@ function renderHeader(){
   ["home","scaletta","dettaglio"].forEach(function(v){$("#tab-"+v).setAttribute("aria-selected",(S.view===v||(v==="home"&&S.view==="nuovo"))?"true":"false");});
 }
 /* ------------------------------------------------------------------ vista iniziale e nuovo quiz */
-const VERSIONE_PAGINA="0.4.1";
+const VERSIONE_PAGINA="0.5.0";
 const PERCORSO_IMPOSTAZIONI="impostazioni/avvio";
 /* depositi delle domande (banche qbank dei corsi deposito): li scrive Claude leggendo un backup */
 const PERCORSO_DEPOSITI="impostazioni/depositi";
+const PERCORSO_SEB="impostazioni/seb";
 function depositiNoti(){return (S.depositi||[]).filter(function(d){return d&&d.id;});}
 function depositoDi(q){return depositiNoti().find(function(d){return d.id===q.deposito;})||null;}
 function triggerAvvio(){return S.imp&&typeof S.imp.trigger==="string"&&/^trig_[A-Za-z0-9]+$/.test(S.imp.trigger)?S.imp.trigger:"";}
@@ -1175,7 +1189,17 @@ function codiceCasuale(classe){
 /* una ED è una lezione di due ore: propone 105 minuti se il tempo è vuoto (o era stato proposto dalla pagina) */
 const TEMPO_PROPOSTO={ED:"105",SD:"40"};
 function tempoProposto(n){const vuoto=!String(n.tempo||"").trim(),t=TEMPO_PROPOSTO[n.tipoQuiz];if(t){if(vuoto||n.tempoAuto){n.tempo=t;n.tempoAuto=true;}}else if(n.tempoAuto){n.tempo="";n.tempoAuto=false;}}
-function nuovoVuoto(){return {tipoQuiz:"",titolo:"",lezione:"",classe:"",area:"",argomento:"",tempo:"",linguaggio:"",varianti:"1",avanzata:"",richiesta:"",materiale:false,presetMbz:"esercitazione",prototipoHtml:"php_con_test",navigazione:""};}
+function nuovoVuoto(){return {tipoQuiz:"",titolo:"",lezione:"",classe:"",area:"",argomento:"",tempo:"",linguaggio:"",varianti:"1",avanzata:"",richiesta:"",materiale:false,presetMbz:"esercitazione",prototipoHtml:"php_con_test",navigazione:"",feedback:"",seb:"",password:""};}
+function avanzateHTML(q,k){
+  const sel=function(f,lbl,L){return '<label class="fld"><span>'+lbl+'</span><select class="ctl" '+k(f)+' aria-label="'+lbl+'">'+opts(opzioniAvanzata(q,f,L),avanzataDi(q,f))+"</select></label>";};
+  const v={n:avanzataDi(q,"navigazione"),f:avanzataDi(q,"feedback"),s:avanzataDi(q,"seb")};
+  const riass=["scorrimento "+(v.n==="sequenziale"?"forzato":"libero"),"feedback "+v.f,v.s==="no"?"senza SEB":v.s==="file"?"SEB con file":"SEB manuale",String(q.password||"").trim()?"con password":"senza password"].join(" · ");
+  const notaSeb=v.s==="file"?(S.sebFile?"File in uso: "+S.sebFile+". Per cambiarlo, allegalo in chat.":"Nessun file salvato: allegalo in chat prima di esportare."):v.s==="manuale"?"Moodle usa le sue impostazioni standard di Safe Exam Browser.":"";
+  return '<details class="panel avanzate" data-ap="impostazioni-avanzate"'+(aperta("impostazioni-avanzate",false)?" open":"")+'><summary>Impostazioni avanzate <small>'+esc(riass)+"</small>"+ico("chev","chev")+'</summary><div class="panel-body"><div class="meta">'+
+    sel("navigazione","Scorrimento del quiz",NAVIGAZIONE)+sel("feedback","Feedback",FEEDBACK)+sel("seb","Safe Exam Browser",SEB)+
+    '<label class="fld"><span>Password di accesso</span><input class="ctl" type="text" autocomplete="off" spellcheck="false" '+k("password")+' value="'+esc(q.password||"")+'" aria-label="Password di accesso"></label>'+
+    "</div>"+(notaSeb?'<p class="legend">'+esc(notaSeb)+"</p>":"")+"</div></details>";
+}
 function faseLabel(f){return label(FASI,f)||"Senza fase";}
 /* ------------------------------------------------------------------ organizzazione: classe > argomento */
 const CLASSI_ORDINE=["terza","quarta","quinta"];
@@ -1306,10 +1330,10 @@ function nuovoHTML(){
     fld("Tempo disponibile (minuti)",'<input class="ctl" type="number" min="1" '+k("tempo")+' value="'+esc(n.tempo)+'" aria-required="true">',true)+
     fld("Linguaggio",'<select class="ctl" '+k("linguaggio")+">"+opts(LINGUAGGI,n.linguaggio)+"</select>",false)+
     (n.tipoQuiz==="LIB"?fld("In Moodle si comporta come",'<select class="ctl" '+k("presetMbz")+">"+opts([["esercitazione","Esercitazione: feedback subito, tentativi illimitati"],["verifica","Verifica: un tentativo, feedback alla restituzione"]],n.presetMbz||"esercitazione")+"</select>",false,true):"")+
-    (n.tipoQuiz!=="SD"?fld("Scorrimento del quiz",'<select class="ctl" '+k("navigazione")+">"+opts(NAVIGAZIONE,n.navigazione||"")+"</select>",false,true):"")+
     (n.linguaggio==="html-css"?fld("Esercizi HTML",'<select class="ctl" '+k("prototipoHtml")+">"+opts(PROTO_HTML,n.prototipoHtml||"php_con_test")+"</select>",false,true):"")+
     (ver?fld("Varianti per domanda",'<select class="ctl" '+k("varianti")+">"+opts([["1","Una (nessuna variante)"],["2","Due"],["3","Tre"]],n.varianti)+"</select>",false):"")+
     (n.tipoQuiz==="V"?fld("Parte avanzata (per il 9 e il 10)",'<input class="ctl" '+k("avanzata")+' value="'+esc(n.avanzata)+'" placeholder="Gli argomenti: LEFT JOIN, GROUP BY e HAVING su tre tabelle…">',false,true):"")+
+    (n.tipoQuiz?avanzateHTML(n,k):"")+
     "</section>"+guidaTipiHTML(n.tipoQuiz)+
     '<label class="fld"><span>Richiesta <b class="req" aria-hidden="true">*</b> · scrivi come in chat che cosa vuoi, da dove partire, che cosa evitare</span><textarea class="ctl note big" '+k("richiesta")+' aria-required="true" placeholder="Per esempio: verifica di ripasso su SELECT, JOIN e GROUP BY, tre domande di teoria, una pagina PHP con form…">'+esc(n.richiesta)+"</textarea></label>"+
     '<label class="chk"><input type="checkbox" '+k("materiale")+(n.materiale?" checked":"")+"> Ho dei file da allegare (manuale, esercitazioni svolte, backup): li allego in chat dopo l'avvio, e la sessione mi aspetta</label>"+
@@ -1406,7 +1430,8 @@ async function inizia(){
     fase:"richiesta",note:"",creato:new Date().toISOString()};
   if(n.tipoQuiz==="LIB")doc.presetMbz=n.presetMbz==="verifica"?"verifica":"esercitazione";
   if(n.linguaggio==="html-css")doc.prototipoHtml=n.prototipoHtml==="html"?"html":"php_con_test";
-  if(n.tipoQuiz!=="SD"&&n.navigazione==="sequenziale")doc.navigazione="sequenziale";
+  AVANZATE.forEach(function(f){const v=n[f]?valoreAvanzata(n,f,n[f]):"";if(v)doc[f]=v;});
+  if(String(n.password||"").trim())doc.password=String(n.password).trim();
   try{await S.db.doc("quiz/"+id).set(doc);}catch(e){S.inviando=false;toast("Non sono riuscito a salvare il quiz"+(e&&e.code?" ("+e.code+")":"")+".",true);return render();}
   S.quizId=id;S.nuovo=null;S.nuovoErr=[];
   avviaSessione(id,doc.titolo,doc.materiale);
@@ -1451,9 +1476,9 @@ function metaHTML(q){
     '<label class="fld wide"><span>Categoria Moodle</span><input class="ctl" '+k("argomento")+' value="'+esc(q.argomento)+'" aria-label="Categoria Moodle"></label>'+
     '<label class="fld"><span>Tempo disponibile (minuti)</span><input class="ctl" type="number" min="0" data-t="n" '+k("tempo")+' value="'+esc(q.tempo)+'" aria-label="Tempo disponibile in minuti"></label>'+
     '<label class="fld"><span>Fase</span><select class="ctl" '+k("fase")+' aria-label="Fase">'+opts(FASI,q.fase).replace('value="dettaglio-approvato"',mancanti()>0?'value="dettaglio-approvato" disabled':'value="dettaglio-approvato"')+"</select></label>"+
-    (q.tipoQuiz!=="SD"?'<label class="fld wide"><span>Scorrimento del quiz</span><select class="ctl" '+k("navigazione")+' aria-label="Scorrimento del quiz">'+opts(NAVIGAZIONE,q.navigazione||"")+"</select></label>":"")+
     (q.linguaggio==="html-css"||q.prototipoHtml||S.rows.some(function(r){return r.tipologia==="libero_html";})?'<label class="fld wide"><span>Esercizi HTML</span><select class="ctl" '+k("prototipoHtml")+' aria-label="Esercizi HTML">'+opts(PROTO_HTML,q.prototipoHtml||"php_con_test")+"</select></label>":"")+
     (depositiNoti().length||q.deposito?'<label class="fld wide"><span>Dove vanno le domande</span><select class="ctl" '+k("deposito")+' aria-label="Dove vanno le domande">'+opts([["","Nella banca del quiz (poi, se serve, la sposti tu nel deposito)"]].concat(depositiNoti().map(function(d){return [d.id,"Nel deposito «"+(d.nome||d.id)+"»"];})).concat(q.deposito&&!depositoDi(q)?[[q.deposito,"Deposito «"+q.deposito+"» (non registrato)"]]:[]),q.deposito||"")+"</select></label>":"")+
+    avanzateHTML(q,k)+
     '<div class="fld wide"><span>Avanzamento</span><div>'+btn+"</div></div>"+
     '<div class="fld wide"><span>Categoria in Moodle</span><div class="cat">'+esc(categoriaQuiz(q))+"</div></div>"+
   "</section>";
@@ -1949,7 +1974,7 @@ main.addEventListener("toggle",function(e){
 main.addEventListener("input",function(e){
   const t=e.target;
   if(t.dataset.draft&&S.edit){S.edit[t.dataset.draft]=t.value;return;}
-  if(t.dataset.nv){S.nuovo[t.dataset.nv]=t.type==="checkbox"?t.checked:t.value;if(t.dataset.nv==="tempo")S.nuovo.tempoAuto=false;if(t.dataset.nv==="tipoQuiz")tempoProposto(S.nuovo);if(t.dataset.nv==="area")S.nuovo.areaAuto=false;if(t.dataset.nv==="linguaggio")areaProposta(S.nuovo);if(t.dataset.nv==="tipoQuiz"||t.dataset.nv==="linguaggio"){render();}return;}
+  if(t.dataset.nv){S.nuovo[t.dataset.nv]=t.type==="checkbox"?t.checked:t.value;if(t.dataset.nv==="tempo")S.nuovo.tempoAuto=false;if(t.dataset.nv==="tipoQuiz")tempoProposto(S.nuovo);if(t.dataset.nv==="area")S.nuovo.areaAuto=false;if(t.dataset.nv==="linguaggio")areaProposta(S.nuovo);if(AVANZATE.indexOf(t.dataset.nv)>=0)S.nuovo[t.dataset.nv]=valoreAvanzata(S.nuovo,t.dataset.nv,t.value);if(t.dataset.nv==="tipoQuiz"||t.dataset.nv==="linguaggio"||t.dataset.nv==="presetMbz"||AVANZATE.indexOf(t.dataset.nv)>=0){render();}return;}
   if(t.dataset.k)S.dirty[t.dataset.k]=t.value;
 });
 main.addEventListener("change",function(e){
@@ -1976,6 +2001,7 @@ main.addEventListener("change",function(e){
   }
   if(t.dataset.q){
     let v=t.value;if(t.dataset.t==="n")v=Math.max(0,num(v));
+    if(AVANZATE.indexOf(t.dataset.q)>=0)v=valoreAvanzata(S.quiz,t.dataset.q,v);
     delete S.dirty[t.dataset.k];
     if(t.dataset.q==="fase"&&v==="dettaglio-approvato")approvaRighe();
     if(t.dataset.q==="fase")return void save(quizPath(),patchFase(v));
@@ -2030,6 +2056,7 @@ async function init(){
   S.db=db;
   db.doc(PERCORSO_IMPOSTAZIONI).onSnapshot(function(snap){S.imp=snap.exists?Object.assign({},snap.data()||{}):{};render();},function(){S.imp={};render();});
   db.doc(PERCORSO_DEPOSITI).onSnapshot(function(snap){const d=snap.exists?(snap.data()||{}):{};S.depositi=Array.isArray(d.depositi)?d.depositi:[];render();},function(){S.depositi=[];render();});
+  db.doc(PERCORSO_SEB).onSnapshot(function(snap){const d=snap.exists?(snap.data()||{}):{};S.sebFile=d.nome||"";render();},function(){S.sebFile="";render();});
   db.collection("quiz").onSnapshot(function(snap){
     S.quizzes=snap.docs.map(function(d){const o=Object.assign({},d.data()||{});o.id=d.id;return o;}).sort(perData);
     if(!S.quizzes.some(function(q){return q.id===S.quizId;})){const a=S.quizzes.find(function(q){return !q.archiviato;})||S.quizzes[0];S.quizId=a?a.id:null;}

@@ -361,6 +361,11 @@ def carica(export, qid):
     return quiz, righe
 
 
+def avanzate_tipo(quiz, preset):
+    """Impostazioni avanzate che il tipo di quiz dà da solo (stessa regola della pagina, avanzateTipo)."""
+    return {"seb": "file" if quiz.get("tipoQuiz") == "V" else "manuale" if preset == "verifica" else "no"}
+
+
 def file_seb(export):
     """File di Safe Exam Browser delle verifiche (documento impostazioni/seb, esportato con out_dir)."""
     p = os.path.join(export, "impostazioni", "seb.json")
@@ -1028,11 +1033,18 @@ def main():
            "sezioni": sezioni}
     if preset in ("verifica", "studio") and quiz.get("tempo"):
         imp["impostazioni"] = {"timelimit": int(float(quiz["tempo"])) * 60}
-    # scorrimento solo avanti, scelto quiz per quiz (il preset «studio» lo ha già)
-    if quiz.get("navigazione") == "sequenziale":
-        imp.setdefault("impostazioni", {})["navmethod"] = "sequential"
-    # Safe Exam Browser: nelle verifiche il file delle impostazioni, salvo «seb: false» nel quiz
-    if preset == "verifica" and quiz.get("seb") is not False:
+    # impostazioni avanzate del quiz: quando mancano valgono quelle del preset
+    if quiz.get("navigazione") in ("sequenziale", "libero"):
+        imp.setdefault("impostazioni", {})["navmethod"] = "sequential" if quiz["navigazione"] == "sequenziale" else "free"
+    if quiz.get("feedback") in ("immediato", "differito"):
+        imp["feedback"] = quiz["feedback"]
+    if (quiz.get("password") or "").strip():
+        imp.setdefault("impostazioni", {})["password"] = quiz["password"].strip()
+    # Safe Exam Browser: scelto nel quiz o dal tipo di quiz; il file sta nelle impostazioni della dashboard
+    modo_seb = quiz.get("seb") or avanzate_tipo(quiz, preset)["seb"]
+    if modo_seb == "manuale":
+        imp["seb"] = {"modo": "manuale"}
+    elif modo_seb == "file":
         nome_seb, testo_seb = file_seb(export)
         if nome_seb and testo_seb:
             cartella_seb = os.path.join(usc, "seb")
@@ -1040,9 +1052,13 @@ def main():
             percorso_seb = os.path.join(cartella_seb, os.path.basename(nome_seb))
             with open(percorso_seb, "w", encoding="utf-8", newline="") as f:
                 f.write(testo_seb)
-            imp["seb"] = {"nome": os.path.basename(nome_seb), "file": os.path.abspath(percorso_seb)}
+            imp["seb"] = {"modo": "file", "nome": os.path.basename(nome_seb), "file": os.path.abspath(percorso_seb)}
+        elif quiz.get("seb") == "file":
+            raise SystemExit("ERRORE: il quiz usa Safe Exam Browser con file, ma in impostazioni/seb non c'è il file "
+                             "(esportato in EXPORT/impostazioni/seb.json).")
         else:
-            print("AVVISO: nessun file di Safe Exam Browser in impostazioni/seb: la verifica esce senza SEB.")
+            print("AVVISO: nessun file di Safe Exam Browser in impostazioni/seb: la verifica usa la configurazione manuale.")
+            imp["seb"] = {"modo": "manuale"}
     # domande già in un deposito (importate da un backup): il loro stamp d'origine, per riusarle senza doppioni
     stamp_o = {nome_moodle(quiz, r): r["stampOrigine"] for r in righe if (r.get("stampOrigine") or "").strip()}
     if stamp_o:

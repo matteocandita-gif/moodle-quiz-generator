@@ -15,7 +15,9 @@ Il formato dell'impaginazione è in references/formato-impaginazione.md. In brev
   "impostazioni": {"timelimit": 5400},  # facoltativo: sovrascrive il preset
   "banca": {...},                       # facoltativo: banca di un deposito già esistente (sotto)
   "stamp": {"L3 - A1 - ...": "..."},    # facoltativo: stamp delle domande che sono già in un deposito
-  "seb": {"nome": "x.seb", "file": "..."},  # facoltativo: file di configurazione di Safe Exam Browser
+  "feedback": "immediato",              # facoltativo: immediato o differito, se diverso dal preset
+  "seb": {"modo": "file", "nome": "x.seb", "file": "..."},  # facoltativo: Safe Exam Browser con file,
+                                        # oppure {"modo": "manuale"}: impostazioni standard di Moodle
   "voto_massimo": 10, "voto_sufficienza": 6,
   "sezioni": [
     {"titolo": "", "domande": [{"nome": "L1 - 00 - ...", "pagina": 1, "punti": 0}]},
@@ -590,19 +592,25 @@ class Banca:
 
 # ---------------------------------------------------------------- scrittura dei file del backup
 
-def seb_xml(ids, ora):
-    """Safe Exam Browser con un file di configurazione caricato: stessi campi di un backup reale (Moodle 5.2)."""
-    vuoti = ("showsebtaskbar", "showwificontrol", "showreloadbutton", "showtime", "showkeyboardlayout",
-             "allowuserquitseb", "quitpassword", "linkquitseb", "userconfirmquit", "enableaudiocontrol",
-             "muteonstartup", "allowcapturecamera", "allowcapturemicrophone", "allowspellchecking",
-             "allowreloadinexam", "activateurlfiltering", "filterembeddedcontent", "expressionsallowed",
-             "regexallowed", "expressionsblocked", "regexblocked")
-    campi = "".join("        <%s>%s</%s>\n" % (c, NULL, c) for c in vuoti)
+def seb_con_file(seb):
+    return seb if seb and seb.get("modo", "file") == "file" else None
+
+
+def seb_xml(seb, ids, ora):
+    """Safe Exam Browser: stessi campi di un backup reale (Moodle 5.2). Con il file (3) i campi restano vuoti;
+    con la configurazione manuale (1) hanno i valori standard di Moodle."""
+    manuale = {"showsebtaskbar": 1, "showwificontrol": 0, "showreloadbutton": 1, "showtime": 1, "showkeyboardlayout": 1,
+               "allowuserquitseb": 1, "quitpassword": NULL, "linkquitseb": NULL, "userconfirmquit": 1,
+               "enableaudiocontrol": 0, "muteonstartup": 0, "allowcapturecamera": 0, "allowcapturemicrophone": 0,
+               "allowspellchecking": 0, "allowreloadinexam": 1, "activateurlfiltering": 0, "filterembeddedcontent": 0,
+               "expressionsallowed": NULL, "regexallowed": NULL, "expressionsblocked": NULL, "regexblocked": NULL}
+    con_file = seb_con_file(seb)
+    campi = "".join("        <%s>%s</%s>\n" % (c, NULL if con_file else v, c) for c, v in manuale.items())
     return f"""      <quizaccess_seb_quizsettings>
         <quizid>{ids['quiz']}</quizid>
         <cmid>{ids['mid']}</cmid>
         <templateid>0</templateid>
-        <requiresafeexambrowser>3</requiresafeexambrowser>
+        <requiresafeexambrowser>{3 if con_file else 1}</requiresafeexambrowser>
 {campi}        <showsebdownloadlink>1</showsebdownloadlink>
         <allowedbrowserexamkeys></allowedbrowserexamkeys>
         <timecreated>{ora}</timecreated>
@@ -612,7 +620,13 @@ def seb_xml(ids, ora):
 
 def quiz_xml(L, ids, banca, righe, nome, ora):
     imp = dict(COMUNI)
-    imp.update(PRESET[L.get("preset", "esercitazione")])
+    preset = L.get("preset", "esercitazione")
+    imp.update(PRESET[preset])
+    # feedback scelto nel quiz: comportamento e revisione insieme, perché con il comportamento da solo non si vedrebbe nulla
+    feedback = L.get("feedback")
+    if feedback and feedback != ("immediato" if preset == "esercitazione" else "differito"):
+        modello = PRESET["esercitazione" if feedback == "immediato" else "studio"]
+        imp.update({k: v for k, v in modello.items() if k == "preferredbehaviour" or k.startswith("review")})
     imp.update(L.get("impostazioni", {}))
     somma = sum(r["punti"] for r in righe)
     istanze = []
@@ -669,7 +683,7 @@ def quiz_xml(L, ids, banca, righe, nome, ora):
              "reviewspecificfeedback", "reviewgeneralfeedback", "reviewrightanswer", "reviewoverallfeedback",
              "questionsperpage", "navmethod", "shuffleanswers"]
     testa = "".join("    <%s>%s</%s>\n" % (c, imp[c], c) for c in campi)
-    coda = "".join("    <%s>%s</%s>\n" % (c, imp[c], c) for c in
+    coda = "".join("    <%s>%s</%s>\n" % (c, x(str(imp[c])), c) for c in
                    ["password", "subnet", "browsersecurity", "delay1", "delay2", "showuserpicture", "showblocks",
                     "completionattemptsexhausted", "completionminattempts", "allowofflineattempts"])
     return f"""<?xml version="1.0" encoding="UTF-8"?>
@@ -684,7 +698,7 @@ def quiz_xml(L, ids, banca, righe, nome, ora):
     <timemodified>{ora}</timemodified>
 {coda}    <precreateattempts>{NULL}</precreateattempts>
     <subplugin_quizaccess_seb_quiz>
-{seb_xml(ids, ora) if L.get('seb') else ''}    </subplugin_quizaccess_seb_quiz>
+{seb_xml(L['seb'], ids, ora) if L.get('seb') else ''}    </subplugin_quizaccess_seb_quiz>
     <quiz_grade_items>
     </quiz_grade_items>
     <question_instances>
@@ -856,7 +870,7 @@ def main():
   </tags>
 </module>"""
     # file di Safe Exam Browser: sta nel contesto dell'attività e l'attività lo cita in inforef.xml
-    seb = L.get("seb")
+    seb = seb_con_file(L.get("seb"))
     ref_seb = "" if not seb else """  <fileref>
     <file>
       <id>99701</id>

@@ -22,7 +22,7 @@ Impostazioni dell'.mbz, verificate su backup reali del Moodle della scuola (5.2)
 - **verifica**: feedback differito, un tentativo, tempo pari al tempo del quiz, durante la prova si vede solo il tentativo e il punteggio massimo; feedback, punteggi e risposte giuste si aprono dopo, alla restituzione, cambiando le opzioni di revisione del quiz (ricordalo nel messaggio di consegna);
 - **studio**: navigazione sequenziale (non si torna alle pagine precedenti), feedback differito, un tentativo, tempo pari al tempo del quiz (40 minuti se manca); durante il tentativo nessuna verifica, revisione completa (risposte, punteggi, feedback, risposta giusta) subito dopo la consegna e dopo, finché il quiz è aperto. Provato con un ripristino reale il 24/10/2026.
 
-**Scorrimento solo avanti**: si sceglie quiz per quiz con il campo `navigazione: sequenziale` (nella pagina «Scorrimento del quiz»), e vale con le impostazioni esercitazione e verifica. Di norma la navigazione è libera; il preset studio è sempre sequenziale.
+**Impostazioni avanzate**: scorrimento, feedback, Safe Exam Browser e password le valorizza il tipo di quiz e si cambiano quiz per quiz nel pannello della pagina (campi `navigazione`, `feedback`, `seb`, `password`, in `dashboard.md`). Il tipo dà: scorrimento libero, forzato solo in SD; feedback immediato nelle esercitazioni, differito in verifiche e SD; SEB con file nelle verifiche di programmazione, manuale nelle verifiche teoriche, nessuno altrove; nessuna password.
 
 Voto del quiz: 10, sufficienza 6, salvo indicazione diversa nel quiz della dashboard.
 
