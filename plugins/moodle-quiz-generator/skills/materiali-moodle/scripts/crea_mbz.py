@@ -15,6 +15,7 @@ Il formato dell'impaginazione è in references/formato-impaginazione.md. In brev
   "impostazioni": {"timelimit": 5400},  # facoltativo: sovrascrive il preset
   "banca": {...},                       # facoltativo: banca di un deposito già esistente (sotto)
   "stamp": {"L3 - A1 - ...": "..."},    # facoltativo: stamp delle domande che sono già in un deposito
+  "seb": {"nome": "x.seb", "file": "..."},  # facoltativo: file di configurazione di Safe Exam Browser
   "voto_massimo": 10, "voto_sufficienza": 6,
   "sezioni": [
     {"titolo": "", "domande": [{"nome": "L1 - 00 - ...", "pagina": 1, "punti": 0}]},
@@ -589,6 +590,26 @@ class Banca:
 
 # ---------------------------------------------------------------- scrittura dei file del backup
 
+def seb_xml(ids, ora):
+    """Safe Exam Browser con un file di configurazione caricato: stessi campi di un backup reale (Moodle 5.2)."""
+    vuoti = ("showsebtaskbar", "showwificontrol", "showreloadbutton", "showtime", "showkeyboardlayout",
+             "allowuserquitseb", "quitpassword", "linkquitseb", "userconfirmquit", "enableaudiocontrol",
+             "muteonstartup", "allowcapturecamera", "allowcapturemicrophone", "allowspellchecking",
+             "allowreloadinexam", "activateurlfiltering", "filterembeddedcontent", "expressionsallowed",
+             "regexallowed", "expressionsblocked", "regexblocked")
+    campi = "".join("        <%s>%s</%s>\n" % (c, NULL, c) for c in vuoti)
+    return f"""      <quizaccess_seb_quizsettings>
+        <quizid>{ids['quiz']}</quizid>
+        <cmid>{ids['mid']}</cmid>
+        <templateid>0</templateid>
+        <requiresafeexambrowser>3</requiresafeexambrowser>
+{campi}        <showsebdownloadlink>1</showsebdownloadlink>
+        <allowedbrowserexamkeys></allowedbrowserexamkeys>
+        <timecreated>{ora}</timecreated>
+      </quizaccess_seb_quizsettings>
+"""
+
+
 def quiz_xml(L, ids, banca, righe, nome, ora):
     imp = dict(COMUNI)
     imp.update(PRESET[L.get("preset", "esercitazione")])
@@ -663,7 +684,7 @@ def quiz_xml(L, ids, banca, righe, nome, ora):
     <timemodified>{ora}</timemodified>
 {coda}    <precreateattempts>{NULL}</precreateattempts>
     <subplugin_quizaccess_seb_quiz>
-    </subplugin_quizaccess_seb_quiz>
+{seb_xml(ids, ora) if L.get('seb') else ''}    </subplugin_quizaccess_seb_quiz>
     <quiz_grade_items>
     </quiz_grade_items>
     <question_instances>
@@ -834,9 +855,20 @@ def main():
   <tags>
   </tags>
 </module>"""
+    # file di Safe Exam Browser: sta nel contesto dell'attività e l'attività lo cita in inforef.xml
+    seb = L.get("seb")
+    ref_seb = "" if not seb else """  <fileref>
+    <file>
+      <id>99701</id>
+    </file>
+    <file>
+      <id>99702</id>
+    </file>
+  </fileref>
+"""
     inforef = f"""<?xml version="1.0" encoding="UTF-8"?>
 <inforef>
-  <grade_itemref>
+{ref_seb}  <grade_itemref>
     <grade_item>
       <id>99801</id>
     </grade_item>
@@ -855,18 +887,24 @@ def main():
 </inforef>"""
     # file delle domande (immagini del testo, database delle CodeRunner): voci in files.xml + contenuto in files/xx/hash
     import hashlib
-    CON_FILE = 1 if banca.file_domande else 0
+    CON_FILE = 1 if banca.file_domande or seb else 0
     blob = {}
     fx = ""
     fid = 99801
-    for qid_f, nome_f, dati_f, comp_f, area_f, mime_f in banca.file_domande:
+    voci = [(qctx, None) + f for f in banca.file_domande]
+    if seb:
+        with open(seb["file"], "rb") as f:
+            voci.insert(0, (ctx, 99701, 0, seb["nome"], f.read(), "quizaccess_seb", "filemanager_sebconfigfile", "text/xml"))
+    for ctx_f, id_f, qid_f, nome_f, dati_f, comp_f, area_f, mime_f in voci:
+        if id_f:
+            fid = id_f
         h = hashlib.sha1(dati_f).hexdigest()
         blob["files/%s/%s" % (h[:2], h)] = dati_f
         for fn, hh, sz, mt in ((nome_f, h, len(dati_f), mime_f),
                                (".", "da39a3ee5e6b4b0d3255bfef95601890afd80709", 0, NULL)):
             fx += f"""  <file id="{fid}">
     <contenthash>{hh}</contenthash>
-    <contextid>{qctx}</contextid>
+    <contextid>{ctx_f}</contextid>
     <component>{comp_f}</component>
     <filearea>{area_f}</filearea>
     <itemid>{qid_f}</itemid>
@@ -888,6 +926,8 @@ def main():
   </file>
 """
             fid += 1
+        if id_f:
+            fid = 99801
     files_xml = '<?xml version="1.0" encoding="UTF-8"?>\n<files>\n' + fx + '</files>'
     bname = "backup-moodle2-activity-%d-quiz%d-%s-nu-nf.mbz" % (mid, mid, time.strftime("%Y%m%d-%H%M"))
     backup = f"""<?xml version="1.0" encoding="UTF-8"?>

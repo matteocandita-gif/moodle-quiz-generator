@@ -361,6 +361,16 @@ def carica(export, qid):
     return quiz, righe
 
 
+def file_seb(export):
+    """File di Safe Exam Browser delle verifiche (documento impostazioni/seb, esportato con out_dir)."""
+    p = os.path.join(export, "impostazioni", "seb.json")
+    if not os.path.exists(p):
+        return None, None
+    d = json.load(open(p, encoding="utf-8"))
+    d = d.get("data", d) or {}
+    return d.get("nome"), d.get("contenuto")
+
+
 def depositi(export):
     """Depositi registrati nella dashboard (documento impostazioni/depositi, esportato con out_dir)."""
     p = os.path.join(export, "impostazioni", "depositi.json")
@@ -1021,6 +1031,18 @@ def main():
     # scorrimento solo avanti, scelto quiz per quiz (il preset «studio» lo ha già)
     if quiz.get("navigazione") == "sequenziale":
         imp.setdefault("impostazioni", {})["navmethod"] = "sequential"
+    # Safe Exam Browser: nelle verifiche il file delle impostazioni, salvo «seb: false» nel quiz
+    if preset == "verifica" and quiz.get("seb") is not False:
+        nome_seb, testo_seb = file_seb(export)
+        if nome_seb and testo_seb:
+            cartella_seb = os.path.join(usc, "seb")
+            os.makedirs(cartella_seb, exist_ok=True)
+            percorso_seb = os.path.join(cartella_seb, os.path.basename(nome_seb))
+            with open(percorso_seb, "w", encoding="utf-8", newline="") as f:
+                f.write(testo_seb)
+            imp["seb"] = {"nome": os.path.basename(nome_seb), "file": os.path.abspath(percorso_seb)}
+        else:
+            print("AVVISO: nessun file di Safe Exam Browser in impostazioni/seb: la verifica esce senza SEB.")
     # domande già in un deposito (importate da un backup): il loro stamp d'origine, per riusarle senza doppioni
     stamp_o = {nome_moodle(quiz, r): r["stampOrigine"] for r in righe if (r.get("stampOrigine") or "").strip()}
     if stamp_o:
