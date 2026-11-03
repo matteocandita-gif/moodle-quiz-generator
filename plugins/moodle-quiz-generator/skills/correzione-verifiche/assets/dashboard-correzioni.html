@@ -246,7 +246,7 @@ details.somi-scartate summary{cursor:pointer;color:var(--muted);font-size:.9rem;
       <button data-vista="domanda" aria-pressed="false">Per domanda</button>
       <button data-vista="studente" aria-pressed="false">Per studente</button>
       <button data-vista="riep" aria-pressed="false">Riepilogo voti</button>
-      <button data-vista="somiglianze" aria-pressed="false" id="b-somi">Somiglianze</button>
+      <button data-vista="somiglianze" aria-pressed="false" id="b-somi" title="Possibili copiature da controllare">Copiature</button>
       <button data-vista="importa" aria-pressed="false">Importa da Moodle</button>
     </div>
     <div class="ordine">Studenti per cognome <button id="ordine" aria-label="Cambia l'ordine degli studenti">A → Z</button></div>
@@ -757,7 +757,9 @@ function renderSomiglianze(){
   const scartate = voci.filter(([, v]) => v.decisione === "scartata"), attive = voci.filter(([, v]) => v.decisione !== "scartata");
   const simili = attive.filter(([, v]) => v.tipo === "simili"), fuori = attive.filter(([, v]) => v.tipo !== "simili");
   let h = `<section class="intesta"><h2>Somiglianze da controllare</h2>
-    <div class="criteri">Indizi da controllare, non prove: non dicono chi ha copiato da chi e non cambiano punteggi e commenti. Per una coppia guarda anche se erano vicini in aula. Per una risposta fuori linea apri il log delle risposte del tentativo in Moodle.</div>
+    <div class="criteri">Possibili copiature, solo i casi solidi. Sono indizi da controllare, non prove: non dicono chi ha copiato da chi e non cambiano punteggi e commenti.
+<b>Risposte simili:</b> lo stesso errore raro in due o tre studenti, le stesse righe inutili, lo stesso refuso poco comune in almeno due punti, nomi di una variante che lo studente non aveva, risposte aperte quasi uguali. Non contano il codice corretto e breve, ciò che detta la traccia, le forme viste a lezione e gli errori diffusi nella classe. Guarda anche se erano vicini in aula.
+<b>Risposte fuori linea:</b> una risposta a punteggio pieno o quasi, molto sopra il resto della verifica, che usa bene ciò che lo studente sbaglia in almeno altre due risposte. Apri il log delle risposte del tentativo in Moodle.</div>
     ${doc ? `<p class="n">Controllo del ${esc(String(doc.aggiornato || "").split("-").reverse().join("/"))}: ${esc(doc.confrontate ?? 0)} risposte confrontate.</p>` : ""}</section>`;
   if (!doc) h += `<div class="vuoto">Il controllo non è ancora stato fatto. Claude lo fa durante la correzione; per una verifica già corretta chiediglielo in chat.</div>`;
   else if (!voci.length) h += `<div class="vuoto">Nessuna segnalazione: il controllo non ha trovato casi solidi.</div>`;
@@ -1296,7 +1298,7 @@ function render(){
   const ss = studenti(); if (ss.length && (!st.stud || !ss.find(x=>x.k===st.stud))) st.stud = ss[0].k;
   renderTabs(); renderStato();
   const daGuardare = Object.values(st.somi?.voci || {}).filter(x => !x.decisione).length;
-  $("#b-somi").textContent = daGuardare ? `Somiglianze (${daGuardare})` : "Somiglianze";
+  $("#b-somi").textContent = daGuardare ? `Copiature (${daGuardare})` : "Copiature";
   if (st.vista === "riep") renderRiep();
   else if (st.vista === "somiglianze") renderSomiglianze();
   else if (st.vista === "importa") renderImporta();

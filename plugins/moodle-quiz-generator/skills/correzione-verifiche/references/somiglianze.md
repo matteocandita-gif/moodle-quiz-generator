@@ -1,6 +1,6 @@
 # Controllo delle somiglianze
 
-Un passaggio automatico della correzione: aiuta l'utente a trovare gli studenti che potrebbero aver copiato. Si fa sempre, senza che l'utente lo chieda, con i punteggi già caricati. Il risultato sta nella vista **Somiglianze** della dashboard e in una riga del messaggio di consegna.
+Un passaggio automatico della correzione: aiuta l'utente a trovare gli studenti che potrebbero aver copiato. Si fa sempre, senza che l'utente lo chieda, con i punteggi già caricati. Il risultato sta nel pannello **Copiature** della dashboard, intitolato «Somiglianze da controllare», e in una riga del messaggio di consegna.
 
 Sono **indizi da controllare, non prove**. Il controllo non dice chi ha copiato da chi, non distingue la copia da una fonte comune (un sito, un'IA) e non vede le copie di codice corretto e breve. **Non cambia punteggi e commenti**, e nei commenti agli studenti non se ne parla mai.
 
@@ -61,6 +61,8 @@ Il `motivo` è una riga che dice **che cosa si vede**, con il codice tra apici i
 
 Solo sigle, niente aggettivi che attribuiscano un genere allo studente.
 
+Il riquadro in cima al pannello spiega ai colleghi che cosa conta e che cosa no: se cambiano le regole di questo file, va aggiornato anche quel testo in `assets/dashboard-correzioni.html`.
+
 ## Formato di `esito.json`
 
 ```json
@@ -80,4 +82,4 @@ Solo sigle, niente aggettivi che attribuiscano un genere allo studente.
 
 ## Nel messaggio di consegna
 
-Una riga sola: «Controllo delle somiglianze: nessuna segnalazione» oppure «Controllo delle somiglianze: 2 segnalazioni, le trovi nella vista Somiglianze». Niente dettagli sugli studenti in chat, a meno che l'utente li chieda.
+Una riga sola: «Controllo delle somiglianze: nessuna segnalazione» oppure «Controllo delle somiglianze: 2 segnalazioni, le trovi nel pannello Copiature». Niente dettagli sugli studenti in chat, a meno che l'utente li chieda.
