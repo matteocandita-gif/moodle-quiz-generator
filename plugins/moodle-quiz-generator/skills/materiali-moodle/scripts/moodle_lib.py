@@ -389,6 +389,10 @@ def rendi_non_eseguibile(corpo, lingua, codice=""):
     import hashlib
     import random
     lingua = _lingua_lettura(lingua)
+    if lingua == "html":
+        # HTML: uno spazio a larghezza zero nel nome di ogni tag: a schermo non cambia niente,
+        # ma copiato nell'anteprima il tag non è più riconosciuto
+        return re.sub(r"&lt;(/?)([A-Za-z])", lambda m: "&lt;%s%s&#8203;" % (m.group(1), m.group(2)), corpo)
     if lingua not in _KW_LETTURA:
         AVVISI_LETTURA.append("codice da leggere in «%s»: si rende non eseguibile solo il codice "
                               "JavaScript, PHP e SQL; lasciato com'è" % (lingua or "senza linguaggio"))

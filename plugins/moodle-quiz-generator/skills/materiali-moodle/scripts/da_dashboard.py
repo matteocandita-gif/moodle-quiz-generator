@@ -60,7 +60,7 @@ CATALOGO = {
 # il codice JavaScript, PHP e SQL diventa non eseguibile (rendi_non_eseguibile di moodle_lib);
 # ```js esempio lo lascia com'è (codice di riferimento), ```js leggere lo chiede in ogni tipologia.
 LETTURA = {"tracciamento", "lettura_output", "trova_errore", "teoria_aperta", "debug_motivazione"}
-LINGUE_LETTURA = {"js", "javascript", "php", "sql"}
+LINGUE_LETTURA = {"js", "javascript", "php", "sql", "html"}
 
 
 def marca_lettura(tr):
@@ -652,7 +652,7 @@ Il pulsante di controllo sotto il campo della risposta **non esegue alcun test s
 
 def json_scratchpad(codice, prefisso=""):
     """Risposta o codice di partenza nel formato del prototipo php_con_test (interfaccia scratchpad)."""
-    return json.dumps({"answer_code": [codice], "test_code": [""], "show_hide": [""], "prefix_ans": [prefisso]},
+    return json.dumps({"answer_code": [codice], "test_code": [""], "show_hide": ["1" if prefisso else ""], "prefix_ans": [prefisso]},
                       ensure_ascii=False)
 OPZIONI_WEB = {"answerboxlines": "18", "answerboxcolumns": "100"}
 
@@ -699,7 +699,7 @@ def domanda_web(quiz, r):
          '    <generalfeedback format="html">\n      <text>%s</text>\n    </generalfeedback>\n' % (cdata(gf) if gf else ""),
          t("defaultgrade", punti), t("penalty", "0.0000000"), t("hidden", "0"), t("idnumber", ""),
          t("coderunnertype", proto), t("prototypetype", "0"), t("allornothing", "1"),
-         t("penaltyregime", "0"), t("precheck", "0"), t("hidecheck", "0"), t("showsource", "0"),
+         t("penaltyregime", "0"), t("precheck", "0"), t("hidecheck", "1"), t("showsource", "0"),
          t("answerboxlines", opz["answerboxlines"]), t("answerboxcolumns", opz["answerboxcolumns"]),
          t("answerpreload", cdata(json_scratchpad(val.get("preload", "").strip("\n"), "1")) if scratch
            else (cdata(val["preload"]) if val.get("preload", "").strip() else "")),
