@@ -2,6 +2,14 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## Prossima versione (in preparazione)
+
+Controllo delle somiglianze nella correzione delle verifiche (pagina «Correzione verifiche» 1.3.0).
+
+- Nuovo passaggio automatico della correzione: lo script `controlla_somiglianze.py` trova i candidati, Claude legge le risposte e tiene solo le segnalazioni solide (`references/somiglianze.md`). Non cerca codice simile, ma gli stessi errori rari e le stesse stranezze. Non cambia punteggi e commenti.
+- **Correzione verifiche**: nuova vista **Somiglianze**, con **Risposte simili** (coppie o gruppi, risposte affiancate e pezzi in comune evidenziati) e **Risposte fuori linea** (risposta stranamente corretta di chi sbaglia la stessa cosa altrove). Per ogni segnalazione «Da approfondire» o «Scartata»: la scelta resta salvata anche se il controllo si rifà.
+- **Correzione verifiche**: eliminando una verifica si cancellano anche i resoconti e le segnalazioni, che prima restavano nel database; eliminando uno studente si cancellano le segnalazioni in cui compare.
+
 ## 0.10.1 — 03/11/2026
 
 Commenti delle correzioni più espliciti sull'errore.

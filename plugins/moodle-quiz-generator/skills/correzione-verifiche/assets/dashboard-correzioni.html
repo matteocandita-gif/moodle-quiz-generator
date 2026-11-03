@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@600&display=swap">
 <style>
-/* Layout: elenco delle verifiche; dentro una verifica tre viste (per domanda, per studente, riepilogo) con la barra di navigazione in alto e una scheda per riga */
+/* Layout: elenco delle verifiche; dentro una verifica quattro viste (per domanda, per studente, riepilogo, somiglianze) con la barra di navigazione in alto e una scheda per riga */
 :root{
   --bg:#eef1ef; --panel:#ffffff; --ink:#1c2622; --muted:#5d6b65; --line:#d3dbd7;
   --accent:#1f6b52; --accent-ink:#ffffff; --accent-soft:#dcebe4; --bar:#13805a;
@@ -144,6 +144,18 @@ table.mappa th{color:var(--muted);font-weight:500}
 table.mappa td.testo{color:var(--muted);max-width:28em}
 table.mappa tr.ignorata td{opacity:.6}
 input.sigla-in{font-family:var(--f-mono);width:6.5em;font-size:.9rem;padding:2px 6px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink)}
+.somi{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:8px;padding:12px 14px;display:grid;gap:8px;min-width:0}
+.somi.appro{border-left-color:var(--bad)}
+.somi.scart{border-left-color:var(--line);opacity:.8}
+.somi p{margin:0}
+.somi-griglia{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:10px;min-width:0}
+.somi-col{display:grid;gap:4px;align-content:start;min-width:0}
+.somi-tit{font-size:.82rem;font-weight:600;color:var(--muted);margin-top:4px}
+.somi mark{background:color-mix(in srgb,var(--warn) 35%,transparent);color:inherit;border-radius:2px;padding:0 1px}
+.somi-sez{margin:18px 0 8px;font-size:1rem}
+.somi .btn[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+details.somi-scartate{margin-top:18px}
+details.somi-scartate summary{cursor:pointer;color:var(--muted);font-size:.9rem;margin-bottom:8px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:7px 14px;border-radius:6px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.on{opacity:1}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
@@ -234,6 +246,7 @@ input.sigla-in{font-family:var(--f-mono);width:6.5em;font-size:.9rem;padding:2px
       <button data-vista="domanda" aria-pressed="false">Per domanda</button>
       <button data-vista="studente" aria-pressed="false">Per studente</button>
       <button data-vista="riep" aria-pressed="false">Riepilogo voti</button>
+      <button data-vista="somiglianze" aria-pressed="false" id="b-somi">Somiglianze</button>
       <button data-vista="importa" aria-pressed="false">Importa da Moodle</button>
     </div>
     <div class="ordine">Studenti per cognome <button id="ordine" aria-label="Cambia l'ordine degli studenti">A → Z</button></div>
@@ -244,9 +257,9 @@ input.sigla-in{font-family:var(--f-mono);width:6.5em;font-size:.9rem;padding:2px
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
-const VERSIONE_PAGINA="1.2.0"; /* alzala a ogni modifica della pagina: la skill propone l'aggiornamento */
+const VERSIONE_PAGINA="1.3.0"; /* alzala a ogni modifica della pagina: la skill propone l'aggiornamento */
 const DISCLAIMER_STD = "Il seguente feedback è stato scritto con l'aiuto di una IA generativa. La valutazione è stata svolta dal docente.";
-const st = { nuova:false, verifiche:{}, vid:null, domande:{}, val:{}, res:{}, resClasse:null, vista:"domanda", ordine:1, tab:null, stud:null, soloMoodle:false, nascondiRisp:false, db:null, unsub:[] };
+const st = { nuova:false, verifiche:{}, vid:null, domande:{}, val:{}, res:{}, resClasse:null, somi:null, vista:"domanda", ordine:1, tab:null, stud:null, soloMoodle:false, nascondiRisp:false, db:null, unsub:[] };
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmt = n => (n == null || n === "" || isNaN(n)) ? "—" : (Math.round(n*100)/100).toString().replace(".", ",");
@@ -377,11 +390,19 @@ async function togliRiga(ref, k){
   if (!dati.righe?.[k]) return;
   delete dati.righe[k]; await ref.set(dati);
 }
+async function togliSegnalazioni(ref, k){              // una segnalazione senza uno dei suoi studenti non ha più senso
+  const snap = await ref.get(); if (!snap.exists) return;
+  const dati = JSON.parse(JSON.stringify(snap.data()));
+  const via = Object.keys(dati.voci || {}).filter(i => (dati.voci[i].studenti || []).includes(k));
+  if (!via.length) return;
+  via.forEach(i => delete dati.voci[i]); await ref.set(dati);
+}
 async function eliminaStudente(k, {conta = true} = {}){
   await svuotaScritture();
   const vid = st.vid, base = `verifiche/${vid}`;
   for (const d of domOrd()) await togliRiga(st.db.collection(base + "/valutazioni").doc(d.id), k);
   await togliRiga(st.db.collection(base + "/resoconti").doc("studenti"), k);
+  await togliSegnalazioni(st.db.collection(base + "/somiglianze").doc("segnalazioni"), k);
   if (conta) await st.db.doc(base).update({studenti: Math.max(0, studenti().filter(s => s.k !== k).length)});
 }
 function segnaSalvato(id, t){ const el=document.querySelector(`[data-salv="${id}"]`); if(el) el.textContent=t; }
@@ -413,7 +434,7 @@ function renderElenco(){
 /* ---------- una verifica ---------- */
 function apri(vid){
   st.unsub.forEach(u => { try{u();}catch(_){} }); st.unsub = [];
-  st.vid = vid; st.domande = {}; st.val = {}; st.res = {}; st.resClasse = null; st.tab = null; st.stud = null; salvaUI();
+  st.vid = vid; st.domande = {}; st.val = {}; st.res = {}; st.resClasse = null; st.somi = null; st.tab = null; st.stud = null; salvaUI();
   if (!vid) { render(); return; }
   $("#vista").innerHTML = `<div class="vuoto">Caricamento delle correzioni…</div>`;
   const base = `verifiche/${vid}`;
@@ -426,6 +447,11 @@ function apri(vid){
     s.docs.forEach(d => { if (d.id === "studenti") st.res = d.data().righe || {}; if (d.id === "classe") st.resClasse = d.data(); });
     if (document.activeElement?.classList.contains("in-res")) return;
     if (st.vista === "studente" || st.vista === "riep") render();
+  }, () => {}));
+  // Controllo delle somiglianze: un documento con le segnalazioni, scritto da Claude; qui si salva solo la decisione
+  st.unsub.push(st.db.collection(base + "/somiglianze").limit(5).onSnapshot(s => {
+    st.somi = null; s.docs.forEach(d => { if (d.id === "segnalazioni") st.somi = d.data(); });
+    render();
   }, () => {}));
   st.unsub.push(st.db.collection(base + "/valutazioni").limit(200).onSnapshot(s => {
     const attivo = document.activeElement; const focusId = attivo?.id; const sel = attivo && "selectionStart" in attivo ? [attivo.selectionStart, attivo.selectionEnd] : null;
@@ -465,7 +491,7 @@ function segnaAvanzamento(av){                  // l'avanzamento nell'elenco, sc
 
 function renderTabs(){
   const t = $("#tabs");
-  if (st.vista === "riep" || st.vista === "importa") { t.hidden = true; return; }
+  if (st.vista === "riep" || st.vista === "importa" || st.vista === "somiglianze") { t.hidden = true; return; }
   t.hidden = false;
   if (st.vista === "domanda") {
     t.innerHTML = domOrd().map(d => {
@@ -687,11 +713,63 @@ function renderRiep(){
         await st.db.collection(`verifiche/${vid}/valutazioni`).doc(d).delete();
         await st.db.collection(`verifiche/${vid}/domande`).doc(d).delete();
       }
+      await st.db.collection(`verifiche/${vid}/resoconti`).doc("studenti").delete();
+      await st.db.collection(`verifiche/${vid}/resoconti`).doc("classe").delete();
+      await st.db.collection(`verifiche/${vid}/somiglianze`).doc("segnalazioni").delete();
       await st.db.doc(`verifiche/${vid}`).delete();
       toast("Verifica eliminata"); apri(null);
     } catch(e) { b.disabled = false; b.textContent = "Elimina definitivamente"; toast("Eliminazione non riuscita: " + (e.code||"errore")); }
   };
   document.querySelectorAll("[data-apri]").forEach(r => r.onclick = () => { st.vista = "studente"; st.stud = r.dataset.apri; salvaUI(); render(); window.scrollTo({top:0}); });
+}
+
+/* ---------- controllo delle somiglianze: indizi per il docente, non prove; non toccano punteggi e commenti ---------- */
+function conSegni(testo, frammenti){                  // evidenzia i pezzi in comune, con gli spazi liberi (lo script li riporta divisi per simboli)
+  const parti = (frammenti || []).filter(Boolean).map(f => String(f).trim().split(/\s+/).map(x => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("\\s*"));
+  if (!parti.length) return esc(testo);
+  const re = new RegExp(parti.join("|"), "gi"); let h = "", i = 0, m;
+  while ((m = re.exec(testo))) {
+    if (!m[0]) { re.lastIndex++; continue; }
+    h += esc(testo.slice(i, m.index)) + `<mark>${esc(m[0])}</mark>`; i = m.index + m[0].length;
+  }
+  return h + esc(testo.slice(i));
+}
+function siglaDi(k){ const s = studenti().find(x => x.k === k); return s ? s.s : k; }
+function rispostaSomi(d, k, frammenti){
+  const dom = st.domande[d], v = rigaDi(d, k); if (!dom) return "";
+  return `<div class="somi-col"><div class="n"><span class="sigla">${esc(siglaDi(k))}</span> ${nomeDom(dom)}${v && v.punti != null ? ` · ${fmt(v.punti)}/${fmt(dom.max)}` : ""}</div>
+    <pre class="risp">${v ? conSegni(String(v.risposta || ""), frammenti) : "Risposta non disponibile"}</pre></div>`;
+}
+function voceSomi(id, v){
+  const dec = v.decisione || "", chi = (v.studenti || []).map(k => `<span class="sigla">${esc(siglaDi(k))}</span>${isPdp(k) ? ' <span class="pdp">PDP</span>' : ""}`).join(" ");
+  const doms = v.domande || [];
+  let corpo = doms.map(d => `<div class="somi-griglia">${(v.tipo === "simili" ? v.studenti : [v.studenti[0]]).map(k => rispostaSomi(d, k, v.frammenti?.[d]?.[k])).join("")}</div>`).join("");
+  if (v.tipo === "fuori-linea" && (v.confronto || []).length)
+    corpo += `<div class="somi-tit">Dove sbaglia la stessa cosa</div><div class="somi-griglia">${v.confronto.map(d => rispostaSomi(d, v.studenti[0])).join("")}</div>`;
+  return `<article class="somi ${dec === "approfondire" ? "appro" : dec === "scartata" ? "scart" : ""}">
+    <div class="chi">${chi}<span class="n">${doms.map(d => st.domande[d] ? "D" + st.domande[d].n : esc(d)).join(", ")}</span>${dec === "approfondire" ? '<span class="chip bad">da approfondire</span>' : ""}</div>
+    <p>${paraHtml(v.motivo || "")}</p>${corpo}
+    <div class="riga"><button class="btn" data-somi="${esc(id)}" data-dec="approfondire" aria-pressed="${dec === "approfondire"}">Da approfondire</button>
+      <button class="btn" data-somi="${esc(id)}" data-dec="scartata" aria-pressed="${dec === "scartata"}">Scartata</button></div></article>`;
+}
+function renderSomiglianze(){
+  const doc = st.somi, voci = Object.entries(doc?.voci || {});
+  const scartate = voci.filter(([, v]) => v.decisione === "scartata"), attive = voci.filter(([, v]) => v.decisione !== "scartata");
+  const simili = attive.filter(([, v]) => v.tipo === "simili"), fuori = attive.filter(([, v]) => v.tipo !== "simili");
+  let h = `<section class="intesta"><h2>Somiglianze da controllare</h2>
+    <div class="criteri">Indizi da controllare, non prove: non dicono chi ha copiato da chi e non cambiano punteggi e commenti. Per una coppia guarda anche se erano vicini in aula. Per una risposta fuori linea apri il log delle risposte del tentativo in Moodle.</div>
+    ${doc ? `<p class="n">Controllo del ${esc(String(doc.aggiornato || "").split("-").reverse().join("/"))}: ${esc(doc.confrontate ?? 0)} risposte confrontate.</p>` : ""}</section>`;
+  if (!doc) h += `<div class="vuoto">Il controllo non è ancora stato fatto. Claude lo fa durante la correzione; per una verifica già corretta chiediglielo in chat.</div>`;
+  else if (!voci.length) h += `<div class="vuoto">Nessuna segnalazione: il controllo non ha trovato casi solidi.</div>`;
+  if (simili.length) h += `<h3 class="somi-sez">Risposte simili</h3><div class="lista">${simili.map(([i, v]) => voceSomi(i, v)).join("")}</div>`;
+  if (fuori.length) h += `<h3 class="somi-sez">Risposte fuori linea</h3><div class="lista">${fuori.map(([i, v]) => voceSomi(i, v)).join("")}</div>`;
+  if (scartate.length) h += `<details class="somi-scartate"><summary>Scartate (${scartate.length})</summary><div class="lista">${scartate.map(([i, v]) => voceSomi(i, v)).join("")}</div></details>`;
+  $("#vista").innerHTML = h;
+  document.querySelectorAll("[data-somi]").forEach(b => b.onclick = async () => {
+    const id = b.dataset.somi, decisione = st.somi?.voci?.[id]?.decisione === b.dataset.dec ? "" : b.dataset.dec;   // un altro clic toglie la scelta
+    try { await st.db.collection(`verifiche/${st.vid}/somiglianze`).doc("segnalazioni").update({voci: {[id]: {decisione}}}); toast(decisione ? "Salvato" : "Scelta tolta"); }
+    catch(e) { toast("Non salvato: " + (e.code || "errore")); }
+  });
 }
 
 /* La tabella copiata dal browser ha i tag ma comprime spazi e a capo; l'export ha a capo e rientri
@@ -1217,7 +1295,10 @@ function render(){
   if (!st.tab || !st.domande[st.tab]) st.tab = domOrd()[0].id;
   const ss = studenti(); if (ss.length && (!st.stud || !ss.find(x=>x.k===st.stud))) st.stud = ss[0].k;
   renderTabs(); renderStato();
+  const daGuardare = Object.values(st.somi?.voci || {}).filter(x => !x.decisione).length;
+  $("#b-somi").textContent = daGuardare ? `Somiglianze (${daGuardare})` : "Somiglianze";
   if (st.vista === "riep") renderRiep();
+  else if (st.vista === "somiglianze") renderSomiglianze();
   else if (st.vista === "importa") renderImporta();
   else if (st.vista === "studente") { if (st.stud) renderStudente(st.stud); }
   else renderDomanda(st.tab);

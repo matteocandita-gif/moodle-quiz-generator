@@ -32,6 +32,7 @@ Una panoramica delle funzioni del plugin «Moodle: quiz generator». Non corrisp
 
 - Si parte dall'export di Moodle con i nomi tolti nel browser.
 - Claude riesegue le risposte di codice con i test, propone punteggi e commenti domanda per domanda e prepara la dashboard di correzione per domanda o per studente.
+- Durante la correzione controlla da solo le somiglianze tra le risposte: gli stessi errori rari in più studenti e le risposte stranamente corrette rispetto al resto della verifica. Sono indizi da controllare, in una vista a parte, e non cambiano i punteggi.
 
 ## Mappe dei prerequisiti
 
