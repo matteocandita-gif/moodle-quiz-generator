@@ -2,6 +2,16 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.12.1 — 04/11/2026
+
+Pagine che si fanno leggere, dalla revisione delle esercitazioni HTML della quarta:
+
+- **Ogni pagina con la sua domanda**: nelle esercitazioni (ED, EDT, ER, EP) una pagina di spiegazione o di esempio svolto ha subito sotto, sulla stessa pagina del quiz, una domanda che si risolve solo con quello che la pagina dice; di solito è la prima domanda che ne dipende, spostata accanto. In fondo alla pagina l'invito «**Ora rispondete alla domanda qui sotto**». Il riquadro «Prima di andare avanti» non si usa più. SD resta com'è (teoria da sola).
+- **Pagine che chiedono di fare qualcosa** (preparare una cartella, creare file, aprire uno strumento): diventano una Cloze con i passi e una sezione «Il controllo», con un campo che si riempie solo dopo averli fatti; per esempio l'indirizzo del file copiato dalla barra del browser, controllato con l'asterisco (`*sito-scuola/pagine/orari.html`).
+- **Risultato nel browser con le immagini**: schermate di Chromium anche per le pagine con immagini, con immagini disegnate apposta (mai foto prese dal web), compresa l'immagine che non si trova.
+- I **link nel riquadro del risultato** si scrivono normali: `da_dashboard.py` li disegna come nel browser ma senza indirizzo, così un clic non fa uscire dal quiz.
+- **Aggiornare un quiz già in Moodle** (`materiali-moodle`): un quiz già svolto non si elimina; per la versione nuova si aggiorna una copia nel corso deposito, con una pagina che ha la tabella del quiz finale e i testi da incollare, e un XML con le sole domande nuove.
+
 ## 0.12.0 — 04/11/2026
 
 Impostazioni avanzate dei quiz e Safe Exam Browser (pagina «Bozze dei quiz» 0.5.0).

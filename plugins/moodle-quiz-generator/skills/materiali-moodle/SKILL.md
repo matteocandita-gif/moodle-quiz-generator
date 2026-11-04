@@ -84,6 +84,18 @@ Il preset viene dal tipo di quiz della dashboard; `impostazioni` nell'impaginazi
 
 Ripristino: nel corso, Ripristina → carica il file → ripristina in questo corso (unisci). Se Moodle viene aggiornato e il ripristino si lamenta della versione, chiedi all'utente un backup fresco di un quiz qualsiasi e aggiorna le costanti di versione in `crea_mbz.py`.
 
+## Aggiornare un quiz già in Moodle
+
+Un quiz che gli studenti hanno già svolto **non si elimina**: resta per lo storico, con i suoi tentativi e le sue domande. In Moodle un quiz con tentativi ha la struttura bloccata: non si aggiungono né si tolgono domande e non si cambiano ordine e pagine. Si possono cambiare i testi (Moodle crea una nuova versione della stessa domanda, e i tentativi fatti restano sulla vecchia) e i punti (Moodle ricalcola i voti).
+
+Per la versione nuova, da far svolgere a un'altra classe o l'anno dopo, l'utente fa una **copia del quiz** nel corso deposito e la aggiorna a mano, senza duplicare le domande. Dopo aver aggiornato le righe nella dashboard e rigenerato l'XML, prepara:
+
+1. una **pagina** (artefatto) con in cima la tabella del quiz finale, presa da `impaginazione.json`: pagina, domanda, punti e che cosa fare (invariata, incolla il testo, domanda nuova da importare, sposta, togli, punti cambiati); sotto, i testi delle domande cambiate (il `<questiontext>` dell'XML), ognuno con il pulsante «Copia HTML» e le istruzioni: Modifica, modalità sorgente (HTML), seleziona tutto, incolla, salva;
+2. un **XML con le sole domande nuove**, con in testa la categoria del quiz; nell'importazione l'utente toglie la spunta a «Ottieni categoria dal file»;
+3. l'elenco delle domande da **togliere** dalla copia: una pagina che diventa domanda cambia tipo, quindi è una domanda nuova e la vecchia descrizione si toglie.
+
+Le domande con immagini nel testo non si aggiornano incollando: l'immagine va caricata nell'editor dopo aver incollato. Se il quiz non ha tentativi, è più semplice ripristinare il backup `.mbz` completo.
+
 ## Distribuzione su pagine
 
 Con la dashboard pagine e sezioni sono già nelle righe e finiscono nel `.mbz`. Per una proposta fuori dalla dashboard, ogni quiz dice come le domande si dividono in pagine.

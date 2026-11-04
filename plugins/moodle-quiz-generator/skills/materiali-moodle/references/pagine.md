@@ -37,7 +37,7 @@ Breve, senza riquadri:
 5. Riquadro arancione **N.B.** per le semplificazioni didattiche da dichiarare (per esempio `or die`: «un sito vero gestisce gli errori in un altro modo»).
 6. Riquadro giallo **Guardalo in azione**: il rimando alla tappa del sito dimostrativo, con che cosa provare.
 7. Riquadro verde **Da rileggere sul manuale**: il capitolo del libro.
-8. Riquadro arancione **Prima di andare avanti**: tre domande a cui lo studente deve saper rispondere dopo la lettura.
+8. In fondo, in grassetto, l'invito a rispondere alla domanda che sta sotto la pagina, sulla stessa pagina del quiz («**Ora rispondete alla domanda qui sotto**: si risolve con quello che avete appena letto in questa pagina»). Al posto del vecchio riquadro arancione «Prima di andare avanti», che nessuno compilava: la domanda vera costringe a leggere la pagina.
 
 Non tutte le pagine hanno tutti i riquadri: «Guardalo in azione» solo se esiste una tappa pertinente, «N.B.» solo se c'è qualcosa da dichiarare. L'ordine invece resta questo.
 

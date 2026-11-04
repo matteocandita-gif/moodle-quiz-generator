@@ -300,6 +300,8 @@ def html_blocchi(bl, in_box=False, pagina=False):
                 # pagina del quiz è già un form)
                 m_img = IMG_RE.fullmatch(codice.strip())
                 contenuto = img_html(m_img.group(1), m_img.group(2)) if m_img else codice.strip("\n")
+                # i link del risultato si vedono come nel browser ma non si cliccano: un clic porterebbe fuori dal quiz
+                contenuto = re.sub(r"<a\b[^>]*>", '<a style="color: #0000ee; text-decoration: underline;">', contenuto)
                 # cornice da finestra del browser: la barra grigia con «Visualizzazione nel browser» sta fuori dalla pagina bianca,
                 # così non si scambia per parte del risultato
                 pallino = ('<span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%%; '
