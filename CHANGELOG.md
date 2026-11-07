@@ -2,6 +2,15 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.13.0 — 07/11/2026
+
+Griglie di valutazione flessibili, primo passo (pagina «Tracce di progettazione» 1.1.0).
+
+- Nuovo modulo comune **`griglia.js`** (skill `tracce-progettazione`): livelli, descrittori predefiniti, fasce, voto. Lo usano lo script delle uscite e la pagina, e lo useranno «Bozze dei quiz» e «Correzione verifiche». Contiene già i descrittori delle competenze delle verifiche di programmazione (conoscenze teoriche, lettura del codice, individuazione degli errori, scrittura di codice), per il prossimo passo.
+- **Domanda aperta dentro la griglia**: nuova area «Domanda aperta» con il suo peso (`aperta`, di norma 0). Con 10 punti si tolgono 10 punti ad altre aree e la griglia torna a 100, invece dei 90 più 10 «che si sommano».
+- **Tracce**: nella vista *Uscite* il campo dei punti della domanda aperta e il pulsante **Personalizza le righe**. Le righe della griglia diventano modificabili per quella verifica: macroarea, area, punti, i cinque descrittori; si aggiungono, si spostano e si tolgono righe; «Torna alla griglia dai pesi» annulla. Le righe restano salvate nella traccia (`griglia.righe`).
+- Lo script avvisa se una griglia personalizzata ha un numero di righe di query diverso dalle query della traccia. Se il totale non è 100, il Word spiega come si calcola il voto sul totale.
+
 ## 0.12.1 — 04/11/2026
 
 Pagine che si fanno leggere, dalla revisione delle esercitazioni HTML della quarta:

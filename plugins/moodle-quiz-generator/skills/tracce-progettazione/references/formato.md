@@ -50,7 +50,8 @@ Una traccia è un documento JSON: lo stesso che sta nella dashboard (collezione 
 | `testo.query` | le query: `testo` come lo leggono gli studenti, `gradino` (1-3), `requisito` che verificano (solo per il docente) |
 | `testo.php` | `null` oppure `{"testo": "…", "connessione": "…"}`: la richiesta e i dati di connessione (o «Dati per la connessione a scelta del candidato.») |
 | `pdp.riduzioni` | per la copia PDP: una frase in grassetto sotto il punto ridotto. Chiavi: `presentare.er`, `presentare.documentazione`, `presentare.relazionale`, `presentare.sql_tabelle`, `query.N` (dalla 1), `php` |
-| `griglia.pesi` | `null` per i pesi predefiniti, oppure i pesi della verifica (`griglia.md`) |
+| `griglia.pesi` | `null` per i pesi predefiniti, oppure i pesi della verifica, compresa `aperta` per la domanda aperta (`griglia.md`) |
+| `griglia.righe` | facoltativo: le righe personalizzate della griglia (macroarea, area, punti, descrittori); quando ci sono, i pesi non contano (`griglia.md`) |
 | `verifica` | `intestazione` (predefinita «5 SIA Verifica Modello E/R», dalla prima cifra della classe); `griglia: false` per un Word senza griglia |
 | `docente` | note per il docente, mai nelle uscite per gli studenti: costrutti, ipotesi attese (le ipotesi intere di SKILL.md; minime, vincoli e chiavi da scegliere vanno nei punti delicati), punti delicati, durata, il `.er` del modello bersaglio |
 

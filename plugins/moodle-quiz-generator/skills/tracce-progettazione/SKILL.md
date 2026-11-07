@@ -15,8 +15,9 @@ Questa skill **crea** tracce di progettazione di database per gli studenti di qu
 |---|---|
 | `references/opzioni.md` | **sempre**, prima di cominciare: le voci, i preset e il significato dei tre livelli del testo |
 | `references/formato.md` | il documento JSON della traccia (è anche quello della dashboard) e come escono Word, Word PDP e HTML |
-| `references/griglia.md` | pesi, fasce e descrittori della griglia di valutazione, e come si personalizzano |
+| `references/griglia.md` | pesi, fasce e descrittori della griglia di valutazione, la domanda aperta dentro la griglia, le righe personalizzate |
 | `references/dashboard.md` | la dashboard: collezioni, stati, avvio delle sessioni, installazione |
+| `scripts/griglia.js` | il modulo comune delle griglie (livelli, descrittori, fasce, voto), incluso anche nella dashboard |
 | `scripts/uscite_traccia.js` | Word della verifica, Word PDP e HTML per Moodle dal JSON della traccia (Node, nessuna libreria); lo stesso codice gira nella dashboard |
 | `esempi/` | tracce complete nel formato standard, con il loro `.er` |
 
@@ -54,6 +55,7 @@ Valgono per ogni traccia, qualunque preset.
   Le ipotesi **minori** si possono lasciare ma **non entrano nel numero**: cardinalità minime (partecipazione opzionale o obbligatoria), vincoli non esprimibili e regole di dominio, confini della realtà (si gestiscono anche i pagamenti?). **Non sono ipotesi** da contare la scelta delle chiavi primarie (un codice artificiale, un codice al posto di campi naturali), i tipi e le lunghezze dei dati, i nomi: le chiavi da scegliere vanno nei punti delicati. Con N a N senza attributi (preset Base) le ipotesi intere più adatte sono la cardinalità massima e l'attributo fondamentale non nominato; ripetibilità e storico porterebbero fuori dal preset. In `ipotesi_attese` vanno le intere; le minori, se vuoi segnalarle, nei punti delicati. Quelle che ti aspetti vanno nelle note per il docente.
 - **Stile**: impersonale ed esteso, come le consegne degli esercizi dell'utente. Nella soluzione le entità sono al singolare anche se il testo parla al plurale.
 - **Valutazione**: modello relazionale e query si valutano sulla coerenza con l'E/R dello studente (è scritto nella griglia).
+- **Domanda aperta di teoria**: se la verifica ne ha una, sta in fondo alla realtà e ha la sua riga nella griglia (`aperta` nei pesi, totale sempre 100): `references/griglia.md`.
 
 ## Le query
 

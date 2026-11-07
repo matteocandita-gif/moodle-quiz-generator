@@ -48,6 +48,9 @@ BLOCCHI = {
 }
 # file JavaScript inclusi interi in una pagina, tra le righe «/* incluso: NOME — inizio */» e «… — fine */»
 INCLUSI = {
+    "plugins/moodle-quiz-generator/skills/tracce-progettazione/scripts/griglia.js": [
+        "plugins/moodle-quiz-generator/skills/tracce-progettazione/assets/dashboard-tracce.html",
+    ],
     "plugins/moodle-quiz-generator/skills/tracce-progettazione/scripts/uscite_traccia.js": [
         "plugins/moodle-quiz-generator/skills/tracce-progettazione/assets/dashboard-tracce.html",
     ],

@@ -63,107 +63,46 @@
   var FRASE_REQUISITI = "tenendo conto anche delle informazioni richieste dalle query";
 
   /* ------------------------------------------------------------------ griglia */
+  /* Livelli, descrittori, fasce e voto stanno nel modulo comune griglia.js (window.Griglia nella pagina,
+     che lo include prima di questo file; require in Node). */
+  var G = (typeof module === "object" && module.exports && typeof require === "function") ? require("./griglia.js")
+    : (typeof self !== "undefined" ? self : this).Griglia;
+  var LIVELLI = G.LIVELLI, DESCRITTORI = G.DESCRITTORI, distribuisci = G.distribuisci, fasce = G.fasce;
+  /* pesi predefiniti; «aperta» è la domanda aperta di teoria, che di norma non c'è (0) */
   var PESI = {
-    senzaPhp: { entita: 15, associazioni: 15, vincoli: 15, documentazione: 10, relazionale: 15, query: 30, php: 0 },
-    conPhp: { entita: 15, associazioni: 15, vincoli: 10, documentazione: 10, relazionale: 15, query: 20, php: 15 }
+    senzaPhp: { entita: 15, associazioni: 15, vincoli: 15, documentazione: 10, relazionale: 15, query: 30, php: 0, aperta: 0 },
+    conPhp: { entita: 15, associazioni: 15, vincoli: 10, documentazione: 10, relazionale: 15, query: 20, php: 15, aperta: 0 }
   };
-  var LIVELLI = ["Insufficiente", "Base (2)", "Sufficiente (3)", "Buono (4)", "Ottimo (5)"];
-  var DESCRITTORI = {
-    entita: [
-      "Il modello presenta gravi mancanze: entità essenziali assenti o scorrette, attributi incompleti o collocati in modo errato, chiavi mancanti o sbagliate e notazione grafica molto imprecisa o incoerente.",
-      "Il modello individua solo parte delle entità necessarie; gli attributi sono parzialmente corretti ma non sempre ben posizionati; le chiavi sono individuate in modo incerto; la notazione è irregolare ma ancora interpretabile.",
-      "Il modello contiene la maggior parte delle entità corrette e gli attributi principali sono ben collocati; le chiavi sono individuate con solo lievi imprecisioni; la notazione è nel complesso corretta con minimi errori formali.",
-      "Tutte le entità e gli attributi richiesti sono presenti e correttamente collocati; le chiavi sono individuate correttamente; la notazione è chiara, coerente e senza errori sostanziali. Qualche imprecisione o scelta non ottimale.",
-      "Entità e attributi scelti sono corretti, chiari ed efficaci, senza ridondanze; i dati multipli e quelli derivati sono trattati correttamente. Struttura ordinata e leggibile; eventuali imprecisioni sono marginali."
-    ],
-    associazioni: [
-      "Le associazioni tra le entità sono in gran parte assenti, errate o incoerenti; notazione confusa o scorretta.",
-      "Alcune associazioni sono corrette, ma ne mancano di importanti o ne compaiono di non pertinenti; notazione incompleta ma ancora comprensibile.",
-      "La maggior parte delle associazioni è modellata in modo corretto; i loro attributi sono generalmente ben collocati; la notazione è chiara salvo imprecisioni minori.",
-      "Tutte le associazioni richieste sono presenti, corrette e coerenti con il testo; eventuali attributi sono ben collocati; la notazione è chiara e priva di errori. Qualche imprecisione o scelta non ottimale.",
-      "Le associazioni sono corrette e modellate in modo chiaro, efficace e senza ridondanze; i loro attributi sono corretti e ben identificati. Eventuali inesattezze grafiche o formali sono marginali."
-    ],
-    vincoliIsa: [
-      "Le cardinalità sono spesso errate o mancanti e le eventuali gerarchie ISA sono assenti o totalmente scorrette; la notazione dei vincoli è confusa.",
-      "Alcune cardinalità sono corrette ma altre presentano errori significativi; le ISA sono incomplete o solo parzialmente corrette; la notazione è imprecisa.",
-      "Le cardinalità sono nel complesso corrette con pochi errori; le ISA sono adeguate salvo dettagli minori; la notazione dei vincoli è generalmente corretta.",
-      "Cardinalità e ISA sono tutte corrette e coerenti con la realtà descritta; la notazione è chiara, omogenea e senza errori sostanziali. Qualche imprecisione o scelta non ottimale.",
-      "Cardinalità e partecipazioni sono corrette e motivate; le ISA sono modellate in modo corretto sia nel significato sia nel disegno; la notazione dei vincoli è completa, rigorosa e coerente."
-    ],
-    vincoli: [
-      "Le cardinalità sono spesso errate o mancanti; la notazione dei vincoli è confusa.",
-      "Alcune cardinalità sono corrette ma altre presentano errori significativi; la notazione è imprecisa.",
-      "Le cardinalità sono nel complesso corrette con pochi errori; la notazione dei vincoli è generalmente corretta.",
-      "Le cardinalità sono tutte corrette e coerenti con la realtà descritta; la notazione è chiara, omogenea e senza errori sostanziali. Qualche imprecisione o scelta non ottimale.",
-      "Cardinalità e partecipazioni sono corrette e motivate; la notazione dei vincoli è completa, rigorosa e coerente."
-    ],
-    documentazione: [
-      "Assente, gravemente incompleta o strutturalmente errata.",
-      "Incompleta, con errori strutturali rilevanti o informazioni poco pertinenti.",
-      "Documentazione parzialmente completa: alcuni tipi di dato o vincoli sono corretti, altri imprecisi o mancanti; struttura comunque corretta.",
-      "Documentazione completa negli elementi essenziali, con scelte di tipo di dato e vincoli generalmente corrette; ipotesi aggiuntive indicate; nessun errore sostanziale.",
-      "Documentazione completa e chiara, con scelte di tipo di dato e vincoli appropriate e coerenti; ipotesi aggiuntive indicate e motivate; eventuali imprecisioni sono marginali."
-    ],
-    relazionale: [
-      "Modello assente o ampiamente errato: mancano relazioni, campi, chiavi primarie ed esterne.",
-      "Modello incompleto o con errori strutturali rilevanti: relazioni mancanti o mal derivate, campi non presenti, chiavi primarie mancanti o scorrette.",
-      "Modello nel complesso corretto ma con alcune imprecisioni: tutte le relazioni sono presenti con i loro campi; le chiavi primarie sono indicate; la traduzione delle associazioni è talvolta imprecisa.",
-      "Modello corretto con poche imprecisioni: tutte le relazioni sono presenti; le chiavi primarie sono indicate correttamente; quasi tutte le associazioni e le gerarchie sono tradotte correttamente.",
-      "Modello corretto e coerente con il diagramma E/R: tutte le relazioni sono presenti; chiavi primarie ed esterne, associazioni e gerarchie sono ricavate e indicate correttamente."
-    ],
-    query: [
-      "Query assente, non eseguibile o completamente errata; sintassi non valida o logica incoerente rispetto al modello.",
-      "Query parzialmente eseguibile ma con errori logici rilevanti (JOIN errati, condizioni scorrette, tabelle o attributi sbagliati); risultato non utilizzabile.",
-      "Query strutturalmente corretta e quasi del tutto eseguibile; logica generalmente corretta ma con imprecisioni (condizioni o JOIN incompleti, ambiguità minori); risultato solo parzialmente corretto.",
-      "Query eseguibile e quasi corretta nel risultato; uso adeguato di JOIN, condizioni e attributi; qualche errore nelle condizioni o nelle formule.",
-      "Query corretta, chiara e ben strutturata, con scelta efficace delle condizioni e dei JOIN; eventuali imprecisioni sono marginali e non cambiano il risultato."
-    ],
-    php: [
-      "Pagina assente o non funzionante: connessione, query o visualizzazione mancanti o completamente errate.",
-      "Pagina incompleta: alcune parti sono presenti (connessione, form o query) ma con errori che impediscono di ottenere il risultato richiesto.",
-      "Pagina nel complesso funzionante: connessione e query corrette, con imprecisioni nella lettura dei dati del form o nella visualizzazione dei risultati.",
-      "Pagina funzionante e coerente con il proprio database: form, query e visualizzazione corretti; qualche imprecisione o controllo mancante.",
-      "Pagina corretta, chiara e ordinata: form, connessione, query e visualizzazione dei risultati completi; gestisce anche il caso senza risultati o l'errore della query."
-    ]
-  };
-  /* parti intere quasi uguali che fanno esattamente il totale (30 su 4 query: 8, 8, 7, 7) */
-  function distribuisci(totale, n) {
-    if (n <= 0) return [];
-    var base = Math.floor(totale / n), resto = totale - base * n, out = [];
-    for (var i = 0; i < n; i++) out.push(base + (i < resto ? 1 : 0));
-    return out;
-  }
-  /* fasce dei cinque livelli in proporzione al massimo: 15 → 0-3, 4-6, 7-9, 10-12, 13-15 */
-  function fasce(max) {
-    /* sotto i 5 punti i livelli non stanno in punti interi: si usano i mezzi punti (4 → 0-1, 1,5, 2-2,5, 3, 3,5-4) */
-    var passo = max < 5 ? 0.5 : 1, arr = function (v) { return Math.round(v / passo) * passo; };
-    var num = function (v) { return String(v).replace(".", ","); };
-    var su = [1, 2, 3, 4, 5].map(function (k) { return arr(max * k / 5); }), out = [], giu = 0;
-    for (var k = 0; k < 5; k++) { var a = giu, b = Math.min(Math.max(su[k], a), max); out.push(a === b ? num(b) : num(a) + "-" + num(b)); giu = b + passo; }
-    return out;
-  }
   function pesi(t) {
     var p = conPhp(t) ? PESI.conPhp : PESI.senzaPhp, pers = (t.griglia && t.griglia.pesi) || null, out = {};
     Object.keys(p).forEach(function (k) { out[k] = pers && pers[k] != null ? Number(pers[k]) : p[k]; });
     if (!conPhp(t)) out.php = 0;
     return out;
   }
-  /* righe della griglia: {macro, area, max, descrittori, fasce, tipo} */
-  function griglia(t) {
+  /* le righe che la griglia avrebbe dai pesi (predefiniti o personalizzati), senza fasce */
+  function righePredefinite(t) {
     var w = pesi(t), q = (t.testo && t.testo.query) || [], isa = conIsa(t), righe = [];
-    var riga = function (macro, area, chiave, max) { righe.push({ macro: macro, area: area, max: max, descrittori: DESCRITTORI[chiave], fasce: fasce(max), tipo: chiave }); };
+    var riga = function (macro, area, chiave, max, tipo) { righe.push({ macro: macro, area: area, max: max, descrittori: DESCRITTORI[chiave].slice(), tipo: tipo || chiave }); };
     riga("Modello concettuale (E/R)", "Entità e attributi", "entita", w.entita);
     riga("Modello concettuale (E/R)", "Associazioni", "associazioni", w.associazioni);
     riga("Modello concettuale (E/R)", isa ? "Vincoli (cardinalità, ISA)" : "Vincoli (cardinalità)", isa ? "vincoliIsa" : "vincoli", w.vincoli);
     riga("Documentazione tecnica (entità e associazioni)", "", "documentazione", w.documentazione);
     riga("Modello relazionale (coerenza con il proprio E/R)", "", "relazionale", w.relazionale);
-    righe.push({ macro: "Query SQL", area: "Descrizione (valutate sul proprio modello)", max: null, descrittori: DESCRITTORI.query, fasce: null, tipo: "query-descrizione" });
+    righe.push({ macro: "Query SQL", area: "Descrizione (valutate sul proprio modello)", max: null, descrittori: DESCRITTORI.query.slice(), tipo: "query-descrizione" });
     distribuisci(w.query, q.length).forEach(function (m, i) {
-      righe.push({ macro: "Query SQL", area: "Query " + (i + 1), max: m, descrittori: null, fasce: fasce(m), tipo: "query" });
+      righe.push({ macro: "Query SQL", area: "Query " + (i + 1), max: m, descrittori: null, tipo: "query" });
     });
     if (conPhp(t)) riga("Pagina PHP", "", "php", w.php);
-    var totale = righe.reduce(function (s, r) { return s + (r.max || 0); }, 0);
-    return { righe: righe, totale: totale, pesi: w };
+    if (w.aperta > 0) riga("Domanda aperta", "", "aperta", w.aperta);
+    return righe;
+  }
+  var personalizzata = function (t) { return !!(t.griglia && Array.isArray(t.griglia.righe) && t.griglia.righe.length); };
+  /* la griglia della traccia: le righe salvate in griglia.righe se ci sono, altrimenti quelle dei pesi.
+     {righe: [{macro, area, max, descrittori, fasce, tipo}], totale, pesi, personalizzata} */
+  function griglia(t) {
+    var g = G.completa(personalizzata(t) ? t.griglia.righe : righePredefinite(t));
+    g.pesi = pesi(t); g.personalizzata = personalizzata(t);
+    return g;
   }
 
   /* ------------------------------------------------------------------ nome dei file */
@@ -325,8 +264,10 @@
       b.push(W.par("", { dopo: 0, sez: SEZ_VERTICALE }));
       b.push(W.par("La correzione della prova verrà effettuata con la seguente griglia di valutazione" +
         (pdp ? " e tenendo conto dei criteri di valutazione personalizzata previsti dal PDP." : "."), { dopo: 120 }));
-      b.push(tabellaGriglia(griglia(t)));
-      b.push(W.par("Per ottenere il voto si divide il punteggio per 10 e si arrotonda al mezzo voto più vicino.", { prima: 120 }));
+      var g = griglia(t);
+      b.push(tabellaGriglia(g));
+      b.push(W.par(g.totale === 100 ? "Per ottenere il voto si divide il punteggio per 10 e si arrotonda al mezzo voto più vicino."
+        : "Per ottenere il voto si divide il punteggio per " + g.totale + ", si moltiplica per 10 e si arrotonda al mezzo voto più vicino.", { prima: 120 }));
       return { corpo: b.join(""), sezFinale: SEZ_ORIZZONTALE, liste: numeri };
     }
     return { corpo: b.join(""), sezFinale: SEZ_VERTICALE, liste: numeri };
@@ -587,14 +528,18 @@
     if (!(x.query || []).length) err.push("mancano le query (ci sono sempre)");
     (x.query || []).forEach(function (r, i) { if (!r.requisito) avv.push("query " + (i + 1) + ": manca il requisito che verifica (note per il docente)"); });
     var g = griglia(t);
-    if (g.totale !== 100) avv.push("la griglia fa " + g.totale + " punti invece di 100: controlla i pesi");
+    G.controlla(g, 100).forEach(function (x) { avv.push(x); });
+    if (g.personalizzata) {
+      var nq = g.righe.filter(function (r) { return r.tipo === "query"; }).length, tq = ((t.testo && t.testo.query) || []).length;
+      if (nq && nq !== tq) avv.push("la griglia personalizzata ha " + nq + " righe di query, ma la traccia ha " + tq + " query: rivedi la griglia");
+    }
     if (t.pdp && t.pdp.riduzioni) Object.keys(t.pdp.riduzioni).forEach(function (k) {
       if (!/^(presentare\.(er|documentazione|relazionale|sql_tabelle)|query\.\d+|php)$/.test(k)) avv.push("riduzione PDP con una chiave sconosciuta: " + k);
     });
     return { errori: err, avvisi: avv };
   }
 
-  return { html: html, docx: docx, docxSoluzione: docxSoluzione, htmlSoluzione: htmlSoluzione, htmlSoluzioneMoodle: htmlSoluzioneMoodle, fileDocx: fileDocx, griglia: griglia, fasce: fasce, distribuisci: distribuisci, nomeFile: nomeFile, controlla: controlla, pezzi: pezzi };
+  return { html: html, docx: docx, docxSoluzione: docxSoluzione, htmlSoluzione: htmlSoluzione, htmlSoluzioneMoodle: htmlSoluzioneMoodle, fileDocx: fileDocx, griglia: griglia, righePredefinite: righePredefinite, fasce: fasce, distribuisci: distribuisci, nomeFile: nomeFile, controlla: controlla, pezzi: pezzi };
 });
 
 /* ------------------------------------------------------------------ uso da riga di comando */

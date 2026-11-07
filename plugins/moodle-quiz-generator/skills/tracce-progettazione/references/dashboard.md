@@ -11,7 +11,7 @@ Una pagina privata per tutte le tracce dell'utente. Il codice sta in `assets/das
   - *Note per il docente*: costrutti, ipotesi attese, punti delicati, query con il loro requisito, durata, opzioni, il `.er`.
   - *Soluzione*: diagramma, ipotesi, documentazione, schema, query; «Scarica Word», «Scarica HTML» e «Copia HTML per Moodle» della soluzione completa (la pagina li compone da sola con `docxSoluzione`, `htmlSoluzione` e `htmlSoluzioneMoodle`, prendendo il diagramma dagli asset); «Genera la soluzione» avvia «Soluzione da generare: <id>». Sotto il pulsante una riga avvisa che si apre una chat nuova e che, se della traccia si è parlato in una chat, conviene chiedere la soluzione lì.
   - In testa alla scheda, se c'è `sessione`, il link «apri la chat» alla conversazione in cui Claude ha scritto la traccia.
-  - *Uscite*: Word, Word PDP, HTML (copia o file), le riduzioni PDP punto per punto, i pesi della griglia (personalizzabili, totale 100).
+  - *Uscite*: Word, Word PDP, HTML (copia o file), le riduzioni PDP punto per punto, la griglia: pesi delle aree (compresa la domanda aperta, totale 100) oppure, con «Personalizza le righe», righe con nomi, punti e descrittori propri, salvate nella traccia (`griglia.md`).
 - **Stato** della traccia a mano (Richiesta, Da rivedere, Approvata, Usata); **archivia** o **elimina** (con conferma nella pagina).
 
 ## Il database
