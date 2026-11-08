@@ -2,6 +2,15 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.13.1 — 08/11/2026
+
+Domanda delle note e correzioni in ogni verifica.
+
+- Ogni verifica generata dalla dashboard (preset «verifica») ha in apertura la domanda aperta **«Domanda per note e correzioni»** della banca condivisa di sistema: primo slot, sulla pagina delle istruzioni, a 0 punti. Gli studenti possono scriverci annotazioni; dopo la correzione il docente scrive nel suo commento il feedback complessivo e la griglia compilata, che restano agli atti con il tentativo.
+- La domanda resta quella della banca, con il suo stamp: Moodle la riusa al ripristino, come le descrizioni e le dichiarazioni PDP. C'è anche nella copia PDP.
+- `crea_pdp.py --prepara-banca … --nomi=` legge da un backup le domande di una banca qualsiasi; `crea_pdp.py --aggiungi-note` mette la domanda in apertura di un backup. I dati della banca stanno nella dashboard in `impostazioni/note`; senza, la verifica esce senza la domanda e con un avviso. `genera_quiz.py --senza-note` la toglie apposta.
+- L'importazione di un quiz da backup salta la domanda delle note, che non è una riga della scaletta.
+
 ## 0.13.0 — 07/11/2026
 
 Griglie di valutazione flessibili, primo passo (pagina «Tracce di progettazione» 1.1.0).

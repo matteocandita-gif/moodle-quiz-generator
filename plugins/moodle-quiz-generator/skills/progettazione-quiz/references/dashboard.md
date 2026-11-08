@@ -16,6 +16,8 @@ Si legge e si scrive con `ArtifactData` sull'URL della pagina. Ogni scrittura su
 
 **Banca PDP**: documento `impostazioni/pdp`, `{banca: {nome, corso, contextid, cmid, top_id, top_stamp, categoria_id, categoria_nome, categoria_stamp}, domande: {nome: XML della voce}}`: le descrizioni «Riduzione contenuti PDP/PEI -k» e le dichiarazioni della banca condivisa, per le copie PDP (`crea_pdp.py --prepara-banca`).
 
+**Banca della domanda delle note**: documento `impostazioni/note`, stesso formato della banca PDP, con la sola voce «Domanda per note e correzioni» della banca condivisa di sistema: `genera_quiz.py` la mette in apertura di ogni verifica (`materiali-moodle`, «Domanda delle note»).
+
 **Safe Exam Browser**: documento `impostazioni/seb`, `{nome, contenuto, nota}`: il file `.seb` dei quiz con `seb: file` (`materiali-moodle`, «Safe Exam Browser»). La pagina ne mostra il nome nel pannello «Impostazioni avanzate».
 
 **Impostazioni**: documento `impostazioni/avvio` con `trigger` (id dell'attività «Avvia quiz dalla dashboard», `trig_…`; vuoto o assente: «Inizia» dà la frase da incollare) e `versione` (la `VERSIONE_PAGINA` con cui è stato scritto). Lo scrive l'installazione; l'utente può cambiare l'id dal riquadro «Impostazioni» della vista iniziale.

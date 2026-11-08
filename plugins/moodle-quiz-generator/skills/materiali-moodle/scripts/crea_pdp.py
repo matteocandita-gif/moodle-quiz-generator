@@ -7,6 +7,16 @@ Uso:
         dichiarazioni (es. «Domande per riduzione PDP - DSA») e scrive i dati che servono alla copia:
         contesto e categorie della banca, e le domande così come stanno nel backup (con i loro stamp)
 
+    python3 crea_pdp.py --prepara-banca BANCA.mbz BANCA.json --nomi="Domanda per note e correzioni"
+        come sopra, ma tiene le domande con questi nomi (separati da virgole), da qualsiasi banca:
+        serve per la banca della domanda delle note (impostazioni/note della dashboard)
+
+    python3 crea_pdp.py --aggiungi-note QUIZ.mbz BANCA_NOTE.json USCITA.mbz [--nome-domanda="..."]
+        mette in apertura di una verifica la domanda delle note e correzioni della banca condivisa:
+        primo slot, sulla prima pagina (quella delle istruzioni), a 0 punti. Pagine e punti delle altre
+        domande non cambiano. Dopo la correzione il docente scrive nel suo commento il feedback
+        complessivo e la griglia compilata (correzione-verifiche)
+
     python3 crea_pdp.py VERIFICA.mbz BANCA_PDP.json USCITA.mbz --togli=T2,Q1 [--pei]
                         [--dichiarazione=mappe|tempo|generica|nessuna] [--nome="..."]
         VERIFICA.mbz   backup della verifica della classe così com'è in Moodle
@@ -82,7 +92,10 @@ def scrivi_xml(radice, percorso):
 
 # ------------------------------------------------------------------ banca PDP
 
-def prepara_banca(mbz, out):
+NOTE = "Domanda per note e correzioni"
+
+
+def prepara_banca(mbz, out, nomi=None):
     with tempfile.TemporaryDirectory() as d:
         estrai(mbz, d)
         r = ET.parse(os.path.join(d, "questions.xml")).getroot()
@@ -93,7 +106,7 @@ def prepara_banca(mbz, out):
             for e in c.findall("question_bank_entries/question_bank_entry"):
                 vs = sorted(e.iter("question_versions"), key=lambda v: int(v.findtext("version") or 0))
                 nome = vs[-1].find(".//question").findtext("name") or ""
-                if nome.startswith("Riduzione contenuti") or nome.startswith("Dichiarazione"):
+                if (nome in nomi) if nomi else (nome.startswith("Riduzione contenuti") or nome.startswith("Dichiarazione")):
                     voci[nome] = ET.tostring(e, encoding="unicode")
             if not voci:
                 continue
@@ -109,7 +122,8 @@ def prepara_banca(mbz, out):
                     "domande": voci}
             break
         if not dati:
-            raise SystemExit("ERRORE: nel backup non trovo domande «Riduzione contenuti…» o «Dichiarazione…»")
+            raise SystemExit("ERRORE: nel backup non trovo domande " + (", ".join("«%s»" % n for n in nomi) if nomi
+                             else "«Riduzione contenuti…» o «Dichiarazione…»"))
     json.dump(dati, open(out, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print("OK: banca «%s» (corso «%s»), %d domande -> %s" % (dati["banca"]["nome"], dati["banca"]["corso"],
                                                          len(dati["domande"]), out))
@@ -119,6 +133,99 @@ def prepara_banca(mbz, out):
 def leggi_banca(p):
     d = json.load(open(p, encoding="utf-8"))
     return d.get("data", d)
+
+
+# ------------------------------------------------------------------ voci di una banca esterna nel backup
+
+def metti_voci_banca(d, qroot, qx, quiz_xml, B, usate):
+    """Aggiunge a questions.xml (e all'inforef del quiz) le voci della banca B con i loro stamp:
+    al ripristino Moodle le riconosce e le riusa, senza doppioni."""
+    b = B["banca"]
+    cats = {c.get("id"): c for c in qroot.iter("question_category")}
+
+    def categoria(cid, nome_c, parent, stamp, ordine):
+        if str(cid) in cats:
+            return cats[str(cid)]
+        c = ET.SubElement(qroot, "question_category", id=str(cid))
+        for tag, val in (("name", nome_c), ("contextid", str(b["contextid"])), ("contextlevel", "70"),
+                         ("contextinstanceid", str(b["cmid"])), ("info", ""), ("infoformat", "1"), ("stamp", stamp),
+                         ("parent", str(parent)), ("sortorder", str(ordine)), ("idnumber", NULL)):
+            ET.SubElement(c, tag).text = val
+        ET.SubElement(c, "question_bank_entries")
+        cats[str(cid)] = c
+        return c
+    categoria(b["top_id"], "top", 0, b["top_stamp"], 0)
+    cat = categoria(b["categoria_id"], b["categoria_nome"], b["top_id"], b["categoria_stamp"], 999)
+    if cats[str(b["categoria_id"])].findtext("stamp") != b["categoria_stamp"]:
+        raise SystemExit("ERRORE: la categoria %s del backup non è quella della banca «%s»" % (b["categoria_id"], b.get("nome")))
+    presenti = {e.get("id") for e in qroot.iter("question_bank_entry")}
+    contenitore = cat.find("question_bank_entries")
+    for n in usate:
+        e = ET.fromstring(B["domande"][n])
+        if e.get("id") in presenti:
+            continue
+        e.find("questioncategoryid").text = str(b["categoria_id"])
+        contenitore.append(e)
+    scrivi_xml(qroot, qx)
+    inf = os.path.join(os.path.dirname(quiz_xml), "inforef.xml")
+    ir = ET.parse(inf).getroot()
+    qcr = ir.find("question_categoryref")
+    if qcr is None:
+        qcr = ET.SubElement(ir, "question_categoryref")
+    gia = {x.findtext("id") for x in qcr.iter("question_category")}
+    for cid in (b["top_id"], b["categoria_id"]):
+        if str(cid) not in gia:
+            ET.SubElement(ET.SubElement(qcr, "question_category"), "id").text = str(cid)
+    scrivi_xml(ir, inf)
+
+
+def aggiungi_note(mbz, banca_json, out, nome_domanda=NOTE):
+    """La domanda delle note e correzioni come primo slot della verifica, sulla prima pagina, a 0 punti."""
+    B = leggi_banca(banca_json)
+    if nome_domanda not in B["domande"]:
+        raise SystemExit("ERRORE: nella banca delle note non c'è «%s»" % nome_domanda)
+    entry = ET.fromstring(B["domande"][nome_domanda]).get("id")
+    with tempfile.TemporaryDirectory() as d:
+        estrai(mbz, d)
+        qx = os.path.join(d, "questions.xml")
+        qroot = ET.parse(qx).getroot()
+        quiz_xml = next(os.path.join(d, "activities", x, "quiz.xml") for x in os.listdir(os.path.join(d, "activities"))
+                        if x.startswith("quiz_"))
+        act = ET.parse(quiz_xml)
+        quiz = act.getroot().find("quiz")
+        qis = quiz.find("question_instances")
+        slots = sorted(qis.findall("question_instance"), key=lambda q: int(q.findtext("slot")))
+        for q in slots:
+            ref = q.find("question_reference")
+            if ref is not None and ref.findtext("questionbankentryid") == entry:
+                raise SystemExit("ERRORE: la verifica ha già la domanda «%s» (slot %s)" % (nome_domanda, q.findtext("slot")))
+        ctx = next((q.find(x).findtext("usingcontextid") for q in slots for x in ("question_reference", "question_set_reference")
+                    if q.find(x) is not None), None)
+        quizid = slots[0].findtext("quizid")
+        nid = max(int(e.get("id")) for e in act.getroot().iter() if e.get("id") and e.get("id").isdigit() and
+                  e.tag in ("question_instance", "question_reference", "question_set_reference"))
+        qi = ET.Element("question_instance", id=str(nid + 1))
+        for tag, val in (("quizid", quizid), ("slot", "1"), ("page", "1"), ("displaynumber", NULL),
+                         ("requireprevious", "0"), ("maxmark", "0.0000000"), ("quizgradeitemid", NULL)):
+            ET.SubElement(qi, tag).text = val
+        ref = ET.SubElement(qi, "question_reference", id=str(nid + 2))
+        for tag, val in (("usingcontextid", ctx), ("component", "mod_quiz"), ("questionarea", "slot"),
+                         ("questionbankentryid", str(entry)), ("version", NULL)):
+            ET.SubElement(ref, tag).text = val
+        for q in list(qis):
+            qis.remove(q)
+        qis.append(qi)
+        for q in slots:
+            q.find("slot").text = str(int(q.findtext("slot")) + 1)
+            qis.append(q)
+        for sez in quiz.findall("sections/section"):
+            fs = int(sez.findtext("firstslot"))
+            if fs > 1:
+                sez.find("firstslot").text = str(fs + 1)
+        scrivi_xml(act.getroot(), quiz_xml)
+        metti_voci_banca(d, qroot, qx, quiz_xml, B, [nome_domanda])
+        riconfeziona(d, out)
+    print("OK: «%s» in apertura (slot 1, pagina 1, 0 punti), %d slot -> %s" % (nome_domanda, len(slots) + 1, out))
 
 
 # ------------------------------------------------------------------ copia PDP
@@ -252,44 +359,7 @@ def crea_copia(mbz, banca_json, out, togli, pei=False, dich="mappe", nome=None):
                 s = s.replace(">%s<" % escape_xml(vecchio), ">%s<" % escape_xml(nuovo_nome))
                 open(p, "w", encoding="utf-8").write(s)
         # domande della banca PDP in questions.xml, con i loro stamp
-        b = B["banca"]
-        cats = {c.get("id"): c for c in qroot.iter("question_category")}
-
-        def categoria(cid, nome_c, parent, stamp, ordine):
-            if str(cid) in cats:
-                return cats[str(cid)]
-            c = ET.SubElement(qroot, "question_category", id=str(cid))
-            for tag, val in (("name", nome_c), ("contextid", str(b["contextid"])), ("contextlevel", "70"),
-                             ("contextinstanceid", str(b["cmid"])), ("info", ""), ("infoformat", "1"), ("stamp", stamp),
-                             ("parent", str(parent)), ("sortorder", str(ordine)), ("idnumber", NULL)):
-                ET.SubElement(c, tag).text = val
-            ET.SubElement(c, "question_bank_entries")
-            cats[str(cid)] = c
-            return c
-        categoria(b["top_id"], "top", 0, b["top_stamp"], 0)
-        cat = categoria(b["categoria_id"], b["categoria_nome"], b["top_id"], b["categoria_stamp"], 999)
-        if cats[str(b["categoria_id"])].findtext("stamp") != b["categoria_stamp"]:
-            raise SystemExit("ERRORE: la categoria %s del backup non è quella della banca PDP" % b["categoria_id"])
-        presenti = {e.get("id") for e in qroot.iter("question_bank_entry")}
-        contenitore = cat.find("question_bank_entries")
-        for n in usate:
-            e = ET.fromstring(B["domande"][n])
-            if e.get("id") in presenti:
-                continue
-            e.find("questioncategoryid").text = str(b["categoria_id"])
-            contenitore.append(e)
-        scrivi_xml(qroot, qx)
-        # inforef del quiz: le categorie usate
-        inf = os.path.join(os.path.dirname(quiz_xml), "inforef.xml")
-        ir = ET.parse(inf).getroot()
-        qcr = ir.find("question_categoryref")
-        if qcr is None:
-            qcr = ET.SubElement(ir, "question_categoryref")
-        gia = {x.findtext("id") for x in qcr.iter("question_category")}
-        for cid in (b["top_id"], b["categoria_id"]):
-            if str(cid) not in gia:
-                ET.SubElement(ET.SubElement(qcr, "question_category"), "id").text = str(cid)
-        scrivi_xml(ir, inf)
+        metti_voci_banca(d, qroot, qx, quiz_xml, B, usate)
         riconfeziona(d, out)
     print("OK: «%s», %d slot (%d tolte a 0 punti: slot originali %s), punteggio massimo %g -> %s"
           % (nuovo_nome, len(nuovi), len(da_togliere), ", ".join(str(x) for x in sorted(da_togliere)), somma, out))
@@ -305,12 +375,17 @@ def main():
     a = sys.argv[1:]
     if not a:
         raise SystemExit(__doc__)
-    if a[0] == "--prepara-banca":
-        if len(a) != 3:
-            raise SystemExit(__doc__)
-        return prepara_banca(a[1], a[2])
     pos = [x for x in a if not x.startswith("--")]
     opt = dict(x[2:].split("=", 1) if "=" in x else (x[2:], "1") for x in a if x.startswith("--"))
+    if a[0] == "--prepara-banca":
+        if len(pos) != 2:
+            raise SystemExit(__doc__)
+        nomi = [n.strip() for n in opt["nomi"].split(",") if n.strip()] if opt.get("nomi") else None
+        return prepara_banca(pos[0], pos[1], nomi)
+    if a[0] == "--aggiungi-note":
+        if len(pos) != 3:
+            raise SystemExit(__doc__)
+        return aggiungi_note(pos[0], pos[1], pos[2], opt.get("nome-domanda") or NOTE)
     if len(pos) != 3 or "togli" not in opt:
         raise SystemExit(__doc__)
     dich = opt.get("dichiarazione", "mappe")

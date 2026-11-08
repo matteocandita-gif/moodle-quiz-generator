@@ -1045,6 +1045,10 @@ def slot_del_quiz(bk, qz):
             voce["domande"] = cand
             if not cand:
                 voce["mancante"] = "domanda casuale senza domande nel backup (tag %s)" % (", ".join(nomi_tag) or "?")
+        # la domanda delle note (materiali-moodle, «Domanda delle note») non è una riga della scaletta:
+        # la aggiunge genera_quiz.py a ogni verifica
+        if len(voce["domande"]) == 1 and tx(voce["domande"][0]["usata"][1], "name") == "Domanda per note e correzioni":
+            continue
         out.append(voce)
     return out
 

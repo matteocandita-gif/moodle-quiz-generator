@@ -5,6 +5,7 @@ Uso:
     python3 genera_quiz.py EXPORT QUIZ_ID USCITA [--js=CARTELLA] [--sql=CARTELLA] [--php=CARTELLA] [--nome=BASE]
                            [--salta-coderunner] [--varianti=a[,b...]] [--immagini=CARTELLA]
                            [--pdp [--pdp-pei] [--pdp-dichiarazione=mappe|tempo|generica|nessuna]]
+                           [--banca-note=FILE] [--senza-note]
 
 EXPORT, QUIZ_ID, USCITA  come per da_dashboard.py
 --js=CARTELLA   cartella scripts/ della skill domande-coderunner-js (serve se il quiz ha righe
@@ -21,6 +22,13 @@ EXPORT, QUIZ_ID, USCITA  come per da_dashboard.py
                 «tolta nella PDP» nella dashboard. Solo se il quiz ha «deposito» (le domande stanno in
                 una banca nota e la copia si aggancia a quelle della verifica); la banca delle descrizioni
                 è EXPORT/impostazioni/pdp.json (ArtifactData get impostazioni pdp con out_dir)
+
+--banca-note=FILE  banca della domanda «Domanda per note e correzioni» (predefinita
+                EXPORT/impostazioni/note.json, cioè ArtifactData get impostazioni note con out_dir). Nelle
+                verifiche (preset «verifica») la domanda va in apertura, sulla pagina delle istruzioni, a 0
+                punti: dopo la correzione il docente ci scrive il feedback complessivo e la griglia compilata.
+                Senza la banca la verifica esce senza la domanda, con un avviso
+--senza-note    nessuna domanda delle note, anche in una verifica
 
 Esegue, nella cartella dove sta (insieme agli script di materiali-moodle):
   1. da_dashboard.py            -> specifica.txt, specifica-js.txt, specifica-sql.txt, impaginazione.json
@@ -162,15 +170,26 @@ def main():
         return
     esegui([os.path.join(QUI, "crea_mbz.py"), finale, os.path.join(usc, "impaginazione.json"),
             os.path.join(usc, base + ".mbz")], "backup .mbz")
+    imp = json.load(open(os.path.join(usc, "impaginazione.json"), encoding="utf-8"))
+    con_note = False
+    if imp.get("preset") == "verifica" and "--senza-note" not in sys.argv:
+        bnote = opz.get("banca-note") or os.path.join(export, "impostazioni", "note.json")
+        if os.path.exists(bnote):
+            mbz = os.path.join(usc, base + ".mbz")
+            esegui([os.path.join(QUI, "crea_pdp.py"), "--aggiungi-note", mbz, bnote, mbz + ".tmp"], "domanda delle note")
+            os.replace(mbz + ".tmp", mbz)
+            con_note = True
+        else:
+            print("AVVISO: manca la banca della domanda delle note (%s): la verifica esce senza. "
+                  "Si prepara con crea_pdp.py --prepara-banca … --nomi=\"Domanda per note e correzioni\"" % bnote)
     print("FATTO: %s e %s" % (finale, os.path.join(usc, base + ".mbz")))
     if "--pdp" in sys.argv:
-        imp = json.load(open(os.path.join(usc, "impaginazione.json"), encoding="utf-8"))
         if not imp.get("banca"):
             raise SystemExit("ERRORE: copia PDP dalla dashboard solo per un quiz con «deposito»: le domande della "
                              "verifica devono stare in una banca nota. Altrimenti usa crea_pdp.py con il backup "
                              "della verifica ripristinata.")
         voci = [d for s in imp["sezioni"] for d in s["domande"]]
-        togli = [str(i) for i, d in enumerate(voci, 1) if d.get("pdp")]
+        togli = [str(i + (1 if con_note else 0)) for i, d in enumerate(voci, 1) if d.get("pdp")]   # la domanda delle note è lo slot 1
         if not togli:
             raise SystemExit("ERRORE: nessuna posizione segnata «tolta nella PDP» nella dashboard.")
         banca = opz.get("banca-pdp") or os.path.join(export, "impostazioni", "pdp.json")
