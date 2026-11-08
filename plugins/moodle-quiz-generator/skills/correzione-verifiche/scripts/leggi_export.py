@@ -170,6 +170,15 @@ def abbina_e_scrivi(export, uscita, opz, studenti, num):
     for k in num:
         testi = [s["testi"][str(k)] for s in studenti if s["testi"][str(k)]]
         varianti = sorted(set(testi), key=testi.index)
+        # la domanda delle note (materiali-moodle, «Domanda delle note»): non si corregge, nel suo commento va il
+        # feedback complessivo con la griglia (vista «Feedback» della dashboard)
+        if varianti and all("non fa parte della verifica" in t for t in varianti):
+            for s in studenti:
+                s.setdefault("righe", {})[str(k)] = None
+            domande[str(k)] = {"n": k, "riga": None, "righe": [], "pos": "Note", "titolo": "Domanda per note e correzioni",
+                               "punti": 0, "tipologia": "note", "note": True, "varianti": 1, "somiglianza": None}
+            print(f"D{k:02d} → domanda delle note (0 punti, non si corregge: ci va il feedback complessivo)")
+            continue
         per_testo = {}                                   # con le domande casuali ogni variante ha la sua riga
         if forzate.get(str(k)):
             per_testo = {t: (None, forzate[str(k)]) for t in varianti}

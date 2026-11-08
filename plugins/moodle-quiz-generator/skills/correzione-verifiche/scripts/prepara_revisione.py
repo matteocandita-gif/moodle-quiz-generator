@@ -20,7 +20,14 @@ Scrive in LAVORO/revisione/:
                           numero di studenti, data, quiz della dashboard, frase sull'IA
 - domande/DNN.json        un documento per domanda (collezione «verifiche/ID/domande»)
 - valutazioni/DNN.json    le righe degli studenti di quella domanda («verifiche/ID/valutazioni»)
-e stampa le voci del batch per ArtifactData. --solo=D11,D12 rigenera solo quelle domande (e non il
+e stampa le voci del batch per ArtifactData.
+
+--griglia=FILE  la griglia per competenze della verifica, salvata nella dashboard «Bozze dei quiz»: FILE è il
+         documento del quiz (db_get di quiz/<id>, con il campo «griglia») o la griglia stessa ({"righe": […]}).
+         Va nel campo «griglia» del documento della verifica, con origine «bozze»: la vista «Feedback» la usa per la
+         griglia compilata di ogni studente. Con --unisci il documento della verifica non si riscrive: lo script
+         scrive revisione/griglia.json, da applicare con un update di verifiche/ID.
+         Senza griglia la pagina propone le competenze dalle tipologie delle domande. --solo=D11,D12 rigenera solo quelle domande (e non il
 documento della verifica).
 
 --unisci=VERIFICA  la verifica c'è già nella dashboard (creata con «Nuova correzione», forse con gli
@@ -67,6 +74,16 @@ def main():
     p_esiti = os.path.join(lavoro, "esiti.json")
     esiti = json.load(open(p_esiti, encoding="utf-8")) if os.path.exists(p_esiti) else {}
     solo = set(opz["solo"].split(",")) if opz.get("solo") else None
+    griglia = None
+    if opz.get("griglia"):
+        g = json.load(open(opz["griglia"], encoding="utf-8"))
+        g = g.get("griglia", g) if isinstance(g, dict) else None
+        if not g or not isinstance(g.get("righe"), list) or not g["righe"]:
+            sys.exit(f"{opz['griglia']}: non trovo la griglia (campo «griglia» con «righe»). Il quiz non ha una griglia personalizzata: "
+                     "senza --griglia la pagina la propone dalle tipologie.")
+        griglia = {"righe": [{"area": r.get("area", ""), "tipo": r.get("tipo", "personale"), "descrittori": r.get("descrittori"),
+                              "pos": list(r.get("pos") or [])} for r in g["righe"]],
+                   "origine": "bozze", "aggiornata": datetime.date.today().isoformat()}
     out = os.path.join(lavoro, "revisione")
     for d in ("domande", "valutazioni"):
         os.makedirs(os.path.join(out, d), exist_ok=True)
@@ -80,7 +97,7 @@ def main():
         prop = json.load(open(p_voti, encoding="utf-8")) if os.path.exists(p_voti) else {}
         voti = {kk.replace(" ", "-"): v for kk, v in prop.get("voti", {}).items()}
         auto = esiti.get(k)
-        massimo = dom.get("punti") or prop.get("max")
+        massimo = dom.get("punti") if dom.get("note") else (dom.get("punti") or prop.get("max"))
         if massimo is None:
             sys.exit(f"{did}: punti sconosciuti (riga della dashboard non abbinata): mettili in voti/{did}.json come «max».")
         pos = dom.get("pos") or f"D{k}"
@@ -89,9 +106,17 @@ def main():
         doc_dom = {"n": int(k), "breve": pos, "titolo": dom.get("titolo") or f"Domanda {k}",
                    "max": massimo, "tipo": "auto" if auto else "manuale",
                    "criteri": prop.get("criteri", "") or ("IN ATTESA: proposte non ancora scritte." if not voti else "")}
+        if dom.get("tipologia"):
+            doc_dom["tipologia"] = dom["tipologia"]
+        if dom.get("note"):                           # domanda delle note: niente proposte, solo le annotazioni degli studenti
+            doc_dom.update({"breve": "Note", "titolo": "Domanda per note e correzioni", "max": 0, "tipo": "note", "note": True, "criteri": "",
+                            "risposte": {s["chiave"]: s["risposte"][k] for s in dati["studenti"] if (s["risposte"].get(k) or "").strip() not in ("", "-")}})
         if esistenti:
             doc_dom = {**esistenti["domande"].get(did, {}), **doc_dom}
         json.dump(doc_dom, open(os.path.join(out, "domande", did + ".json"), "w", encoding="utf-8"), ensure_ascii=False)
+        if dom.get("note"):                           # niente righe da correggere: il feedback sta in resoconti/feedback
+            voci.append((f"verifiche/{vid}/domande", did, os.path.join(out, "domande", did + ".json")))
+            continue
         righe = {}
         gia = (esistenti["valutazioni"].get(did) or {}).get("righe", {}) if esistenti else {}
         for i, s in enumerate(dati["studenti"]):
@@ -101,7 +126,7 @@ def main():
                     sys.exit(f"{did} {s['sigla']}: la domanda è esclusa dal PDP, non va corretta.")
                 righe[s["chiave"]] = gia[s["chiave"]]
                 continue
-            if voti and s["chiave"] not in voti:
+            if voti and s["chiave"] not in voti and not dom.get("note"):
                 mancanti.append(f"{did} {s['sigla']}")
             if p is not None and not (0 <= float(p) <= float(massimo)):
                 sys.exit(f"{did} {s['sigla']}: {p} fuori da 0–{massimo}")
@@ -121,9 +146,12 @@ def main():
         json.dump({"titolo": opz["titolo"], "sottotitolo": opz.get("sottotitolo", ""), "quiz": opz.get("quiz", ""),
                    "studenti": len(dati["studenti"]), "disclaimer": opz.get("disclaimer", DISCLAIMER),
                    "creato": datetime.date.today().isoformat(), "archiviata": False,
-                   "avanzamento": {"righe": 0, "fatte": 0, "ins": 0, "insF": 0}},
+                   "avanzamento": {"righe": 0, "fatte": 0, "ins": 0, "insF": 0}, **({"griglia": griglia} if griglia else {})},
                   open(os.path.join(out, "verifica.json"), "w", encoding="utf-8"), ensure_ascii=False)
         voci.insert(0, ("verifiche", vid, os.path.join(out, "verifica.json")))
+    if griglia and (solo or esistente):
+        json.dump({"griglia": griglia}, open(os.path.join(out, "griglia.json"), "w", encoding="utf-8"), ensure_ascii=False)
+        print(f"Griglia in {os.path.join(out, 'griglia.json')}: applicala con un update di verifiche/{vid} (con ifVersion).")
     if mancanti:
         print("ATTENZIONE, studenti senza proposta:", ", ".join(mancanti))
     batch = [{"op": "set", "collection": c, "doc_id": d, "file_path": os.path.abspath(f)} for c, d, f in voci]

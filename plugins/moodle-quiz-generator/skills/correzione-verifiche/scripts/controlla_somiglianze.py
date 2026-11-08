@@ -68,7 +68,7 @@ def carica(base, salta=()):
         sys.exit("Nella cartella non ci sono domande e valutazioni: esporta la verifica dalla dashboard.")
     return {d: {"max": float(q.get("max") or 0), "n": int(q.get("n") or 0), "testi": q.get("testi") or [],
                 "righe": val.get(d, {}).get("righe", {})}
-            for d, q in domande.items() if d not in salta}
+            for d, q in domande.items() if d not in salta and not (q.get("note") or q.get("tipo") == "note")}
 
 
 def parole_traccia(testo):

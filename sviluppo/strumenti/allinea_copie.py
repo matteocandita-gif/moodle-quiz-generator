@@ -55,6 +55,7 @@ INCLUSI = {
     "plugins/moodle-quiz-generator/skills/tracce-progettazione/scripts/griglia.js": [
         "plugins/moodle-quiz-generator/skills/tracce-progettazione/assets/dashboard-tracce.html",
         "plugins/moodle-quiz-generator/skills/progettazione-quiz/assets/dashboard.html",
+        "plugins/moodle-quiz-generator/skills/correzione-verifiche/assets/dashboard-correzioni.html",
     ],
     "plugins/moodle-quiz-generator/skills/tracce-progettazione/scripts/uscite_traccia.js": [
         "plugins/moodle-quiz-generator/skills/tracce-progettazione/assets/dashboard-tracce.html",

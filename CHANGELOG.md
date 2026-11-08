@@ -2,6 +2,16 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.13.4 — 08/11/2026
+
+Feedback per studente con la griglia compilata (pagina «Correzione verifiche» 1.4.0).
+
+- **Correzione verifiche**: nuova vista **Feedback**, una scheda per studente come nella vista per domanda: il feedback complessivo scritto per lo studente (modificabile), l'anteprima come in Moodle, **Copia per Moodle** e la spunta «Inserito in Moodle». Si incolla nel commento della «Domanda per note e correzioni», in Valutazione manuale, per tutti gli studenti in una volta.
+- **Griglia compilata**: la tabella completa delle competenze, con il livello di ogni riga evidenziato in base ai punti dello studente, il totale e il voto. Per gli studenti PDP mostra direttamente che cosa è stato tolto: esercizi barrati, massimi ridotti, «Non valutata» per una competenza con tutti gli esercizi tolti, voto sul massimo ridotto.
+- La griglia viene dalla dashboard «Bozze dei quiz» (`prepara_revisione.py --griglia=…`); se manca, come nelle verifiche già svolte, la pagina la propone dalle tipologie e dalle posizioni delle domande. Nel riquadro **Griglia della verifica** si assegna ogni domanda a una competenza; gli avvisi segnalano le domande rimaste fuori.
+- Il feedback per lo studente ha regole sue (`references/feedback.md`): seconda persona, punti forti e da riprendere per competenza, niente ipotesi sulle cause, niente confronti, niente cenni al PDP. I resoconti restano per il docente.
+- La «Domanda per note e correzioni» si riconosce in tutti i passaggi (export, «Nuova correzione», caricamento, riepilogo, somiglianze): non si corregge e non entra nei totali. Le eventuali annotazioni degli studenti si vedono nella scheda del feedback.
+
 ## 0.13.3 — 08/11/2026
 
 Griglia di valutazione per competenze nelle verifiche (pagina «Bozze dei quiz» 0.6.0).

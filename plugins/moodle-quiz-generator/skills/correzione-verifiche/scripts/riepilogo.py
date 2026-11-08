@@ -32,6 +32,7 @@ def main():
     base = arg[0]
     domande = {os.path.basename(f)[:-5]: leggi(f) for f in glob.glob(os.path.join(base, "**", "domande", "*.json"), recursive=True)}
     val = {os.path.basename(f)[:-5]: leggi(f) for f in glob.glob(os.path.join(base, "**", "valutazioni", "*.json"), recursive=True)}
+    domande = {d: q for d, q in domande.items() if not (q.get("note") or q.get("tipo") == "note")}   # la domanda delle note non conta
     ids = sorted(domande, key=lambda d: domande[d]["n"])
     massimo = sum(float(domande[d]["max"]) for d in ids)
     studenti = sorted({(r["ord"], c, r["s"]) for d in val for c, r in val[d]["righe"].items()})
