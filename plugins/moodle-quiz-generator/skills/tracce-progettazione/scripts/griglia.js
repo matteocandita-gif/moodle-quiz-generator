@@ -181,6 +181,122 @@
     return avv;
   }
 
+  /* ------------------------------------------------------------------ verifiche di programmazione: competenze */
+  /* Le righe della griglia sono le competenze, non gli esercizi; ogni riga raccoglie gli esercizi che la
+     verificano (per tipologia, qualunque sia la parte della verifica). La parte avanzata non è una riga. */
+  var COMPETENZE = [
+    { tipo: "teoria", area: "Conoscenze teoriche" },
+    { tipo: "lettura", area: "Lettura e comprensione del codice" },
+    { tipo: "debug", area: "Individuazione e correzione degli errori" },
+    { tipo: "scrittura", area: "Scrittura di codice" }
+  ];
+  /* tipologia della dashboard «Bozze dei quiz» → competenza; null = non valutata (pagine, campo di prova) */
+  var COMPETENZA_TIPOLOGIA = {
+    istruzioni: null, comelavoriamo: null, paginablocco: null, campo_prova: null,
+    /* tipologie generiche: decide la lettera della posizione (L lettura, D errori, altrimenti teoria) */
+    vf: "pos", multipla: "pos", crocette: "pos", breve: "pos", corrispondenza: "pos", cloze_testo: "pos", ordine: "pos",
+    teoria_aperta: "teoria",
+    esempio_svolto: "lettura", tracciamento: "lettura", lettura_output: "lettura",
+    trova_errore: "debug", debug_msg: "debug", debug_silenzioso: "debug", debug_motivazione: "debug",
+    compl_campi: "scrittura", guidato: "scrittura", compl_eseguito: "scrittura", scrittura_scheletro: "scrittura",
+    prog_completo: "scrittura", funzione: "scrittura", prog_dati: "scrittura", prog_random: "scrittura", query: "scrittura",
+    create_tabelle: "scrittura", query_due_passi: "scrittura", vincoli: "scrittura", pagina_php: "scrittura",
+    esercizio_libero: "scrittura", consegna_file: "scrittura", libero_html: "scrittura", libero_css: "scrittura"
+  };
+  var POS_COMPETENZA = { T: "teoria", L: "lettura", D: "debug" };
+  var basePos = function (p) { return String(p || "").trim().replace(/[a-z]$/, ""); };
+  function competenzaDi(riga) {
+    var t = riga.tipologia;
+    var lettera = basePos(riga.pos).charAt(0);
+    if (Object.prototype.hasOwnProperty.call(COMPETENZA_TIPOLOGIA, t)) {
+      var c = COMPETENZA_TIPOLOGIA[t];
+      return c === "pos" ? (POS_COMPETENZA[lettera] || "teoria") : c;
+    }
+    return POS_COMPETENZA[lettera] || "scrittura";
+  }
+  /* le posizioni valutate di una verifica: una per posizione anche con più varianti (E1a, E1b → E1) */
+  function posizioni(righe) {
+    var out = [], per = {};
+    (righe || []).slice().sort(function (a, b) { return (Number(a.ordine) || 0) - (Number(b.ordine) || 0); }).forEach(function (r) {
+      var c = competenzaDi(r), p = basePos(r.pos), pt = Number(r.punti) || 0;
+      if (!c || !p || !(pt > 0)) return;
+      if (!per[p]) { per[p] = { pos: p, punti: pt, pdp: !!r.pdp, competenza: c, titolo: r.titolo || "" }; out.push(per[p]); }
+      else { per[p].punti = Math.max(per[p].punti, pt); per[p].pdp = per[p].pdp || !!r.pdp; }
+    });
+    return out;
+  }
+  /* la griglia di una verifica dalle sue righe (domande della dashboard) e dalla personalizzazione salvata nel
+     quiz (quiz.griglia.righe: [{area, descrittori, tipo, pos: ["T1", "E2"…]}]). Ogni riga:
+     {area, tipo, descrittori, pos, max, maxPdp, tolte}. In più: senzaRiga (posizioni non assegnate). */
+  function daDomande(righe, personalizzazione) {
+    var P = posizioni(righe), di = {}, out = [], assegnate = {};
+    P.forEach(function (x) { di[x.pos] = x; });
+    var base = personalizzazione && Array.isArray(personalizzazione.righe) && personalizzazione.righe.length
+      ? personalizzazione.righe.map(function (r) { return { area: r.area, tipo: r.tipo || "personale", descrittori: r.descrittori, pos: (r.pos || []).filter(function (p) { return di[p]; }) }; })
+      : COMPETENZE.map(function (c) { return { area: c.area, tipo: c.tipo, descrittori: null, pos: P.filter(function (x) { return x.competenza === c.tipo; }).map(function (x) { return x.pos; }) }; })
+        .filter(function (r) { return r.pos.length; });
+    base.forEach(function (r) {
+      r.pos.forEach(function (p) { assegnate[p] = true; });
+      r.descrittori = Array.isArray(r.descrittori) && r.descrittori.some(function (x) { return String(x || "").trim(); }) ? r.descrittori
+        : (DESCRITTORI[r.tipo] || ["", "", "", "", ""]).slice();
+      r.max = r.pos.reduce(function (s, p) { return s + di[p].punti; }, 0);
+      r.tolte = r.pos.filter(function (p) { return di[p].pdp; });
+      r.maxPdp = r.pos.reduce(function (s, p) { return s + (di[p].pdp ? 0 : di[p].punti); }, 0);
+      out.push(r);
+    });
+    var g = completa(out);
+    g.totalePdp = out.reduce(function (s, r) { return s + r.maxPdp; }, 0);
+    g.tolte = P.filter(function (x) { return x.pdp; }).map(function (x) { return x.pos; });
+    g.senzaRiga = P.filter(function (x) { return !assegnate[x.pos]; }).map(function (x) { return x.pos; });
+    g.posizioni = P;
+    g.personalizzata = !!(personalizzazione && Array.isArray(personalizzazione.righe) && personalizzazione.righe.length);
+    return g;
+  }
+  /* la personalizzazione da salvare nel quiz, a partire dalla griglia attuale */
+  function personalizzazioneDi(g) {
+    return { righe: g.righe.map(function (r) { return { area: r.area, tipo: r.tipo, descrittori: r.descrittori.slice(), pos: r.pos.slice() }; }) };
+  }
+
+  /* ------------------------------------------------------------------ tabella HTML (commento di Moodle) */
+  /* Stili negli attributi: l'editor di Moodle toglie i <style>. opz.pdp: copia PDP (colonne Classe e PDP,
+     esercizi tolti barrati); opz.punti: {indice riga → punti dello studente}, per la griglia compilata. */
+  function escH(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+  var num = function (v) { return String(Math.round(v * 100) / 100).replace(".", ","); };
+  function htmlTabella(g, opz) {
+    opz = opz || {};
+    var pdp = !!opz.pdp, punti = opz.punti || null, B = "border:1px solid #888;padding:4px 6px;vertical-align:top;";
+    var th = function (t, x) { return '<th style="' + B + 'background:#e7e6e6;text-align:center;' + (x || "") + '">' + t + "</th>"; };
+    var h = "";
+    if (pdp) h += '<p style="margin:0 0 6px 0;"><strong>Riduzione dei contenuti per PDP</strong>: ' + (g.tolte.length ? "tolti " + escH(g.tolte.join(", ")) + " (" + num(g.totale - g.totalePdp) + " punti su " + num(g.totale) + "). Punteggio massimo " + num(g.totalePdp) + "." : "nessun esercizio tolto.") + "</p>";
+    h += '<table style="border-collapse:collapse;font-size:12px;width:100%;"><thead><tr>' + th("Competenza", "width:16%;") +
+      LIVELLI.map(function (l) { return th(escH(l)); }).join("") + th(pdp ? "Punti (classe → PDP)" : "Punti", "width:9%;") + "</tr></thead><tbody>";
+    var totS = 0, totM = 0;
+    g.righe.forEach(function (r, i) {
+      if (!r.pos || !r.pos.length) return;   // competenza senza esercizi: non è nella griglia
+      var max = pdp ? r.maxPdp : r.max, f = fasce(max), p = punti ? punti[i] : null, lv = p != null && max > 0 ? livello(p, max) : null;
+      totM += max; if (p != null) totS += p;
+      var es = r.pos.map(function (x) { return r.tolte.indexOf(x) >= 0 && pdp ? "<s>" + escH(x) + "</s>" : escH(x); }).join(", ");
+      h += '<tr><td style="' + B + '"><strong>' + escH(r.area) + '</strong><br><span style="font-size:11px;">Esercizi: ' + es + "</span></td>";
+      if (!(max > 0)) {
+        h += '<td colspan="5" style="' + B + 'color:#666;font-style:italic;">Non valutata: esercizi tolti per riduzione PDP</td>';
+      } else {
+        for (var k = 0; k < 5; k++) {
+          var su = lv === k;
+          h += '<td style="' + B + (su ? "background:#cfe2ff;border:2px solid #1a56db;" : "") + '">' + escH(r.descrittori[k]) +
+            '<div style="text-align:right;font-weight:bold;">' + (f ? f[k] : "") + "</div></td>";
+        }
+      }
+      var cellaP = (p != null ? "<strong>" + num(p) + "</strong> / " : "") + (pdp && r.max !== r.maxPdp ? '<span style="text-decoration:line-through;">' + num(r.max) + "</span> " + num(r.maxPdp) : num(max));
+      h += '<td style="' + B + 'text-align:center;vertical-align:middle;">' + cellaP + "</td></tr>";
+    });
+    var votoS = punti ? voto(totS, totM) : null;
+    h += '</tbody><tfoot><tr><td colspan="6" style="' + B + 'text-align:right;"><strong>Totale</strong>' + (votoS != null ? " — voto <strong>" + num(votoS) + "</strong>" : "") +
+      '</td><td style="' + B + 'text-align:center;"><strong>' + (punti ? num(totS) + " / " : "") + num(totM) + "</strong></td></tr></tfoot></table>";
+    return h;
+  }
+
   return { LIVELLI: LIVELLI, DESCRITTORI: DESCRITTORI, distribuisci: distribuisci, fasce: fasce, livello: livello,
-    daSalvare: daSalvare, completa: completa, voto: voto, controlla: controlla };
+    daSalvare: daSalvare, completa: completa, voto: voto, controlla: controlla,
+    COMPETENZE: COMPETENZE, COMPETENZA_TIPOLOGIA: COMPETENZA_TIPOLOGIA, competenzaDi: competenzaDi, posizioni: posizioni,
+    daDomande: daDomande, personalizzazioneDi: personalizzazioneDi, htmlTabella: htmlTabella };
 });

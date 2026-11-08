@@ -366,7 +366,7 @@ def carica(export, qid):
 def avanzate_tipo(quiz, preset):
     """Impostazioni avanzate che il tipo di quiz dà da solo (stessa regola della pagina, avanzateTipo)."""
     return {"seb": "file" if quiz.get("tipoQuiz") == "V" else "manuale" if preset == "verifica" else "no",
-            "note": "si" if preset == "verifica" else "no"}
+            "domandaNote": "si" if preset == "verifica" else "no"}
 
 
 def file_seb(export):
@@ -1042,7 +1042,8 @@ def main():
     if quiz.get("feedback") in ("immediato", "differito"):
         imp["feedback"] = quiz["feedback"]
     # domanda per note e correzioni in apertura (genera_quiz.py): di norma nelle verifiche, si cambia nel quiz
-    imp["note"] = (quiz.get("note") if quiz.get("note") in ("si", "no") else avanzate_tipo(quiz, preset)["note"]) == "si"
+    dn = quiz.get("domandaNote")
+    imp["note"] = (dn if dn in ("si", "no") else avanzate_tipo(quiz, preset)["domandaNote"]) == "si"
     if (quiz.get("password") or "").strip():
         imp.setdefault("impostazioni", {})["password"] = quiz["password"].strip()
     # Safe Exam Browser: scelto nel quiz o dal tipo di quiz; il file sta nelle impostazioni della dashboard

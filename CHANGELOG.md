@@ -2,11 +2,21 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.13.3 — 08/11/2026
+
+Griglia di valutazione per competenze nelle verifiche (pagina «Bozze dei quiz» 0.6.0).
+
+- **Dashboard**: nella scaletta delle verifiche nuovo pannello **Griglia di valutazione**. Le righe sono le competenze (conoscenze teoriche, lettura e comprensione del codice, individuazione e correzione degli errori, scrittura di codice) e ognuna raccoglie gli esercizi che la verificano: per tipologia, e per le tipologie generiche (risposta multipla, Cloze…) secondo la lettera della posizione. La parte avanzata non è una riga. Le varianti contano una volta; i punti sono la somma degli esercizi; le posizioni «tolta nella PDP» danno la colonna PDP.
+- **Personalizza**: nomi e descrittori delle competenze, esercizio per esercizio la competenza a cui appartiene, competenze aggiunte o tolte; «Torna alla griglia automatica» annulla. La griglia resta salvata nel quiz (campo `griglia`).
+- **Anteprima** di come la griglia comparirà nel commento di Moodle, per la classe e per la copia PDP: nella PDP il riquadro con gli esercizi tolti, gli esercizi barrati e i punti «classe → PDP». È la tabella che «Correzione verifiche» compilerà per ogni studente.
+- Il modulo comune `griglia.js` ha i descrittori delle competenze, il calcolo dalle domande e la tabella HTML con gli stili negli attributi; le copie stanno in `progettazione-quiz` e `correzione-verifiche`.
+- **Correzione della 0.13.2**: il campo della domanda delle note si chiama `domandaNote`. Prima usava `note`, lo stesso del riquadro «Note sul quiz», e cambiando la scelta avrebbe sovrascritto le note (nessun quiz è stato toccato).
+
 ## 0.13.2 — 08/11/2026
 
 La domanda delle note si sceglie quiz per quiz (pagina «Bozze dei quiz» 0.5.1).
 
-- **Dashboard**: nel pannello **Impostazioni avanzate** nuovo campo **Domanda per note e correzioni** («Sì, in apertura» o «No»). Lo propone il tipo: sì nelle verifiche, no negli altri quiz; si cambia quiz per quiz, e nel quiz resta solo il valore diverso dal tipo (campo `note`).
+- **Dashboard**: nel pannello **Impostazioni avanzate** nuovo campo **Domanda per note e correzioni** («Sì, in apertura» o «No»). Lo propone il tipo: sì nelle verifiche, no negli altri quiz; si cambia quiz per quiz, e nel quiz resta solo il valore diverso dal tipo (campo `domandaNote` dalla 0.13.3).
 - `da_dashboard.py` scrive la scelta nell'impaginazione e `genera_quiz.py` aggiunge la domanda solo se è sì.
 
 ## 0.13.1 — 08/11/2026

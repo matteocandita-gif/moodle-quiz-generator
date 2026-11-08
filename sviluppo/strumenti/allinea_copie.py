@@ -25,6 +25,10 @@ ORIGINALI = {
         "domande-coderunner-sql/scripts/moodle_lib.py",
         "domande-php-mysqli-mock/scripts/moodle_lib.py",
     ],
+    "tracce-progettazione/scripts/griglia.js": [
+        "progettazione-quiz/scripts/griglia.js",
+        "correzione-verifiche/scripts/griglia.js",
+    ],
     "progettazione-quiz/references/navigazione.md": [
         "correzione-verifiche/references/navigazione.md",
         "mappe-prerequisiti/references/navigazione.md",
@@ -50,6 +54,7 @@ BLOCCHI = {
 INCLUSI = {
     "plugins/moodle-quiz-generator/skills/tracce-progettazione/scripts/griglia.js": [
         "plugins/moodle-quiz-generator/skills/tracce-progettazione/assets/dashboard-tracce.html",
+        "plugins/moodle-quiz-generator/skills/progettazione-quiz/assets/dashboard.html",
     ],
     "plugins/moodle-quiz-generator/skills/tracce-progettazione/scripts/uscite_traccia.js": [
         "plugins/moodle-quiz-generator/skills/tracce-progettazione/assets/dashboard-tracce.html",
@@ -64,6 +69,8 @@ def contenuto_copia(orig):
     testa = INTESTAZIONE.format(orig=orig)
     if orig.endswith(".md"):                          # nel Markdown un commento HTML
         testa = "<!-- " + testa.replace("# ", "").replace("\n", " ").strip() + " -->\n"
+    elif orig.endswith(".js"):                        # in JavaScript un commento a blocco
+        testa = "/* " + testa.replace("# ", "").replace("\n", " ").strip() + " */\n"
     if righe and righe[0].startswith("#!"):          # lo shebang resta in cima
         return righe[0] + testa + "".join(righe[1:])
     return testa + testo
