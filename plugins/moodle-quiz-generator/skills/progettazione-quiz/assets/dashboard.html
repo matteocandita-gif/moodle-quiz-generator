@@ -724,9 +724,10 @@ const PROTO_WEB={html:"php_con_test",css:"css"};
 const NAVIGAZIONE=[["libero","Libero"],["sequenziale","Forzato: solo avanti"]];
 const FEEDBACK=[["immediato","Immediato"],["differito","Differito"]];
 const SEB=[["no","No"],["manuale","Sì, con configurazione manuale"],["file","Sì, con file"]];
-const AVANZATE=["navigazione","feedback","seb"];
+const NOTE=[["si","Sì, in apertura"],["no","No"]];
+const AVANZATE=["navigazione","feedback","seb","note"];
 function presetQuiz(q){const t=q.tipoQuiz;if(t==="V"||t==="VT")return "verifica";if(t==="SD")return "studio";if(t==="LIB"||t==="IMP")return q.presetMbz==="verifica"?"verifica":"esercitazione";return "esercitazione";}
-function avanzateTipo(q){const p=presetQuiz(q);return {navigazione:p==="studio"?"sequenziale":"libero",feedback:p==="esercitazione"?"immediato":"differito",seb:q.tipoQuiz==="V"?"file":p==="verifica"?"manuale":"no"};}
+function avanzateTipo(q){const p=presetQuiz(q);return {navigazione:p==="studio"?"sequenziale":"libero",feedback:p==="esercitazione"?"immediato":"differito",seb:q.tipoQuiz==="V"?"file":p==="verifica"?"manuale":"no",note:p==="verifica"?"si":"no"};}
 function avanzataDi(q,f){return q[f]||avanzateTipo(q)[f];}
 /* il valore uguale a quello del tipo non si salva: se il tipo cambia, segue il tipo */
 function valoreAvanzata(q,f,v){return v===avanzateTipo(q)[f]?"":v;}
@@ -1151,7 +1152,7 @@ function renderHeader(){
   ["home","scaletta","dettaglio"].forEach(function(v){$("#tab-"+v).setAttribute("aria-selected",(S.view===v||(v==="home"&&S.view==="nuovo"))?"true":"false");});
 }
 /* ------------------------------------------------------------------ vista iniziale e nuovo quiz */
-const VERSIONE_PAGINA="0.5.0";
+const VERSIONE_PAGINA="0.5.1";
 const PERCORSO_IMPOSTAZIONI="impostazioni/avvio";
 /* depositi delle domande (banche qbank dei corsi deposito): li scrive Claude leggendo un backup */
 const PERCORSO_DEPOSITI="impostazioni/depositi";
@@ -1189,16 +1190,16 @@ function codiceCasuale(classe){
 /* una ED è una lezione di due ore: propone 105 minuti se il tempo è vuoto (o era stato proposto dalla pagina) */
 const TEMPO_PROPOSTO={ED:"105",SD:"40"};
 function tempoProposto(n){const vuoto=!String(n.tempo||"").trim(),t=TEMPO_PROPOSTO[n.tipoQuiz];if(t){if(vuoto||n.tempoAuto){n.tempo=t;n.tempoAuto=true;}}else if(n.tempoAuto){n.tempo="";n.tempoAuto=false;}}
-function nuovoVuoto(){return {tipoQuiz:"",titolo:"",lezione:"",classe:"",area:"",argomento:"",tempo:"",linguaggio:"",varianti:"1",avanzata:"",richiesta:"",materiale:false,presetMbz:"esercitazione",prototipoHtml:"php_con_test",navigazione:"",feedback:"",seb:"",password:""};}
+function nuovoVuoto(){return {note:"",tipoQuiz:"",titolo:"",lezione:"",classe:"",area:"",argomento:"",tempo:"",linguaggio:"",varianti:"1",avanzata:"",richiesta:"",materiale:false,presetMbz:"esercitazione",prototipoHtml:"php_con_test",navigazione:"",feedback:"",seb:"",password:""};}
 function avanzateHTML(q,k){
   const sel=function(f,lbl,L){return '<label class="fld"><span>'+lbl+'</span><select class="ctl" '+k(f)+' aria-label="'+lbl+'">'+opts(opzioniAvanzata(q,f,L),avanzataDi(q,f))+"</select></label>";};
-  const v={n:avanzataDi(q,"navigazione"),f:avanzataDi(q,"feedback"),s:avanzataDi(q,"seb")};
-  const riass=["scorrimento "+(v.n==="sequenziale"?"forzato":"libero"),"feedback "+v.f,v.s==="no"?"senza SEB":v.s==="file"?"SEB con file":"SEB manuale",String(q.password||"").trim()?"con password":"senza password"].join(" · ");
+  const v={n:avanzataDi(q,"navigazione"),f:avanzataDi(q,"feedback"),s:avanzataDi(q,"seb"),o:avanzataDi(q,"note")};
+  const riass=["scorrimento "+(v.n==="sequenziale"?"forzato":"libero"),"feedback "+v.f,v.s==="no"?"senza SEB":v.s==="file"?"SEB con file":"SEB manuale",String(q.password||"").trim()?"con password":"senza password",v.o==="si"?"con domanda delle note":"senza domanda delle note"].join(" · ");
   const notaSeb=v.s==="file"?(S.sebFile?"File in uso: "+S.sebFile+". Per cambiarlo, allegalo in chat.":"Nessun file salvato: allegalo in chat prima di esportare."):v.s==="manuale"?"Impostazioni standard di Moodle, senza il pulsante per scaricare Safe Exam Browser.":"";
   return '<details class="panel avanzate" data-ap="impostazioni-avanzate"'+(aperta("impostazioni-avanzate",false)?" open":"")+'><summary>Impostazioni avanzate <small>'+esc(riass)+"</small>"+ico("chev","chev")+'</summary><div class="panel-body"><div class="meta">'+
-    sel("navigazione","Scorrimento del quiz",NAVIGAZIONE)+sel("feedback","Feedback",FEEDBACK)+sel("seb","Safe Exam Browser",SEB)+
+    sel("navigazione","Scorrimento del quiz",NAVIGAZIONE)+sel("feedback","Feedback",FEEDBACK)+sel("seb","Safe Exam Browser",SEB)+sel("note","Domanda per note e correzioni",NOTE)+
     '<label class="fld"><span>Password di accesso</span><input class="ctl" type="text" autocomplete="off" spellcheck="false" '+k("password")+' value="'+esc(q.password||"")+'" aria-label="Password di accesso"></label>'+
-    "</div>"+(notaSeb?'<p class="legend">'+esc(notaSeb)+"</p>":"")+"</div></details>";
+    "</div>"+(notaSeb?'<p class="legend">'+esc(notaSeb)+"</p>":"")+(v.o==="si"?'<p class="legend">Domanda per note e correzioni: in apertura, sulla pagina delle istruzioni, a 0 punti. Dopo la correzione ci va il feedback complessivo con la griglia.</p>':"")+"</div></details>";
 }
 function faseLabel(f){return label(FASI,f)||"Senza fase";}
 /* ------------------------------------------------------------------ organizzazione: classe > argomento */

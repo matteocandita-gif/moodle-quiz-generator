@@ -2,6 +2,13 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.13.2 — 08/11/2026
+
+La domanda delle note si sceglie quiz per quiz (pagina «Bozze dei quiz» 0.5.1).
+
+- **Dashboard**: nel pannello **Impostazioni avanzate** nuovo campo **Domanda per note e correzioni** («Sì, in apertura» o «No»). Lo propone il tipo: sì nelle verifiche, no negli altri quiz; si cambia quiz per quiz, e nel quiz resta solo il valore diverso dal tipo (campo `note`).
+- `da_dashboard.py` scrive la scelta nell'impaginazione e `genera_quiz.py` aggiunge la domanda solo se è sì.
+
 ## 0.13.1 — 08/11/2026
 
 Domanda delle note e correzioni in ogni verifica.

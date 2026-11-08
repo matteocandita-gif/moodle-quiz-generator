@@ -25,7 +25,8 @@ EXPORT, QUIZ_ID, USCITA  come per da_dashboard.py
 
 --banca-note=FILE  banca della domanda «Domanda per note e correzioni» (predefinita
                 EXPORT/impostazioni/note.json, cioè ArtifactData get impostazioni note con out_dir). Nelle
-                verifiche (preset «verifica») la domanda va in apertura, sulla pagina delle istruzioni, a 0
+                verifiche (impostazione «Domanda per note e correzioni» del quiz, di norma sì nelle verifiche
+                e no negli altri quiz; impaginazione "note") la domanda va in apertura, sulla pagina delle istruzioni, a 0
                 punti: dopo la correzione il docente ci scrive il feedback complessivo e la griglia compilata.
                 Senza la banca la verifica esce senza la domanda, con un avviso
 --senza-note    nessuna domanda delle note, anche in una verifica
@@ -172,7 +173,7 @@ def main():
             os.path.join(usc, base + ".mbz")], "backup .mbz")
     imp = json.load(open(os.path.join(usc, "impaginazione.json"), encoding="utf-8"))
     con_note = False
-    if imp.get("preset") == "verifica" and "--senza-note" not in sys.argv:
+    if imp.get("note", imp.get("preset") == "verifica") and "--senza-note" not in sys.argv:
         bnote = opz.get("banca-note") or os.path.join(export, "impostazioni", "note.json")
         if os.path.exists(bnote):
             mbz = os.path.join(usc, base + ".mbz")
