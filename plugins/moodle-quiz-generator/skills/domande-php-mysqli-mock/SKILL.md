@@ -101,8 +101,8 @@ Per il prototipo `php_mysqli_mock` resta quello di `references/stile-html.md`.
 
 1. Scrivi il **file di specifica** (`references/formato-xml.md`), partendo da `references/esempio-sqlite.md`. Per ogni domanda: `name` nella numerazione dell'utente (`L5 - C8 - Scrivere: le presentazioni`), `note` per il docente, `questiontext` in HTML con il disclaimer del prototipo come ultimo elemento (sezione precedente), `preload`, `answer`, test con `descrizione` e output atteso.
 2. Calcola le righe degli output attesi con `python3 scripts/prova_query.py specifica.txt dblibreria "SELECT …"` e ricostruisci l'HTML intorno dalla soluzione.
-3. Lancia `python3 scripts/crea_xml.py specifica.txt /mnt/user-data/outputs/NOME.xml --verifica` e correggi finché non passa.
-4. Presenta l'XML (e la specifica, se l'utente vuole rivederla). Nel messaggio in chat: le **note per il docente** (errori inseriti con il messaggio che li rivela, varianti e casi limite dei test), il promemoria di aprire la domanda importata e salvarla con *Validate on save*, ciò che non hai potuto verificare.
+3. Lancia `python3 scripts/crea_xml.py specifica.txt NOME.xml --verifica` e correggi finché non passa.
+4. Consegna l'XML all'utente come file (e la specifica, se l'utente vuole rivederla). Nel messaggio in chat: le **note per il docente** (errori inseriti con il messaggio che li rivela, varianti e casi limite dei test), il promemoria di aprire la domanda importata e salvarla con *Validate on save*, ciò che non hai potuto verificare.
 
 Se l'utente vuole il codice da incollare a mano invece dell'XML, consegna gli stessi contenuti in un file Markdown, una sezione per campo.
 

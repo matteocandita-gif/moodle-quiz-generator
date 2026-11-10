@@ -11,7 +11,7 @@ Questa skill dà all'utente i database di prova per SQL e PHP/MySQL: per le doma
 
 ## Dove stanno le cose
 
-Tutto il necessario è in questa skill. Copia la cartella della skill in `/home/claude/dbdid/` (gli script scrivono in `../database` e `../catalogo.json`, e la cartella della skill può essere in sola lettura) e lavora lì.
+Tutto il necessario è in questa skill. Copia la cartella della skill in una cartella di lavoro, per esempio `dbdid/` (gli script scrivono in `../database` e `../catalogo.json`, e la cartella della skill può essere in sola lettura) e lavora lì.
 
 | File | Serve per |
 |---|---|

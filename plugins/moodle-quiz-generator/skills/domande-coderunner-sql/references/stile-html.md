@@ -1,5 +1,4 @@
-<!-- COPIA di materiali-moodle/references/stile-html.md: lo stile si decide lì; se cambia, aggiornare anche questa copia. Per le domande CodeRunner serve soprattutto la parte "Testo delle domande". -->
-
+<!-- COPIA di materiali-moodle/references/stile-html.md: non modificarla qui. Si rigenera con sviluppo/strumenti/allinea_copie.py dalla radice del repository. -->
 # Stile HTML
 
 Tutto l'HTML è un **frammento** da incollare nell'editor di Moodle in modalità sorgente: niente `<html>`, `<head>`, `<body>`, `<style>`, `<script>` (Moodle blocca gli script). Gli stili sono tutti inline. Niente emoji.
@@ -69,11 +68,13 @@ Non scrivere il `<pre>` a mano: scrivi il codice grezzo in un blocco
 ```text
 [[codice php]]
 $prezzo = 12.50;
-echo "<p>Totale: " . $prezzo . "</p>";
+echo "<p>Totale: $prezzo euro</p>";
 [[/codice]]
 ```
 
 Lo script (`crea_xml.py` per le domande, `espandi_html.py` per le pagine) lo trasforma nel `<pre>` scuro con le entità HTML al posto di `<`, `>`, `&` e la colorazione della sintassi. Linguaggi: `php`, `js`, `sql`, `html`, `css`; senza linguaggio, o con `[[codice php semplice]]`, il codice resta senza colori.
+
+**Codice da leggere**: `[[codice js leggere]]` (anche `php` e `sql`) colora il codice come gli altri e poi lo rende non eseguibile (`rendi_non_eseguibile` in `moodle_lib.py`): alcune lettere delle parole chiave diventano lettere cirilliche identiche (`lеt`, `іf`, `SЕLECT`) e dopo alcuni operatori compare uno spazio a larghezza zero, scritti come entità numeriche (`&#1077;`, `&#8203;`) perché non si perdano. Circa una sostituzione per riga (almeno 3, al massimo 10), su righe diverse; ognuna si tiene solo se da sola fa fallire il codice copiato (`node --check`, `php -l`, SQLite), quindi correggerne una non basta. Le scelte dipendono dal codice: rigenerando, le stesse. Mai nelle stringhe e nei commenti. Dalla dashboard il marcatore lo mette `da_dashboard.py` nelle domande di lettura (`formato-consegna.md` di `progettazione-quiz`); a mano si usa solo nel testo delle domande, mai nelle pagine, negli esempi da usare come riferimento, nella correzione e nei feedback. Gli avvisi (interprete mancante, codice troppo corto) li stampa `crea_xml.py`.
 
 Se il blocco contiene **campi Cloze**, lo script non colora e lascia intatti i campi: gli `<span>` della colorazione potrebbero spezzarli. In quel caso il blocco diventa un `<pre>` senza `<code>`, come vuole la regola dell'utente.
 
@@ -120,9 +121,10 @@ Ai siti dimostrativi dell'utente, sempre in una nuova scheda:
 
 ## Testo delle domande
 
-- Uno o due paragrafi di situazione e consegna; parole chiave della consegna in grassetto.
+- Uno o due paragrafi di situazione e consegna; parole chiave della consegna in grassetto. Negli elenchi di 4 o più voci (requisiti, passi) una parola chiave in grassetto per voce, quella che la distingue; niente grassetti negli elenchi brevi e nelle domande corte.
+- Il risultato atteso di una pagina HTML, quando ha più elementi, va nel riquadro «Visualizzazione nel browser» (blocco ```` ```html risultato ```` della dashboard): barra grigia con tre pallini e la scritta, pagina bianca sotto. I titoli `h1`/`h2` dentro il riquadro sono ammessi: sono il risultato, non la struttura della domanda.
 - Poi, se servono, la tabella di dati e il codice.
-- Niente `h1`/`h2`: se serve separare parti, un paragrafo in grassetto.
+- Niente `h1`/`h2` (fuori dal riquadro del risultato): se serve separare parti, un paragrafo in grassetto.
 - Un riquadro (stessa forma delle pagine) solo per indicazioni lunghe o un N.B. che non deve sfuggire.
 - Lo scenario ricorrente è la **Libreria Pagina 42** (database `dblibreria`, tabella `Libri (ISBN, Titolo, Autore, Prezzo)`): usalo quando l'utente non indica altro, così domande, pagine e siti dimostrativi parlano dello stesso caso.
 

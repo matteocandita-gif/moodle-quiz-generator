@@ -38,6 +38,8 @@ def cerca_php():
 
 def prepara_sqlite3():
     """Se il client sqlite3 non c'è, mette nel PATH un comando sqlite3 che chiama sqlite3_cli.py."""
+    if os.environ.get("MQG_SQLITE3_SOSTITUTO"):      # già preparato da genera_quiz.py in questa esecuzione
+        return os.environ["MQG_SQLITE3_SOSTITUTO"]
     if shutil.which("sqlite3"):
         return "client sqlite3 del sistema"
     cart = tempfile.mkdtemp()
@@ -46,7 +48,8 @@ def prepara_sqlite3():
         f.write('#!/bin/sh\nexec "%s" "%s" "$@"\n' % (sys.executable, QUI / "sqlite3_cli.py"))
     os.chmod(p, os.stat(p).st_mode | stat.S_IEXEC)
     os.environ["PATH"] = cart + os.pathsep + os.environ.get("PATH", "")
-    return "sqlite3_cli.py (SQLite di Python %s)" % __import__("sqlite3").sqlite_version
+    os.environ["MQG_SQLITE3_SOSTITUTO"] = "sqlite3_cli.py (SQLite di Python %s)" % __import__("sqlite3").sqlite_version
+    return os.environ["MQG_SQLITE3_SOSTITUTO"]
 
 
 def main():

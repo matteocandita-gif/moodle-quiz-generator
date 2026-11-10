@@ -44,9 +44,9 @@ Un quiz o una verifica intera non parte da qui: si progetta con `progettazione-q
 
 ## Produrre le domande
 
-1. Scrivi la specifica in `/home/claude/`, partendo da `references/esempio-specifica.txt`.
-2. Dalla cartella della skill: `python3 scripts/crea_xml.py specifica.txt /home/claude/NOME.xml`. Se si ferma, correggi e rilancia. Leggi NOTE e AVVISI: un errore SQL nella soluzione va bene solo nelle domande sui vincoli; nel debugging controlla che il primo messaggio sia quello voluto.
-3. Copia l'XML in `/mnt/user-data/outputs/` e presentalo (o passalo a `materiali-moodle` per l'unione, se fa parte di una sequenza).
+1. Scrivi la specifica nella cartella di lavoro, partendo da `references/esempio-specifica.txt`.
+2. Con lo script della cartella della skill: `python3 scripts/crea_xml.py specifica.txt NOME.xml`. Se si ferma, correggi e rilancia. Leggi NOTE e AVVISI: un errore SQL nella soluzione va bene solo nelle domande sui vincoli; nel debugging controlla che il primo messaggio sia quello voluto.
+3. Consegna l'XML all'utente come file (o passalo a `materiali-moodle` per l'unione, se fa parte di una sequenza).
 4. Nel messaggio: categoria, domande per tipologia, note per il docente, e il promemoria: dopo l'import, il **bulk tester** di CodeRunner sulla categoria è il controllo definitivo su Jobe.
 
 Se l'utente non ha ancora installato il prototipo, dagli `assets/PROTOTYPE_sql_salvemini.xml` da importare nella categoria dei prototipi, prima delle domande.
@@ -56,10 +56,10 @@ Se l'utente non ha ancora installato il prototipo, dagli `assets/PROTOTYPE_sql_s
 Le domande del deposito con i prototipi `sql` e `sql_foreignkeys` non passano più dopo l'aggiornamento di SQLite su Jobe (output nel formato vecchio). Con l'export della categoria:
 
 ```bash
-python3 scripts/rigenera_attesi.py export.xml /mnt/user-data/outputs/NOME-rigenerate.xml --prefisso "Rigenerate"
+python3 scripts/rigenera_attesi.py export.xml NOME-rigenerate.xml --prefisso "Rigenerate"
 ```
 
-Riporta all'utente il resoconto (domande convertite, domande da controllare e perché) e ricordagli che l'import crea domande nuove: con il prefisso finiscono in categorie separate, e nei quiz vanno sostituite alle vecchie.
+Riporta all'utente il resoconto (domande convertite, domande da controllare e perché) e ricordagli che l'import crea domande nuove: con il prefisso finiscono in categorie separate, e nei quiz vanno sostituite alle vecchie. Se l'utente preferisce tenere le stesse domande (i quiz restano collegati), dagli per ognuna il nuovo output atteso da incollare nei test della domanda in Moodle.
 
 ## Le altre skill
 

@@ -76,8 +76,8 @@ Avvisi (non bloccanti): menù singolo con `MULTICHOICE`, titoli grandi nel testo
 
 ## Consegna
 
-1. Scrivi la specifica in `/home/claude/` e lancia `crea_xml.py`; correggi finché non passa.
-2. Copia l'XML in `/mnt/user-data/outputs/` e presentalo. Presenta anche la specifica se l'utente vuole rivederla.
+1. Scrivi la specifica nella cartella di lavoro e lancia `crea_xml.py`; correggi finché non passa.
+2. Consegna l'XML all'utente come file. Consegna anche la specifica se l'utente vuole rivederla.
 3. Nel messaggio: la categoria, il numero di domande per tipo, le note per il docente (che nell'XML non ci sono) e gli avvisi rimasti con il motivo.
 4. Per una **domanda singola** l'utente può chiedere il testo da incollare invece dell'XML: dagli l'HTML del testo già espanso (con il `<pre>` pronto), più le risposte e i feedback se il tipo li ha.
 

@@ -2,6 +2,19 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.13.5 — 10/11/2026
+
+Revisione generale del plugin: correzioni ai testi delle skill, nessuna pagina cambia.
+
+- **Esempi PHP allineati alle convenzioni**: nei modelli di `domande-php-mysqli-mock` (`esempio-sqlite.md`, `esempio-completo.md`), nel modello di pagina e nello stile HTML il codice ora ha i parametri di connessione in variabili separate e le variabili integrate nelle stringhe, come chiedono le skill. Prima gli esempi da cui Claude copia la forma usavano la concatenazione e i parametri dentro `mysqli_connect`.
+- **Stile HTML delle skill CodeRunner**: le copie di `stile-html.md` in `domande-coderunner-js`, `domande-coderunner-sql` e `domande-php-mysqli-mock` erano rimaste indietro (mancavano i grassetti negli elenchi, il riquadro «Visualizzazione nel browser», il codice da leggere). Ora le prime due le rigenera `allinea_copie.py`.
+- **Sequenza di un'esercitazione** (`sequenza.md`): il PHP con database usa `php_mysqli_sqlite`, e HTML e CSS hanno gli esercizi a correzione manuale («Esercizio HTML» / «Esercizio CSS»); la tabella diceva ancora `php_mysqli_mock` e «risposta aperta».
+- **Correzione verifiche**: il rimando per le copie PDP puntava a una skill che non esiste (`verifiche-pdp`): ora a `verifiche-programmazione`, «Studenti con PDP». Passi del flusso rinumerati (il feedback è il passo 11, la tabella finale il 12).
+- **Dashboard dei quiz** (`dashboard.md`): la tabella dei campi delle righe era spezzata dal paragrafo sulle varianti, e `docente`, `nota`, `pdp`, `stampOrigine` restavano fuori.
+- **Domande già usate nei quiz**: correggendo domande esistenti le skill propongono i testi da incollare sulle domande in Moodle, invece di reimportarle come domande nuove.
+- **Cartelle di lavoro**: tolti dalle istruzioni i percorsi fissi di un ambiente (`/home/claude`, `/mnt/user-data/outputs`): le skill funzionano allo stesso modo in chat, nell'app e nelle sessioni avviate dalla dashboard.
+- Piccole cose: il riquadro degli esercizi HTML e CSS si chiama ovunque «Nessun controllo automatico»; l'esempio della barra di navigazione ha anche la pagina delle tracce; `php_attesi.py` dice quale client SQLite ha usato davvero; il README del plugin presenta anche le tracce di progettazione.
+
 ## 0.13.4 — 08/11/2026
 
 Feedback per studente con la griglia compilata (pagina «Correzione verifiche» 1.4.0).

@@ -83,7 +83,7 @@ Ogni test viene esportato con `testtype="0"`, `useasexample="0"`, `mark="1.00000
 ## Uso degli script
 
 ```bash
-python3 scripts/crea_xml.py specifica.txt /mnt/user-data/outputs/NOME.xml [--verifica] [--cartella-db DIR]
+python3 scripts/crea_xml.py specifica.txt NOME.xml [--verifica] [--cartella-db DIR]
 python3 scripts/prova_query.py specifica.txt NOME_DB "SELECT ..." [--prima "SQL dello schema del test"]
 ```
 

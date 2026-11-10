@@ -45,9 +45,9 @@ Un quiz o una verifica intera non parte da qui: si progetta con `progettazione-q
 
 ## Produrre le domande
 
-1. Scrivi la specifica in `/home/claude/`, partendo da `references/esempio-specifica.txt`.
-2. Dalla cartella della skill: `python3 scripts/crea_xml.py specifica.txt /home/claude/NOME.xml`. Se si ferma, correggi e rilancia. Leggi gli avvisi; per il debugging controlla che cosa vede per primo lo studente.
-3. Copia l'XML in `/mnt/user-data/outputs/` e presentalo (o passalo a `materiali-moodle` per l'unione, se fa parte di una sequenza).
+1. Scrivi la specifica nella cartella di lavoro, partendo da `references/esempio-specifica.txt`.
+2. Con lo script della cartella della skill: `python3 scripts/crea_xml.py specifica.txt NOME.xml`. Se si ferma, correggi e rilancia. Leggi gli avvisi; per il debugging controlla che cosa vede per primo lo studente.
+3. Consegna l'XML all'utente come file (o passalo a `materiali-moodle` per l'unione, se fa parte di una sequenza).
 4. Nel messaggio: categoria, domande per tipologia e prototipo, note per il docente, il promemoria del **bulk tester** sulla categoria dopo l'import.
 
 ## I prototipi

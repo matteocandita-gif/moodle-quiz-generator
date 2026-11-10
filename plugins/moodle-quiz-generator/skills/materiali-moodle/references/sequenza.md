@@ -16,7 +16,7 @@ Valgono per HTML, CSS, JavaScript, SQL, PHP. Le parti sono sempre queste, in que
 | 4 | completamento | Cloze con i campi dentro il codice |
 | 5 | debugging | CodeRunner dove si può (sotto), altrimenti «Trova l'errore» |
 | 6 | esercizio guidato | Cloze «Esempio guidato» o scrittura con scheletro |
-| 7 | esercizio finale | scrittura completa: CodeRunner, oppure risposta aperta |
+| 7 | esercizio finale | scrittura completa: CodeRunner; in HTML e CSS «Esercizio HTML» / «Esercizio CSS» (editor di CodeRunner senza test, correzione manuale) |
 
 Le parti 1 e 2 possono stare nella stessa pagina. Il debugging viene **dopo** il completamento: lo studente deve aver già scritto il codice giusto prima di cercare quello sbagliato.
 
@@ -35,8 +35,8 @@ Ogni errore deve essere legato a un concetto della lezione (un nome di tabella, 
 |---|---|---|
 | JavaScript | CodeRunner con il prototipo JavaScript dell'utente (`prompt()` legge l'input del test, `Math.random()` restituisce valori prefissati) | `domande-coderunner-js` |
 | SQL | CodeRunner SQL su SQLite, con il database allegato | `domande-coderunner-sql` |
-| PHP con database | CodeRunner `php_mysqli_mock` | `domande-php-mysqli-mock` |
-| HTML, CSS | niente da eseguire: Cloze o «Trova l'errore» a risposta multipla | questa |
+| PHP con database | CodeRunner `php_mysqli_sqlite` (le query girano davvero su SQLite, con il database allegato); `php_mysqli_mock` resta per le domande esistenti | `domande-php-mysqli-mock` |
+| HTML, CSS | il browser non dà errori: debugging con Cloze o «Trova l'errore» a risposta multipla; scrittura con «Esercizio HTML» / «Esercizio CSS» (tipologie `libero_html`, `libero_css` della dashboard, correzione manuale) | questa |
 
 Quando la sequenza richiede domande CodeRunner, leggi lo `SKILL.md` della skill indicata e seguilo per quelle domande; poi unisci gli XML con `scripts/unisci_xml.py`, così l'utente importa un file solo. Se la skill indicata non è installata, dillo all'utente e proponi l'alternativa senza CodeRunner (Trova l'errore, Cloze di correzione).
 

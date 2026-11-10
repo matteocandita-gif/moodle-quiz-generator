@@ -33,6 +33,11 @@ ORIGINALI = {
         "correzione-verifiche/references/navigazione.md",
         "mappe-prerequisiti/references/navigazione.md",
     ],
+    # la copia di domande-php-mysqli-mock ha in più la sezione sul disclaimer: resta a mano
+    "materiali-moodle/references/stile-html.md": [
+        "domande-coderunner-js/references/stile-html.md",
+        "domande-coderunner-sql/references/stile-html.md",
+    ],
 }
 
 INTESTAZIONE = ("# COPIA di {orig}: non modificarla qui. Si rigenera con\n"

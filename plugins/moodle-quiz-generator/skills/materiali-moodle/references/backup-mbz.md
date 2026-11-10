@@ -19,7 +19,7 @@ Da Moodle 4 le domande hanno versioni: conta l'ultima. I quiz puntano alle doman
 python3 scripts/leggi_mbz.py BACKUP.mbz                # sezioni, attività, banche con il numero di domande per tipo
 python3 scripts/leggi_mbz.py BACKUP.mbz --quiz         # per ogni quiz: tempo, punti, sezioni, slot con pagina e punti, versioni, domande casuali per tag
 python3 scripts/leggi_mbz.py BACKUP.mbz --domande SQL  # testo delle domande delle categorie che contengono "SQL"
-python3 scripts/leggi_mbz.py BACKUP.mbz --estrai /home/claude/corso   # per analisi più fini
+python3 scripts/leggi_mbz.py BACKUP.mbz --estrai CARTELLA   # per analisi più fini
 ```
 
 Per confronti tra due corsi, estrai entrambi e confronta con Python le attività (per nome e tipo) e le domande (per nome e testo): identiche, modificate, presenti in uno solo.

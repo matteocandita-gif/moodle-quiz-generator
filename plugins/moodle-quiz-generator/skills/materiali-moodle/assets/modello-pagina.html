@@ -55,7 +55,7 @@ if (mysqli_num_rows($risultato) == 0) {
     echo "<p>Nessun libro trovato</p>";
 } else {
     while ($riga = mysqli_fetch_array($risultato)) {
-        echo "<p>" . $riga["Titolo"] . " - " . $riga["Prezzo"] . " euro</p>";
+        echo "<p>$riga[Titolo] - $riga[Prezzo] euro</p>";
     }
 }
 ?>

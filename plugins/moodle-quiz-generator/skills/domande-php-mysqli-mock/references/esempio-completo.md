@@ -37,15 +37,15 @@ $autore = $_POST["autore"];
 $max = $_GET["max"];
 
 // 1. Connessione
-$host = "127.0.0.1"; 
-$username = "root"; 
-$password = ""; 
+$host = "127.0.0.1";
+$username = "root";
+$password = "";
 $nomedb = "dblibreria";
 $connessione = mysqli_connect($host, $username, $password, $nomedb)
     or die("Connessione non riuscita: " . mysqli_connect_error());
 
 // 2. Scrittura della query
-$query = "SELECT Titolo, Prezzo FROM Libri WHERE Autore = " . $autore . " AND Prezzo <= " . $max;
+$query = "SELECT Titolo, Prezzo FROM Libri WHERE Autore = $autore AND Prezzo <= $max";
 
 // 3. Esecuzione
 $risultato = mysqli_query($connessione, $query)
@@ -59,7 +59,7 @@ if (mysqli_num_rows($risultato) == 0) {
     echo "<p>Nessun libro trovato</p>\n";
 } else {
     while ($riga = mysqli_fetch_array($query)) {
-        echo "<p>" . $riga["Titolo"] . " - " . $riga["Prezzo"] . " euro</p>\n";
+        echo "<p>$riga[Titolo] - $riga[Prezzo] euro</p>\n";
     }
 }
 ?>
@@ -72,11 +72,15 @@ $autore = $_GET["autore"];
 $max = $_GET["max"];
 
 // 1. Connessione
-$connessione = mysqli_connect("127.0.0.1", "root", "", "dblibreria")
+$host = "127.0.0.1";
+$username = "root";
+$password = "";
+$nomedb = "dblibreria";
+$connessione = mysqli_connect($host, $username, $password, $nomedb)
     or die("Connessione non riuscita: " . mysqli_connect_error());
 
 // 2. Scrittura della query
-$query = "SELECT Titolo, Prezzo FROM Libri WHERE Autore = '" . $autore . "' AND Prezzo <= " . $max;
+$query = "SELECT Titolo, Prezzo FROM Libri WHERE Autore = '$autore' AND Prezzo <= $max";
 
 // 3. Esecuzione
 $risultato = mysqli_query($connessione, $query)
@@ -90,7 +94,7 @@ if (mysqli_num_rows($risultato) == 0) {
     echo "<p>Nessun libro trovato</p>\n";
 } else {
     while ($riga = mysqli_fetch_array($risultato)) {
-        echo "<p>" . $riga["Titolo"] . " - " . $riga["Prezzo"] . " euro</p>\n";
+        echo "<p>$riga[Titolo] - $riga[Prezzo] euro</p>\n";
     }
 }
 ?>

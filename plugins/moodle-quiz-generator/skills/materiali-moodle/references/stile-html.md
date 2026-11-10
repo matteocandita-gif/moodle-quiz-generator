@@ -67,7 +67,7 @@ Non scrivere il `<pre>` a mano: scrivi il codice grezzo in un blocco
 ```text
 [[codice php]]
 $prezzo = 12.50;
-echo "<p>Totale: " . $prezzo . "</p>";
+echo "<p>Totale: $prezzo euro</p>";
 [[/codice]]
 ```
 

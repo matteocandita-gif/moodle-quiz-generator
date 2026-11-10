@@ -80,12 +80,16 @@ $sala = $_GET["sala"];
 $posti = $_GET["posti"];
 
 // 1. Connessione
-$connessione = mysqli_connect("127.0.0.1", "root", "", "dblibreria")
+$host = "127.0.0.1";
+$username = "root";
+$password = "";
+$nomedb = "dblibreria";
+$connessione = mysqli_connect($host, $username, $password, $nomedb)
     or die("Connessione non riuscita: " . mysqli_connect_error());
 
 // 2. Scrittura della query
 $query = "SELECT Data, Titolo, Ospite, PostiLiberi FROM Presentazioni
-          WHERE Sala = '" . $sala . "' AND PostiLiberi >= " . $posti . "
+          WHERE Sala = '$sala' AND PostiLiberi >= $posti
           ORDER BY Data";
 
 // 3. Esecuzione
@@ -102,8 +106,7 @@ if (mysqli_num_rows($risultato) == 0) {
     echo "<table>\n";
     echo "<tr><th>Data</th><th>Titolo</th><th>Ospite</th><th>Posti liberi</th></tr>\n";
     while ($riga = mysqli_fetch_array($risultato)) {
-        echo "<tr><td>" . $riga["Data"] . "</td><td>" . $riga["Titolo"] . "</td><td>"
-            . $riga["Ospite"] . "</td><td>" . $riga["PostiLiberi"] . "</td></tr>\n";
+        echo "<tr><td>$riga[Data]</td><td>$riga[Titolo]</td><td>$riga[Ospite]</td><td>$riga[PostiLiberi]</td></tr>\n";
     }
     echo "</table>\n";
 }

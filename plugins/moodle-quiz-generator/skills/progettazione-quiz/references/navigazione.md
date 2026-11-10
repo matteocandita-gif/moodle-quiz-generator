@@ -12,7 +12,7 @@ Le pagine del plugin hanno in cima una fascia chiara a tutta larghezza, «Quiz g
 Ogni pagina ha un indirizzo diverso per ogni utente, e una pagina non può elencare gli artifact dell'utente: gli indirizzi li scrive Claude, nel database di ciascuna pagina, nel documento `impostazioni/navigazione`:
 
 ```json
-{"pagine": {"bozze": "https://claude.ai/artifact/…", "correzioni": "https://claude.ai/artifact/…", "mappe": "https://claude.ai/artifact/…"},
+{"pagine": {"bozze": "https://claude.ai/artifact/…", "tracce": "https://claude.ai/artifact/…", "correzioni": "https://claude.ai/artifact/…", "mappe": "https://claude.ai/artifact/…"},
  "altri": [],
  "aggiornato": "2026-10-30T09:40:00Z"}
 ```
