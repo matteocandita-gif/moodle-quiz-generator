@@ -2,6 +2,14 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.13.10 — 10/11/2026
+
+Ristrutturazione delle skill, quinto passo: i preset divisi per gruppo. Nessuna pagina cambia e le regole sono le stesse.
+
+- **Preset in tre gruppi**: `preset.md` tiene la tabella dei tipi, le impostazioni dell'`.mbz` e il tipo Libero; i preset sono passati, parola per parola, in `preset-esercitazioni.md` (ED, EDT, EP, ER), `preset-verifiche.md` (V, VT, RT) e `preset-studio.md` (SD). Un quiz legge solo il gruppo del suo tipo: chi scrive un'esercitazione non ha più davanti le regole delle verifiche e dello studio sequenziale.
+- I preset che rimandano l'uno all'altro (EDT a ED, VT a V, RT a VT) stanno nello stesso file.
+- Controllo fatto prima del rilascio: ogni riga di prima è presente identica (cambiano solo la tabella dei tipi, che ha una colonna in più, e due rimandi), e le prove sono superate.
+
 ## 0.13.9 — 10/11/2026
 
 Ristrutturazione delle skill, quarto passo: le regole comuni in un file solo. Nessuna pagina cambia.

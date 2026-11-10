@@ -28,7 +28,10 @@ Stanno in `references/` di questa skill; leggi solo quelli che servono:
 
 | File | Leggilo quando |
 |---|---|
-| `references/preset.md` | **sempre** all'inizio: il preset del tipo di quiz scelto |
+| `references/preset.md` | **sempre** all'inizio: la tabella dei tipi di quiz, le impostazioni dell'`.mbz` e il preset LIB |
+| `references/preset-esercitazioni.md` | il tipo è ED, EDT, EP o ER: il preset delle esercitazioni |
+| `references/preset-verifiche.md` | il tipo è V, VT o RT: il preset delle verifiche e del ripasso teorico |
+| `references/preset-studio.md` | il tipo è SD: il preset dell'esercitazione con studio e domande sequenziale |
 | `references/regole-comuni.md` | **sempre**: le regole comuni a tutte le domande (tracce degli esercizi, Cloze, feedback, risposta multipla, alternative ammesse, nomi), le stesse di `materiali-moodle` |
 | `references/catalogo.md` | scrivi la scaletta: tipologie ammesse, tipo Moodle, prefissi, quando usare risposta breve e metti in ordine |
 | `references/dashboard.md` | **sempre** prima di leggere o scrivere il database: campi, fasi, stati, commenti, come creare un quiz |
@@ -77,10 +80,10 @@ Se l'utente aggiunge una riga e ne compila solo una parte (spesso titolo e richi
 
 ## Domande di comprensione
 
-Valgono per tutte le domande di teoria che seguono una pagina di spiegazione o di teoria (EDT, ED, ER, SD) e, dove applicabili, per le altre domande di teoria. Nell'esercitazione con studio e domande sequenziale (SD) valgono in più le regole del preset (`preset.md`): parti con un solo nucleo; chiuse su tutti gli aspetti di conoscenza e comprensione puntuale, a cominciare dalle definizioni; aperta sull'esposizione del concetto generale, mai una definizione da riscrivere. Ogni domanda deve:
+Valgono per tutte le domande di teoria che seguono una pagina di spiegazione o di teoria (EDT, ED, ER, SD) e, dove applicabili, per le altre domande di teoria. Nell'esercitazione con studio e domande sequenziale (SD) valgono in più le regole del preset (`preset-studio.md`): parti con un solo nucleo; chiuse su tutti gli aspetti di conoscenza e comprensione puntuale, a cominciare dalle definizioni; aperta sull'esposizione del concetto generale, mai una definizione da riscrivere. Ogni domanda deve:
 
 1. **Ricavarsi dalla pagina**: la risposta è nella pagina di spiegazione o ne segue direttamente. Non chiedere quello che la pagina non dice (una sigla estesa, un dettaglio del manuale non riportato).
-2. **Chiedere di capire, non di riconoscere**: niente affermazioni copiate dalla pagina da dichiarare vere, niente abbinamenti che si risolvono perché due parole stanno vicine nel testo. Meglio applicare il concetto a un caso concreto (una situazione, un elemento di una pagina, un esempio noto agli studenti) o invertire un rapporto. Eccezione: le chiuse sulla definizione dell'esercitazione con studio e domande sequenziale (SD), con la definizione giusta riformulata e distrattori che cambiano un solo elemento essenziale (`preset.md`).
+2. **Chiedere di capire, non di riconoscere**: niente affermazioni copiate dalla pagina da dichiarare vere, niente abbinamenti che si risolvono perché due parole stanno vicine nel testo. Meglio applicare il concetto a un caso concreto (una situazione, un elemento di una pagina, un esempio noto agli studenti) o invertire un rapporto. Eccezione: le chiuse sulla definizione dell'esercitazione con studio e domande sequenziale (SD), con la definizione giusta riformulata e distrattori che cambiano un solo elemento essenziale (`preset-studio.md`).
 3. **Avere uno scopo**: si deve poter dire in una riga che cosa verifica. Una sigla o un nome da ricordare non basta; un ordine che si ricava dal buon senso senza aver letto la pagina neppure.
 4. **Non essere svelata**: né da un'altra domanda né dai feedback delle domande sulla stessa pagina del quiz (con il comportamento interattivo lo studente li legge prima di arrivarci). Controlla i feedback delle opzioni sbagliate: spesso spiegano proprio la risposta di una domanda vicina.
 5. **Avere risposte giuste non ambigue**: niente risposte brevi con tante varianti quasi uguali; la risposta breve solo quando la risposta è una e senza sinonimi, sigle o forme estese. Gli errori prevedibili si scrivono come opzioni sbagliate con il loro feedback, mai come `( ) *`. Se le affermazioni vere sono più d'una (un «trova l'errore» con più errori, «quali di queste istruzioni stampano…»), la domanda è a **più risposte giuste** (`crocette` o `trova_errore` con `[x]` / `[ ]`), un'opzione per affermazione, e non una risposta singola con opzioni che ne mettono insieme diverse.
