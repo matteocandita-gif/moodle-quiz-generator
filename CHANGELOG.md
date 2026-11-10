@@ -2,6 +2,15 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.13.8 — 10/11/2026
+
+Ristrutturazione delle skill, terzo passo: un file solo per linguaggio in `progettazione-quiz`. Nessuna pagina cambia.
+
+- **Un file per linguaggio**: il formato del campo «Soluzione e test» e le regole di JavaScript, SQL, PHP e degli esercizi HTML e CSS stavano in due posti (un riassunto e la sezione completa di `formato-consegna.md`). Ora la sezione completa sta nel file del suo linguaggio (`tracce-javascript.md`, `tracce-sql.md`, `tracce-php.md`, `tracce-html.md`), e del riassunto restano solo le frasi che la sezione non diceva già, sotto «In più, scrivendo le tracce».
+- `formato-consegna.md` tiene le convenzioni generali (da 3.800 a 2.100 parole): un quiz di JavaScript non legge più il formato di SQL, PHP e HTML.
+- **Test delle domande JavaScript: almeno tre.** I due testi dicevano cose diverse («almeno tre» e «almeno una, meglio tre o più»): vale «almeno tre».
+- Prove prima del rilascio superate: le domande generate sono le stesse.
+
 ## Strumenti di sviluppo — 10/11/2026
 
 Nessuna versione nuova: il plugin non cambia.

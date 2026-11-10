@@ -32,10 +32,10 @@ Stanno in `references/` di questa skill; leggi solo quelli che servono:
 | `references/installazione.md` | l'utente non ha ancora la dashboard, o chiede di installarla o aggiornarla |
 | `references/tracce-pagine.md` | il quiz ha pagine di spiegazione, di esempio svolto o di preparazione (esercitazioni, quiz liberi), **già per la scaletta**: ogni pagina con la sua domanda, pagine che chiedono di fare qualcosa, esercitazioni autoportanti |
 | `references/tracce-html.md` | il quiz è di HTML e CSS, **già per la scaletta**: esercizi HTML e CSS, codice indentato, risultato nel browser, esercizi «dal risultato al codice», figure nella cornice |
-| `references/tracce-javascript.md` | scrivi le tracce di domande CodeRunner JavaScript |
-| `references/tracce-sql.md` | scrivi le tracce di domande CodeRunner SQL |
-| `references/tracce-php.md` | scrivi le tracce di domande CodeRunner PHP |
-| `references/formato-consegna.md` | scrivi le tracce: le convenzioni che la parte 2 trasforma in Moodle, compreso il campo «Soluzione e test» delle CodeRunner, il database dei quiz SQL e PHP e le varianti per tag |
+| `references/tracce-javascript.md` | scrivi le tracce di domande CodeRunner JavaScript: formato di «Soluzione e test» e regole |
+| `references/tracce-sql.md` | scrivi le tracce di domande CodeRunner SQL: database del quiz, schema fisso della traccia, formato di «Soluzione e test» e regole |
+| `references/tracce-php.md` | scrivi le tracce di domande CodeRunner PHP: formato di «Soluzione e test» e regole |
+| `references/formato-consegna.md` | scrivi le tracce: le convenzioni generali che la parte 2 trasforma in Moodle (campi di una riga, riquadri, scelte, corrispondenze, campi Cloze, immagini, consegna di un file, varianti per tag). Il formato delle domande CodeRunner e degli esercizi HTML e CSS è nei file `tracce-….md` del linguaggio |
 
 **La dashboard dell'utente.** Ogni utente ha la sua pagina «Bozze dei quiz», un artifact privato che scrivete solo lui e tu, con il database di tutti i suoi quiz. Cercala con `Artifact` (`action: "list"`, titolo «Bozze dei quiz») e usa il suo URL per `ArtifactData` e `ArtifactComments`; se ne trovi più d'una, chiedi quale. Se non c'è, proponi di installarla (`installazione.md`, pochi minuti) e, se l'utente ne ha già una che non trovi, chiedigli il link. Se la `VERSIONE_PAGINA` della pagina pubblicata è più vecchia di quella in `assets/dashboard.html`, proponi l'aggiornamento (`installazione.md`, «Aggiornare»).
 
