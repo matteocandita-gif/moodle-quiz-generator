@@ -38,6 +38,7 @@ Stanno in `references/` di questa skill; leggi solo quelli che servono:
 | `references/installazione.md` | l'utente non ha ancora la dashboard, o chiede di installarla o aggiornarla |
 | `references/tracce-pagine.md` | il quiz ha pagine di spiegazione, di esempio svolto o di preparazione (esercitazioni, quiz liberi), **già per la scaletta**: ogni pagina con la sua domanda, pagine che chiedono di fare qualcosa, esercitazioni autoportanti |
 | `references/tracce-html.md` | il quiz è di HTML e CSS, **già per la scaletta**: esercizi HTML e CSS, codice indentato, risultato nel browser, esercizi «dal risultato al codice», figure nella cornice |
+| `references/tracce-consegna.md` | il quiz è un'esercitazione in cui gli studenti consegnano file (una pagina, la cartella di un sito), **già per la scaletta**: consegna con controllo automatico, nome del file, controlli disponibili, formato di «Soluzione e test» |
 | `references/tracce-javascript.md` | scrivi le tracce di domande CodeRunner JavaScript: formato di «Soluzione e test» e regole |
 | `references/tracce-sql.md` | scrivi le tracce di domande CodeRunner SQL: database del quiz, schema fisso della traccia, formato di «Soluzione e test» e regole |
 | `references/tracce-php.md` | scrivi le tracce di domande CodeRunner PHP: formato di «Soluzione e test» e regole |

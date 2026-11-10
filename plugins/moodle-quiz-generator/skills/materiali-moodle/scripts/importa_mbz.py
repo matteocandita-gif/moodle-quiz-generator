@@ -69,7 +69,7 @@ PREFISSI = {  # prefisso del nome -> tipologie possibili (la prima è quella pre
     "Esercizio libero": ["esercizio_libero", "libero_html", "libero_css"],
     "Scrivere": ["prog_completo", "funzione", "prog_dati", "prog_random", "query", "create_tabelle",
                  "query_due_passi", "pagina_php", "scrittura_scheletro"],
-    "Esercizio": ["vincoli"], "Campo di prova": ["campo_prova"], "Consegna": ["consegna_file"],
+    "Esercizio": ["vincoli"], "Campo di prova": ["campo_prova"], "Consegna": ["consegna_file", "consegna_auto"],
 }
 PAGINE = {"istruzioni", "comelavoriamo", "paginablocco"}
 NOME_RE = re.compile(r"^(?P<lez>L\d+|[A-Z][A-Z0-9]*\d[A-Z0-9]*|\d[A-Z][A-Z0-9]*) - (?P<pos>[0-9A-Z]{1,3}[a-z]?) - (?P<resto>.+)$")
@@ -908,6 +908,25 @@ class Importatore:
             tip = "libero_css" if tl == "css" else "libero_html"
             testo = rimuovi_riquadro(testo, "Attenzione al controllo automatico")   # domande vecchie
             testo = rimuovi_riquadro(testo, "Nessun controllo automatico")
+        elif tl == "html_con_file":
+            # consegna con controllo automatico: nome del file dall'espressione dei nomi accettati,
+            # pagina principale dai parametri del template, un test per controllo con peso ed extra
+            nome = re.sub(r"\\(.)", r"\1", tx(o, "filenamesregex") or "")
+            try:
+                pagina = (json.loads(tx(o, "templateparams") or "{}") or {}).get("pagina", "")
+            except ValueError:
+                pagina = ""
+            opzioni.append("nome: %s" % nome)
+            if nome.endswith(".zip") and pagina and pagina != "index.html":
+                opzioni.append("pagina: %s" % pagina)
+            sez.append(("options", "\n".join(opzioni)))
+            if answer.strip():
+                sez.append(("answer", answer.strip("\n")))
+            for t in test:
+                peso = float(t["mark"] or 1)
+                sez.append(("test %s" % ("%g" % peso), t["testcode"].replace("\r", "").strip("\n")))
+                sez.append(("extra", t["extra"].strip()))
+            tip = "consegna_auto"
         elif tl.startswith("javascript"):
             gap = "gapfiller" in tl
             tp = {}

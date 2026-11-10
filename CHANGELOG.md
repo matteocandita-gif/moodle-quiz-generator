@@ -2,6 +2,18 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.13.11 — 11/11/2026
+
+Una tipologia nuova per le consegne di file nelle esercitazioni, e l'esportazione che consegna solo il backup.
+
+- **Consegna con controllo automatico** (`consegna_auto`): lo studente carica una pagina `.html` o la cartella del sito in `.zip`, preme **Controlla** e vede, controllo per controllo, che cosa c'è e che cosa manca (cartelle `css`, `img`, `js`, nomi dei file, link e immagini che portano a file esistenti, foglio di stile collegato e scritto bene, script senza errori, tag e attributi richiesti). Può correggere e ricaricare quante volte vuole. Il nome del file è scritto in grassetto sotto la traccia e Moodle accetta solo quello. Il messaggio dice chiaramente che il controllo verifica la consegna, non che il lavoro sia corretto. Provata in Moodle sull'esercitazione HTML3 (file, percorsi e link).
+- **Nelle esercitazioni** ogni consegna di file usa questa tipologia; la «Consegna di un file» a correzione manuale resta per le verifiche. Gli esercizi HTML e CSS nella casella di risposta restano per gli esercizi brevi.
+- **Le domande aperte a parole nelle esercitazioni valgono 0 punti**, così il voto arriva subito alla consegna e non resta in sospeso finché non correggi a mano. Il voto attesta che l'esercitazione è stata consegnata, non che sia corretta.
+- **Dashboard** (pagina 0.6.1): la tipologia nuova nel catalogo, nel dettaglio (che cosa vede lo studente, controlli e pesi) e negli avvisi: avvisa se in un'esercitazione una domanda aperta ha punti, se un controllo ha peso 0 (in Moodle darebbe l'errore «Division by zero») o se il nome del file non va bene.
+- **Prototipo da importare una volta**: in Moodle va importato il prototipo `html_con_file` (file `prototipo-html-con-file.xml` del plugin) nella categoria dei prototipi. Se l'hai già importato per HTML3, è lo stesso.
+- **Esportazione**: alla fine si consegna solo il `.mbz`. L'XML si consegna solo se lo chiedi o se serve per un motivo preciso (per esempio aggiornare un quiz già in Moodle). Cambia anche l'istruzione dell'attività programmata che esporta dalla pagina.
+- Prove prima del rilascio superate; il quiz di prova ha una domanda in più, per la tipologia nuova.
+
 ## 0.13.10 — 10/11/2026
 
 Ristrutturazione delle skill, quinto passo: i preset divisi per gruppo. Nessuna pagina cambia e le regole sono le stesse.

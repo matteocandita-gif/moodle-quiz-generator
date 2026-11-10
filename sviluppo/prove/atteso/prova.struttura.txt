@@ -2212,6 +2212,112 @@ FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca
     </testcases>
   </question>
 
+  <question type="coderunner">
+    <name>
+      <text>L9 - G6 - Consegna: Consegna del sito con controllo</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Comprimere la cartella <strong>sito-prova</strong> e caricare il file <strong>sito-prova.zip</strong>, poi premere <strong>Controlla</strong>.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p>La cartella giusta: sito-prova/index.html, sito-prova/css/stile.css.</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>5.0000000</defaultgrade>
+    <penalty>0.0000000</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>html_con_file</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>0</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>3</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload></answerpreload>
+    <globalextra></globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer></answer>
+    <validateonsave>0</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams>{"pagina": "index.html"}</templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin></uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>1</attachments>
+    <attachmentsrequired>1</attachmentsrequired>
+    <maxfilesize>10485760</maxfilesize>
+    <filenamesregex>sito-prova\.zip</filenamesregex>
+    <filenamesexplain>&lt;p&gt;&lt;strong&gt;Il file deve chiamarsi sito-prova.zip, tutto minuscolo e senza spazi.&lt;/strong&gt;&lt;/p&gt;</filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="2.0000000" >
+      <testcode>
+                <text><![CDATA[cartella_ben_formata()]]></text>
+      </testcode>
+      <stdin>
+                <text></text>
+      </stdin>
+      <expected>[output 34]</expected>
+      <extra>
+                <text><![CDATA[La cartella è in ordine.]]></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="2.0000000" >
+      <testcode>
+                <text><![CDATA[css_collegato("css/stile.css")]]></text>
+      </testcode>
+      <stdin>
+                <text></text>
+      </stdin>
+      <expected>[output 35]</expected>
+      <extra>
+                <text><![CDATA[La pagina collega il foglio di stile.]]></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="0.0010000" >
+      <testcode>
+                <text><![CDATA[link_validi()]]></text>
+      </testcode>
+      <stdin>
+                <text></text>
+      </stdin>
+      <expected>[output 36]</expected>
+      <extra>
+                <text><![CDATA[I link portano a file che esistono.]]></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+    </testcases>
+  </question>
+
 </quiz>
 
 
@@ -2407,6 +2513,11 @@ FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca
      "nome": "L9 - G5 - Esercizio libero: Lo stile della lista",
      "pagina": 31,
      "punti": 4.0
+    },
+    {
+     "nome": "L9 - G6 - Consegna: Consegna del sito con controllo",
+     "pagina": 32,
+     "punti": 5.0
     }
    ],
    "titolo": "Altre tipologie"

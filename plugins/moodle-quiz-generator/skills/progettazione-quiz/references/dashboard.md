@@ -88,7 +88,7 @@ Si legge e si scrive con `ArtifactData` sull'URL della pagina. Ogni scrittura su
 | `stato` | `proposta`, `da-rivedere`, `approvata` |
 | `traccia` | quello che vede lo studente, con le convenzioni di `formato-consegna.md` |
 | `correzione` | va in Moodle: indicazioni per chi corregge (aperte) o feedback generale |
-| `coderunner` | solo domande CodeRunner («Soluzione e test»): sezioni `=== answer`, `=== test`, `=== stdin`, `=== code`, `=== preload`… come in `formato-consegna.md`; nelle SQL `=== options`, `=== preload`, `=== answer`, `=== test` con `-- commento`, `=== extra`; nelle PHP `=== options`, `=== preload`, `=== answer`, `=== test` con i dati del form e `=== descrizione`; negli esercizi HTML e CSS solo `=== answer`, `=== preload`, `=== options` |
+| `coderunner` | solo domande CodeRunner («Soluzione e test»): sezioni `=== answer`, `=== test`, `=== stdin`, `=== code`, `=== preload`… come in `formato-consegna.md`; nelle SQL `=== options`, `=== preload`, `=== answer`, `=== test` con `-- commento`, `=== extra`; nelle PHP `=== options`, `=== preload`, `=== answer`, `=== test` con i dati del form e `=== descrizione`; negli esercizi HTML e CSS solo `=== answer`, `=== preload`, `=== options`; nelle consegne con controllo automatico `=== options` (`nome`, `pagina`), `=== test PESO` con `=== extra`, eventualmente `=== answer` (`tracce-consegna.md`); nella consegna di un file solo `=== options` con `tipi` |
 | `tag` | solo verifiche ripetibili: tag della posizione; le righe con lo stesso tag sono varianti (vedi `formato-consegna.md`). Nella scaletta il campo compare nelle verifiche (V, VT) o se una riga ha già un tag |
 | `docente` | note interne, non escono dalla dashboard |
 | `nota` | perché la riga è «da rivedere»; si svuota quando viene approvata |

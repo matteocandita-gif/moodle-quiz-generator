@@ -77,7 +77,7 @@ Il formato del campo «Soluzione e test» e le regole di ogni linguaggio stanno 
 
 ## Consegna di un file
 
-Tipologia `consegna_file`: domanda aperta (essay) senza campo di testo, con un solo file da caricare, obbligatorio, di tipo `.html`, `.htm` o `.css` (le impostazioni le mette `da_dashboard.py`). `traccia`: il file da preparare, con il nome e i requisiti, e come caricarlo; `correzione`: i criteri per chi corregge (in Moodle le informazioni per chi corregge). Si usa per verificare che lo studente abbia creato davvero un file, per esempio la pagina dell'esempio svolto.
+Tipologia `consegna_file`: domanda aperta (essay) senza campo di testo, con un solo file da caricare, obbligatorio, di tipo `.html`, `.htm` o `.css` (le impostazioni le mette `da_dashboard.py`). `traccia`: il file da preparare, con il nome e i requisiti, e come caricarlo; `correzione`: i criteri per chi corregge (in Moodle le informazioni per chi corregge). Si usa nelle verifiche, per verificare che lo studente abbia creato davvero un file. Nelle esercitazioni ogni consegna di file è invece una «Consegna con controllo automatico» (`consegna_auto`), con le regole e il formato in `tracce-consegna.md`.
 
 ## Verifiche ripetibili (domande casuali per tag)
 

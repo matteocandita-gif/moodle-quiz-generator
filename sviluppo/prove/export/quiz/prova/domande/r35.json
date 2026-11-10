@@ -1,0 +1,19 @@
+{
+ "ordine": 350,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "La cartella giusta: sito-prova/index.html, sito-prova/css/stile.css.",
+ "coderunner": "=== options\nnome: sito-prova.zip\npagina: index.html\n=== test 2\ncartella_ben_formata()\n=== extra\nLa cartella è in ordine.\n=== test 2\ncss_collegato(\"css/stile.css\")\n=== extra\nLa pagina collega il foglio di stile.\n=== test 0.001\nlink_validi()\n=== extra\nI link portano a file che esistono.",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "G6",
+ "pag": 32,
+ "titolo": "Consegna del sito con controllo",
+ "tipologia": "consegna_auto",
+ "punti": 5,
+ "traccia": "Comprimere la cartella **sito-prova** e caricare il file **sito-prova.zip**, poi premere **Controlla**."
+}

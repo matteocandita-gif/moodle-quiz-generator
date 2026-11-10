@@ -18,8 +18,9 @@ domande-coderunner-sql, con i database del quiz (campo `database`: {nome: script
 Le righe CodeRunner PHP vanno in USCITA/specifica-php.txt, nel formato di domande-php-mysqli-mock (prototipo
 php_mysqli_sqlite), con disclaimer, normalizzazione dell'output e FakeDB::configure aggiunti; gli output
 attesi non scritti restano @@CALCOLA@@ e li calcola php_attesi.py.
-Gli esercizi liberi HTML e CSS (CodeRunner html/css senza test, correzione manuale) e le
-corrispondenze, che crea_xml.py non gestisce, vanno direttamente in USCITA/domande-dirette.xml.
+Gli esercizi liberi HTML e CSS (CodeRunner html/css senza test, correzione manuale), le consegne con
+controllo automatico (CodeRunner html_con_file) e le corrispondenze, che crea_xml.py non gestisce, vanno
+direttamente in USCITA/domande-dirette.xml.
 Tutta la catena (XML, XML CodeRunner, unione, controllo, .mbz) la esegue genera_quiz.py.
 
 Si ferma con l'elenco degli errori se una riga non rispetta le convenzioni.
@@ -79,7 +80,9 @@ CONSEGNA_FILE = {"responseformat": "noinline", "responserequired": "0", "attachm
                  "attachmentsrequired": "1", "filetypeslist": ".html .htm .css"}
 CODERUNNER = {"compl_eseguito", "scrittura_scheletro", "debug_msg", "debug_silenzioso", "prog_completo",
               "funzione", "prog_dati", "prog_random", "query", "create_tabelle", "query_due_passi",
-              "vincoli", "pagina_php", "campo_prova", "libero_html", "libero_css"}
+              "vincoli", "pagina_php", "campo_prova", "libero_html", "libero_css", "consegna_auto"}
+# consegna di un file con controllo automatico (prototipo html_con_file): la scrive direttamente questo script
+CR_CONSEGNA = {"consegna_auto"}
 # esercizi liberi con l'editor di CodeRunner (prototipi html e css): nessun test, correzione manuale
 CR_WEB = {"libero_html": "html", "libero_css": "css"}
 # prototipo Moodle di ogni esercizio libero. L'HTML lo sceglie il quiz (campo prototipoHtml): di norma php_con_test,
@@ -104,7 +107,7 @@ PREFISSI_CR = {"compl_eseguito": "Completamento", "scrittura_scheletro": "Scrive
                "prog_dati": "Scrivere", "prog_random": "Scrivere", "query": "Scrivere",
                "create_tabelle": "Scrivere", "query_due_passi": "Scrivere", "vincoli": "Esercizio",
                "pagina_php": "Scrivere", "campo_prova": "Campo di prova",
-               "libero_html": "Esercizio libero", "libero_css": "Esercizio libero"}
+               "libero_html": "Esercizio libero", "libero_css": "Esercizio libero", "consegna_auto": "Consegna"}
 CR_SQL = {"query", "create_tabelle", "query_due_passi", "vincoli", "campo_prova"}
 CR_PHP = {"pagina_php"}
 # tipi di quiz in cui la pagina del blocco è un ripasso e non una spiegazione nuova
@@ -450,6 +453,8 @@ def tipi_consegna(r):
 def linguaggio_cr(r):
     if r.get("tipologia") in CR_WEB:
         return CR_WEB[r["tipologia"]]
+    if r.get("tipologia") in CR_CONSEGNA:
+        return "consegna"
     for n, a, c in sezioni_cr(r.get("coderunner")):
         if n == "linguaggio":
             return (c.strip() or a).lower()
@@ -742,6 +747,145 @@ def domanda_web(quiz, r):
     return "".join(x).replace("@@ATTESO@@", "codice salvato!" if scratch else "codice salvato")
 
 
+# ---------------------------------------------------------------- consegna con controllo automatico
+# Prototipo html_con_file (assets/prototipo-html-con-file.xml; sorgente e prove in sviluppo/ del repository).
+# La riga dice il file da caricare (=== options, nome e pagina) e i controlli (=== test PESO con === extra).
+PROTOTIPO_CONSEGNA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets",
+                                  "prototipo-html-con-file.xml")
+NOME_FILE_RE = re.compile(r"[a-z0-9][a-z0-9_.-]*\.(html|htm|zip)")
+PAGINA_RE = re.compile(r"[a-z0-9_./-]+\.html?")
+
+
+def funzioni_consegna():
+    """Le funzioni che i test possono chiamare: quelle definite nel template del prototipo."""
+    import xml.etree.ElementTree as ET
+    template = ET.parse(PROTOTIPO_CONSEGNA).getroot().find("question/template").text or ""
+    return set(re.findall(r"(?m)^def ([a-z_]\w*)\(", template))
+
+
+def controlla_test_consegna(codice, funzioni):
+    """Errori di un test: sintassi Python e chiamate a funzioni che il prototipo non ha."""
+    import ast
+    try:
+        albero = ast.parse(codice)
+    except SyntaxError as e:
+        return "test «%s»: errore di sintassi (%s)" % (codice.split("\n")[0], e.msg)
+    for nodo in ast.walk(albero):
+        if isinstance(nodo, ast.Call) and isinstance(nodo.func, ast.Name) and nodo.func.id not in funzioni:
+            return "test «%s»: la funzione %s non c'è nel prototipo html_con_file" % (codice.split("\n")[0], nodo.func.id)
+    return ""
+
+
+def specifica_consegna(r):
+    """Opzioni, test e soluzione di una consegna con controllo automatico, già controllati."""
+    opzioni, test, answer = {}, [], ""
+    for n, a, c in sezioni_cr(r.get("coderunner")):
+        if n == "options":
+            for l in c.split("\n"):
+                if l.strip():
+                    k, _, v = l.partition(":")
+                    k = k.strip().lower()
+                    if k not in ("nome", "pagina"):
+                        raise ValueError("opzione '%s' non prevista in una consegna con controllo automatico "
+                                         "(solo nome e pagina)" % l.strip())
+                    opzioni[k] = v.strip()
+        elif n == "test":
+            try:
+                peso = float((a or "1").replace(",", "."))
+            except ValueError:
+                raise ValueError("peso del test non valido: «=== test %s» (un numero, per esempio 2)" % a)
+            if peso <= 0:
+                # CodeRunner divide per il peso quando disegna la tabella dei risultati: con 0 la pagina va in errore
+                raise ValueError("test con peso %s: il peso non può essere 0 (Moodle va in errore mostrando i "
+                                 "risultati); per un controllo che dà solo il messaggio usa 0.001" % a)
+            test.append({"codice": c, "peso": peso, "extra": ""})
+        elif n == "extra":
+            if not test:
+                raise ValueError("=== extra prima di un === test")
+            test[-1]["extra"] = c.strip()
+        elif n == "answer":
+            answer = c
+        else:
+            raise ValueError("sezione '=== %s' non prevista in una consegna con controllo automatico "
+                             "(options, test, extra, answer)" % n)
+    nome = opzioni.get("nome", "")
+    if not nome:
+        raise ValueError("manca il nome del file da consegnare (=== options, «nome: sito-scuola.zip»)")
+    if not NOME_FILE_RE.fullmatch(nome):
+        raise ValueError("nome del file «%s» non valido: solo minuscole, numeri, - _ . e l'estensione .html, .htm "
+                         "o .zip" % nome)
+    pagina = opzioni.get("pagina") or ("index.html" if nome.endswith(".zip") else nome)
+    if not nome.endswith(".zip") and pagina != nome:
+        raise ValueError("«pagina» serve solo con lo .zip: con un file .html la pagina è il file stesso")
+    if not PAGINA_RE.fullmatch(pagina):
+        raise ValueError("pagina principale «%s» non valida (es. index.html)" % pagina)
+    if not test:
+        raise ValueError("nessun controllo: servono uno o più «=== test PESO» con il loro «=== extra»")
+    funzioni = funzioni_consegna()
+    for t in test:
+        if not t["codice"].strip():
+            raise ValueError("un «=== test» è vuoto")
+        if not t["extra"]:
+            raise ValueError("test «%s» senza «=== extra»: la frase che lo studente legge nella colonna Controllo"
+                             % t["codice"].split("\n")[0])
+        errore = controlla_test_consegna(t["codice"], funzioni)
+        if errore:
+            raise ValueError(errore)
+    return nome, pagina, test, answer
+
+
+def domanda_consegna(quiz, r):
+    """Consegna con controllo automatico (prototipo html_con_file), già in Moodle XML. Struttura delle domande
+    provate in Moodle (HTML3, 10/11/2026): template, promemoria e interfaccia senza casella dal prototipo;
+    qui nome del file accettato, pagina principale, controlli con peso e frase per lo studente."""
+    nome, pagina, test, answer = specifica_consegna(r)
+    tr = r.get("traccia") or ""
+    if not tr.strip():
+        raise ValueError("traccia vuota")
+    if CAMPO_RE.search(tr) or any(t == "opzioni" for t, _ in leggi_blocchi(tr)):
+        raise ValueError("in una consegna la traccia non ha campi Cloze né opzioni")
+    testo = espandi_codice(html_blocchi(leggi_blocchi(tr)))
+    corr = (r.get("correzione") or "").strip()
+    gf = espandi_codice(html_blocchi(leggi_blocchi(corr))) if corr else ""
+    punti = "%.7f" % float(r.get("punti") or 1)
+    regex = re.escape(nome).replace("\\-", "-")
+    spiegazione = ("<p><strong>Il file deve chiamarsi %s, tutto minuscolo e senza spazi.</strong></p>" % nome)
+    dimensione = "10485760" if nome.endswith(".zip") else "102400"
+
+    def t(tag, v):
+        return "    <%s>%s</%s>\n" % (tag, v, tag)
+    x = ['  <question type="coderunner">\n    <name>\n      <text>%s</text>\n    </name>\n' % esc_xml(nome_moodle(quiz, r)),
+         '    <questiontext format="html">\n      <text>%s</text>\n    </questiontext>\n' % cdata(testo),
+         '    <generalfeedback format="html">\n      <text>%s</text>\n    </generalfeedback>\n' % (cdata(gf) if gf else ""),
+         t("defaultgrade", punti), t("penalty", "0.0000000"), t("hidden", "0"), t("idnumber", ""),
+         t("coderunnertype", "html_con_file"), t("prototypetype", "0"), t("allornothing", "0"),
+         t("penaltyregime", "0"), t("precheck", "0"), t("hidecheck", "0"), t("showsource", "0"),
+         t("answerboxlines", "3"), t("answerboxcolumns", "100"), t("answerpreload", ""),
+         t("globalextra", ""), t("useace", ""), t("resultcolumns", ""), t("template", ""),
+         t("iscombinatortemplate", ""), t("allowmultiplestdins", ""),
+         t("answer", cdata(answer) if answer.strip() else ""),
+         t("validateonsave", "0"), t("testsplitterre", ""), t("language", ""), t("acelang", ""),
+         t("sandbox", ""), t("grader", ""), t("cputimelimitsecs", ""), t("memlimitmb", ""),
+         t("sandboxparams", ""), t("templateparams", esc_xml(json.dumps({"pagina": pagina}))),
+         t("hoisttemplateparams", "1"), t("extractcodefromjson", "1"), t("templateparamslang", "None"),
+         t("templateparamsevalpertry", "0"), t("templateparamsevald", "{}"), t("twigall", "0"),
+         t("uiplugin", ""), t("uiparameters", ""),
+         t("attachments", "1"), t("attachmentsrequired", "1"), t("maxfilesize", dimensione),
+         t("filenamesregex", esc_xml(regex)), t("filenamesexplain", esc_xml(spiegazione)),
+         t("displayfeedback", "1"), t("giveupallowed", "0"), t("prototypeextra", ""),
+         "    <testcases>\n"]
+    for c in test:
+        x.append('      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="%.7f" >\n'
+                 '      <testcode>\n                <text>%s</text>\n      </testcode>\n'
+                 '      <stdin>\n                <text></text>\n      </stdin>\n'
+                 '      <expected>\n                <text>OK\n</text>\n      </expected>\n'
+                 '      <extra>\n                <text>%s</text>\n      </extra>\n'
+                 '      <display>\n                <text>SHOW</text>\n      </display>\n'
+                 '    </testcase>\n' % (c["peso"], cdata(c["codice"]), cdata(c["extra"])))
+    x.append("    </testcases>\n  </question>\n\n")
+    return "".join(x)
+
+
 COPPIA_RE = re.compile(r"^\s*(.*?)\s*<->\s*(.*?)\s*$")
 FB_MATCH = ("<p>Risposta corretta.</p>", "<p>Risposta parzialmente esatta.</p>", "<p>Risposta errata.</p>")
 
@@ -923,7 +1067,9 @@ def main():
     errori, spec, spec_js, spec_sql, spec_php, web = [], [], [], [], [], []
     for r in righe:
         try:
-            if r.get("tipologia") in CR_WEB:
+            if r.get("tipologia") in CR_CONSEGNA:
+                web.append(domanda_consegna(quiz, r))
+            elif r.get("tipologia") in CR_WEB:
                 web.append(domanda_web(quiz, r))
             elif CATALOGO.get(r.get("tipologia"), ("",))[0] == "matching":
                 web.append(domanda_match(quiz, r))
@@ -1088,7 +1234,7 @@ def main():
         avvisi_dep.append("ripristina il backup nel corso «%s»: solo lì Moodle scrive nella banca del deposito"
                           % dep.get("corso", dep.get("nome", dep_id)))
     json.dump(imp, open(os.path.join(usc, "impaginazione.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    print("OK: %d domande (%d CodeRunner JavaScript, %d CodeRunner SQL, %d CodeRunner PHP, %d scritte direttamente in XML: esercizi HTML/CSS e corrispondenze), %d sezioni, %g punti, preset %s -> %s"
+    print("OK: %d domande (%d CodeRunner JavaScript, %d CodeRunner SQL, %d CodeRunner PHP, %d scritte direttamente in XML: esercizi HTML/CSS, consegne con controllo automatico e corrispondenze), %d sezioni, %g punti, preset %s -> %s"
           % (len(spec) + len(spec_js) + len(spec_sql) + len(spec_php) + len(web), len(spec_js), len(spec_sql), len(spec_php), len(web), len(sezioni), sum(d["punti"] for s in sezioni for d in s["domande"]), preset, usc))
     if gruppi:
         print("VERIFICA RIPETIBILE: %d posizioni casuali per tag, %d varianti in tutto" % (len(gruppi), sum(len(g) for g in gruppi.values())))
