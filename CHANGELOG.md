@@ -2,6 +2,15 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.13.6 — 10/11/2026
+
+Ristrutturazione delle skill, primo passo: `progettazione-quiz` più leggera. Nessuna pagina cambia e le regole sono le stesse.
+
+- **`progettazione-quiz` divisa per argomento**: le regole che valgono solo per un linguaggio o solo per le pagine di spiegazione sono passate, parola per parola, da `SKILL.md` a cinque file di `references/`, che Claude legge solo quando il quiz li riguarda: `tracce-html.md`, `tracce-javascript.md`, `tracce-sql.md`, `tracce-php.md`, `tracce-pagine.md`. `SKILL.md` scende da 5.300 a 3.500 parole: un quiz di teoria o una verifica di JavaScript non leggono più le regole di SQL, PHP e HTML.
+- «Modifiche fatte in Moodle» e «Quiz vecchi da importare» stanno ora in `dashboard.md`, accanto a «Importare un quiz da un backup».
+- **Regola nuova** (decisa il 09/11): nelle pagine di spiegazione HTML anche le figure del libro e le schermate stanno nella cornice «Visualizzazione nel browser» (blocco `html risultato`), non come immagini semplici. È l'unica regola aggiunta, in `tracce-html.md`.
+- Controllo fatto prima del rilascio: ogni riga della skill di prima è presente identica dopo lo spostamento (cambia solo un rimando in `preset.md`), e i quiz di prova generano lo stesso XML.
+
 ## 0.13.5 — 10/11/2026
 
 Revisione generale del plugin: correzioni ai testi delle skill, nessuna pagina cambia.
