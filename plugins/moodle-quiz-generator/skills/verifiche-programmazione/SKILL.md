@@ -109,7 +109,7 @@ La riduzione si fa in una **copia PDP** del quiz: in apertura, su una pagina sua
 
 **Quali togliere si decide in progettazione**: nella scaletta della verifica proponi le posizioni da togliere (domande intere, fino al 30% dei minuti consigliati, senza togliere gli argomenti essenziali) e segnale «tolta nella PDP»; l'utente le conferma o le cambia. La dashboard mostra la riduzione in minuti e avvisa oltre il 30%.
 
-**La copia la genera `materiali-moodle`** (`crea_pdp.py`, sezione «Copia PDP»), verificata con ripristini reali il 25/10/2026: direttamente dalla dashboard se le domande della verifica stanno in un deposito registrato, altrimenti dal backup della verifica ripristinata. L'utente la chiede quando la verifica è pronta.
+**La copia la genera `materiali-moodle`** (`crea_pdp.py`, «Copia PDP» in `references/verifiche.md`), verificata con ripristini reali il 25/10/2026: direttamente dalla dashboard se le domande della verifica stanno in un deposito registrato, altrimenti dal backup della verifica ripristinata. L'utente la chiede quando la verifica è pronta.
 
 ## JavaScript
 

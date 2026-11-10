@@ -28,6 +28,8 @@ Nessun'altra skill è un punto di partenza per un quiz. Da sole servono solo per
 
 Se mancano informazioni essenziali (classe, che cosa hanno già visto gli studenti, lezione di appartenenza), chiedile tutte insieme.
 
+Per le richieste fuori dalla dashboard (gruppo di domande o pagine, richiesta puntuale, controllo di materiale esistente) leggi `references/fuori-dashboard.md`: come si producono domande e pagine, come si propone la distribuzione su pagine, come si controlla un export.
+
 ## Dalla dashboard: XML e .mbz
 
 Il database della dashboard è il formato di consegna tra le due parti: tutto quello che va in Moodle è scritto nelle righe con convenzioni precise (riquadri, scelte `(x)` / `( )`, campi Cloze nella sintassi di Moodle, «correzione» separata dalle note interne), e gli script lo trasformano senza ritrascrizioni. Gli script stanno in `scripts/` di questa skill; le convenzioni della traccia in `references/formato-consegna.md` di `progettazione-quiz`.
@@ -39,30 +41,20 @@ Il database della dashboard è il formato di consegna tra le due parti: tutto qu
 
 5. **Esito nella dashboard**: alla fine scrivi nel quiz il campo `esportazione` (`stato` `fatta` o `errore`, `fine`, `file`, `esito` in una riga). La pagina lo mostra accanto al pulsante «Esporta», che fa partire questo stesso lavoro in una sessione dell'attività programmata (`dashboard.md` di `progettazione-quiz`, «Esportare dalla pagina»).
 
+**Prima di generare, leggi i file che riguardano il quiz**, e solo quelli:
+
+- il quiz è una **verifica** (o si chiede la copia PDP): `references/verifiche.md` (copia PDP, domanda delle note, Safe Exam Browser, varianti per tag);
+- il quiz ha **`deposito`**: `references/depositi.md`;
+- il quiz ha righe **CodeRunner** o **corrispondenze**: `references/righe-coderunner.md`;
+- il quiz è **già in Moodle** (svolto dagli studenti, o corretto lì dall'utente): `references/aggiornare-quiz.md`.
+
 I passi si possono anche lanciare uno per uno (`da_dashboard.py`, `crea_xml.py`, `crea_mbz.py`), per esempio per rifare solo l'`.mbz` con un'impaginazione cambiata.
 
 Se una riga non si può realizzare così com'è (un campo che Moodle non accetta, un tipo che lo script non gestisce), **non arrangiarti** con una versione diversa: torna a `progettazione-quiz`, riscrivi la traccia, metti la riga «da rivedere» con la nota e chiedi conferma.
 
-**Righe CodeRunner**: la traccia è il testo della domanda, soluzione e test stanno nel campo `coderunner` della riga («Soluzione e test», sezioni `=== answer`, `=== test`, `=== stdin`, `=== code`, `=== preload`… descritte in `formato-consegna.md` di `progettazione-quiz`). Le **JavaScript** le converte `genera_quiz.py` e finiscono nell'XML e nell'`.mbz` con le altre. Gli **esercizi HTML e CSS** (`libero_html`, `libero_css`: editor di CodeRunner senza test, correzione manuale) li scrive direttamente `da_dashboard.py`, con la «Correzione» nel feedback generale e il riquadro «Nessun controllo automatico» aggiunto in fondo al testo. L'HTML usa il prototipo scelto nel campo `prototipoHtml` del quiz: di norma `php_con_test`, con anteprima, che ha lo scratchpad (lo studente vede la pagina interpretata): risposta e codice di partenza nel formato JSON dello scratchpad, test fittizio «codice salvato!»; con `prototipoHtml: html`, senza anteprima, il prototipo `html` (il campo serve solo a incollare il codice scritto nell'editor e provato nel browser; test «codice salvato»); il CSS usa il prototipo `css` (test «codice salvato»). Le **SQL** le converte `genera_quiz.py` con `crea_xml.py` di `domande-coderunner-sql` (la cerca da sola, altrimenti `--sql=CARTELLA`): il database sta nel campo `database` del quiz (riquadro «Database del quiz» della scaletta, script di CREATE TABLE e INSERT), lo script costruisce il file SQLite pieno, solo struttura o vuoto per ogni domanda, calcola gli output e lo allega; nell'`.mbz` il file allegato va in `files.xml` e `files/` (verificato con un ripristino reale e il bulk tester). Leggi i messaggi `PRELOAD` (primo errore del debug) e `NOTA` (soluzione che produce un errore: giusto solo nei vincoli). Le **PHP** (prototipo `php_mysqli_sqlite`, stesso campo `database` del quiz) le converte `genera_quiz.py` con la skill `domande-php-mysqli-mock` (`--php=CARTELLA` se non la trova): `da_dashboard.py` aggiunge disclaimer della simulazione, normalizzazione dell'output e `FakeDB::configure`, `php_attesi.py` calcola gli output attesi eseguendo la soluzione con PHP e il template del prototipo (dove manca il client `sqlite3` usa `sqlite3_cli.py`, che dà gli stessi messaggi verificati su Jobe), `crea_xml.py --verifica` ricontrolla. Leggi i `PRELOAD` dei debug PHP: il primo errore che vede lo studente.
-
-**Corrispondenze**: `crea_xml.py` non le gestisce; dalla dashboard le scrive direttamente `da_dashboard.py` (righe `elemento <-> corrispondenza` della traccia, convenzione in `formato-consegna.md` di `progettazione-quiz`) e finiscono nell'XML e nell'`.mbz`. Fuori dalla dashboard, per una corrispondenza isolata, scrivi la riga nella forma della dashboard e passa da `da_dashboard.py`, oppure scrivi l'XML copiando la struttura di `domanda_match`.
-
-**Domande PHP con il prototipo `php_mysqli_mock`** (mappa delle query, per le domande vecchie o i messaggi di MySQL): producile con `domande-php-mysqli-mock`, lancia `genera_quiz.py` con `--salta-coderunner` e unisci gli XML con `unisci_xml.py`. Se una riga CodeRunner ha «Soluzione e test» vuoto o incompleto, o un quiz con domande SQL o PHP non ha il database, scrivilo tu in parte 1 (`progettazione-quiz`, database con `database-didattici`) prima di generare.
-
 ## Il backup .mbz
 
 **Leggere** un backup: `references/backup-mbz.md` e `scripts/leggi_mbz.py`. `--quiz` mostra per ogni quiz tempo, punteggio, sezioni e, slot per slot, pagina, punti e domanda (nome, versione, banca) o, per le domande casuali, i tag e la categoria da cui pescano con le domande che corrispondono; `--domande TESTO` mostra il testo (ultima versione) delle domande delle categorie che contengono TESTO. Funziona sul backup di un corso e su quello di una singola attività, comprese le domande delle banche condivise usate dal quiz.
-
-**Riallineare la dashboard**: se l'utente ha corretto domande direttamente in Moodle (non è un passaggio obbligatorio, ma può capitare), prima di rigenerare o di scrivere altre varianti chiedi il backup del quiz (con «Includi file») e confrontalo con la dashboard con `scripts/importa_mbz.py --confronta`: la procedura è in `dashboard.md` di `progettazione-quiz` («Modifiche fatte in Moodle»). Lo stesso script importa nella dashboard un quiz vecchio (`--id=ID`, tipo `IMP`). Le domande che il quiz prende da un deposito tengono lo stamp d'origine (`stampOrigine`) e il rapporto dice da quale banca vengono: se il deposito è registrato, metti `deposito` nel quiz, così rigenerandolo (o facendone la copia PDP) nel corso del deposito le domande si riusano senza doppioni.
-
-**Copia PDP** di una verifica (regole didattiche in `verifiche-programmazione`, «Studenti con PDP»; verificato con ripristini reali il 25/10/2026). `crea_pdp.py` ricava la copia da un backup della verifica: le posizioni tolte restano a 0 punti, prima di ognuna la descrizione «Riduzione contenuti PDP -k» (`--pei` per le PEI), in apertura la dichiarazione (`--dichiarazione=mappe`, predefinita, `tempo`, `generica`, `nessuna`), nome con «(PDP)». Descrizioni e dichiarazioni sono quelle della banca condivisa, con i loro stamp: al ripristino Moodle le riusa, anche da un corso diverso da quello della banca. I loro dati stanno nella dashboard in `impostazioni/pdp` (si rifanno con `crea_pdp.py --prepara-banca BACKUP_DELLA_BANCA.mbz OUT.json` e `ArtifactData set` con `file_path`). Due modalità:
-
-- **dalla dashboard** (preferita): se il quiz ha `deposito`, esporta anche `impostazioni` / `pdp` e lancia `genera_quiz.py … --pdp` (con le stesse `--varianti` della verifica); toglie le posizioni segnate «tolta nella PDP» (campo `pdp` delle righe). La verifica rigenerata ha gli stamp della verifica vera (stabili, o `stampOrigine`), quindi la copia si aggancia alle sue domande. Senza `deposito` lo script si ferma: le domande stanno nella banca del quiz e servono contesto e identificativi che assegna Moodle al ripristino;
-- **dal backup** della verifica ripristinata (sempre possibile): `crea_pdp.py VERIFICA.mbz BANCA_PDP.json USCITA.mbz --togli=T2,Q1` (numeri di slot di `leggi_mbz.py --quiz`, o codici di posizione cercati nei nomi e nei tag).
-
-**Domanda delle note** (decisione dell'utente dell'08/11/2026). Ogni verifica, e la sua copia PDP, ha in apertura la domanda aperta «Domanda per note e correzioni» della banca condivisa di sistema: primo slot, sulla pagina delle istruzioni, a 0 punti. Durante la prova lo studente può scriverci annotazioni per il docente; dopo la correzione il docente scrive nel suo commento il feedback complessivo e la griglia compilata (`correzione-verifiche`), così restano agli atti con il tentativo. `genera_quiz.py` la aggiunge da sola quando l'impostazione «Domanda per note e correzioni» del quiz (campo `domandaNote`, pannello «Impostazioni avanzate» della dashboard) è sì: di norma nelle verifiche, e l'utente la può spegnere o accendere quiz per quiz. La aggiunge con `crea_pdp.py --aggiungi-note`, come fa con la dichiarazione PDP: la voce della banca va nel backup con il suo stamp e Moodle la riusa. I dati della banca stanno nella dashboard in `impostazioni/note` (stesso formato della banca PDP; si rifanno con `crea_pdp.py --prepara-banca BACKUP.mbz OUT.json --nomi="Domanda per note e correzioni"` da un backup di un quiz che usa la domanda). Senza `impostazioni/note` la verifica esce senza la domanda, con un avviso; `--senza-note` la toglie apposta. Un quiz già svolto non può riceverla (struttura bloccata da Moodle). Alla prima verifica ripristinata con la domanda, ricorda all'utente di controllare che nella banca di sistema non compaia una copia nuova.
-
-Ripristino della copia: nel corso della verifica. Ricorda all'utente di controllare che nella banca di sistema non compaiano domande nuove (le descrizioni e le domande della verifica sono riferimenti).
 
 **Creare** un quiz: `crea_mbz.py DOMANDE.xml IMPAGINAZIONE.json USCITA.mbz` produce il backup di una singola attività quiz, con la struttura di Moodle 5.2.2 verificata su backup reali dell'utente e ripristinata con successo. Le domande stanno nella banca del quiz stesso, nella categoria della lezione. Tipi gestiti: descrizione, Cloze (campi a risposta breve, numerici, menù), risposta multipla, vero/falso, risposta breve, aperta, corrispondenza, CodeRunner JavaScript, HTML, CSS, SQL e PHP (le opzioni si copiano dall'XML, verificato su backup reali; i database allegati delle SQL e delle PHP diventano file del backup, come le immagini del testo delle domande, componente `question`, area `questiontext`). Domande casuali per tag: le posizioni con varianti (vedi «Verifiche ripetibili»).
 
@@ -74,63 +66,7 @@ L'impaginazione dice nome del quiz, preset, voto (10) e sufficienza (6), e per o
 
 Il preset viene dal tipo di quiz della dashboard; `impostazioni` nell'impaginazione sovrascrive singoli campi del quiz (es. `{"timelimit": 5400}`). Le impostazioni avanzate del quiz della dashboard (`navigazione`, `feedback`, `seb`, `password`, in `dashboard.md` di `progettazione-quiz`) valgono con qualsiasi preset: `da_dashboard.py` scrive in `impostazioni` `navmethod` e `password`, e nell'impaginazione `feedback` e `seb`. Se `feedback` è diverso da quello del preset, `crea_mbz.py` cambia insieme comportamento e opzioni di revisione: `immediato` come il preset esercitazione, `differito` come il preset studio; tentativi e tempo restano quelli del preset.
 
-**Depositi** (domande direttamente nella banca di un corso deposito, verificato con ripristini reali il 24/10/2026). Di norma le domande stanno nella banca del quiz e l'utente le sposta poi nel deposito. Se il quiz della dashboard ha `deposito`, invece, vanno nella banca qbank di quel deposito (impaginazione `banca`, scritta da `da_dashboard.py`). Regole di Moodle:
-
-- il ripristino scrive in una banca esterna al backup **solo se si ripristina nel corso in cui la banca sta**; altrimenti mette tutto, nascosto, nella banca delle domande condivisa di sistema (il quiz funziona lo stesso);
-- **non crea categorie nuove** in una banca esterna: la categoria deve esistere già, riconosciuta per stamp. Due casi: una categoria nota del deposito (registrata con il suo stamp), oppure la categoria che un quiz della dashboard ha creato nella sua banca e l'utente ha spostato nel deposito: lo stamp della categoria è stabile, ricavato dal nome, quindi i quiz successivi con la stessa categoria la ritrovano. Una categoria nuova si crea solo come oggi: ripristino nella banca del quiz e spostamento a mano;
-- le domande che ritrova per stamp le **riusa senza doppioni**. Gli stamp delle domande sono stabili: impronta del contenuto (una domanda cambiata ne ha uno nuovo e diventa una domanda nuova), oppure lo stamp d'origine (`stampOrigine` della riga) per le domande importate da un backup che stanno già nel deposito.
-
-**Registrare un deposito**: l'utente manda il backup di un quiz che usa la banca del deposito (o il backup del corso). `leggi_mbz.py BACKUP --banche` stampa contesto, modulo, categoria «top» e categorie con i loro stamp. Scrivi o aggiorna con `ArtifactData` sull'URL della dashboard il documento `impostazioni/depositi`: `{depositi: [{id, nome, corso, contextid, cmid, top_id, top_stamp, categorie: [{nome, id, stamp}]}]}` (`id` breve, per esempio `quinte`; `corso` il nome del corso in cui ripristinare). Quando l'utente crea o sposta categorie nel deposito, aggiornale da un backup nuovo. Nella consegna di un quiz con `deposito`, ricorda di ripristinare nel corso del deposito e riporta gli avvisi `DEPOSITO:` dello script.
-
-**Safe Exam Browser** (struttura presa da un backup reale). Il campo `seb` del quiz, o il tipo di quiz se manca, sceglie il modo. Con `manuale` il quiz esce con la configurazione manuale e i valori standard di Moodle, ma senza il pulsante per scaricare Safe Exam Browser, che in laboratorio è già installato. Con `file` esce con il file del documento `impostazioni/seb`, `{nome, contenuto}`, scelta «Carica la mia configurazione» e link per scaricarlo: il `contenuto` è il testo del `.seb` senza alterarne un byte, compresi gli a capo. Il file sta nei dati dell'utente e non nel repository, perché è la sua configurazione: per sostituirlo basta un `.seb` allegato o il backup di un quiz che lo usa (componente `quizaccess_seb`, area `filemanager_sebconfigfile`), e un `ArtifactData set` con `file_path`. Password e scadenza: la password sta nel campo `password` del quiz, la scadenza la mette l'utente in Moodle. La copia PDP eredita SEB e password dalla verifica.
-
 Ripristino: nel corso, Ripristina → carica il file → ripristina in questo corso (unisci). Se Moodle viene aggiornato e il ripristino si lamenta della versione, chiedi all'utente un backup fresco di un quiz qualsiasi e aggiorna le costanti di versione in `crea_mbz.py`.
-
-## Aggiornare un quiz già in Moodle
-
-Un quiz che gli studenti hanno già svolto **non si elimina**: resta per lo storico, con i suoi tentativi e le sue domande. In Moodle un quiz con tentativi ha la struttura bloccata: non si aggiungono né si tolgono domande e non si cambiano ordine e pagine. Si possono cambiare i testi (Moodle crea una nuova versione della stessa domanda, e i tentativi fatti restano sulla vecchia) e i punti (Moodle ricalcola i voti).
-
-Per la versione nuova, da far svolgere a un'altra classe o l'anno dopo, l'utente fa una **copia del quiz** nel corso deposito e la aggiorna a mano, senza duplicare le domande. Dopo aver aggiornato le righe nella dashboard e rigenerato l'XML, prepara:
-
-1. una **pagina** (artefatto) con in cima la tabella del quiz finale, presa da `impaginazione.json`: pagina, domanda, punti e che cosa fare (invariata, incolla il testo, domanda nuova da importare, sposta, togli, punti cambiati); sotto, i testi delle domande cambiate (il `<questiontext>` dell'XML), ognuno con il pulsante «Copia HTML» e le istruzioni: Modifica, modalità sorgente (HTML), seleziona tutto, incolla, salva;
-2. un **XML con le sole domande nuove**, con in testa la categoria del quiz; nell'importazione l'utente toglie la spunta a «Ottieni categoria dal file»;
-3. l'elenco delle domande da **togliere** dalla copia: una pagina che diventa domanda cambia tipo, quindi è una domanda nuova e la vecchia descrizione si toglie.
-
-Le domande con immagini nel testo non si aggiornano incollando: l'immagine va caricata nell'editor dopo aver incollato. Se il quiz non ha tentativi, è più semplice ripristinare il backup `.mbz` completo.
-
-## Distribuzione su pagine
-
-Con la dashboard pagine e sezioni sono già nelle righe e finiscono nel `.mbz`. Per una proposta fuori dalla dashboard, ogni quiz dice come le domande si dividono in pagine.
-
-- **Su una pagina da sole**: le domande complesse, in particolare quelle di programmazione (CodeRunner, debug, esercizi liberi) e le domande aperte con un codice proprio.
-- **Sulla stessa pagina**: le domande che hanno bisogno di un contesto che sta in un'altra domanda (un codice, una tabella, una pagina di teoria a cui rispondono, l'esercizio a cui si riferisce una domanda di teoria), sempre; le domande brevi e veloci (vero/falso, risposta multipla rapida) quando condividono lo stesso contesto.
-- **Sezioni**: quando il quiz ha parti distinte che lo studente deve vedere (istruzioni, blocchi di una lezione), proponi le intestazioni di sezione di Moodle e la posizione da cui parte ciascuna; compaiono nel blocco di navigazione. Nelle verifiche niente sezioni che rivelino la parte avanzata.
-
-Forma della proposta: nella tabella del tracciato una colonna **Pag.** (le domande sulla stessa pagina hanno lo stesso numero) e una riga di separazione in grassetto all'inizio di ogni sezione:
-
-| Pag. | Pos. | Domanda | Tipo |
-|---|---|---|---|
-| **— Sezione: Blocco A —** | | | |
-| 2 | A1 | Variabili e assegnamento | Teoria |
-| 3 | A2 | Il ciclo stampa 5 righe | Vero/falso |
-| 3 | A3 | i vale 5 all'uscita | Vero/falso |
-| 4 | A4 | Input e calcoli | CodeRunner |
-
-Quando consegni solo l'XML ricorda come applicarla: Ripagina (una domanda per pagina, se è il caso) e poi le intestazioni di sezione nelle posizioni indicate.
-
-## Verifiche ripetibili
-
-Quando l'utente vuole una verifica con più varianti per domanda, il quiz pesca a caso per **tag**:
-
-- tutte le domande e le varianti stanno nella **categoria della lezione**; ogni posizione del quiz è una domanda casuale da quella categoria filtrata per tag;
-- **un tag per posizione** (argomento e tipo), non per tipologia generica, con un prefisso che lo renda unico nel sito (es. `rjs4-T1-assegnamento`), senza spazi;
-- posizioni con la lettera della variante: `T1a`, `T1b`, `T1c`;
-- le varianti della stessa posizione hanno **stessa struttura, difficoltà, tempo e punti**; cambiano contesto e codice;
-- le pagine di istruzioni restano domande fisse, senza tag.
-
-**Dalla dashboard** le varianti sono righe con lo stesso campo `tag` (convenzioni in `formato-consegna.md` di `progettazione-quiz`): `genera_quiz.py` aggiunge i `<tags>` all'XML e `crea_mbz.py` crea una domanda casuale per tag con i punti della posizione. Nel backup gli id dei tag sono inventati (da 9900001) e al ripristino Moodle li ricrea per nome. La struttura viene da un backup reale dell'utente (`question_set_reference` con `filtercondition`) ed è stata verificata con un ripristino.
-
-**Fuori dalla dashboard** gli script di `scripts/` non scrivono i tag: aggiungili all'XML finale (`<tags><tag><text>…</text></tag></tags>` prima di `</question>`), verifica con `controlla_xml.py` e, consegnando solo l'XML, elenca all'utente le domande casuali da creare nel quiz. Se una modifica cambia la struttura (posizioni, tag, punti, ordine), elenca all'utente che cosa cambiare nel quiz prima dell'import.
 
 ## Dove trovare che cosa
 
@@ -138,6 +74,11 @@ Leggi solo i file che servono alla richiesta:
 
 | File | Leggilo quando |
 |---|---|
+| `references/verifiche.md` | generi una verifica o la sua copia PDP: «Copia PDP», «Domanda delle note», «Safe Exam Browser», «Verifiche ripetibili» |
+| `references/depositi.md` | il quiz ha `deposito`, o c'è un deposito da registrare: «Depositi», «Registrare un deposito» |
+| `references/righe-coderunner.md` | il quiz ha domande CodeRunner o corrispondenze: «Righe CodeRunner», «Corrispondenze», prototipo `php_mysqli_mock` |
+| `references/aggiornare-quiz.md` | il quiz è già in Moodle: «Aggiornare un quiz già in Moodle», «Riallineare la dashboard» |
+| `references/fuori-dashboard.md` | la richiesta non viene dalla dashboard: «Distribuzione su pagine», «Produrre le domande», «Produrre le pagine», «Controllare materiale esistente» |
 | `references/stile-html.md` | **sempre** prima di scrivere HTML: pagine con titoli e riquadri, testo compatto delle domande, codice, tabelle, registro |
 | `references/cloze.md` | scrivi o correggi Cloze: sintassi, le sette regole dell'utente, le quattro famiglie con esempi |
 | `references/domande.md` | risposta multipla, vero/falso, risposta breve, aperta, descrizioni |
@@ -161,26 +102,6 @@ Valgono anche per una risposta veloce in chat:
 - **Alternative ammesse**: una soluzione ugualmente corretta in programmazione (la concatenazione dove noi interpoliamo, un costrutto equivalente) non è mai un'opzione sbagliata né una risposta rifiutata in un campo: è un'alternativa che non suggeriamo. Nei campi Cloze va accettata; nei feedback «una riga corretta è…», non «la riga giusta è…».
 - **Nomi**: `L<lezione> - <blocco><numero> - <tipo>: <titolo>`; nelle verifiche, che hanno un codice al posto del numero di lezione, `V5R - <pos> - <tipo>: <titolo>` e categoria «V5R - argomento». La pagina di un blocco si chiama «Spiegazione» nelle esercitazioni con spiegazione e «Ripasso» nei ripassi.
 - **Studenti**: mai nomi completi nei materiali o nelle analisi, solo iniziali.
-
-## Produrre le domande
-
-1. Scrivi la specifica (`references/formato-specifica.md`) nella cartella di lavoro, con il codice grezzo nei blocchi `[[codice LINGUAGGIO]]`. Con la dashboard la specifica la scrive `da_dashboard.py`.
-2. Lancia `python3 scripts/crea_xml.py specifica.txt NOME.xml` (lo script sta nella cartella della skill, i file nella cartella di lavoro). Se si ferma, correggi la specifica e rilancia. Gli avvisi non bloccano, ma valuta se hanno ragione.
-3. Se ci sono domande CodeRunner, producile con la skill indicata in `references/sequenza.md`, poi unisci: `python3 scripts/unisci_xml.py NOME.xml prima.xml seconda.xml …`, nell'ordine della sequenza. Lancia `controlla_xml.py` anche sull'XML delle altre skill.
-4. Consegna all'utente l'XML (o l'`.mbz`) come file. Nel messaggio: categoria, numero di domande per tipo, distribuzione su pagine e sezioni da impostare (solo per l'XML), note per il docente, eventuali avvisi rimasti, e per le verifiche quando aprire la revisione. Ricorda che l'import crea sempre domande nuove.
-
-**Domanda singola**: se l'utente vuole il testo da incollare, dagli l'HTML già espanso (passalo da `crea_xml.py` o da `espandi_html.py` per avere il `<pre>` pronto), più risposte e feedback.
-
-## Produrre le pagine
-
-- **Dentro un quiz**: domanda `description` nella specifica, insieme agli esercizi.
-- **Attività Pagina o Area di testo e media**: scrivi l'HTML con i blocchi `[[codice]]` e lancia `python3 scripts/espandi_html.py sorgente.html NOME.html`; consegna il file, che l'utente incolla nell'editor in modalità sorgente.
-
-## Controllare materiale esistente
-
-`python3 scripts/controlla_xml.py FILE.xml --avvisi` controlla un export con le stesse regole. Riporta all'utente ogni problema con il nome della domanda e che cosa vede lo studente (es. «nel feedback compare \/»). Le pagine fatte prima di questa skill possono avere emoji o lo stile vecchio: segnalalo una volta, senza elencarlo per ogni pagina.
-
-Per correggere: estrai le domande da modificare nella specifica, correggi, rigenera. Se le domande sono già usate in un quiz, l'utente preferisce modificarle in Moodle invece di reimportarle (l'import crea domande nuove, e i quiz resterebbero collegati alle vecchie): dagli i testi corretti da incollare, come in «Aggiornare un quiz già in Moodle»; l'XML da reimportare solo per le domande non ancora usate o se lo chiede lui.
 
 ## Le altre skill
 

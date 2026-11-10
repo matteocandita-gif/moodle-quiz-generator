@@ -2,6 +2,15 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.13.7 — 10/11/2026
+
+Ristrutturazione delle skill, secondo passo: `materiali-moodle` più leggera. Nessuna pagina cambia e le regole sono le stesse.
+
+- **`materiali-moodle` divisa per occasione**: le parti che servono solo a volte sono passate, parola per parola, da `SKILL.md` a cinque file di `references/`: `verifiche.md` (copia PDP, domanda delle note, Safe Exam Browser, varianti per tag), `depositi.md`, `righe-coderunner.md`, `aggiornare-quiz.md` (quiz già in Moodle e riallineamento della dashboard), `fuori-dashboard.md` (domande sciolte, pagine, controllo di un export). `SKILL.md` scende da 4.800 a 2.400 parole.
+- Nei passi «Dalla dashboard: XML e .mbz» un elenco dice quali file leggere secondo il quiz (verifica, deposito, CodeRunner, quiz già in Moodle): vale anche per la sessione avviata dal pulsante «Esporta».
+- I rimandi dalle altre skill (`progettazione-quiz`, `verifiche-programmazione`) puntano ai file nuovi.
+- Controllo fatto prima del rilascio: ogni riga della skill di prima è presente identica dopo lo spostamento (cambia solo un rimando in `backup-mbz.md`), e i quiz di prova generano lo stesso XML.
+
 ## 0.13.6 — 10/11/2026
 
 Ristrutturazione delle skill, primo passo: `progettazione-quiz` più leggera. Nessuna pagina cambia e le regole sono le stesse.
