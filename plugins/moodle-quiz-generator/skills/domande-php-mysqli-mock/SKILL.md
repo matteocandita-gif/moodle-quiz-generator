@@ -18,6 +18,7 @@ L'XML non si scrive a mano: si scrive un file di specifica in testo semplice, co
 
 Un quiz o una verifica intera non parte da qui: si progetta con `progettazione-quiz` nella dashboard. Se la domanda fa parte di un quiz progettato nella dashboard «Bozze dei quiz», la specifica la scrive `da_dashboard.py` di `materiali-moodle` e gli output attesi li calcola `php_attesi.py`: qui valgono le convenzioni del codice e delle tipologie.
 
+<!-- percorso-dei-quiz: inizio (blocco comune: si modifica in sviluppo/strumenti/percorso-dei-quiz.md, poi allinea_copie.py) -->
 ## Il percorso dei quiz
 
 Ogni quiz Moodle (verifica, esercitazione, ripasso, anche di programmazione) segue un solo percorso, con la dashboard «Bozze dei quiz»:
@@ -26,6 +27,7 @@ Ogni quiz Moodle (verifica, esercitazione, ripasso, anche di programmazione) seg
 2. **`materiali-moodle`**, parte 2, tecnica: dal database della dashboard produce XML e `.mbz`; per le domande di programmazione usa `domande-coderunner-js`, `domande-coderunner-sql` e `domande-php-mysqli-mock`.
 
 Nessun'altra skill è un punto di partenza per un quiz. Da sole servono solo per ciò che non diventa un quiz: una domanda singola, una correzione o un controllo (`materiali-moodle` o la skill CodeRunner del linguaggio), domande per la banca o pagine di teoria (`materiali-moodle`), un database per una lezione in phpMyAdmin (`database-didattici`), la conversione delle vecchie domande SQL (`domande-coderunner-sql`).
+<!-- percorso-dei-quiz: fine -->
 
 ## File di riferimento
 

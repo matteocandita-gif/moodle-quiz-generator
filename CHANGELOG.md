@@ -2,6 +2,15 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.13.9 — 10/11/2026
+
+Ristrutturazione delle skill, quarto passo: le regole comuni in un file solo. Nessuna pagina cambia.
+
+- **`regole-comuni.md`**: le sei regole che valgono per ogni domanda (tracce degli esercizi, Cloze, feedback, risposta multipla con più risposte giuste, alternative ammesse, nomi) erano scritte in modo un po' diverso in `progettazione-quiz` e in `materiali-moodle`. Ora c'è un testo solo, che le due skill leggono sempre: l'originale sta in `materiali-moodle` e la copia si rigenera da lì, quindi non possono più divergere.
+- Il testo comune tiene tutto quello che dicevano le due versioni: per le Cloze anche «mai `\/` né `\"`» e «`<pre>` senza `<code>`», per il feedback «senza svelare altre domande della stessa pagina», per le verifiche «niente codice copiabile, niente gapfiller». I nomi delle domande usano le parole della dashboard (`<pos> - <prefisso>`).
+- Il blocco «Il percorso dei quiz», uguale in sei skill, è ora tenuto allineato dallo strumento del repository.
+- Prove prima del rilascio superate: le domande generate sono le stesse.
+
 ## 0.13.8 — 10/11/2026
 
 Ristrutturazione delle skill, terzo passo: un file solo per linguaggio in `progettazione-quiz`. Nessuna pagina cambia.

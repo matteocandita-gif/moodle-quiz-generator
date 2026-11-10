@@ -9,6 +9,7 @@ description: "Crea domande CodeRunner SQL per il Moodle dell'utente (prototipo s
 
 Le domande SQL dell'utente girano su CodeRunner con il prototipo **`sql_salvemini`**: SQLite 3.46 su Jobe, chiavi esterne attive come in MySQL con InnoDB, controllo di sola sintassi per le verifiche, errori SQL mostrati come output. L'XML non si scrive a mano: si scrive una specifica e lo script costruisce il database, esegue la soluzione con un emulatore del client sqlite3 verificato su Jobe e calcola gli output attesi.
 
+<!-- percorso-dei-quiz: inizio (blocco comune: si modifica in sviluppo/strumenti/percorso-dei-quiz.md, poi allinea_copie.py) -->
 ## Il percorso dei quiz
 
 Ogni quiz Moodle (verifica, esercitazione, ripasso, anche di programmazione) segue un solo percorso, con la dashboard «Bozze dei quiz»:
@@ -17,6 +18,7 @@ Ogni quiz Moodle (verifica, esercitazione, ripasso, anche di programmazione) seg
 2. **`materiali-moodle`**, parte 2, tecnica: dal database della dashboard produce XML e `.mbz`; per le domande di programmazione usa `domande-coderunner-js`, `domande-coderunner-sql` e `domande-php-mysqli-mock`.
 
 Nessun'altra skill è un punto di partenza per un quiz. Da sole servono solo per ciò che non diventa un quiz: una domanda singola, una correzione o un controllo (`materiali-moodle` o la skill CodeRunner del linguaggio), domande per la banca o pagine di teoria (`materiali-moodle`), un database per una lezione in phpMyAdmin (`database-didattici`), la conversione delle vecchie domande SQL (`domande-coderunner-sql`).
+<!-- percorso-dei-quiz: fine -->
 
 ## Regola di lavoro
 

@@ -34,6 +34,9 @@ ORIGINALI = {
         "mappe-prerequisiti/references/navigazione.md",
     ],
     # la copia di domande-php-mysqli-mock ha in più la sezione sul disclaimer: resta a mano
+    "materiali-moodle/references/regole-comuni.md": [
+        "progettazione-quiz/references/regole-comuni.md",
+    ],
     "materiali-moodle/references/stile-html.md": [
         "domande-coderunner-js/references/stile-html.md",
         "domande-coderunner-sql/references/stile-html.md",
@@ -54,6 +57,14 @@ BLOCCHI = {
         "plugins/moodle-quiz-generator/skills/mappe-prerequisiti/assets/editor.html",
         "plugins/moodle-quiz-generator/skills/tracce-progettazione/assets/dashboard-tracce.html",
     ],
+}
+# blocchi condivisi dentro gli SKILL.md, tra una riga che comincia con il primo segnaposto e una con il secondo:
+# originale (relativo alla radice) -> (inizio, fine, file che lo contengono)
+BLOCCHI_MD = {
+    "sviluppo/strumenti/percorso-dei-quiz.md": ("<!-- percorso-dei-quiz: inizio", "<!-- percorso-dei-quiz: fine -->", [
+        "plugins/moodle-quiz-generator/skills/%s/SKILL.md" % s for s in (
+            "progettazione-quiz", "materiali-moodle", "verifiche-programmazione",
+            "domande-coderunner-js", "domande-coderunner-sql", "domande-php-mysqli-mock")]),
 }
 # file JavaScript inclusi interi in una pagina, tra le righe «/* incluso: NOME — inizio */» e «… — fine */»
 INCLUSI = {
@@ -82,9 +93,10 @@ def contenuto_copia(orig):
     return testa + testo
 
 
-def con_blocco(pagina, blocco, incluso=None):
+def con_blocco(pagina, blocco, incluso=None, segnaposto=None):
     """La pagina con il blocco sostituito; None se mancano i segnaposto."""
-    ini, fin = (("/* incluso: %s — inizio */" % incluso, "/* incluso: %s — fine */" % incluso) if incluso
+    ini, fin = (segnaposto if segnaposto else
+                ("/* incluso: %s — inizio */" % incluso, "/* incluso: %s — fine */" % incluso) if incluso
                 else (INIZIO, FINE))
     righe = pagina.splitlines(keepends=True)
     i = next((k for k, r in enumerate(righe) if r.lstrip().startswith(ini)), None)
@@ -96,9 +108,10 @@ def con_blocco(pagina, blocco, incluso=None):
 
 def allinea_blocchi(controlla):
     diverse = 0
-    voci = [(o, pg, None) for o, pp in BLOCCHI.items() for pg in pp] + \
-           [(o, pg, pathlib.Path(o).name) for o, pp in INCLUSI.items() for pg in pp]
-    for orig, pg, incluso in voci:
+    voci = [(o, pg, None, None) for o, pp in BLOCCHI.items() for pg in pp] + \
+           [(o, pg, pathlib.Path(o).name, None) for o, pp in INCLUSI.items() for pg in pp] + \
+           [(o, pg, None, (ini, fin)) for o, (ini, fin, pp) in BLOCCHI_MD.items() for pg in pp]
+    for orig, pg, incluso, segnaposto in voci:
         blocco = (RADICE / orig).read_text(encoding="utf-8")
         if not blocco.endswith("\n"):
             blocco += "\n"
@@ -109,7 +122,7 @@ def allinea_blocchi(controlla):
             p = (RADICE / pg).resolve()
             nome = p.relative_to(RADICE)
             attuale = p.read_text(encoding="utf-8")
-            atteso = con_blocco(attuale, blocco, incluso)
+            atteso = con_blocco(attuale, blocco, incluso, segnaposto)
             if atteso is None:
                 diverse += 1
                 print("SEGNAPOSTO MANCANTE %s" % nome)

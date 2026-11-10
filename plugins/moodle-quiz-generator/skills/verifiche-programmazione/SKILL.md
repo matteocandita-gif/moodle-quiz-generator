@@ -9,6 +9,7 @@ description: "Regole didattiche dell'utente per le verifiche di programmazione i
 
 Questa skill dice **come deve essere fatta una verifica di programmazione** in JavaScript, SQL o PHP rispetto al suo scopo: che cosa chiedere, come scrivere le tracce, come tarare il voto. Non è un percorso a sé e non produce file: una verifica si crea sempre con il percorso della dashboard (sotto), e questa skill la carica `progettazione-quiz` al passo 1, quando il quiz è una verifica di programmazione (preset V). Se l'utente chiede una verifica e sei partito da qui, passa subito a `progettazione-quiz` e applica queste regole lì. Valgono anche per una singola domanda da verifica chiesta fuori dalla dashboard.
 
+<!-- percorso-dei-quiz: inizio (blocco comune: si modifica in sviluppo/strumenti/percorso-dei-quiz.md, poi allinea_copie.py) -->
 ## Il percorso dei quiz
 
 Ogni quiz Moodle (verifica, esercitazione, ripasso, anche di programmazione) segue un solo percorso, con la dashboard «Bozze dei quiz»:
@@ -17,6 +18,7 @@ Ogni quiz Moodle (verifica, esercitazione, ripasso, anche di programmazione) seg
 2. **`materiali-moodle`**, parte 2, tecnica: dal database della dashboard produce XML e `.mbz`; per le domande di programmazione usa `domande-coderunner-js`, `domande-coderunner-sql` e `domande-php-mysqli-mock`.
 
 Nessun'altra skill è un punto di partenza per un quiz. Da sole servono solo per ciò che non diventa un quiz: una domanda singola, una correzione o un controllo (`materiali-moodle` o la skill CodeRunner del linguaggio), domande per la banca o pagine di teoria (`materiali-moodle`), un database per una lezione in phpMyAdmin (`database-didattici`), la conversione delle vecchie domande SQL (`domande-coderunner-sql`).
+<!-- percorso-dei-quiz: fine -->
 
 Le indicazioni le ha fissate l'utente correggendo le verifiche prodotte: seguile anche quando una scelta diversa sembrerebbe più comoda. Le sezioni per linguaggio, in fondo, aggiungono solo ciò che cambia.
 

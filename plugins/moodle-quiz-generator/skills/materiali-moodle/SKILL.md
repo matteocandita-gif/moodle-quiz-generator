@@ -11,6 +11,7 @@ Questa skill produce il materiale che l'utente usa nel Moodle della scuola (vers
 
 È la parte 2 del percorso dei quiz e lo strumento per le richieste che non diventano un quiz.
 
+<!-- percorso-dei-quiz: inizio (blocco comune: si modifica in sviluppo/strumenti/percorso-dei-quiz.md, poi allinea_copie.py) -->
 ## Il percorso dei quiz
 
 Ogni quiz Moodle (verifica, esercitazione, ripasso, anche di programmazione) segue un solo percorso, con la dashboard «Bozze dei quiz»:
@@ -19,6 +20,7 @@ Ogni quiz Moodle (verifica, esercitazione, ripasso, anche di programmazione) seg
 2. **`materiali-moodle`**, parte 2, tecnica: dal database della dashboard produce XML e `.mbz`; per le domande di programmazione usa `domande-coderunner-js`, `domande-coderunner-sql` e `domande-php-mysqli-mock`.
 
 Nessun'altra skill è un punto di partenza per un quiz. Da sole servono solo per ciò che non diventa un quiz: una domanda singola, una correzione o un controllo (`materiali-moodle` o la skill CodeRunner del linguaggio), domande per la banca o pagine di teoria (`materiali-moodle`), un database per una lezione in phpMyAdmin (`database-didattici`), la conversione delle vecchie domande SQL (`domande-coderunner-sql`).
+<!-- percorso-dei-quiz: fine -->
 
 ## Regola di lavoro
 
@@ -79,6 +81,7 @@ Leggi solo i file che servono alla richiesta:
 | `references/righe-coderunner.md` | il quiz ha domande CodeRunner o corrispondenze: «Righe CodeRunner», «Corrispondenze», prototipo `php_mysqli_mock` |
 | `references/aggiornare-quiz.md` | il quiz è già in Moodle: «Aggiornare un quiz già in Moodle», «Riallineare la dashboard» |
 | `references/fuori-dashboard.md` | la richiesta non viene dalla dashboard: «Distribuzione su pagine», «Produrre le domande», «Produrre le pagine», «Controllare materiale esistente» |
+| `references/regole-comuni.md` | **sempre**: le regole comuni a tutte le domande (tracce degli esercizi, Cloze, feedback, risposta multipla, alternative ammesse, nomi) |
 | `references/stile-html.md` | **sempre** prima di scrivere HTML: pagine con titoli e riquadri, testo compatto delle domande, codice, tabelle, registro |
 | `references/cloze.md` | scrivi o correggi Cloze: sintassi, le sette regole dell'utente, le quattro famiglie con esempi |
 | `references/domande.md` | risposta multipla, vero/falso, risposta breve, aperta, descrizioni |
@@ -92,15 +95,9 @@ Leggi solo i file che servono alla richiesta:
 
 ## Le regole che non si dimenticano
 
-Valgono anche per una risposta veloce in chat:
+Valgono anche per una risposta veloce in chat. Quelle comuni a tutte le domande (tracce degli esercizi, Cloze, feedback, risposta multipla, alternative ammesse, nomi) stanno in `references/regole-comuni.md`: **leggilo sempre**, prima di scrivere o controllare qualsiasi domanda. In più:
 
-- **Tracce degli esercizi**: estese ed esplicite, in forma impersonale come le scrive l'utente («Definire una funzione dal nome … che prende come parametro … e restituisce …; se … restituire invece …»), con regole, casi limite, forma dell'output ed esempio svolto. Nelle **verifiche** dicono l'obiettivo e non gli strumenti, salvo ciò che è oggetto della valutazione; nelle **esercitazioni** lo strumento è suggerito o non nominato esercizio per esercizio, come deciso nella scaletta (in una richiesta fuori dalla dashboard, chiedilo). Vale anche per le domande prodotte con le skill CodeRunner, anche dove i loro riferimenti parlano di testo compatto.
-- **Cloze**: escaping solo di `}` `#` `~` (mai `\/` né `\"`); menù singoli `MULTICHOICE_S`; menù con le stesse opzioni `MULTICHOICE` con ordine statico identico e diverso da quello delle risposte giuste; campi dentro il codice solo in `<pre>` senza `<code>`; niente entità né tag nelle risposte dei campi a risposta breve: nei completamenti HTML il campo contiene il nome del tag e parentesi angolari e barra stanno nel codice.
 - **HTML**: frammento senza `<head>`, `<body>`, `<style>`, `<script>`; stili inline; niente emoji; pagine con titoli e riquadri, domande compatte.
-- **Feedback**: ogni opzione sbagliata spiega perché è sbagliata.
-- **Risposta multipla**: una sola giusta quando l'affermazione vera è una, più giuste (`single: false`, penalità sulle sbagliate che sommata fa −100%) quando sono più d'una, un'opzione per affermazione; dettaglio in `references/domande.md`.
-- **Alternative ammesse**: una soluzione ugualmente corretta in programmazione (la concatenazione dove noi interpoliamo, un costrutto equivalente) non è mai un'opzione sbagliata né una risposta rifiutata in un campo: è un'alternativa che non suggeriamo. Nei campi Cloze va accettata; nei feedback «una riga corretta è…», non «la riga giusta è…».
-- **Nomi**: `L<lezione> - <blocco><numero> - <tipo>: <titolo>`; nelle verifiche, che hanno un codice al posto del numero di lezione, `V5R - <pos> - <tipo>: <titolo>` e categoria «V5R - argomento». La pagina di un blocco si chiama «Spiegazione» nelle esercitazioni con spiegazione e «Ripasso» nei ripassi.
 - **Studenti**: mai nomi completi nei materiali o nelle analisi, solo iniziali.
 
 ## Le altre skill
