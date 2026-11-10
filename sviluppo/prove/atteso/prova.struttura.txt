@@ -1,0 +1,2417 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiz>
+  <question type="category">
+    <category>
+      <text>$module$/top/Lezione 9 - Prova revisione</text>
+    </category>
+    <info format="html">
+      <text></text>
+    </info>
+    <idnumber></idnumber>
+  </question>
+
+  <question type="description">
+    <name>
+      <text>L9 - 00 - Come lavoriamo oggi</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 900px; margin: 0 auto; color: #333333; line-height: 1.6;">
+<h1 style="color: #2c3e50; border-bottom: 3px solid #e74c3c; padding-bottom: 10px;">Prova</h1>
+<p>Oggi <strong>ripassiamo</strong> <span style="font-family: monospace;">SELECT</span> e <strong>dentro <span style="font-family: monospace;">&lt;body&gt;</span></strong> i tag.</p>
+<div style="background-color: #c9daf8; border-left: 5px solid #6d9eeb; padding: 12px 16px; border-radius: 4px; margin: 0 0 16px;">
+<p style="margin: 0 0 6px; color: #1c4587;"><strong>Che cos'è</strong></p>
+<p style="margin: 0;">Una definizione.</p>
+</div>
+<ul style="margin: 0 0 12px;">
+<li>uno</li>
+<li>due</li>
+</ul>
+</div>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>0.0000000</defaultgrade>
+    <penalty>0.0000000</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+  </question>
+
+  <question type="description">
+    <name>
+      <text>L9 - A0 - Spiegazione: Le liste</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 900px; margin: 0 auto; color: #333333; line-height: 1.6;">
+<h1 style="color: #2c3e50; border-bottom: 3px solid #e74c3c; padding-bottom: 10px;">Blocco A - Le liste</h1>
+<h2 style="color: #c0392b; margin-top: 30px;">Come si scrivono</h2>
+<p>Testo.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; margin: 8px 0 16px;">
+<div style="flex: 1 1 260px; min-width: 0;">
+<pre style="background-color: #333333; color: #eceff1; padding: 12px; border-radius: 4px; overflow-x: auto; margin: 8px 0; line-height: 1.5;"><span style="color: #81a1c1;">&lt;ul</span><span style="color: #81a1c1;">&gt;</span>
+    <span style="color: #81a1c1;">&lt;li</span><span style="color: #81a1c1;">&gt;</span>uno<span style="color: #81a1c1;">&lt;/li</span><span style="color: #81a1c1;">&gt;</span>
+    <span style="color: #81a1c1;">&lt;li</span><span style="color: #81a1c1;">&gt;</span><span style="color: #81a1c1;">&lt;a</span> <span style="color: #8fbcbb;">href</span>=<span style="color: #a3be8c;">"x.html"</span><span style="color: #81a1c1;">&gt;</span>due<span style="color: #81a1c1;">&lt;/a</span><span style="color: #81a1c1;">&gt;</span><span style="color: #81a1c1;">&lt;/li</span><span style="color: #81a1c1;">&gt;</span>
+<span style="color: #81a1c1;">&lt;/ul</span><span style="color: #81a1c1;">&gt;</span></pre>
+</div>
+<div style="flex: 1 1 200px; min-width: 0; border: 1px solid #999999; border-radius: 4px; background-color: #ffffff; padding: 8px 14px;">
+<p style="margin: 0 0 6px; font-size: 0.85em; color: #666666;"><strong>Nel browser</strong></p>
+<ul>
+    <li>uno</li>
+    <li><a href="x.html">due</a></li>
+</ul>
+</div>
+</div>
+<p style="margin-bottom: 0;"><strong>Ora rispondete alla domanda qui sotto</strong>: si risolve con quello che avete appena letto in questa pagina</p>
+</div>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>0.0000000</defaultgrade>
+    <penalty>0.0000000</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+  </question>
+
+  <question type="multichoice">
+    <name>
+      <text>L9 - A1 - Quale tag</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Quale tag apre una lista non ordinata?</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>5</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>0</showstandardinstruction>
+    <correctfeedback format="html">
+      <text></text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text></text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text></text>
+    </incorrectfeedback>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<span style="font-family: monospace;">&lt;ul&gt;</span>]]></text>
+      <feedback format="html">
+        <text><![CDATA[Esatto.]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<span style="font-family: monospace;">&lt;ol&gt;</span>]]></text>
+      <feedback format="html">
+        <text><![CDATA[No: è ordinata.]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<span style="font-family: monospace;">&lt;li&gt;</span>]]></text>
+      <feedback format="html">
+        <text><![CDATA[No: è la voce.]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<span style="font-family: monospace;">&lt;dl&gt;</span>]]></text>
+      <feedback format="html">
+        <text><![CDATA[No: è un'altra lista.]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+  <question type="truefalse">
+    <name>
+      <text>L9 - A2 - Vero o falso</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Una lista ordinata usa <span style="font-family: monospace;">&lt;ol&gt;</span>.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>5</defaultgrade>
+    <penalty>1</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>true</text>
+      <feedback format="html">
+        <text><![CDATA[Esatto.]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="moodle_auto_format">
+      <text>false</text>
+      <feedback format="html">
+        <text><![CDATA[No.]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+  <question type="multichoice">
+    <name>
+      <text>L9 - A3 - Più giuste</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Seleziona tutte le risposte corrette.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p>Le giuste sono le prime due.</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>10</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>false</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>0</showstandardinstruction>
+    <correctfeedback format="html">
+      <text></text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text></text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text></text>
+    </incorrectfeedback>
+    <answer fraction="50" format="html">
+      <text><![CDATA[<span style="font-family: monospace;">&lt;ul&gt;</span> è una lista]]></text>
+      <feedback format="html">
+        <text><![CDATA[Sì.]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="50" format="html">
+      <text><![CDATA[<span style="font-family: monospace;">&lt;ol&gt;</span> è una lista]]></text>
+      <feedback format="html">
+        <text><![CDATA[Sì.]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="-50" format="html">
+      <text><![CDATA[<span style="font-family: monospace;">&lt;p&gt;</span> è una lista]]></text>
+      <feedback format="html">
+        <text><![CDATA[No.]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="-50" format="html">
+      <text><![CDATA[<span style="font-family: monospace;">&lt;h1&gt;</span> è una lista]]></text>
+      <feedback format="html">
+        <text><![CDATA[No.]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+  <question type="cloze">
+    <name>
+      <text>L9 - A4 - Completamento: Completa</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Completa.</p>
+<pre style="background-color: #333333; color: #eceff1; padding: 12px; border-radius: 4px; overflow-x: auto; margin: 8px 0; line-height: 1.5;">&lt;{1:SHORTANSWER:=ul}&gt;
+    &lt;{1:SHORTANSWER:=li}&gt;uno&lt;/li&gt;
+&lt;/ul&gt;</pre>
+<p>Il tag è {1:MULTICHOICE_S:=di blocco#Corretto.~in linea#No: va a capo.}.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+  </question>
+
+  <question type="cloze">
+    <name>
+      <text>L9 - A6 - Tracciamento: Leggere un ciclo</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Leggi il codice.</p>
+<pre style="background-color: #333333; color: #eceff1; padding: 12px; border-radius: 4px; overflow-x: auto; margin: 8px 0; line-height: 1.5;"><span style="color: #ebcb8b;">l&#1077;t</span> s = <span style="color: #d08770;">0</span>;
+<span style="color: #ebcb8b;">f&#1086;r</span> (<span style="color: #ebcb8b;">let</span> i = <span style="color: #d08770;">0</span>; i &lt; <span style="color: #d08770;">3</span>; i++) {
+    s =&#8203; s +&#8203; i;
+}
+console.log(s);</pre>
+<p>Stampa {1:NUMERICAL:=3:0#Corretto.}.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+  </question>
+
+  <question type="shortanswer">
+    <name>
+      <text>L9 - E1 - Il tag</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Quale tag apre una lista non ordinata? Scrivi solo il nome.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <usecase>0</usecase>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>ul</text>
+      <feedback format="html">
+        <text><![CDATA[Esatto.]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="moodle_auto_format">
+      <text>ol</text>
+      <feedback format="html">
+        <text><![CDATA[No: è la lista ordinata.]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+  <question type="cloze">
+    <name>
+      <text>L9 - E2 - Completa la frase</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Una voce di lista si scrive con il tag {1:SHORTANSWER:=li#Corretto.}.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+  </question>
+
+  <question type="cloze">
+    <name>
+      <text>L9 - E3 - Metti in ordine</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Metti in ordine i passi.</p>
+<ol style="margin: 0 0 12px;">
+<li>{1:MULTICHOICE:il browser mostra~=il browser chiede#Corretto.~il server risponde}</li>
+<li>{1:MULTICHOICE:il browser mostra~il browser chiede~=il server risponde#Corretto.}</li>
+<li>{1:MULTICHOICE:=il browser mostra#Corretto.~il browser chiede~il server risponde}</li>
+</ol>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+  </question>
+
+  <question type="cloze">
+    <name>
+      <text>L9 - E4 - Esempio svolto: Leggere una lista</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Leggi l'esempio.</p>
+<pre style="background-color: #333333; color: #eceff1; padding: 12px; border-radius: 4px; overflow-x: auto; margin: 8px 0; line-height: 1.5;"><span style="color: #81a1c1;">&lt;ol</span><span style="color: #81a1c1;">&gt;</span>
+    <span style="color: #81a1c1;">&lt;li</span><span style="color: #81a1c1;">&gt;</span>uno<span style="color: #81a1c1;">&lt;/li</span><span style="color: #81a1c1;">&gt;</span>
+<span style="color: #81a1c1;">&lt;/ol</span><span style="color: #81a1c1;">&gt;</span></pre>
+<p>La lista è {1:MULTICHOICE_S:=ordinata#Corretto.~non ordinata#No: quella è ul.}.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+  </question>
+
+  <question type="cloze">
+    <name>
+      <text>L9 - E5 - Tracciamento: Che cosa stampa</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Leggi il codice.</p>
+<pre style="background-color: #333333; color: #eceff1; padding: 12px; border-radius: 4px; overflow-x: auto; margin: 8px 0; line-height: 1.5;"><span style="color: #ebcb8b;">l&#1077;t</span> n =&#8203; <span style="color: #d08770;">2</span>;
+n =&#8203; n * <span style="color: #d08770;">3</span>;
+console.log(n);</pre>
+<p>Stampa {1:NUMERICAL:=6:0#Corretto.}.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+  </question>
+
+  <question type="multichoice">
+    <name>
+      <text>L9 - E6 - Trova l'errore: Il ciclo sbagliato</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Il codice dovrebbe stampare i numeri da 1 a 3.</p>
+<pre style="background-color: #333333; color: #eceff1; padding: 12px; border-radius: 4px; overflow-x: auto; margin: 8px 0; line-height: 1.5;"><span style="color: #ebcb8b;">for</span> (<span style="color: #ebcb8b;">l&#1077;t</span> i =&#8203; <span style="color: #d08770;">1</span>; i &lt;&#8203; <span style="color: #d08770;">3</span>; i++) {
+    console.log(i);
+}</pre>
+<p>Dov'è l'errore?</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>2</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>0</showstandardinstruction>
+    <correctfeedback format="html">
+      <text></text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text></text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text></text>
+    </incorrectfeedback>
+    <answer fraction="100" format="html">
+      <text><![CDATA[Nella condizione]]></text>
+      <feedback format="html">
+        <text><![CDATA[Esatto: serve <span style="font-family: monospace;">i &lt;= 3</span>.]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[Nell'incremento]]></text>
+      <feedback format="html">
+        <text><![CDATA[No: <span style="font-family: monospace;">i++</span> è giusto.]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[Nella stampa]]></text>
+      <feedback format="html">
+        <text><![CDATA[No: stampa <span style="font-family: monospace;">i</span>.]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[Nel valore iniziale]]></text>
+      <feedback format="html">
+        <text><![CDATA[No: parte da 1.]]></text>
+      </feedback>
+    </answer>
+  </question>
+
+  <question type="cloze">
+    <name>
+      <text>L9 - E7 - Esempio guidato: Una lista guidata</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Completa passo per passo.</p>
+<pre style="background-color: #333333; color: #eceff1; padding: 12px; border-radius: 4px; overflow-x: auto; margin: 8px 0; line-height: 1.5;">&lt;{1:SHORTANSWER:=ol}&gt;
+    &lt;li&gt;uno&lt;/{1:SHORTANSWER:=li}&gt;
+&lt;/ol&gt;</pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+  </question>
+
+  <question type="essay">
+    <name>
+      <text>L9 - E8 - Debug: Perché non funziona</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Il codice dovrebbe sommare i voti. Contiene 1 errore.</p>
+<pre style="background-color: #333333; color: #eceff1; padding: 12px; border-radius: 4px; overflow-x: auto; margin: 8px 0; line-height: 1.5;"><span style="color: #ebcb8b;">l&#1077;t</span> somma = <span style="color: #d08770;">0</span>;
+<span style="color: #ebcb8b;">f&#1086;r</span> (<span style="color: #ebcb8b;">l&#1077;t</span> i = <span style="color: #d08770;">0</span>; i &lt;= <span style="color: #d08770;">2</span>; i++) {
+    somma =&#8203; <span style="color: #d08770;">0</span>;
+}
+console.log(somma);</pre>
+<p>Per l'errore indicare che cosa succede, perché e la correzione.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>4</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <responseformat>plain</responseformat>
+    <responserequired>1</responserequired>
+    <responsefieldlines>25</responsefieldlines>
+    <minwordlimit>0</minwordlimit>
+    <maxwordlimit>0</maxwordlimit>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxbytes>0</maxbytes>
+    <filetypeslist></filetypeslist>
+    <graderinfo format="html">
+      <text><![CDATA[<p>1 punto: che cosa succede.<br>
+1 punto: perché.<br>
+2 punti: correzione.</p>]]></text>
+    </graderinfo>
+    <responsetemplate format="html">
+      <text></text>
+    </responsetemplate>
+  </question>
+
+  <question type="essay">
+    <name>
+      <text>L9 - E9 - Esercizio libero: Una pagina tua</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Scrivere la pagina <span style="font-family: monospace;">indice.html</span> con un titolo e una lista di tre voci, poi incollare il codice.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>5</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <responseformat>plain</responseformat>
+    <responserequired>1</responserequired>
+    <responsefieldlines>25</responsefieldlines>
+    <minwordlimit>0</minwordlimit>
+    <maxwordlimit>0</maxwordlimit>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxbytes>0</maxbytes>
+    <filetypeslist></filetypeslist>
+    <graderinfo format="html">
+      <text><![CDATA[<p>Titolo 2, lista 3.</p>]]></text>
+    </graderinfo>
+    <responsetemplate format="html">
+      <text></text>
+    </responsetemplate>
+  </question>
+
+  <question type="essay">
+    <name>
+      <text>L9 - F1 - Consegna: Consegna del sito</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Caricare la cartella del sito compressa.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>5</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <responseformat>noinline</responseformat>
+    <responserequired>0</responserequired>
+    <responsefieldlines>25</responsefieldlines>
+    <minwordlimit>0</minwordlimit>
+    <maxwordlimit>0</maxwordlimit>
+    <attachments>1</attachments>
+    <attachmentsrequired>1</attachmentsrequired>
+    <maxbytes>0</maxbytes>
+    <filetypeslist>.zip</filetypeslist>
+    <graderinfo format="html">
+      <text><![CDATA[<p>File presenti 5.</p>]]></text>
+    </graderinfo>
+    <responsetemplate format="html">
+      <text></text>
+    </responsetemplate>
+  </question>
+
+  <question type="category">
+    <category>
+      <text>$module$/top/Lezione 9 - Prova revisione</text>
+    </category>
+    <info format="html">
+      <text></text>
+    </info>
+    <idnumber></idnumber>
+  </question>
+
+  <question type="coderunner">
+    <name>
+      <text>L9 - D1 - Scrivere: Somma</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Scrivere un programma che chieda due numeri e ne stampi la somma.</p>
+<pre style="background-color: #333333; color: #eceff1; padding: 12px; border-radius: 4px; overflow-x: auto; margin: 8px 0; line-height: 1.5;">Somma: 7</pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>15</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>Javascript (con prompt)</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>1</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>18</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload></answerpreload>
+    <globalextra></globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer><![CDATA[let a = Number(prompt('a'));
+let b = Number(prompt('b'));
+console.log('Somma: ' + (a + b));]]></answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams></templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin></uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+      <testcase testtype="0" useasexample="1" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[// 3 e 4]]></text>
+      </testcode>
+      <stdin>
+        <text><![CDATA[3
+4]]></text>
+      </stdin>
+      <expected>[output 1]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[// zero]]></text>
+      </testcode>
+      <stdin>
+        <text><![CDATA[0
+0]]></text>
+      </stdin>
+      <expected>[output 2]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[// negativi]]></text>
+      </testcode>
+      <stdin>
+        <text><![CDATA[-2
+5]]></text>
+      </stdin>
+      <expected>[output 3]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>HIDE</text>
+      </display>
+    </testcase>
+    </testcases>
+  </question>
+
+  <question type="coderunner">
+    <name>
+      <text>L9 - D2 - Scrivere: Doppio</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Definire una funzione dal nome <span style="font-family: monospace;">doppio(n)</span> che prende come parametro un numero e restituisce il suo doppio.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>15</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>Javascript (con prompt)</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>1</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>18</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload></answerpreload>
+    <globalextra></globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer><![CDATA[function doppio(n) {
+    return n * 2;
+}]]></answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams></templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin></uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+      <testcase testtype="0" useasexample="1" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[// 4 diventa 8
+console.log(doppio(4));]]></text>
+      </testcode>
+      <stdin>
+        <text></text>
+      </stdin>
+      <expected>[output 4]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[// zero
+console.log(doppio(0));]]></text>
+      </testcode>
+      <stdin>
+        <text></text>
+      </stdin>
+      <expected>[output 5]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[// negativo
+console.log(doppio(-3));]]></text>
+      </testcode>
+      <stdin>
+        <text></text>
+      </stdin>
+      <expected>[output 6]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+    </testcases>
+  </question>
+
+  <question type="coderunner">
+    <name>
+      <text>L9 - F2 - Completamento: Completa il ciclo</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Completare il programma perché stampi i numeri da 1 a 3.</p>
+<pre style="background-color: #333333; color: #eceff1; padding: 12px; border-radius: 4px; overflow-x: auto; margin: 8px 0; line-height: 1.5;">1
+2
+3</pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>2</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>Javascript (con gapfiller)</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>1</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>18</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload></answerpreload>
+    <globalextra><![CDATA[for (let i = 1; i {[5]} 3; i++) {
+    console.{[5]}(i);
+}]]></globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer><![CDATA[["<=", "log"]]]></answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams></templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin></uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+      <testcase testtype="0" useasexample="1" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[// da 1 a 3]]></text>
+      </testcode>
+      <stdin>
+        <text></text>
+      </stdin>
+      <expected>[output 7]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+    </testcases>
+  </question>
+
+  <question type="coderunner">
+    <name>
+      <text>L9 - F3 - Scrivere: Il doppio con lo scheletro</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Completare la funzione <span style="font-family: monospace;">triplo(n)</span> perché restituisca il triplo di n.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>3</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>Javascript (con prompt)</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>1</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>18</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload><![CDATA[function triplo(n) {
+
+}]]></answerpreload>
+    <globalextra></globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer><![CDATA[function triplo(n) {
+    return n * 3;
+}]]></answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams></templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin></uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+      <testcase testtype="0" useasexample="1" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[// due
+console.log(triplo(2));]]></text>
+      </testcode>
+      <stdin>
+        <text></text>
+      </stdin>
+      <expected>[output 8]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[// zero
+console.log(triplo(0));]]></text>
+      </testcode>
+      <stdin>
+        <text></text>
+      </stdin>
+      <expected>[output 9]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[// negativo
+console.log(triplo(-1));]]></text>
+      </testcode>
+      <stdin>
+        <text></text>
+      </stdin>
+      <expected>[output 10]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+    </testcases>
+  </question>
+
+  <question type="coderunner">
+    <name>
+      <text>L9 - F4 - Debug: La variabile che non esiste</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Il programma dovrebbe stampare il doppio del numero letto. Contiene 1 errore nella riga della stampa.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>3</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>Javascript (con prompt)</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>1</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>18</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload><![CDATA[let numero = Number(prompt('n'));
+console.log(numer * 2);]]></answerpreload>
+    <globalextra></globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer><![CDATA[let numero = Number(prompt('n'));
+console.log(numero * 2);]]></answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams></templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin></uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+      <testcase testtype="0" useasexample="1" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[// quattro]]></text>
+      </testcode>
+      <stdin>
+        <text><![CDATA[4]]></text>
+      </stdin>
+      <expected>[output 11]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[// zero]]></text>
+      </testcode>
+      <stdin>
+        <text><![CDATA[0]]></text>
+      </stdin>
+      <expected>[output 12]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[// negativo]]></text>
+      </testcode>
+      <stdin>
+        <text><![CDATA[-3]]></text>
+      </stdin>
+      <expected>[output 13]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+    </testcases>
+  </question>
+
+  <question type="coderunner">
+    <name>
+      <text>L9 - F5 - Debug: La somma sbagliata</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Il programma dovrebbe stampare la somma dei due numeri letti. Contiene 1 errore.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>3</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>Javascript (con prompt)</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>1</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>18</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload><![CDATA[let a = Number(prompt('a'));
+let b = Number(prompt('b'));
+console.log(a - b);]]></answerpreload>
+    <globalextra></globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer><![CDATA[let a = Number(prompt('a'));
+let b = Number(prompt('b'));
+console.log(a + b);]]></answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams></templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin></uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+      <testcase testtype="0" useasexample="1" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[// 3 e 4]]></text>
+      </testcode>
+      <stdin>
+        <text><![CDATA[3
+4]]></text>
+      </stdin>
+      <expected>[output 14]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[// 5 e 1]]></text>
+      </testcode>
+      <stdin>
+        <text><![CDATA[5
+1]]></text>
+      </stdin>
+      <expected>[output 15]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[// zeri]]></text>
+      </testcode>
+      <stdin>
+        <text><![CDATA[0
+0]]></text>
+      </stdin>
+      <expected>[output 16]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+    </testcases>
+  </question>
+
+  <question type="coderunner">
+    <name>
+      <text>L9 - F6 - Scrivere: La media dei voti</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>È già presente l'array <span style="font-family: monospace;">voti</span>. Scrivere il programma che ne stampa la somma.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>3</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>Javascript (con prompt)</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>1</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>18</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload></answerpreload>
+    <globalextra></globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer><![CDATA[let somma = 0;
+for (let i = 0; i < voti.length; i++) {
+    somma = somma + voti[i];
+}
+console.log(somma);]]></answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams>{"test_prima": true}</templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{"test_prima": true}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin></uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+      <testcase testtype="0" useasexample="1" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[// tre voti
+const voti = [6, 7, 8];]]></text>
+      </testcode>
+      <stdin>
+        <text></text>
+      </stdin>
+      <expected>[output 17]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[// un voto
+const voti = [10];]]></text>
+      </testcode>
+      <stdin>
+        <text></text>
+      </stdin>
+      <expected>[output 18]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[// nessun voto
+const voti = [];]]></text>
+      </testcode>
+      <stdin>
+        <text></text>
+      </stdin>
+      <expected>[output 19]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+    </testcases>
+  </question>
+
+  <question type="coderunner">
+    <name>
+      <text>L9 - F7 - Scrivere: Il dado</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Scrivere un programma che simuli il lancio di un dado e stampi il numero uscito, da 1 a 6.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>3</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>Javascript (con prompt)</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>1</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>18</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload></answerpreload>
+    <globalextra></globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer><![CDATA[let dado = Math.floor(Math.random() * 6) + 1;
+console.log(dado);]]></answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams></templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin></uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+      <testcase testtype="0" useasexample="1" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[// un lancio]]></text>
+      </testcode>
+      <stdin>
+        <text></text>
+      </stdin>
+      <expected>[output 20]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[// un altro lancio]]></text>
+      </testcode>
+      <stdin>
+        <text></text>
+      </stdin>
+      <expected>[output 21]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[// un terzo lancio]]></text>
+      </testcode>
+      <stdin>
+        <text></text>
+      </stdin>
+      <expected>[output 22]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>HIDE</text>
+      </display>
+    </testcase>
+    </testcases>
+  </question>
+
+  <question type="category">
+    <category>
+      <text>$module$/top/Lezione 9 - Prova revisione</text>
+    </category>
+    <info format="html">
+      <text></text>
+    </info>
+    <idnumber></idnumber>
+  </question>
+
+  <question type="coderunner">
+    <name>
+      <text>L9 - D3 - Scrivere: Libri gialli</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Il database contiene:</p>
+<p>Libri (<u>ISBN</u>, Titolo, Genere, AnnoPubblicazione, Pagine, Copie, IdAutore*)</p>
+<p><strong>Scrivere la query opportuna per ottenere i seguenti dati:</strong></p>
+<p>Titolo e anno dei libri, in ordine di ISBN.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>12</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>sql_salvemini</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>1</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>8</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload></answerpreload>
+    <globalextra></globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer><![CDATA[SELECT Titolo, AnnoPubblicazione FROM Libri ORDER BY ISBN;]]></answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams></templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin></uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[-- il risultato della tua query]]></text>
+      </testcode>
+      <stdin>
+        <text></text>
+      </stdin>
+      <expected>[output 23]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[-- con un libro in più]]></text>
+      </testcode>
+      <stdin>
+        <text></text>
+      </stdin>
+      <expected>[output 24]</expected>
+      <extra>
+        <text><![CDATA[INSERT INTO Libri VALUES ('9999999999999','Prova','Giallo',2020,100,1,1);]]></text>
+      </extra>
+      <display>
+        <text>HIDE</text>
+      </display>
+    </testcase>
+<file name="biblioteca.db" path="/" encoding="base64">[file]</file>
+    </testcases>
+  </question>
+
+  <question type="coderunner">
+    <name>
+      <text>L9 - G1 - Scrivere: La tabella Editori</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Creare la tabella <span style="font-family: monospace;">Editori</span> con <span style="font-family: monospace;">IdEditore</span> INT chiave primaria e <span style="font-family: monospace;">Nome</span> VARCHAR(40) obbligatorio.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>3</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>sql_salvemini</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>1</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>8</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload></answerpreload>
+    <globalextra></globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer><![CDATA[CREATE TABLE Editori (
+    IdEditore INT PRIMARY KEY,
+    Nome VARCHAR(40) NOT NULL
+);]]></answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams></templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin></uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[SELECT name, replace(upper(type), ' (', '(') AS tipo, "notnull", pk FROM pragma_table_info('Editori');
+SELECT "table", "from", "to" FROM pragma_foreign_key_list('Editori');]]></text>
+      </testcode>
+      <stdin>
+        <text></text>
+      </stdin>
+      <expected>[output 25]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+<file name="biblioteca_vuoto.db" path="/" encoding="base64">[file]</file>
+    </testcases>
+  </question>
+
+  <question type="coderunner">
+    <name>
+      <text>L9 - G2 - Scrivere: Un autore in più</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Inserire l'autore 99, Anna Prova, italiana, nata nel 1980.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>3</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>sql_salvemini</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>1</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>8</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload></answerpreload>
+    <globalextra></globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer><![CDATA[INSERT INTO Autori VALUES (99, 'Anna', 'Prova', 'Italiana', 1980);]]></answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams></templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin></uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[-- la tabella dopo l'inserimento
+SELECT IdAutore, Cognome FROM Autori WHERE IdAutore >= 99 ORDER BY IdAutore;]]></text>
+      </testcode>
+      <stdin>
+        <text></text>
+      </stdin>
+      <expected>[output 26]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+<file name="biblioteca_struttura.db" path="/" encoding="base64">[file]</file>
+    </testcases>
+  </question>
+
+  <question type="coderunner">
+    <name>
+      <text>L9 - G3 - Esercizio: Cancellare un autore con libri</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Scrivere il comando che prova a cancellare l'autore 1 e osservare che cosa succede.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>2</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>sql_salvemini</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>1</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>8</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload></answerpreload>
+    <globalextra></globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer><![CDATA[DELETE FROM Autori WHERE IdAutore = 1;]]></answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams></templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin></uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[-- che cosa risponde il database]]></text>
+      </testcode>
+      <stdin>
+        <text></text>
+      </stdin>
+      <expected>[output 27]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+<file name="biblioteca.db" path="/" encoding="base64">[file]</file>
+    </testcases>
+  </question>
+
+  <question type="coderunner">
+    <name>
+      <text>L9 - G4 - Campo di prova: Prova libera</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Qui si possono provare le query sul database della biblioteca.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>0</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>sql_salvemini</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>1</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>8</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload></answerpreload>
+    <globalextra></globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer><![CDATA[SELECT Titolo FROM Libri ORDER BY ISBN;]]></answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams></templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin></uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+        <text><![CDATA[-- il risultato della tua query]]></text>
+      </testcode>
+      <stdin>
+        <text></text>
+      </stdin>
+      <expected>[output 28]</expected>
+      <extra>
+        <text></text>
+      </extra>
+      <display>
+        <text>SHOW</text>
+      </display>
+    </testcase>
+<file name="biblioteca.db" path="/" encoding="base64">[file]</file>
+    </testcases>
+  </question>
+
+  <question type="category">
+    <category>
+      <text>$module$/top/Lezione 9 - Prova revisione</text>
+    </category>
+  </question>
+
+  <question type="coderunner">
+    <name>
+      <text>L9 - D4 - Scrivere: Elenco libri</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Scrivere la pagina che elenca i titoli dei libri del genere ricevuto nel parametro <span style="font-family: monospace;">genere</span> (GET), in ordine di titolo. Database <span style="font-family: monospace;">biblioteca</span>.</p>
+<pre style="background-color: #333333; color: #eceff1; padding: 12px; border-radius: 4px; overflow-x: auto; margin: 8px 0; line-height: 1.5;"><span style="color: #81a1c1;">&lt;ul</span><span style="color: #81a1c1;">&gt;</span>
+<span style="color: #81a1c1;">&lt;li</span><span style="color: #81a1c1;">&gt;</span>Titolo<span style="color: #81a1c1;">&lt;/li</span><span style="color: #81a1c1;">&gt;</span>
+<span style="color: #81a1c1;">&lt;/ul</span><span style="color: #81a1c1;">&gt;</span></pre>
+<p>Se non ce ne sono: <span style="font-family: monospace;">&lt;p&gt;Nessun libro&lt;/p&gt;</span>.</p>
+<div style="background-color: #f9cb9c; border-left: 5px solid #e69138; padding: 12px 16px; border-radius: 4px; margin: 0 0 16px;">
+<p style="margin: 0 0 6px; color: #783f04;"><strong>N.B. questa è una simulazione</strong></p>
+<p style="margin: 0 0 6px;">Il tuo codice PHP viene eseguito davvero, ma dietro non c'è un database MySQL permanente: c'è un database di prova, che non conserva le modifiche. A ogni prova riparte sempre dagli stessi dati. Il comportamento e i messaggi d'errore possono essere diversi da quelli di un vero database MySQL.</p>
+<p style="margin: 0;">Per realizzare davvero le pagine occorre usare XAMPP con un vero database MySQL.</p>
+</div>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>14</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>php_mysqli_sqlite</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>0</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>18</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload><![CDATA[]]></answerpreload>
+    <globalextra></globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer><![CDATA[<?php
+$genere = $_GET['genere'];
+$host = 'localhost'; $username = 'root'; $password = ''; $nomedb = 'biblioteca';
+$connessione = mysqli_connect($host, $username, $password, $nomedb) or die('Errore di connessione');
+$query = "SELECT Titolo FROM Libri WHERE Genere = '$genere' ORDER BY Titolo";
+$risultato = mysqli_query($connessione, $query) or die('Errore nella query: ' . mysqli_error($connessione));
+mysqli_close($connessione);
+if (mysqli_num_rows($risultato) == 0) {
+    echo "<p>Nessun libro</p>";
+} else {
+    echo "<ul>\n";
+    while ($riga = mysqli_fetch_array($risultato)) {
+        echo "<li>$riga[Titolo]</li>\n";
+    }
+    echo "</ul>";
+}
+?>]]></answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams></templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin></uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+                <text><![CDATA[// ---- output normalizzato: spazi e a capo dello studente non contano ----
+ob_start();
+register_shutdown_function(function () {
+    $out = trim((string)ob_get_clean());
+    $out = preg_replace('/>\s+</', '><', $out);
+    $out = preg_replace('#(<table[^>]*>|</table>|</tr>|<ul[^>]*>|</ul>|<ol[^>]*>|</ol>|</li>|</p>|</h[1-6]>|<br\s*/?>)#i', '$1' . "\n", $out);
+    echo rtrim($out) . "\n";
+});
+
+$_GET = ['genere' => 'Giallo'];
+FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca']);]]></text>
+      </testcode>
+      <stdin>
+                <text></text>
+      </stdin>
+      <expected>[output 29]</expected>
+      <extra>
+                <text><![CDATA[Genere Giallo]]></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+                <text><![CDATA[// ---- output normalizzato: spazi e a capo dello studente non contano ----
+ob_start();
+register_shutdown_function(function () {
+    $out = trim((string)ob_get_clean());
+    $out = preg_replace('/>\s+</', '><', $out);
+    $out = preg_replace('#(<table[^>]*>|</table>|</tr>|<ul[^>]*>|</ul>|<ol[^>]*>|</ol>|</li>|</p>|</h[1-6]>|<br\s*/?>)#i', '$1' . "\n", $out);
+    echo rtrim($out) . "\n";
+});
+
+$_GET = ['genere' => 'Inesistente'];
+FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca']);]]></text>
+      </testcode>
+      <stdin>
+                <text></text>
+      </stdin>
+      <expected>[output 30]</expected>
+      <extra>
+                <text><![CDATA[Genere che non c'è]]></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+                <text><![CDATA[// ---- output normalizzato: spazi e a capo dello studente non contano ----
+ob_start();
+register_shutdown_function(function () {
+    $out = trim((string)ob_get_clean());
+    $out = preg_replace('/>\s+</', '><', $out);
+    $out = preg_replace('#(<table[^>]*>|</table>|</tr>|<ul[^>]*>|</ul>|<ol[^>]*>|</ol>|</li>|</p>|</h[1-6]>|<br\s*/?>)#i', '$1' . "\n", $out);
+    echo rtrim($out) . "\n";
+});
+
+$_GET = ['genere' => 'Fantasy'];
+FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca']);]]></text>
+      </testcode>
+      <stdin>
+                <text></text>
+      </stdin>
+      <expected>[output 31]</expected>
+      <extra>
+                <text><![CDATA[Genere Fantasy]]></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+<file name="biblioteca.db" path="/" encoding="base64">[file]</file>
+    </testcases>
+  </question>
+
+  <question type="category">
+    <category>
+      <text>$module$/top/Lezione 9 - Prova revisione</text>
+    </category>
+    <info format="html">
+      <text></text>
+    </info>
+    <idnumber></idnumber>
+  </question>
+
+  <question type="matching">
+    <name>
+      <text>L9 - A5 - Abbina</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Abbina ogni tag al suo uso.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>6.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <shuffleanswers>true</shuffleanswers>
+    <correctfeedback format="html">
+      <text><![CDATA[<p>Risposta corretta.</p>]]></text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text><![CDATA[<p>Risposta parzialmente esatta.</p>]]></text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text><![CDATA[<p>Risposta errata.</p>]]></text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <subquestion format="html">
+      <text><![CDATA[<span style="font-family: monospace;">&lt;ul&gt;</span>]]></text>
+      <answer>
+        <text>lista non ordinata</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<span style="font-family: monospace;">&lt;ol&gt;</span>]]></text>
+      <answer>
+        <text>lista ordinata</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<span style="font-family: monospace;">&lt;li&gt;</span>]]></text>
+      <answer>
+        <text>voce</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text></text>
+      <answer>
+        <text>paragrafo</text>
+      </answer>
+    </subquestion>
+  </question>
+
+  <question type="coderunner">
+    <name>
+      <text>L9 - D5 - Esercizio libero: La mia lista</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Scrivere una pagina con una lista di tre frutti.</p>
+<div style="border: 1px solid #999999; border-radius: 6px; margin: 8px 0 16px; max-width: 100%; overflow: hidden;">
+<div style="background-color: #e3e3e3; border-bottom: 1px solid #999999; padding: 4px 10px; font-size: 0.8em; color: #555555;"><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background-color: #e06c5f; margin-right: 4px; vertical-align: middle;"></span><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background-color: #e5b84f; margin-right: 4px; vertical-align: middle;"></span><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background-color: #6cbf6a; margin-right: 4px; vertical-align: middle;"></span><span style="margin-left: 8px; vertical-align: middle;">Visualizzazione nel browser</span></div>
+<div style="background-color: #ffffff; padding: 8px 14px; overflow-x: auto;">
+<h1>Frutti</h1>
+<ul>
+    <li>mela</li>
+    <li>pera</li>
+</ul>
+</div>
+</div>
+<div style="background-color: #f9cb9c; border-left: 5px solid #e69138; padding: 12px 16px; border-radius: 4px; margin: 0 0 16px;">
+<p style="margin: 0 0 6px; color: #783f04;"><strong>Nessun controllo automatico</strong></p>
+<p style="margin: 0;">Questo esercizio <strong>non ha un controllo automatico</strong>: la correzione la fa il docente. Per vedere come appare la pagina premete <strong>Prova</strong>: compare sotto il pulsante, come nel browser. Viene salvato solo il campo Risposta, quando si cambia pagina: lo Scratchpad lasciatelo vuoto.</p>
+</div>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p>Lista 5, titolo 5.</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>10.0000000</defaultgrade>
+    <penalty>0.0000000</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>php_con_test</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>1</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>1</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>18</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload><![CDATA[{"answer_code": [""], "test_code": [""], "show_hide": ["1"], "prefix_ans": ["1"]}]]></answerpreload>
+    <globalextra></globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer><![CDATA[{"answer_code": ["<h1>Frutti</h1>\n<ul>\n    <li>mela</li>\n</ul>"], "test_code": [""], "show_hide": [""], "prefix_ans": [""]}]]></answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams></templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin></uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+                <text>//</text>
+      </testcode>
+      <stdin>
+                <text></text>
+      </stdin>
+      <expected>[output 32]</expected>
+      <extra>
+                <text></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+    </testcases>
+  </question>
+
+  <question type="coderunner">
+    <name>
+      <text>L9 - G5 - Esercizio libero: Lo stile della lista</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Scrivere il foglio di stile che colora di rosso le voci di lista.</p>
+<div style="background-color: #f9cb9c; border-left: 5px solid #e69138; padding: 12px 16px; border-radius: 4px; margin: 0 0 16px;">
+<p style="margin: 0 0 6px; color: #783f04;"><strong>Nessun controllo automatico</strong></p>
+<p style="margin: 0;">Questo esercizio <strong>non ha un controllo automatico</strong>: i requisiti vanno verificati aprendo la pagina nel browser, e la correzione la fa il docente. Il codice del campo Risposta viene salvato quando si cambia pagina.</p>
+</div>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p>Selettore 2, proprietà 2.</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>4.0000000</defaultgrade>
+    <penalty>0.0000000</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>css</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>1</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>1</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>18</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload></answerpreload>
+    <globalextra></globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer><![CDATA[li {
+    color: red;
+}]]></answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams></templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin></uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+                <text>//</text>
+      </testcode>
+      <stdin>
+                <text></text>
+      </stdin>
+      <expected>[output 33]</expected>
+      <extra>
+                <text></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+    </testcases>
+  </question>
+
+</quiz>
+
+
+=== impaginazione ===
+{
+ "nome": "Prova revisione",
+ "note": false,
+ "preset": "esercitazione",
+ "sezioni": [
+  {
+   "domande": [
+    {
+     "nome": "L9 - 00 - Come lavoriamo oggi",
+     "pagina": 1,
+     "punti": 0.0
+    }
+   ],
+   "titolo": "Introduzione"
+  },
+  {
+   "domande": [
+    {
+     "nome": "L9 - A0 - Spiegazione: Le liste",
+     "pagina": 2,
+     "punti": 0.0
+    },
+    {
+     "nome": "L9 - A1 - Quale tag",
+     "pagina": 2,
+     "punti": 5.0
+    },
+    {
+     "nome": "L9 - A2 - Vero o falso",
+     "pagina": 3,
+     "punti": 5.0
+    },
+    {
+     "nome": "L9 - A3 - Più giuste",
+     "pagina": 3,
+     "punti": 10.0
+    },
+    {
+     "nome": "L9 - A4 - Completamento: Completa",
+     "pagina": 4,
+     "punti": 3.0
+    },
+    {
+     "nome": "L9 - A5 - Abbina",
+     "pagina": 5,
+     "punti": 6.0
+    },
+    {
+     "nome": "L9 - A6 - Tracciamento: Leggere un ciclo",
+     "pagina": 6,
+     "punti": 5.0
+    }
+   ],
+   "titolo": "Blocco A"
+  },
+  {
+   "domande": [
+    {
+     "nome": "L9 - D1 - Scrivere: Somma",
+     "pagina": 7,
+     "punti": 15.0
+    },
+    {
+     "nome": "L9 - D2 - Scrivere: Doppio",
+     "pagina": 8,
+     "punti": 15.0
+    },
+    {
+     "nome": "L9 - D3 - Scrivere: Libri gialli",
+     "pagina": 9,
+     "punti": 12.0
+    },
+    {
+     "nome": "L9 - D4 - Scrivere: Elenco libri",
+     "pagina": 10,
+     "punti": 14.0
+    },
+    {
+     "nome": "L9 - D5 - Esercizio libero: La mia lista",
+     "pagina": 11,
+     "punti": 10.0
+    }
+   ],
+   "titolo": "Finali"
+  },
+  {
+   "domande": [
+    {
+     "nome": "L9 - E1 - Il tag",
+     "pagina": 12,
+     "punti": 1.0
+    },
+    {
+     "nome": "L9 - E2 - Completa la frase",
+     "pagina": 12,
+     "punti": 1.0
+    },
+    {
+     "nome": "L9 - E3 - Metti in ordine",
+     "pagina": 13,
+     "punti": 3.0
+    },
+    {
+     "nome": "L9 - E4 - Esempio svolto: Leggere una lista",
+     "pagina": 14,
+     "punti": 1.0
+    },
+    {
+     "nome": "L9 - E5 - Tracciamento: Che cosa stampa",
+     "pagina": 15,
+     "punti": 1.0
+    },
+    {
+     "nome": "L9 - E6 - Trova l'errore: Il ciclo sbagliato",
+     "pagina": 16,
+     "punti": 2.0
+    },
+    {
+     "nome": "L9 - E7 - Esempio guidato: Una lista guidata",
+     "pagina": 17,
+     "punti": 2.0
+    },
+    {
+     "nome": "L9 - E8 - Debug: Perché non funziona",
+     "pagina": 18,
+     "punti": 4.0
+    },
+    {
+     "nome": "L9 - E9 - Esercizio libero: Una pagina tua",
+     "pagina": 19,
+     "punti": 5.0
+    },
+    {
+     "nome": "L9 - F1 - Consegna: Consegna del sito",
+     "pagina": 20,
+     "punti": 5.0
+    },
+    {
+     "nome": "L9 - F2 - Completamento: Completa il ciclo",
+     "pagina": 21,
+     "punti": 2.0
+    },
+    {
+     "nome": "L9 - F3 - Scrivere: Il doppio con lo scheletro",
+     "pagina": 22,
+     "punti": 3.0
+    },
+    {
+     "nome": "L9 - F4 - Debug: La variabile che non esiste",
+     "pagina": 23,
+     "punti": 3.0
+    },
+    {
+     "nome": "L9 - F5 - Debug: La somma sbagliata",
+     "pagina": 24,
+     "punti": 3.0
+    },
+    {
+     "nome": "L9 - F6 - Scrivere: La media dei voti",
+     "pagina": 25,
+     "punti": 3.0
+    },
+    {
+     "nome": "L9 - F7 - Scrivere: Il dado",
+     "pagina": 26,
+     "punti": 3.0
+    },
+    {
+     "nome": "L9 - G1 - Scrivere: La tabella Editori",
+     "pagina": 27,
+     "punti": 3.0
+    },
+    {
+     "nome": "L9 - G2 - Scrivere: Un autore in più",
+     "pagina": 28,
+     "punti": 3.0
+    },
+    {
+     "nome": "L9 - G3 - Esercizio: Cancellare un autore con libri",
+     "pagina": 29,
+     "punti": 2.0
+    },
+    {
+     "nome": "L9 - G4 - Campo di prova: Prova libera",
+     "pagina": 30,
+     "punti": 0.0
+    },
+    {
+     "nome": "L9 - G5 - Esercizio libero: Lo stile della lista",
+     "pagina": 31,
+     "punti": 4.0
+    }
+   ],
+   "titolo": "Altre tipologie"
+  }
+ ],
+ "voto_massimo": 10,
+ "voto_sufficienza": 6
+}

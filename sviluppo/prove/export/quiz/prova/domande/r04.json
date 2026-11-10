@@ -1,0 +1,19 @@
+{
+ "ordine": 40,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Blocco A",
+ "pos": "A2",
+ "pag": 3,
+ "titolo": "Vero o falso",
+ "tipologia": "vf",
+ "parte": 3,
+ "punti": 5,
+ "traccia": "Una lista ordinata usa `<ol>`.\n\n(x) Vero\n> Esatto.\n( ) Falso\n> No."
+}

@@ -1,0 +1,19 @@
+{
+ "ordine": 100,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "=== answer\nfunction doppio(n) {\n    return n * 2;\n}\n=== test\n// 4 diventa 8\nconsole.log(doppio(4));\n=== test\n// zero\nconsole.log(doppio(0));\n=== test\n// negativo\nconsole.log(doppio(-3));",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Finali",
+ "pos": "D2",
+ "pag": 8,
+ "titolo": "Doppio",
+ "tipologia": "funzione",
+ "parte": 7,
+ "punti": 15,
+ "traccia": "Definire una funzione dal nome `doppio(n)` che prende come parametro un numero e restituisce il suo doppio."
+}

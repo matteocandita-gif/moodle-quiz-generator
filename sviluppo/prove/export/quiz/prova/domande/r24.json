@@ -1,0 +1,19 @@
+{
+ "ordine": 240,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "=== code\nfor (let i = 1; i {[5]} 3; i++) {\n    console.{[5]}(i);\n}\n=== answer\n<=\nlog\n=== test\n// da 1 a 3",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "F2",
+ "pag": 21,
+ "titolo": "Completa il ciclo",
+ "tipologia": "compl_eseguito",
+ "punti": 2,
+ "traccia": "Completare il programma perché stampi i numeri da 1 a 3.\n\n```semplice\n1\n2\n3\n```"
+}

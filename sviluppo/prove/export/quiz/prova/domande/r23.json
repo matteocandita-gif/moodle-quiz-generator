@@ -1,0 +1,19 @@
+{
+ "ordine": 230,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "File presenti 5.",
+ "coderunner": "=== options\ntipi: .zip",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "F1",
+ "pag": 20,
+ "titolo": "Consegna del sito",
+ "tipologia": "consegna_file",
+ "punti": 5,
+ "traccia": "Caricare la cartella del sito compressa."
+}

@@ -1,0 +1,19 @@
+{
+ "ordine": 270,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "solo-quanti",
+ "correzione": "",
+ "coderunner": "=== preload\nlet a = Number(prompt('a'));\nlet b = Number(prompt('b'));\nconsole.log(a - b);\n=== answer\nlet a = Number(prompt('a'));\nlet b = Number(prompt('b'));\nconsole.log(a + b);\n=== test\n// 3 e 4\n=== stdin\n3\n4\n=== test\n// 5 e 1\n=== stdin\n5\n1\n=== test\n// zeri\n=== stdin\n0\n0",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "F5",
+ "pag": 24,
+ "titolo": "La somma sbagliata",
+ "tipologia": "debug_silenzioso",
+ "punti": 3,
+ "traccia": "Il programma dovrebbe stampare la somma dei due numeri letti. Contiene 1 errore."
+}

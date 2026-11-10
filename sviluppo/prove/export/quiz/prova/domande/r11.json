@@ -1,0 +1,19 @@
+{
+ "ordine": 110,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "=== answer\nSELECT Titolo, AnnoPubblicazione FROM Libri ORDER BY ISBN;\n=== test\n-- il risultato della tua query\n=== test HIDE\n-- con un libro in più\n=== extra\nINSERT INTO Libri VALUES ('9999999999999','Prova','Giallo',2020,100,1,1);",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Finali",
+ "pos": "D3",
+ "pag": 9,
+ "titolo": "Libri gialli",
+ "tipologia": "query",
+ "parte": 7,
+ "punti": 12,
+ "traccia": "Il database contiene:\n\nLibri (__ISBN__, Titolo, Genere, AnnoPubblicazione, Pagine, Copie, IdAutore*)\n\n**Scrivere la query opportuna per ottenere i seguenti dati:**\n\nTitolo e anno dei libri, in ordine di ISBN."
+}

@@ -1,0 +1,19 @@
+{
+ "ordine": 170,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "E4",
+ "pag": 14,
+ "titolo": "Leggere una lista",
+ "tipologia": "esempio_svolto",
+ "punti": 1,
+ "traccia": "Leggi l'esempio.\n\n```html\n<ol>\n    <li>uno</li>\n</ol>\n```\n\nLa lista è {1:MULTICHOICE_S:=ordinata#Corretto.~non ordinata#No: quella è ul.}."
+}

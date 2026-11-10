@@ -1,0 +1,19 @@
+{
+ "ordine": 220,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "Titolo 2, lista 3.",
+ "coderunner": "",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "E9",
+ "pag": 19,
+ "titolo": "Una pagina tua",
+ "tipologia": "esercizio_libero",
+ "punti": 5,
+ "traccia": "Scrivere la pagina `indice.html` con un titolo e una lista di tre voci, poi incollare il codice."
+}

@@ -1,0 +1,19 @@
+{
+ "ordine": 300,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "=== answer\nCREATE TABLE Editori (\n    IdEditore INT PRIMARY KEY,\n    Nome VARCHAR(40) NOT NULL\n);\n=== test\n[[struttura Editori]]",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "G1",
+ "pag": 27,
+ "titolo": "La tabella Editori",
+ "tipologia": "create_tabelle",
+ "punti": 3,
+ "traccia": "Creare la tabella `Editori` con `IdEditore` INT chiave primaria e `Nome` VARCHAR(40) obbligatorio."
+}

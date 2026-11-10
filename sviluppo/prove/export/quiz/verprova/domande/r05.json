@@ -1,0 +1,20 @@
+{
+ "ordine": 50,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "=== answer\nfunction per5(n) {\n    return n * 5;\n}\n=== test\n// due\nconsole.log(per5(2));\n=== test\n// zero\nconsole.log(per5(0));\n=== test HIDE\n// sette\nconsole.log(per5(7));",
+ "docente": "Griglia: firma 20, calcolo 40.",
+ "sintesi": "x",
+ "sezione": "Verifica",
+ "pos": "E1b",
+ "pag": 3,
+ "titolo": "Triplo",
+ "tipologia": "funzione",
+ "parte": 1,
+ "punti": 60,
+ "tag": "rev9-E1-triplo",
+ "traccia": "Definire una funzione dal nome `per5(n)` che restituisce n per 5."
+}

@@ -1,0 +1,19 @@
+{
+ "ordine": 320,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "=== answer\nDELETE FROM Autori WHERE IdAutore = 1;\n=== test\n-- che cosa risponde il database",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "G3",
+ "pag": 29,
+ "titolo": "Cancellare un autore con libri",
+ "tipologia": "vincoli",
+ "punti": 2,
+ "traccia": "Scrivere il comando che prova a cancellare l'autore 1 e osservare che cosa succede."
+}

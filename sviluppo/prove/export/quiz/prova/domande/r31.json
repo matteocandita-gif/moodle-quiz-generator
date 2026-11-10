@@ -1,0 +1,19 @@
+{
+ "ordine": 310,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "=== answer\nINSERT INTO Autori VALUES (99, 'Anna', 'Prova', 'Italiana', 1980);\n=== test\n-- la tabella dopo l'inserimento\nSELECT IdAutore, Cognome FROM Autori WHERE IdAutore >= 99 ORDER BY IdAutore;",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "G2",
+ "pag": 28,
+ "titolo": "Un autore in più",
+ "tipologia": "query_due_passi",
+ "punti": 3,
+ "traccia": "Inserire l'autore 99, Anna Prova, italiana, nata nel 1980."
+}

@@ -1,0 +1,19 @@
+{
+ "ordine": 90,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "=== answer\nlet a = Number(prompt('a'));\nlet b = Number(prompt('b'));\nconsole.log('Somma: ' + (a + b));\n=== test\n// 3 e 4\n=== stdin\n3\n4\n=== test\n// zero\n=== stdin\n0\n0\n=== test HIDE\n// negativi\n=== stdin\n-2\n5",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Finali",
+ "pos": "D1",
+ "pag": 7,
+ "titolo": "Somma",
+ "tipologia": "prog_completo",
+ "parte": 7,
+ "punti": 15,
+ "traccia": "Scrivere un programma che chieda due numeri e ne stampi la somma.\n\n```semplice\nSomma: 7\n```"
+}

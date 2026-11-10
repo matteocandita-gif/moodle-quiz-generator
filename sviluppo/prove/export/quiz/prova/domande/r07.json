@@ -1,0 +1,19 @@
+{
+ "ordine": 70,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Blocco A",
+ "pos": "A5",
+ "pag": 5,
+ "titolo": "Abbina",
+ "tipologia": "corrispondenza",
+ "parte": 3,
+ "punti": 6,
+ "traccia": "Abbina ogni tag al suo uso.\n\n`<ul>` <-> lista non ordinata\n`<ol>` <-> lista ordinata\n`<li>` <-> voce\n<-> paragrafo"
+}

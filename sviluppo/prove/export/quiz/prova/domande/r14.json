@@ -1,0 +1,19 @@
+{
+ "ordine": 140,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "E1",
+ "pag": 12,
+ "titolo": "Il tag",
+ "tipologia": "breve",
+ "punti": 1,
+ "traccia": "Quale tag apre una lista non ordinata? Scrivi solo il nome.\n\n(x) ul\n> Esatto.\n( ) ol\n> No: è la lista ordinata."
+}

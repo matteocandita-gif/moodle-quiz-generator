@@ -1,0 +1,19 @@
+{
+ "ordine": 340,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "Selettore 2, proprietà 2.",
+ "coderunner": "=== answer\nli {\n    color: red;\n}",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "G5",
+ "pag": 31,
+ "titolo": "Lo stile della lista",
+ "tipologia": "libero_css",
+ "punti": 4,
+ "traccia": "Scrivere il foglio di stile che colora di rosso le voci di lista."
+}

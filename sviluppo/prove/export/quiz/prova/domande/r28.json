@@ -1,0 +1,19 @@
+{
+ "ordine": 280,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "=== answer\nlet somma = 0;\nfor (let i = 0; i < voti.length; i++) {\n    somma = somma + voti[i];\n}\nconsole.log(somma);\n=== options\ntest_prima: 1\n=== test\n// tre voti\nconst voti = [6, 7, 8];\n=== test\n// un voto\nconst voti = [10];\n=== test\n// nessun voto\nconst voti = [];",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "F6",
+ "pag": 25,
+ "titolo": "La media dei voti",
+ "tipologia": "prog_dati",
+ "punti": 3,
+ "traccia": "È già presente l'array `voti`. Scrivere il programma che ne stampa la somma."
+}

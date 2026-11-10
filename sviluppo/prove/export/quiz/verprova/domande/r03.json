@@ -1,0 +1,20 @@
+{
+ "ordine": 30,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "=== answer\nfunction per4(n) {\n    return n * 4;\n}\n=== test\n// due\nconsole.log(per4(2));\n=== test\n// zero\nconsole.log(per4(0));\n=== test HIDE\n// sette\nconsole.log(per4(7));",
+ "docente": "Griglia: firma 20, calcolo 40.",
+ "sintesi": "x",
+ "sezione": "Verifica",
+ "pos": "E1a",
+ "pag": 3,
+ "titolo": "Triplo",
+ "tipologia": "funzione",
+ "parte": 1,
+ "punti": 60,
+ "tag": "rev9-E1-triplo",
+ "traccia": "Definire una funzione dal nome `per4(n)` che restituisce n per 4."
+}

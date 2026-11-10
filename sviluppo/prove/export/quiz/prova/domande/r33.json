@@ -1,0 +1,19 @@
+{
+ "ordine": 330,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "=== answer\nSELECT Titolo FROM Libri ORDER BY ISBN;\n=== test\n-- il risultato della tua query",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "G4",
+ "pag": 30,
+ "titolo": "Prova libera",
+ "tipologia": "campo_prova",
+ "punti": 0,
+ "traccia": "Qui si possono provare le query sul database della biblioteca."
+}

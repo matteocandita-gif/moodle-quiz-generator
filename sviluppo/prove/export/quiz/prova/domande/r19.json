@@ -1,0 +1,19 @@
+{
+ "ordine": 190,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "E6",
+ "pag": 16,
+ "titolo": "Il ciclo sbagliato",
+ "tipologia": "trova_errore",
+ "punti": 2,
+ "traccia": "Il codice dovrebbe stampare i numeri da 1 a 3.\n\n```js\nfor (let i = 1; i < 3; i++) {\n    console.log(i);\n}\n```\n\nDov'è l'errore?\n\n(x) Nella condizione\n> Esatto: serve `i <= 3`.\n( ) Nell'incremento\n> No: `i++` è giusto.\n( ) Nella stampa\n> No: stampa `i`.\n( ) Nel valore iniziale\n> No: parte da 1."
+}

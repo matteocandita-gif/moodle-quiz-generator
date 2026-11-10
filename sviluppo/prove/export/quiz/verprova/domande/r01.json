@@ -1,0 +1,19 @@
+{
+ "ordine": 10,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Verifica",
+ "pos": "00",
+ "pag": 1,
+ "titolo": "Istruzioni",
+ "tipologia": "istruzioni",
+ "parte": 1,
+ "punti": 0,
+ "traccia": "# Istruzioni\n\nLeggete bene."
+}

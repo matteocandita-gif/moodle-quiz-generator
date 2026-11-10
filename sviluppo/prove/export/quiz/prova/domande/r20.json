@@ -1,0 +1,19 @@
+{
+ "ordine": 200,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "E7",
+ "pag": 17,
+ "titolo": "Una lista guidata",
+ "tipologia": "guidato",
+ "punti": 2,
+ "traccia": "Completa passo per passo.\n\n```html\n<{1:SHORTANSWER:=ol}>\n    <li>uno</{1:SHORTANSWER:=li}>\n</ol>\n```"
+}

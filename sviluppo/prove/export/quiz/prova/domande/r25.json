@@ -1,0 +1,19 @@
+{
+ "ordine": 250,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "=== preload\nfunction triplo(n) {\n\n}\n=== answer\nfunction triplo(n) {\n    return n * 3;\n}\n=== test\n// due\nconsole.log(triplo(2));\n=== test\n// zero\nconsole.log(triplo(0));\n=== test\n// negativo\nconsole.log(triplo(-1));",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "F3",
+ "pag": 22,
+ "titolo": "Il doppio con lo scheletro",
+ "tipologia": "scrittura_scheletro",
+ "punti": 3,
+ "traccia": "Completare la funzione `triplo(n)` perché restituisca il triplo di n."
+}

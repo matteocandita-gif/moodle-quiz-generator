@@ -1,0 +1,19 @@
+{
+ "ordine": 30,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Blocco A",
+ "pos": "A1",
+ "pag": 2,
+ "titolo": "Quale tag",
+ "tipologia": "multipla",
+ "parte": 3,
+ "punti": 5,
+ "traccia": "Quale tag apre una lista non ordinata?\n\n(x) `<ul>`\n> Esatto.\n( ) `<ol>`\n> No: è ordinata.\n( ) `<li>`\n> No: è la voce.\n( ) `<dl>`\n> No: è un'altra lista."
+}

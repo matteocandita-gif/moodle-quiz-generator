@@ -1,0 +1,19 @@
+{
+ "ordine": 210,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "1 punto: che cosa succede.\n1 punto: perché.\n2 punti: correzione.",
+ "coderunner": "",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "E8",
+ "pag": 18,
+ "titolo": "Perché non funziona",
+ "tipologia": "debug_motivazione",
+ "punti": 4,
+ "traccia": "Il codice dovrebbe sommare i voti. Contiene 1 errore.\n\n```js\nlet somma = 0;\nfor (let i = 0; i <= 2; i++) {\n    somma = 0;\n}\nconsole.log(somma);\n```\n\nPer l'errore indicare che cosa succede, perché e la correzione."
+}

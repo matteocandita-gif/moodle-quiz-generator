@@ -1,0 +1,19 @@
+{
+ "ordine": 20,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Blocco A",
+ "pos": "A0",
+ "pag": 2,
+ "titolo": "Le liste",
+ "tipologia": "paginablocco",
+ "parte": 1,
+ "punti": 0,
+ "traccia": "# Blocco A - Le liste\n\n## Come si scrivono\n\nTesto.\n\n```html anteprima\n<ul>\n    <li>uno</li>\n    <li><a href=\"x.html\">due</a></li>\n</ul>\n```\n\n**Ora rispondete alla domanda qui sotto**: si risolve con quello che avete appena letto in questa pagina"
+}

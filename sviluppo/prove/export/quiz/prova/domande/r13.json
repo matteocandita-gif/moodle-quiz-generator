@@ -1,0 +1,19 @@
+{
+ "ordine": 130,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "Lista 5, titolo 5.",
+ "coderunner": "=== answer\n<h1>Frutti</h1>\n<ul>\n    <li>mela</li>\n</ul>",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Finali",
+ "pos": "D5",
+ "pag": 11,
+ "titolo": "La mia lista",
+ "tipologia": "libero_html",
+ "parte": 7,
+ "punti": 10,
+ "traccia": "Scrivere una pagina con una lista di tre frutti.\n\n```html risultato\n<h1>Frutti</h1>\n<ul>\n    <li>mela</li>\n    <li>pera</li>\n</ul>\n```"
+}

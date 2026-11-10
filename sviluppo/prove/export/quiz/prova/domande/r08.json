@@ -1,0 +1,19 @@
+{
+ "ordine": 80,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Blocco A",
+ "pos": "A6",
+ "pag": 6,
+ "titolo": "Leggere un ciclo",
+ "tipologia": "tracciamento",
+ "parte": 3,
+ "punti": 5,
+ "traccia": "Leggi il codice.\n\n```js\nlet s = 0;\nfor (let i = 0; i < 3; i++) {\n    s = s + i;\n}\nconsole.log(s);\n```\n\nStampa {1:NUMERICAL:=3:0#Corretto.}."
+}

@@ -1,0 +1,19 @@
+{
+ "ordine": 180,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "E5",
+ "pag": 15,
+ "titolo": "Che cosa stampa",
+ "tipologia": "lettura_output",
+ "punti": 1,
+ "traccia": "Leggi il codice.\n\n```js\nlet n = 2;\nn = n * 3;\nconsole.log(n);\n```\n\nStampa {1:NUMERICAL:=6:0#Corretto.}."
+}

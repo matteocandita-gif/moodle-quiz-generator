@@ -1,0 +1,19 @@
+{
+ "ordine": 120,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "=== options\nallornothing: 0\n=== answer\n<?php\n$genere = $_GET['genere'];\n$host = 'localhost'; $username = 'root'; $password = ''; $nomedb = 'biblioteca';\n$connessione = mysqli_connect($host, $username, $password, $nomedb) or die('Errore di connessione');\n$query = \"SELECT Titolo FROM Libri WHERE Genere = '$genere' ORDER BY Titolo\";\n$risultato = mysqli_query($connessione, $query) or die('Errore nella query: ' . mysqli_error($connessione));\nmysqli_close($connessione);\nif (mysqli_num_rows($risultato) == 0) {\n    echo \"<p>Nessun libro</p>\";\n} else {\n    echo \"<ul>\\n\";\n    while ($riga = mysqli_fetch_array($risultato)) {\n        echo \"<li>$riga[Titolo]</li>\\n\";\n    }\n    echo \"</ul>\";\n}\n?>\n=== test\n$_GET = ['genere' => 'Giallo'];\n=== descrizione\nGenere Giallo\n=== test\n$_GET = ['genere' => 'Inesistente'];\n=== descrizione\nGenere che non c'è\n=== test\n$_GET = ['genere' => 'Fantasy'];\n=== descrizione\nGenere Fantasy",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Finali",
+ "pos": "D4",
+ "pag": 10,
+ "titolo": "Elenco libri",
+ "tipologia": "pagina_php",
+ "parte": 7,
+ "punti": 14,
+ "traccia": "Scrivere la pagina che elenca i titoli dei libri del genere ricevuto nel parametro `genere` (GET), in ordine di titolo. Database `biblioteca`.\n\n```html\n<ul>\n<li>Titolo</li>\n</ul>\n```\n\nSe non ce ne sono: `<p>Nessun libro</p>`."
+}

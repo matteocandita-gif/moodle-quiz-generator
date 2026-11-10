@@ -2,6 +2,13 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## Strumenti di sviluppo — 10/11/2026
+
+Nessuna versione nuova: il plugin non cambia.
+
+- **Prove prima di ogni rilascio** (`sviluppo/prove/`): un comando genera due quiz di prova, uno con una riga per ogni tipologia di domanda e una verifica con varianti, e controlla che le domande prodotte siano quelle attese, che le copie dei file condivisi siano allineate e che le skill non citino file che non esistono.
+- **`CLAUDE.md`** nella radice del repository: le regole per modificare e rilasciare il plugin, che Claude riceve ogni volta che ci lavora.
+
 ## 0.13.7 — 10/11/2026
 
 Ristrutturazione delle skill, secondo passo: `materiali-moodle` più leggera. Nessuna pagina cambia e le regole sono le stesse.

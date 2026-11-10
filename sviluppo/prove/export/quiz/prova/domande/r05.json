@@ -1,0 +1,19 @@
+{
+ "ordine": 50,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "Le giuste sono le prime due.",
+ "coderunner": "",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Blocco A",
+ "pos": "A3",
+ "pag": 3,
+ "titolo": "Più giuste",
+ "tipologia": "crocette",
+ "parte": 3,
+ "punti": 10,
+ "traccia": "Seleziona tutte le risposte corrette.\n\n[x] `<ul>` è una lista\n> Sì.\n[x] `<ol>` è una lista\n> Sì.\n[ ] `<p>` è una lista\n> No.\n[ ] `<h1>` è una lista\n> No."
+}

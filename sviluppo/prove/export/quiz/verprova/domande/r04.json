@@ -1,0 +1,21 @@
+{
+ "ordine": 40,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "1 punto: stampa il valore più uno.",
+ "coderunner": "",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Verifica",
+ "pos": "T1b",
+ "pag": 2,
+ "titolo": "Assegnamento",
+ "tipologia": "teoria_aperta",
+ "parte": 1,
+ "punti": 40,
+ "tag": "rev9-T1-assegnamento",
+ "traccia": "Leggi.\n\n```js\nlet x = 5;\nx = x + 1;\nconsole.log(x);\n```\n\n1. Indicare che cosa stampa.",
+ "pdp": true
+}

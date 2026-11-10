@@ -1,0 +1,19 @@
+{
+ "ordine": 150,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "E2",
+ "pag": 12,
+ "titolo": "Completa la frase",
+ "tipologia": "cloze_testo",
+ "punti": 1,
+ "traccia": "Una voce di lista si scrive con il tag {1:SHORTANSWER:=li#Corretto.}."
+}

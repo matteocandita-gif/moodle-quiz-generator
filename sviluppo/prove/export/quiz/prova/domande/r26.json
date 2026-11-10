@@ -1,0 +1,19 @@
+{
+ "ordine": 260,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "quanti-dove",
+ "correzione": "",
+ "coderunner": "=== preload\nlet numero = Number(prompt('n'));\nconsole.log(numer * 2);\n=== answer\nlet numero = Number(prompt('n'));\nconsole.log(numero * 2);\n=== test\n// quattro\n=== stdin\n4\n=== test\n// zero\n=== stdin\n0\n=== test\n// negativo\n=== stdin\n-3",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "F4",
+ "pag": 23,
+ "titolo": "La variabile che non esiste",
+ "tipologia": "debug_msg",
+ "punti": 3,
+ "traccia": "Il programma dovrebbe stampare il doppio del numero letto. Contiene 1 errore nella riga della stampa."
+}

@@ -1,0 +1,19 @@
+{
+ "ordine": 290,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "=== answer\nlet dado = Math.floor(Math.random() * 6) + 1;\nconsole.log(dado);\n=== test\n// un lancio\n=== test\n// un altro lancio\n=== test HIDE\n// un terzo lancio",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "F7",
+ "pag": 26,
+ "titolo": "Il dado",
+ "tipologia": "prog_random",
+ "punti": 3,
+ "traccia": "Scrivere un programma che simuli il lancio di un dado e stampi il numero uscito, da 1 a 6."
+}

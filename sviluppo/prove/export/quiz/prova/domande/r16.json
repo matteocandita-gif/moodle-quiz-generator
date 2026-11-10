@@ -1,0 +1,19 @@
+{
+ "ordine": 160,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "E3",
+ "pag": 13,
+ "titolo": "Metti in ordine",
+ "tipologia": "ordine",
+ "punti": 3,
+ "traccia": "Metti in ordine i passi.\n\n1. {1:MULTICHOICE:il browser mostra~=il browser chiede#Corretto.~il server risponde}\n2. {1:MULTICHOICE:il browser mostra~il browser chiede~=il server risponde#Corretto.}\n3. {1:MULTICHOICE:=il browser mostra#Corretto.~il browser chiede~il server risponde}"
+}

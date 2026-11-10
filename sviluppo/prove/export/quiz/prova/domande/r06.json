@@ -1,0 +1,19 @@
+{
+ "ordine": 60,
+ "stato": "approvata",
+ "minuti": 5,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "",
+ "coderunner": "",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Blocco A",
+ "pos": "A4",
+ "pag": 4,
+ "titolo": "Completa",
+ "tipologia": "compl_campi",
+ "parte": 4,
+ "punti": 3,
+ "traccia": "Completa.\n\n```html\n<{1:SHORTANSWER:=ul}>\n    <{1:SHORTANSWER:=li}>uno</li>\n</ul>\n```\n\nIl tag è {1:MULTICHOICE_S:=di blocco#Corretto.~in linea#No: va a capo.}."
+}

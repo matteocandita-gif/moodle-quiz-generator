@@ -1,0 +1,18 @@
+--- output 1 ---
+<text><![CDATA[8
+]]></text>
+--- output 2 ---
+<text><![CDATA[0
+]]></text>
+--- output 3 ---
+<text><![CDATA[28
+]]></text>
+--- output 4 ---
+<text><![CDATA[10
+]]></text>
+--- output 5 ---
+<text><![CDATA[0
+]]></text>
+--- output 6 ---
+<text><![CDATA[35
+]]></text>
