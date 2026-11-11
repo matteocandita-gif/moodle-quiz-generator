@@ -1123,6 +1123,21 @@ def domanda_match(quiz, r):
     return "".join(x)
 
 
+ETICHETTA_RE = re.compile(r"^(?:\S.*\s)?([A-Z])$")
+
+
+def alternative_etichettate(opzioni):
+    """True se le opzioni sono etichette in ordine, una lettera maiuscola alla fine («Il codice A», «La regola B»,
+    «Codice C»…): rimandano ai codici mostrati nella traccia e non vanno mescolate."""
+    lettere = []
+    for x in opzioni:
+        m = ETICHETTA_RE.match(re.sub(r"[*`]", "", x["testo"]).strip())
+        if not m:
+            return False
+        lettere.append(m.group(1))
+    return len(lettere) >= 2 and lettere == [chr(ord("A") + i) for i in range(len(lettere))]
+
+
 def domanda(quiz, r):
     """Restituisce il testo della specifica per una riga."""
     tip = r.get("tipologia")
@@ -1176,6 +1191,11 @@ def domanda(quiz, r):
                 fr = x["perc"] if x["perc"] is not None else (quota if x["giusta"] else penale)
                 risposte.append(((("%.5f" % round(fr, 5)).rstrip("0").rstrip(".")), inl(x["testo"]), inl(x["feedback"])))
             opzioni["defaultgrade"] = punti
+            if alternative_etichettate(o):
+                # «Il codice A», «La regola B»…: le opzioni rimandano ai codici della traccia, nel loro ordine;
+                # mescolate (e numerate a, b, c) non corrisponderebbero più ai codici
+                opzioni["shuffleanswers"] = "false"
+                opzioni["answernumbering"] = "none"
             if multi:
                 opzioni["single"] = "false"
                 negative = sum(float(fr) for fr, _, _ in risposte if float(fr) < 0)

@@ -2,6 +2,18 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.14.0 — 11/11/2026
+
+Chiude il lavoro di riordino delle skill cominciato con la 0.13.5. Il plugin riordinato è stato provato su tre quiz veri, uno per tipo, dalla scaletta al ripristino in Moodle: uno studio con domande (quinta, «Il mondo dei dati»), una verifica SQL (quinta, JOIN e aggregazione) e un'esercitazione (quarta, introduzione a CSS). In questa versione entrano le regole nate da quelle prove.
+
+- **La ripetizione nelle esercitazioni**: le domande di comprensione che chiedono di eseguire un procedimento (classificare, leggere il codice, riconoscere un errore, prevedere un risultato) si fanno due volte sulla stessa pagina del quiz, la seconda su un caso nuovo con una risposta diversa; le domande su un principio restano singole. Gli esercizi brevi svolti in Moodle si fanno due volte, prima con lo strumento suggerito e poi con il solo obiettivo; le consegne di file una volta sola. L'esercizio finale ha un doppio per casa, in un quiz separato con il titolo che lo dice, e la soluzione si vede nella revisione dopo la consegna.
+- **Alternative A, B, C non mescolate**: nelle risposte multiple in cui le opzioni rimandano ai codici della traccia («Il codice A», «La regola B»…), Moodle non mescola più le risposte e non le numera, così restano nell'ordine dei codici.
+- **Cornice «Visualizzazione nel browser» solo per le pagine web**: figure del libro e schemi che spiegano un concetto si mettono nel testo come immagini semplici. Nelle pagine di teoria immagini e schemi sono consigliati.
+- **Risultato di una pagina con il CSS**: nelle domande si mostra con lo stile in linea, perché un `<style>` nel testo cambierebbe tutta la pagina del quiz.
+- **Database didattici**: se la pubblicazione rifiuta i file `.sql` e `.py`, si pubblicano con `.txt` in più nel nome, e la pagina «Database didattici» li legge lo stesso.
+- **Verifiche, debug con motivazione**: lo schema «che cosa succede, perché, correzione» sta nella traccia; le istruzioni non promettono più che compaia già nella casella di risposta.
+- Prove superate. In Moodle non c'è niente da reimportare.
+
 ## 0.13.12 — 11/11/2026
 
 Il CSS con il controllo automatico, e i file da scaricare dentro le domande. Serve alla prima esercitazione di CSS.

@@ -151,7 +151,7 @@ function carica(t){
   const base=t.percorso+"/"+t.nome+"_"+t.taglia;
   [["comune",base+".sql"],["mysql",base+"_mysql.sql"]].forEach(function(x){
     const k=t.percorso+":"+x[0];if(S.testi[k]!=null)return;
-    fetch(x[1]).then(function(r){if(!r.ok)throw new Error(r.status);return r.text();}).then(function(tx){S.testi[k]=tx;render();}).catch(function(){S.testi[k]="";});
+    fetch(x[1]).then(function(r){if(!r.ok)return fetch(x[1]+".txt");return r;}).then(function(r){if(!r.ok)throw new Error(r.status);return r.text();}).then(function(tx){S.testi[k]=tx;render();}).catch(function(){S.testi[k]="";});
   });
 }
 function renderElenco(){

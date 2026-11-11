@@ -9,6 +9,17 @@ Da leggere quando il tipo di quiz è ED o EDT o EP o ER, dopo `preset.md` (che h
 
 Il voto attesta che il lavoro è stato consegnato (e, nelle consegne di file, che il file c'è ed è in ordine), non che sia corretto.
 
+## La ripetizione (ED, EDT, ER)
+
+Ripetere subito la stessa operazione aiuta a fissarla: la prima volta lo studente capisce il tipo di esercizio, la seconda lo riapplica. Vale per tutte le esercitazioni, già nella scaletta.
+
+- **Domande di comprensione doppie**: una domanda che chiede di **eseguire un procedimento su un caso concreto** (classificare, leggere il codice, riconoscere un errore, prevedere un risultato, «dal risultato al codice») si fa due volte, **sulla stessa pagina del quiz**, ogni volta che serve una conferma di comprensione. La seconda ha la stessa struttura, materiale nuovo e **risposta diversa**: cambia la superficie (elementi, valori, posizione e forma della risposta giusta, errori in punti diversi) e varia ciò che nella prima poteva passare senza capire. Vale meno punti e richiede meno minuti.
+- **Non si raddoppia** una domanda su un **principio**, che ha la stessa risposta in ogni contesto (per esempio «perché separare HTML e CSS»): la seconda sarebbe la stessa domanda con la stessa risposta.
+- **Feedback delle due domande**: quello della prima spiega il procedimento; quello della seconda dice solo dove si è sbagliato («No: controllate il selettore»), e la spiegazione completa sta nella `correzione`. Nessuno dei due svela l'altra domanda, che sta sulla stessa pagina.
+- **Esercizi pratici brevi**, svolti dentro Moodle (CodeRunner, esercizio con controllo): due volte, la prima con lo strumento **suggerito**, la seconda con il solo obiettivo (strumento **non nominato**), su un caso diverso.
+- **Esercizi lunghi con una consegna di file**: una volta sola.
+- **Esercizio finale**: ha un doppio **per casa**, in un **quiz separato** di tipo EP (non in fondo all'esercitazione), con il titolo che dice che è per casa («1-CSS per casa: …», nome del quiz «Per casa - …»): stessa struttura e stessi criteri dell'esercizio finale, contesto e valori nuovi. La soluzione di riferimento sta nella `correzione`, così lo studente la vede nella revisione dopo la consegna. Le istruzioni del quiz dicono che è il lavoro per casa e che cosa serve.
+
 ## ED · Esercitazione con spiegazione di dettaglio
 
 - **Scopo**: spiegare un argomento nuovo e farlo esercitare in una lezione base di due ore. Completarla dà un voto che gli studenti non vedono e che non viene verbalizzato: punteggi con un criterio semplice, senza formalizzare troppo.
@@ -38,7 +49,7 @@ Deciso il 2026-10-09 dopo il quiz «Internet e il Web» (chiude A12).
 ## EP · Esercitazione pratica
 
 - **Scopo**: solo esercizi, senza spiegazione; al massimo un richiamo breve degli argomenti, già spiegati in esercitazioni precedenti. Uso tipico: per casa, dopo la spiegazione e qualche esercizio in classe.
-- Parti: richiamo breve, completamento, debugging, esercizio guidato, esercizi finali. Voto interno, indicazione dello strumento, durata e progressione **(aperto, A18)**.
+- Parti: richiamo breve, completamento, debugging, esercizio guidato, esercizi finali. Quando è il doppio per casa dell'esercizio finale di un'esercitazione («La ripetizione», sopra): una pagina di istruzioni e la sola consegna, 100 punti. Voto interno, indicazione dello strumento, durata e progressione **(aperto, A18)**.
 
 ## ER · Esercitazione complessiva di ripasso
 

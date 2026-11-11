@@ -80,7 +80,7 @@ Estese ed esplicite, in forma impersonale, come le scrive l'utente:
 
 - Frammenti brevi con errori **concettuali** legati all'argomento, mai refusi (esempi nelle sezioni per linguaggio).
 - La traccia dice che cosa dovrebbe fare il codice e quanti errori ci sono.
-- Per ogni errore: **che cosa succede**, **perché**, **correzione**; la casella di risposta parte con questo schema.
+- Per ogni errore: **che cosa succede**, **perché**, **correzione**; la traccia chiede la risposta con questo schema (la casella di risposta parte vuota).
 - Per il correttore: un punto per parte, e le righe che *non* sono errori, da non premiare se indicate al posto di quelle vere.
 
 ## Le istruzioni per gli studenti

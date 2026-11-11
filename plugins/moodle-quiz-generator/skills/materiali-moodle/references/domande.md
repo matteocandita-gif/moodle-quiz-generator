@@ -18,7 +18,7 @@ Per tutte e due:
 
 Con più giuste: `single: false` in `=== options`; le giuste si dividono il 100% (ad esempio nel caso di tre `=== answer 33.33333`), le sbagliate una penalità che sommata fa −100% (ad esempio nel caso di tre `=== answer -33.33333`), altrimenti chi spunta tutto prende il punteggio pieno. Il testo dice «Seleziona tutte le risposte corrette», perché l'istruzione standard è nascosta, e il feedback generale riporta la soluzione completa.
 
-Impostazioni: risposta singola, opzioni mescolate, numerazione `abc`, istruzione standard nascosta, penalità `0.3333333`, punteggio 1.
+Impostazioni: risposta singola, opzioni mescolate, numerazione `abc`, istruzione standard nascosta, penalità `0.3333333`, punteggio 1. Opzioni che rimandano a codici etichettati nel testo («Il codice A», «La regola B»…, nell'ordine delle lettere): `shuffleanswers: false` e `answernumbering: none`, che dalla dashboard mette da solo `da_dashboard.py`.
 
 ```text
 === question multichoice

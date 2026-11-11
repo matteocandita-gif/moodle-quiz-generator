@@ -90,7 +90,7 @@ Valgono per tutte le domande di teoria che seguono una pagina di spiegazione o d
 5. **Avere risposte giuste non ambigue**: niente risposte brevi con tante varianti quasi uguali; la risposta breve solo quando la risposta è una e senza sinonimi, sigle o forme estese. Gli errori prevedibili si scrivono come opzioni sbagliate con il loro feedback, mai come `( ) *`. Se le affermazioni vere sono più d'una (un «trova l'errore» con più errori, «quali di queste istruzioni stampano…»), la domanda è a **più risposte giuste** (`crocette` o `trova_errore` con `[x]` / `[ ]`), un'opzione per affermazione, e non una risposta singola con opzioni che ne mettono insieme diverse.
 6. **Non segnare come sbagliato ciò che è ammesso**: la regola «Alternative ammesse» di `references/regole-comuni.md`.
 7. **Avere distrattori plausibili e di lunghezza comparabile**: errori di ragionamento veri, presi dai termini della pagina, con lunghezza e forma simili alla risposta giusta (contale).
-8. **Non fare doppioni**: due domande dello stesso blocco non verificano lo stesso concetto nello stesso modo (per esempio la stessa definizione in una risposta multipla e in un Cloze).
+8. **Non fare doppioni**: due domande dello stesso blocco non verificano lo stesso concetto nello stesso modo (per esempio la stessa definizione in una risposta multipla e in un Cloze). Non è un doppione la seconda domanda di una coppia voluta: nelle esercitazioni le domande di procedimento si fanno due volte su casi diversi (`preset-esercitazioni.md`, «La ripetizione»).
 
 Nelle note interne di ogni domanda scrivi in una riga che cosa verifica e da quale punto della pagina si ricava. Le definizioni o gli esempi che aggiungi alla pagina rispetto al manuale vanno dichiarati nelle note interne della pagina.
 
