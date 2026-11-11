@@ -1,0 +1,19 @@
+{
+ "ordine": 370,
+ "stato": "approvata",
+ "minuti": 1,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "Il codice giusto è il B.",
+ "coderunner": "",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "G8",
+ "pag": 34,
+ "titolo": "Dal risultato al codice",
+ "tipologia": "multipla",
+ "punti": 1,
+ "traccia": "Quale dei due codici produce un titolo?\n\n**Codice A**\n\n```html\n<p>Prova</p>\n```\n\n**Codice B**\n\n```html\n<h1>Prova</h1>\n```\n\n( ) Il codice A\n    > No: è un paragrafo.\n(x) Il codice B\n    > Esatto."
+}

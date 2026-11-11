@@ -525,6 +525,51 @@ console.log(somma);</pre>
     </responsetemplate>
   </question>
 
+  <question type="multichoice">
+    <name>
+      <text>L9 - G8 - Dal risultato al codice</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Quale dei due codici produce un titolo?</p>
+<p><strong>Codice A</strong></p>
+<pre style="background-color: #333333; color: #eceff1; padding: 12px; border-radius: 4px; overflow-x: auto; margin: 8px 0; line-height: 1.5;"><span style="color: #81a1c1;">&lt;p</span><span style="color: #81a1c1;">&gt;</span>Prova<span style="color: #81a1c1;">&lt;/p</span><span style="color: #81a1c1;">&gt;</span></pre>
+<p><strong>Codice B</strong></p>
+<pre style="background-color: #333333; color: #eceff1; padding: 12px; border-radius: 4px; overflow-x: auto; margin: 8px 0; line-height: 1.5;"><span style="color: #81a1c1;">&lt;h1</span><span style="color: #81a1c1;">&gt;</span>Prova<span style="color: #81a1c1;">&lt;/h1</span><span style="color: #81a1c1;">&gt;</span></pre>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p>Il codice giusto è il B.</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>false</shuffleanswers>
+    <answernumbering>none</answernumbering>
+    <showstandardinstruction>0</showstandardinstruction>
+    <correctfeedback format="html">
+      <text></text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text></text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text></text>
+    </incorrectfeedback>
+    <answer fraction="0" format="html">
+      <text><![CDATA[Il codice A]]></text>
+      <feedback format="html">
+        <text><![CDATA[No: è un paragrafo.]]></text>
+      </feedback>
+    </answer>
+    <answer fraction="100" format="html">
+      <text><![CDATA[Il codice B]]></text>
+      <feedback format="html">
+        <text><![CDATA[Esatto.]]></text>
+      </feedback>
+    </answer>
+  </question>
+
   <question type="category">
     <category>
       <text>$module$/top/Lezione 9 - Prova revisione</text>
@@ -2616,6 +2661,11 @@ FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca
      "nome": "L9 - G7 - Scrivere: Una regola con controllo",
      "pagina": 33,
      "punti": 3.0
+    },
+    {
+     "nome": "L9 - G8 - Dal risultato al codice",
+     "pagina": 34,
+     "punti": 1.0
     }
    ],
    "titolo": "Altre tipologie"
