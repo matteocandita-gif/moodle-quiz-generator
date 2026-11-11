@@ -2,6 +2,18 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.13.12 — 11/11/2026
+
+Il CSS con il controllo automatico, e i file da scaricare dentro le domande. Serve alla prima esercitazione di CSS.
+
+- **Esercizio con controllo** (`esercizio_controllo`), tipologia nuova: lo studente scrive nella casella di risposta una regola CSS, oppure codice HTML con lo stile in linea o il `<style>`. Premendo **Verifica** vede, controllo per controllo, se il codice è scritto bene e se c'è quello che la traccia chiede, con il numero di riga (per esempio «regola «p» (riga 2): manca il ; dopo «color: blue»»). Domanda per domanda il controllo è **visibile** (lo studente corregge e riprova) o **nascosto** (niente Verifica: il punteggio si calcola alla consegna, come in una verifica). Il codice di partenza nella casella serve per gli esercizi di correzione di una regola sbagliata. Prima di creare la domanda, il plugin controlla che la soluzione superi tutti i controlli.
+- **Controlli nuovi** per la consegna con controllo automatico e per l'esercizio con controllo: `stile_interno()`, `stile_interno_senza_errori()` e `stile_interno_regola(...)` per il `<style>` nella pagina, `in_linea(...)` e `in_linea_senza_errori()` per l'attributo `style`. I controlli che c'erano restano uguali, quindi le domande già fatte non cambiano voto.
+- **File da scaricare**: nel testo di una domanda o di una pagina, `[testo](sito-scuola.zip)` diventa un link che scarica il file allegato alla domanda (una pagina `.html` da modificare, la cartella di un sito in `.zip`). Il file sta nella cartella delle immagini del quiz e finisce nel backup come le immagini.
+- **Dashboard** (pagina 0.6.2): la tipologia nuova nel catalogo, nel dettaglio (casella, controlli e pesi, controllo visibile o nascosto) e negli avvisi; i link ai file da scaricare nell'anteprima.
+- **Prototipi da importare in Moodle** (Banca delle domande → Importa, formato Moodle XML, nella categoria dei prototipi): `css_con_test` (file `prototipo-css-con-test.xml`, nuovo) e di nuovo `html_con_file` (file `prototipo-html-con-file.xml`), che ha i controlli nuovi.
+- Nella descrizione del prototipo `html_con_file` e in `tracce-consegna.md` la tabella dei controlli mostrava vuoti i tag (`<link>`, `<style>`, `<script>`): ora si vedono.
+- Prove superate; il quiz di prova ha una domanda in più, per la tipologia nuova.
+
 ## 0.13.11 — 11/11/2026
 
 Una tipologia nuova per le consegne di file nelle esercitazioni, e l'esportazione che consegna solo il backup.

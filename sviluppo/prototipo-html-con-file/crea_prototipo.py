@@ -15,12 +15,13 @@ import sys
 import xml.dom.minidom
 
 from domande import Q1_SOLUZIONE, Q1_TEST, Q2_TEST, Q3_TEST, Q4_TEST, q2_file_corretti, q3_file_corretti, q4_file_corretti, zip_sito
-from testi import DESCRIZIONE_PROTOTIPO, PROMEMORIA, TESTO_Q1, TESTO_Q2, TESTO_Q3, TESTO_Q4
+from testi import DESCRIZIONE_CSS_CON_TEST, DESCRIZIONE_PROTOTIPO, PROMEMORIA, TESTO_Q1, TESTO_Q2, TESTO_Q3, TESTO_Q4
 
 QUI = os.path.dirname(os.path.abspath(__file__))
 RADICE = os.path.abspath(os.path.join(QUI, "..", ".."))
 SKILLS = os.path.join(RADICE, "plugins", "moodle-quiz-generator", "skills")
 ASSET = os.path.join(SKILLS, "materiali-moodle", "assets", "prototipo-html-con-file.xml")
+ASSET_CSS = os.path.join(SKILLS, "materiali-moodle", "assets", "prototipo-css-con-test.xml")
 TRACCE = os.path.join(SKILLS, "progettazione-quiz", "references", "tracce-consegna.md")
 INIZIO, FINE = "<!-- funzioni-html-con-file: inizio", "<!-- funzioni-html-con-file: fine -->"
 
@@ -54,15 +55,17 @@ def testcase(codice, descrizione):
       </testcase>"""
 
 
-def prototipo():
+def prototipo(tipo="html_con_file"):
+    """Il prototipo html_con_file (file allegato) o css_con_test (casella di risposta): stesso template."""
+    casella = tipo == "css_con_test"
     template = open(os.path.join(QUI, "template.py"), encoding="utf-8").read()
     colonne = json.dumps([["Controllo", "extra"], ["Trovato?", "got"]], ensure_ascii=False)
     return f"""  <question type="coderunner">
     <name>
-      <text>PROTOTYPE - html_con_file</text>
+      <text>PROTOTYPE - {tipo}</text>
     </name>
     <questiontext format="html">
-      <text>{cdata(DESCRIZIONE_PROTOTIPO)}</text>
+      <text>{cdata(DESCRIZIONE_CSS_CON_TEST if casella else DESCRIZIONE_PROTOTIPO)}</text>
     </questiontext>
     <generalfeedback format="html">
       <text></text>
@@ -71,7 +74,7 @@ def prototipo():
     <penalty>0</penalty>
     <hidden>0</hidden>
     <idnumber></idnumber>
-    <coderunnertype>html_con_file</coderunnertype>
+    <coderunnertype>{tipo}</coderunnertype>
     <prototypetype>2</prototypetype>
     <allornothing>0</allornothing>
     <penaltyregime>0</penaltyregime>
@@ -91,29 +94,29 @@ def prototipo():
     <validateonsave>0</validateonsave>
     <testsplitterre>{cdata("|#<ab@17943918#@>#\\n|ms")}</testsplitterre>
     <language>python3</language>
-    <acelang>html</acelang>
+    <acelang>{"css" if casella else "html"}</acelang>
     <sandbox></sandbox>
     <grader>EqualityGrader</grader>
     <cputimelimitsecs></cputimelimitsecs>
     <memlimitmb>1000</memlimitmb>
     <sandboxparams></sandboxparams>
-    <templateparams></templateparams>
+    <templateparams>{esc(json.dumps({"pagina": "stile.css"})) if casella else ""}</templateparams>
     <hoisttemplateparams>1</hoisttemplateparams>
     <extractcodefromjson>1</extractcodefromjson>
     <templateparamslang>None</templateparamslang>
     <templateparamsevalpertry>0</templateparamsevalpertry>
     <templateparamsevald>{{}}</templateparamsevald>
     <twigall>0</twigall>
-    <uiplugin>html</uiplugin>
-    <uiparameters>{esc(json.dumps({"html_src": "prototypeextra", "enable_in_editor": False}))}</uiparameters>
-    <attachments>1</attachments>
-    <attachmentsrequired>1</attachmentsrequired>
+    <uiplugin>{"ace" if casella else "html"}</uiplugin>
+    <uiparameters>{"" if casella else esc(json.dumps({"html_src": "prototypeextra", "enable_in_editor": False}))}</uiparameters>
+    <attachments>{0 if casella else 1}</attachments>
+    <attachmentsrequired>{0 if casella else 1}</attachmentsrequired>
     <maxfilesize>102400</maxfilesize>
-    <filenamesregex>{esc(r".*\.(html|htm|zip)")}</filenamesregex>
+    <filenamesregex>{"" if casella else esc(r".*\.(html|htm|zip)")}</filenamesregex>
     <filenamesexplain></filenamesexplain>
     <displayfeedback>1</displayfeedback>
     <giveupallowed>0</giveupallowed>
-    <prototypeextra>{cdata(PROMEMORIA)}</prototypeextra>
+    <prototypeextra>{"" if casella else cdata(PROMEMORIA)}</prototypeextra>
     <testcases>
     </testcases>
   </question>
@@ -202,13 +205,21 @@ def scrivi(percorso, domande):
 
 def tabella_funzioni():
     """La tabella delle funzioni in Markdown, per tracce-consegna.md (stesso elenco della descrizione)."""
-    from testi import FUNZIONI_HTML, FUNZIONI_CARTELLA, FUNZIONI_CSS, FUNZIONI_JS
+    from testi import FUNZIONI_HTML, FUNZIONI_CARTELLA, FUNZIONI_CSS, FUNZIONI_STILE, FUNZIONI_JS
     def md(testo):
-        testo = re.sub(r'<span style="font-family: monospace;">(.*?)</span>', lambda m: "`%s`" % _html.unescape(m.group(1)), testo)
-        return _html.unescape(re.sub(r"<[^>]+>", "", testo)).replace("|", "\\|")
+        # il codice in linea si mette da parte prima di togliere i tag, così <link> e <style> restano
+        codici = []
+        def tieni(m):
+            codici.append("`%s`" % _html.unescape(m.group(1)))
+            return "\x00%d\x00" % (len(codici) - 1)
+        testo = re.sub(r'<span style="font-family: monospace;">(.*?)</span>', tieni, testo)
+        testo = _html.unescape(re.sub(r"<[^>]+>", "", testo))
+        testo = re.sub(r"\x00(\d+)\x00", lambda m: codici[int(m.group(1))], testo)
+        return testo.replace("|", "\\|")
     parti = []
     for titolo, righe in (("La pagina HTML", FUNZIONI_HTML), ("La cartella del sito e i collegamenti", FUNZIONI_CARTELLA),
-                          ("Il CSS", FUNZIONI_CSS), ("Il JavaScript", FUNZIONI_JS)):
+                          ("Il CSS", FUNZIONI_CSS), ("Il CSS nella pagina: `<style>` e attributo style", FUNZIONI_STILE),
+                          ("Il JavaScript", FUNZIONI_JS)):
         parti.append("**%s**\n\n| Test | Che cosa controlla |\n|---|---|\n" % titolo
                      + "\n".join("| `%s` | %s |" % (f, md(d)) for f, d in righe))
     return "\n\n".join(parti)
@@ -226,6 +237,7 @@ def aggiorna_tracce():
 
 def main():
     scrivi(ASSET, [prototipo()])
+    scrivi(ASSET_CSS, [prototipo("css_con_test")])
     aggiorna_tracce()
     if "--prove" in sys.argv:
         cartella = sys.argv[sys.argv.index("--prove") + 1]

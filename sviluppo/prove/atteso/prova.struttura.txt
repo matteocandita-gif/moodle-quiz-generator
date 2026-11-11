@@ -2318,6 +2318,99 @@ FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca
     </testcases>
   </question>
 
+  <question type="coderunner">
+    <name>
+      <text>L9 - G7 - Scrivere: Una regola con controllo</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Scrivere una regola CSS che renda blu il testo dei paragrafi.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p>Una regola corretta è <span style="font-family: monospace;">p { color: blue; }</span>.</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>3.0000000</defaultgrade>
+    <penalty>0.0000000</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>css_con_test</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>0</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>8</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload></answerpreload>
+    <globalextra></globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer><![CDATA[p {
+    color: blue;
+}]]></answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams>{"pagina": "stile.css"}</templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin></uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+                <text><![CDATA[css_senza_errori()]]></text>
+      </testcode>
+      <stdin>
+                <text></text>
+      </stdin>
+      <expected>[output 37]</expected>
+      <extra>
+                <text><![CDATA[La regola è scritta senza errori.]]></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="2.0000000" >
+      <testcode>
+                <text><![CDATA[css_regola("p", "color", "blue")]]></text>
+      </testcode>
+      <stdin>
+                <text></text>
+      </stdin>
+      <expected>[output 38]</expected>
+      <extra>
+                <text><![CDATA[I paragrafi hanno il testo blu.]]></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+    </testcases>
+  </question>
+
 </quiz>
 
 
@@ -2518,6 +2611,11 @@ FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca
      "nome": "L9 - G6 - Consegna: Consegna del sito con controllo",
      "pagina": 32,
      "punti": 5.0
+    },
+    {
+     "nome": "L9 - G7 - Scrivere: Una regola con controllo",
+     "pagina": 33,
+     "punti": 3.0
     }
    ],
    "titolo": "Altre tipologie"

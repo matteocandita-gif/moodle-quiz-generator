@@ -1,0 +1,19 @@
+{
+ "ordine": 360,
+ "stato": "approvata",
+ "minuti": 4,
+ "strumento": "",
+ "sostegno": "",
+ "correzione": "Una regola corretta è `p { color: blue; }`.",
+ "coderunner": "=== options\nrisposta: css\n=== answer\np {\n    color: blue;\n}\n=== test 1\ncss_senza_errori()\n=== extra\nLa regola è scritta senza errori.\n=== test 2\ncss_regola(\"p\", \"color\", \"blue\")\n=== extra\nI paragrafi hanno il testo blu.",
+ "docente": "",
+ "sintesi": "x",
+ "sezione": "Altre tipologie",
+ "parte": 7,
+ "pos": "G7",
+ "pag": 33,
+ "titolo": "Una regola con controllo",
+ "tipologia": "esercizio_controllo",
+ "punti": 3,
+ "traccia": "Scrivere una regola CSS che renda blu il testo dei paragrafi."
+}

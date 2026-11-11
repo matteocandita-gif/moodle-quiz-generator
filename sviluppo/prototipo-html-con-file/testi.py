@@ -137,7 +137,19 @@ FUNZIONI_JS = [
     ("diagnosi_node()", "Solo per il docente, in una domanda di prova: dice se node funziona su Jobe."),
 ]
 
-FUNZIONI = FUNZIONI_HTML + FUNZIONI_CARTELLA + FUNZIONI_CSS + FUNZIONI_JS
+FUNZIONI_STILE = [
+    ("stile_interno()", "C'è un " + CODICE % "&lt;style&gt;" + " con almeno una regola, dentro il head."),
+    ("stile_interno_senza_errori()", "Nelle regole scritte nel " + CODICE % "&lt;style&gt;" + " della pagina "
+     "non ci sono errori di scrittura (gli stessi di " + CODICE % "css_senza_errori()" + "), con la riga della pagina."),
+    ('stile_interno_regola("h1", "color")', "Come " + CODICE % "css_regola" + ", ma sulle regole scritte nel "
+     + CODICE % "&lt;style&gt;" + " della pagina."),
+    ("in_linea_senza_errori()", "Gli attributi style della pagina sono scritti bene: " + CODICE % "proprietà: valore"
+     + " separate da ;, senza graffe."),
+    ('in_linea("p", "color")', "Un elemento del tipo indicato ha l'attributo style; se indicate, con la "
+     "proprietà e con il valore (" + CODICE % 'in_linea("p", "color", "green")' + ")."),
+]
+
+FUNZIONI = FUNZIONI_HTML + FUNZIONI_CARTELLA + FUNZIONI_CSS + FUNZIONI_STILE + FUNZIONI_JS
 
 DESCRIZIONE_PROTOTIPO = "\n".join([
     "<p>Prototipo <strong>html_con_file</strong>: controlla la pagina HTML consegnata dallo studente "
@@ -185,6 +197,8 @@ DESCRIZIONE_PROTOTIPO = "\n".join([
     "<p>I controlli CSS leggono i fogli collegati dalla pagina che si sta controllando. Non vedono "
     "com'è la pagina nel browser: il risultato della cascata, le regole che si sovrascrivono, "
     "i colori che si vedono davvero.</p>",
+    "<p><strong>Funzioni di controllo: il CSS nella pagina</strong> (" + m("<style>") + " e attributo style)</p>",
+    tabella(["Test", "Che cosa controlla"], [(m(f), d) for f, d in FUNZIONI_STILE]),
     "<p><strong>Funzioni di controllo: il JavaScript</strong></p>",
     tabella(["Test", "Che cosa controlla"], [(m(f), d) for f, d in FUNZIONI_JS]),
     "<p>I controlli JavaScript leggono il codice, non lo eseguono: non dicono se lo script fa quello che "
@@ -313,4 +327,29 @@ TESTO_Q4 = "\n".join([
     browser('<h1>Libreria Pagina 42</h1>\n<p>' + PULSANTE_FINTO + '</p>\n'
             '<p>Dal martedì al sabato, 9-13 e 15.30-19.30</p>'),
     consegna_zip("libreria"),
+])
+
+
+# ---------------------------------------------------------------- prototipo css_con_test
+
+DESCRIZIONE_CSS_CON_TEST = "\n".join([
+    "<p>Prototipo <strong>css_con_test</strong>: controlla il codice CSS o HTML che lo studente scrive nella "
+    "<strong>casella di risposta</strong>, con le stesse funzioni di controllo del prototipo "
+    "<strong>html_con_file</strong> (stesso template). Serve agli esercizi brevi: una regola CSS, un tag con "
+    "l'attributo style, una piccola pagina con il " + m("&lt;style&gt;") + ".</p>",
+    "<p>Con il plugin «Moodle: quiz generator» queste domande si scrivono nella dashboard «Bozze dei quiz» come "
+    "tipologia «Esercizio con controllo» e le genera il plugin.</p>",
+    "<p><strong>Che cosa scrive lo studente</strong>: lo decide il parametro del template "
+    + m('{"pagina": "stile.css"}') + " (predefinito): la casella contiene un foglio di stile, e "
+    + m("css_senza_errori()") + " e " + m('css_regola(...)') + " lo controllano. Con "
+    + m('{"pagina": "index.html"}') + " la casella contiene codice HTML (anche solo un pezzo di pagina) e si "
+    "usano le funzioni della pagina, dello stile in linea e del " + m("&lt;style&gt;") + "; per l'HTML conviene "
+    "scegliere nella domanda il linguaggio dell'editor html.</p>",
+    "<p><strong>Controllo visibile o nascosto</strong>: con il pulsante Verifica e i risultati dei test visibili "
+    "lo studente corregge da solo; con Verifica nascosto (" + m("Nascondi Verifica") + ") e "
+    + m("Mostra feedback: Forza nascondi") + " il punteggio si calcola alla consegna senza mostrare i controlli, "
+    "come in una verifica.</p>",
+    "<p>Ogni test è un requisito: nel campo <em>Test</em> una funzione di controllo, in <em>Output atteso</em> "
+    + m("OK") + ", in <em>Extra</em> la frase che lo studente vede nella colonna «Controllo». Le funzioni sono "
+    "quelle descritte nel prototipo html_con_file; quelle sui file della cartella del sito qui non servono.</p>",
 ])

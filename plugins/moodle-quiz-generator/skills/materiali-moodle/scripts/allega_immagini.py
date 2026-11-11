@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Incorpora nel Moodle XML le immagini riferite nel testo delle domande.
+"""Incorpora nel Moodle XML le immagini e i file da scaricare riferiti nel testo delle domande.
 
 Uso:
     python3 allega_immagini.py DOMANDE.xml CARTELLA [--uscita=ALTRO.xml]
@@ -12,6 +12,8 @@ ogni domanda (questiontext) e aggiunge dentro <questiontext> l'elemento
 
 con il contenuto preso da CARTELLA: è la forma con cui Moodle esporta e importa le immagini di una
 domanda. crea_mbz.py legge poi quei <file> e li mette nel backup (componente question, area questiontext).
+Un file da scaricare si scrive [testo](sito-scuola.zip) e diventa <a href="@@PLUGINFILE@@/sito-scuola.zip?forcedownload=1">:
+si allega nello stesso modo (il parametro ?forcedownload=1 non fa parte del nome del file).
 
 Si ferma se un'immagine manca nella cartella o se un riferimento sta fuori dal testo della domanda
 (feedback, risposte): lì le immagini non sono gestite. Senza riferimenti non cambia nulla.
@@ -22,7 +24,7 @@ import re
 import sys
 import urllib.parse
 
-RIF_RE = re.compile(r"@@PLUGINFILE@@/([^\"'\s<>)]+)")
+RIF_RE = re.compile(r"@@PLUGINFILE@@/([^\"'\s<>)?#]+)")   # senza ?forcedownload=1 dei file da scaricare
 QT_RE = re.compile(r"(<questiontext\b[^>]*>)(.*?)(</questiontext>)", re.S)
 Q_RE = re.compile(r"<question\b.*?</question>", re.S)
 
@@ -51,7 +53,7 @@ def allega(xml, cartella):
                     continue
                 p = os.path.join(cartella, f)
                 if not os.path.isfile(p):
-                    errori.append("%s: manca l'immagine «%s» in %s" % (nome, f, cartella))
+                    errori.append("%s: manca il file «%s» in %s" % (nome, f, cartella))
                     continue
                 b64 = base64.b64encode(open(p, "rb").read()).decode("ascii")
                 nuovi += '\n    <file name="%s" path="/" encoding="base64">%s</file>' % (f, b64)

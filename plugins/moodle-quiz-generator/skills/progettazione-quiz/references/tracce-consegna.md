@@ -87,24 +87,34 @@ I controlli leggono i file consegnati, non li eseguono e non guardano la pagina 
 
 | Test | Che cosa controlla |
 |---|---|
-| `css_collegato("css/stile.css")` | La pagina collega quel foglio di stile con `` dentro il head. |
+| `css_collegato("css/stile.css")` | La pagina collega quel foglio di stile con `<link rel="stylesheet">` dentro il head. |
 | `css_senza_errori()` | Nei fogli collegati non ci sono errori di scrittura: graffe mancanti o in più, dichiarazioni senza i due punti, ; mancante tra due dichiarazioni, commenti non chiusi. |
 | `css_regola("h1", "color")` | C'è una regola per il selettore; se indicate, con la proprietà e con il valore (`css_regola("h1", "color", "red")`). Il selettore si scrive come nel CSS (`"nav a"`, `".evidenza"`); conta anche dentro un gruppo (`h1, h2`) o un @media. Una dichiarazione scritta male non conta, come nel browser. Il valore si confronta come testo: `red` e `#ff0000` sono diversi, quindi conviene controllare il valore solo quando la consegna lo impone. |
 | `classe("evidenza")` | La classe è usata da un elemento della pagina ed è definita nel CSS. |
 | `classi_coerenti()` | Ogni classe usata nelle pagine indicate (senza argomenti la principale) è definita nel CSS e viceversa: trova i nomi scritti in modo diverso. |
-| `nessuno_stile_interno()` | Niente `` nella pagina e niente attributi style: tutto lo stile sta nel file CSS. |
+| `nessuno_stile_interno()` | Niente `<style>` nella pagina e niente attributi style: tutto lo stile sta nel file CSS. |
+
+**Il CSS nella pagina: `<style>` e attributo style**
+
+| Test | Che cosa controlla |
+|---|---|
+| `stile_interno()` | C'è un `<style>` con almeno una regola, dentro il head. |
+| `stile_interno_senza_errori()` | Nelle regole scritte nel `<style>` della pagina non ci sono errori di scrittura (gli stessi di `css_senza_errori()`), con la riga della pagina. |
+| `stile_interno_regola("h1", "color")` | Come `css_regola`, ma sulle regole scritte nel `<style>` della pagina. |
+| `in_linea_senza_errori()` | Gli attributi style della pagina sono scritti bene: `proprietà: valore` separate da ;, senza graffe. |
+| `in_linea("p", "color")` | Un elemento del tipo indicato ha l'attributo style; se indicate, con la proprietà e con il valore (`in_linea("p", "color", "green")`). |
 
 **Il JavaScript**
 
 | Test | Che cosa controlla |
 |---|---|
-| `js_collegato("js/script.js")` | La pagina collega quello script con ``, vuoto. |
+| `js_collegato("js/script.js")` | La pagina collega quello script con `<script src="…">`, vuoto. |
 | `js_caricato_dopo_la_pagina()` | Gli script collegati partono dopo il caricamento della pagina: in fondo al body, oppure nel head con `defer`. Da usare se lo insegni così. |
 | `js_senza_errori()` | Errori di sintassi negli script della pagina (file collegati e script interni), con la riga e il messaggio in italiano. Usa `node --check` su Jobe; se node non parte, un controllo più semplice di parentesi, graffe e virgolette. |
 | `js_funzione("mostraOrari")` | C'è una funzione con quel nome: `function nome(…)`, `const nome = function` o a freccia. Segnala lo stesso nome con le maiuscole diverse. |
 | `js_contiene("addEventListener")` | Il codice contiene il testo, senza contare i commenti. Con `messaggio="…"` si sceglie la frase che lo studente vede se manca. |
 | `id_coerenti()` | Ogni id cercato con `getElementById` o `querySelector` con # esiste nella pagina: l'errore che lo studente vede solo come «non succede niente». |
-| `nessuno_script_interno()` | Niente codice dentro `` nella pagina e niente attributi `onclick`, `onload`…: tutto sta nel file .js. |
+| `nessuno_script_interno()` | Niente codice dentro `<script>` nella pagina e niente attributi `onclick`, `onload`…: tutto sta nel file .js. |
 | `diagnosi_node()` | Solo per il docente, in una domanda di prova: dice se node funziona su Jobe. |
 <!-- funzioni-html-con-file: fine -->
 

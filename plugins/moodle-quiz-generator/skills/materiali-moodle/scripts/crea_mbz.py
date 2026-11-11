@@ -145,7 +145,12 @@ def formato(el, tag):
 def mimetype_di(nome):
     est = os.path.splitext(nome or "")[1].lower()
     return {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif",
-            ".svg": "image/svg+xml", ".webp": "image/webp"}.get(est, "document/unknown")
+            ".svg": "image/svg+xml", ".webp": "image/webp",
+            # file da scaricare dal testo di una domanda ([testo](sito-scuola.zip) nella dashboard)
+            ".zip": "application/zip", ".html": "text/html", ".htm": "text/html", ".css": "text/css",
+            ".js": "application/javascript", ".txt": "text/plain", ".pdf": "application/pdf",
+            ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}.get(est, "document/unknown")
 
 
 def leggi_domande(percorso):

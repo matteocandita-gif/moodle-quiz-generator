@@ -14,8 +14,9 @@ EXPORT, QUIZ_ID, USCITA  come per da_dashboard.py
                 se manca la cerca accanto a materiali-moodle
 --php=CARTELLA  cartella scripts/ della skill domande-php-mysqli-mock (righe CodeRunner PHP)
 --nome=BASE     nome dei file prodotti (predefinito: quiz); / e \\ diventano -
---immagini=CARTELLA  cartella con le immagini citate nelle tracce come ![testo](nome.png): vengono
-                incorporate nell'XML (allega_immagini.py) e quindi nell'.mbz; obbligatoria se ce ne sono
+--immagini=CARTELLA  cartella con le immagini citate nelle tracce come ![testo](nome.png) e i file da scaricare
+                citati come [testo](sito-scuola.zip): vengono incorporati nell'XML (allega_immagini.py) e
+                quindi nell'.mbz; obbligatoria se ce ne sono
 --varianti=a    verifiche ripetibili: genera solo le varianti indicate (lettera finale della posizione);
                 le righe senza tag restano tutte (vedi da_dashboard.py)
 --pdp           crea anche la copia PDP (BASE-PDP.mbz) con crea_pdp.py: tolte le posizioni segnate
@@ -163,7 +164,8 @@ def main():
         print(metti_tag(finale, json.load(open(ptag, encoding="utf-8"))))
     if "@@PLUGINFILE@@" in open(finale, encoding="utf-8").read():
         if not opz.get("immagini"):
-            raise SystemExit("Le tracce citano delle immagini: indica la cartella che le contiene con --immagini=")
+            raise SystemExit("Le tracce citano delle immagini o dei file da scaricare: indica la cartella che li "
+                             "contiene con --immagini=")
         esegui([os.path.join(QUI, "allega_immagini.py"), finale, opz["immagini"]], "immagini")
     esegui([os.path.join(QUI, "controlla_xml.py"), finale], "controllo")
     if salta:

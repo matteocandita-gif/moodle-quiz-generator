@@ -10,7 +10,7 @@ import subprocess
 import sys
 
 QUI = os.path.dirname(os.path.abspath(__file__))
-SERIE = ["test_prove.py", "test_css.py", "test_js.py", "test_link.py"]
+SERIE = ["test_prove.py", "test_css.py", "test_js.py", "test_link.py", "test_stile.py"]
 male = []
 for nome in SERIE:
     r = subprocess.run([sys.executable, os.path.join(QUI, nome)], cwd=QUI, capture_output=True, text=True)

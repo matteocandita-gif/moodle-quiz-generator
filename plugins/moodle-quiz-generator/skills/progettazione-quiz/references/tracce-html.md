@@ -12,6 +12,43 @@ Tipologie `libero_html` e `libero_css`: esercizi liberi a correzione manuale con
 
 In Moodle la domanda ha un solo test fittizio che si aspetta «codice salvato!» (`php_con_test`) o «codice salvato» (`html` e `css`), e il pulsante di verifica è nascosto (`hidecheck: 1`), perché darebbe sempre esito positivo. Alla consegna il test dà pieni punti a ogni risposta non vuota, e il punteggio vero lo mette il docente correggendo a mano. Con `php_con_test` (non con `html`) risposta e codice di partenza sono nel formato JSON dello scratchpad (`{"answer_code":[…],"test_code":[""],"show_hide":["1"],"prefix_ans":["1"]}` nel codice di partenza): lo scrive `da_dashboard.py`, nella dashboard si scrive solo il codice.
 
+## Esercizi con controllo (CodeRunner css_con_test)
+
+Tipologia `esercizio_controllo`: lo studente scrive il codice nella casella di risposta e i controlli del prototipo `css_con_test` gli dicono che cosa va e che cosa no, con il numero di riga («regola «p» (riga 2): manca il ; dopo «color: blue»»). Sono gli stessi controlli della consegna con controllo automatico (`tracce-consegna.md`, «I controlli»), applicati al testo della casella invece che a un file. Si usa per gli esercizi brevi che il controllo può verificare: scrivere una regola CSS, correggere una regola sbagliata, dare uno stile in linea a un tag, scrivere il `<style>` di una piccola pagina. Quando conta come appare la pagina, o lo studente lavora sui file del suo computer, restano l'«Esercizio CSS» o «HTML» e la consegna con controllo automatico.
+
+- `traccia`: la consegna, come per gli altri esercizi (che cosa scrivere, su quali elementi, con quali proprietà). Nessun campo Cloze né opzione.
+- `correzione`: diventa il feedback generale (di solito una soluzione commentata o il perché della regola).
+- `coderunner` («Soluzione e test»):
+
+```text
+=== options
+risposta: css
+controllo: visibile
+=== answer
+p {
+    color: blue;
+    font-size: 18px;
+}
+=== test 1
+css_senza_errori()
+=== extra
+La regola è scritta senza errori: graffe, due punti, punto e virgola
+=== test 2
+css_regola("p", "color", "blue")
+=== extra
+I paragrafi hanno il testo blu
+=== test 1
+css_regola("p", "font-size")
+=== extra
+I paragrafi hanno una dimensione del testo
+```
+
+- **`=== options`**: `risposta: css` (predefinito: la casella contiene un foglio di stile, che si controlla con `css_senza_errori()` e `css_regola(...)`) oppure `risposta: html` (codice HTML, anche solo un pezzo di pagina: si controlla con le funzioni della pagina, `in_linea(...)`, `in_linea_senza_errori()`, `stile_interno(...)` e le altre); `controllo: visibile` (predefinito: pulsante **Verifica** e tabella dei controlli, lo studente corregge e riprova) oppure `controllo: nascosto` (niente Verifica e niente risultati durante il tentativo, il punteggio si calcola alla consegna, come in una verifica); `righe: N` per l'altezza della casella (predefinite 8 per il CSS, 12 per l'HTML).
+- **`=== answer`** obbligatoria: la soluzione di riferimento. La parte 2 la esegue con i controlli e si ferma se non li supera tutti, quindi un controllo sbagliato si scopre prima di Moodle.
+- **`=== preload`** facoltativa: il codice già scritto nella casella, per esempio una regola con un errore da correggere (debugging). Mai nelle verifiche (regola delle verifiche di programmazione).
+- **`=== test PESO`** con **`=== extra`**: come nella consegna con controllo automatico (`tracce-consegna.md`), un controllo per requisito, il peso mai 0, la frase dell'extra detta in positivo. Il controllo degli errori di scrittura (`css_senza_errori()`, `in_linea_senza_errori()`, `stile_interno_senza_errori()`) va sempre per primo: è quello che spiega perché gli altri non passano.
+- **Il valore si confronta come testo**: `css_regola("p", "color", "blue")` non accetta `#0000ff`. Si controlla il valore solo quando la traccia lo impone; altrimenti basta la proprietà.
+
 ## Le altre regole
 
 - **Codice indentato**: il codice HTML nelle tracce, nelle correzioni e nelle soluzioni si scrive indentato di 4 spazi, come nei modelli dell'utente: head e body a filo con html, il loro contenuto rientrato, e un livello in più dentro ul, ol, table e tr. Gli spazi arrivano così come sono nella dashboard e in Moodle.

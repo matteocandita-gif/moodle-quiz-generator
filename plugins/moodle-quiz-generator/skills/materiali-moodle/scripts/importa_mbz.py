@@ -68,7 +68,7 @@ PREFISSI = {  # prefisso del nome -> tipologie possibili (la prima è quella pre
     "Esempio guidato": ["guidato"], "Debug": ["debug_msg", "debug_silenzioso", "debug_motivazione"],
     "Esercizio libero": ["esercizio_libero", "libero_html", "libero_css"],
     "Scrivere": ["prog_completo", "funzione", "prog_dati", "prog_random", "query", "create_tabelle",
-                 "query_due_passi", "pagina_php", "scrittura_scheletro"],
+                 "query_due_passi", "pagina_php", "scrittura_scheletro", "esercizio_controllo"],
     "Esercizio": ["vincoli"], "Campo di prova": ["campo_prova"], "Consegna": ["consegna_file", "consegna_auto"],
 }
 PAGINE = {"istruzioni", "comelavoriamo", "paginablocco"}
@@ -927,6 +927,25 @@ class Importatore:
                 sez.append(("test %s" % ("%g" % peso), t["testcode"].replace("\r", "").strip("\n")))
                 sez.append(("extra", t["extra"].strip()))
             tip = "consegna_auto"
+        elif tl == "css_con_test":
+            # esercizio con controllo: che cosa scrive lo studente dai parametri del template, controllo
+            # nascosto dal pulsante Verifica nascosto, un test per controllo con peso ed extra
+            try:
+                pagina = (json.loads(tx(o, "templateparams") or "{}") or {}).get("pagina", "")
+            except ValueError:
+                pagina = ""
+            opzioni.append("risposta: %s" % ("css" if (pagina or "stile.css").endswith(".css") else "html"))
+            if tx(o, "hidecheck", "0") not in ("0", ""):
+                opzioni.append("controllo: nascosto")
+            sez.append(("options", "\n".join(opzioni)))
+            if preload.strip():
+                sez.append(("preload", preload.strip("\n")))
+            sez.append(("answer", answer.strip("\n")))
+            for t in test:
+                peso = float(t["mark"] or 1)
+                sez.append(("test %s" % ("%g" % peso), t["testcode"].replace("\r", "").strip("\n")))
+                sez.append(("extra", t["extra"].strip()))
+            tip = "esercizio_controllo"
         elif tl.startswith("javascript"):
             gap = "gapfiller" in tl
             tp = {}

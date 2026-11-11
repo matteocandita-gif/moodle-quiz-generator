@@ -75,6 +75,22 @@
 </tbody>
 </table>
 <p>I controlli CSS leggono i fogli collegati dalla pagina che si sta controllando. Non vedono com'è la pagina nel browser: il risultato della cascata, le regole che si sovrascrivono, i colori che si vedono davvero.</p>
+<p><strong>Funzioni di controllo: il CSS nella pagina</strong> (<span style="font-family: monospace;">&lt;style&gt;</span> e attributo style)</p>
+<table style="border-collapse: collapse; margin: 8px 0;">
+<thead>
+<tr>
+<th style="border: 1px solid #999999; padding: 4px 8px; background-color: #eeeeee; text-align: left;">Test</th>
+<th style="border: 1px solid #999999; padding: 4px 8px; background-color: #eeeeee; text-align: left;">Che cosa controlla</th>
+</tr>
+</thead>
+<tbody>
+<tr><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;"><span style="font-family: monospace;">stile_interno()</span></td><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;">C'è un <span style="font-family: monospace;">&lt;style&gt;</span> con almeno una regola, dentro il head.</td></tr>
+<tr><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;"><span style="font-family: monospace;">stile_interno_senza_errori()</span></td><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;">Nelle regole scritte nel <span style="font-family: monospace;">&lt;style&gt;</span> della pagina non ci sono errori di scrittura (gli stessi di <span style="font-family: monospace;">css_senza_errori()</span>), con la riga della pagina.</td></tr>
+<tr><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;"><span style="font-family: monospace;">stile_interno_regola(&quot;h1&quot;, &quot;color&quot;)</span></td><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;">Come <span style="font-family: monospace;">css_regola</span>, ma sulle regole scritte nel <span style="font-family: monospace;">&lt;style&gt;</span> della pagina.</td></tr>
+<tr><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;"><span style="font-family: monospace;">in_linea_senza_errori()</span></td><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;">Gli attributi style della pagina sono scritti bene: <span style="font-family: monospace;">proprietà: valore</span> separate da ;, senza graffe.</td></tr>
+<tr><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;"><span style="font-family: monospace;">in_linea(&quot;p&quot;, &quot;color&quot;)</span></td><td style="border: 1px solid #999999; padding: 4px 8px; background-color: #ffffff;">Un elemento del tipo indicato ha l'attributo style; se indicate, con la proprietà e con il valore (<span style="font-family: monospace;">in_linea("p", "color", "green")</span>).</td></tr>
+</tbody>
+</table>
 <p><strong>Funzioni di controllo: il JavaScript</strong></p>
 <table style="border-collapse: collapse; margin: 8px 0;">
 <thead>
@@ -200,6 +216,11 @@ def prepara_consegna():
 
 def scegli_pagina(file_consegnati):
     """Trova il file da controllare: PAGINA se indicato, altrimenti l'unico .html in cima."""
+    if PAGINA.lower().endswith(".css") and not ALLEGATI:
+        # prototipo css_con_test: la casella contiene un foglio di stile, non una pagina
+        if PAGINA in file_consegnati:
+            return PAGINA, ""
+        return None, "La risposta è vuota: scrivi il codice CSS nella casella."
     html = [f for f in file_consegnati if f.lower().endswith((".html", ".htm"))]
     if PAGINA:
         trovati = [f for f in html if posixpath.basename(f) == PAGINA]
@@ -299,6 +320,10 @@ def usa_pagina(percorso):
         raise ConsegnaIncompleta("Non trovo la pagina %s nella tua consegna." % percorso)
     PAGINA_SCELTA = completo
     LETTORE = Lettore()
+    if completo.lower().endswith(".css"):
+        LETTORE.close()          # un foglio di stile nella casella: nessun elemento HTML
+        ELEMENTI = LETTORE.elementi
+        return
     LETTORE.feed(leggi_testo(os.path.join(CARTELLA, completo)))
     LETTORE.close()
     ELEMENTI = LETTORE.elementi
@@ -757,6 +782,9 @@ def normalizza_selettore(selettore):
 
 def fogli_della_pagina():
     """I fogli di stile collegati dalla pagina con <link rel="stylesheet"> che esistono nella consegna."""
+    if PAGINA_SCELTA and PAGINA_SCELTA.lower().endswith(".css"):
+        # prototipo css_con_test: il foglio è la risposta scritta nella casella
+        return [FoglioDiStile(dal_sito(PAGINA_SCELTA), leggi_testo(os.path.join(CARTELLA, PAGINA_SCELTA)))]
     fogli = []
     for e in trova("link"):
         if "stylesheet" in e.attributi.get("rel", "").lower():
@@ -820,6 +848,11 @@ def css_regola(selettore, proprieta=None, valore=None):
     if not fogli:
         esito(senza_fogli())
         return
+    regola_nei_fogli(fogli, selettore, proprieta, valore)
+
+
+def regola_nei_fogli(fogli, selettore, proprieta=None, valore=None):
+    """Il controllo di css_regola sui fogli indicati (file collegati, oppure lo stile scritto nella pagina)."""
     cercato = normalizza_selettore(selettore)
     regole = [r for f in fogli for r in f.regole if cercato in r["selettori"]]
     if not regole:
@@ -894,6 +927,129 @@ def nessuno_stile_interno():
     problemi += ['Riga %d: <%s> ha l\'attributo style: lo stile va nel file CSS.' % (e.riga, e.tag)
                  for e in ELEMENTI if "style" in e.attributi]
     esito(problemi)
+
+
+# ------------------------------------------------------------ CSS nella pagina: <style> e attributo style
+
+def fogli_interni():
+    """Lo stile scritto nei <style> della pagina, letto come un foglio di stile (righe come nella pagina)."""
+    fogli = []
+    for e in trova("style"):
+        testo_style = "".join(e.pezzi_di_testo)
+        fogli.append(FoglioDiStile("<style>", "\n" * (e.riga - 1) + testo_style))
+    return fogli
+
+
+def senza_style():
+    """Il messaggio quando la pagina non ha un <style>, con il motivo più probabile."""
+    if any("style" in e.attributi for e in ELEMENTI):
+        return ["Nella pagina non c'è un <style>: lo stile è scritto con l'attributo style dentro i tag."]
+    if any("stylesheet" in e.attributi.get("rel", "").lower() for e in trova("link")):
+        return ["Nella pagina non c'è un <style>: lo stile è in un file CSS collegato con <link>."]
+    return ["Nella pagina non c'è un <style> con le regole CSS (va dentro <head>)."]
+
+
+def stile_interno():
+    """C'è un <style> con almeno una regola, dentro <head>."""
+    elementi_style = trova("style")
+    if not elementi_style:
+        esito(senza_style())
+        return
+    problemi = ["Riga %d: il <style> deve stare dentro <head>." % e.riga
+                for e in elementi_style if not any(a.tag == "head" for a in e.antenati())]
+    if not problemi and not any(f.regole for f in fogli_interni()):
+        problemi = ["Riga %d: il <style> è vuoto: scrivi dentro le regole CSS." % elementi_style[0].riga]
+    esito(problemi)
+
+
+def stile_interno_senza_errori():
+    """Nello stile scritto nel <style> della pagina non ci sono errori di scrittura."""
+    fogli = fogli_interni()
+    if not fogli:
+        esito(senza_style())
+        return
+    esito([p for foglio in fogli for p in foglio.problemi])
+
+
+def stile_interno_regola(selettore, proprieta=None, valore=None):
+    """Nel <style> della pagina c'è una regola per il selettore; se indicate, con la proprietà e il valore."""
+    fogli = fogli_interni()
+    if not fogli:
+        esito(senza_style())
+        return
+    regola_nei_fogli(fogli, selettore, proprieta, valore)
+
+
+def leggi_style(e):
+    """Le dichiarazioni dell'attributo style di un elemento: (dichiarazioni valide, problemi, proprietà scritte male)."""
+    testo_style = e.attributi.get("style", "")
+    dichiarazioni, problemi, scritte_male = [], [], []
+    dove = "Riga %d, attributo style di <%s>" % (e.riga, e.tag)
+    if "{" in testo_style or "}" in testo_style:
+        problemi.append("%s: nell'attributo style non ci vanno le graffe, solo proprietà: valore;" % dove)
+        testo_style = testo_style.replace("{", " ").replace("}", " ")
+    if not testo_style.strip():
+        problemi.append("%s: è vuoto." % dove)
+    for pezzo in testo_style.split(";"):
+        if not pezzo.strip():
+            continue
+        if ":" not in pezzo:
+            problemi.append("%s: «%s» non è nella forma proprietà: valore." % (dove, " ".join(pezzo.split())[:40]))
+            continue
+        proprieta, valore = pezzo.split(":", 1)
+        proprieta = proprieta.strip().lower()
+        valore = " ".join(valore.split())
+        valida = True
+        if "url(" not in valore and re.search(r"\s[a-z-]+\s*:", " " + valore):
+            problemi.append("%s: manca il ; dopo «%s: %s»." % (dove, proprieta,
+                                                              re.split(r"\s[a-z-]+\s*:", " " + valore)[0].strip()))
+            valida = False
+        if not valore:
+            problemi.append("%s: la proprietà %s non ha un valore." % (dove, proprieta))
+            valida = False
+        if valida:
+            dichiarazioni.append((proprieta, valore))
+        else:
+            scritte_male.append(proprieta)
+    return dichiarazioni, problemi, scritte_male
+
+
+def in_linea_senza_errori():
+    """Gli attributi style della pagina sono scritti bene: proprietà: valore, separate da ;."""
+    con_style = [e for e in ELEMENTI if "style" in e.attributi]
+    if not con_style:
+        esito(["Nella pagina nessun tag ha l'attributo style."])
+        return
+    esito([p for e in con_style for p in leggi_style(e)[1]])
+
+
+def in_linea(tag, proprieta=None, valore=None):
+    """Un elemento del tipo indicato ha l'attributo style; se indicate, con la proprietà e il valore."""
+    elementi_tag = trova(tag)
+    if not elementi_tag:
+        esito(["Nella pagina non c'è nessun <%s>." % tag])
+        return
+    con_style = [e for e in elementi_tag if "style" in e.attributi]
+    if not con_style:
+        esito(["Nessun <%s> ha l'attributo style." % tag])
+        return
+    if proprieta is None:
+        esito([])
+        return
+    letti = [(e, leggi_style(e)) for e in con_style]
+    valori = [(e, v) for e, (dich, _, _) in letti for p, v in dich if p == proprieta.lower()]
+    scritta_male = [e for e, (_, _, male) in letti if proprieta.lower() in male]
+    if not valori and scritta_male:
+        esito(["Riga %d: nell'attributo style di <%s> la proprietà %s è scritta male, quindi il browser "
+               "la ignora: guarda il controllo degli errori." % (scritta_male[0].riga, tag, proprieta)])
+    elif not valori:
+        esito(["L'attributo style di <%s> non ha la proprietà %s." % (tag, proprieta)])
+    elif valore is not None and " ".join(valore.lower().split()) not in [v.lower() for _, v in valori]:
+        e, v = valori[-1]
+        esito(['Riga %d: nell\'attributo style di <%s>, %s vale "%s": qui serve "%s".'
+               % (e.riga, tag, proprieta, v, valore)])
+    else:
+        esito([])
 
 
 
