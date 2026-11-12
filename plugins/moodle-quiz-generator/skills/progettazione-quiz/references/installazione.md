@@ -60,6 +60,7 @@ Esportare («Quiz da esportare: <id>»)
 - Prima di cominciare: `update` del quiz con `esportazione` uguale a `{stato: "in-corso", richiesta: <quella che c'è>, inizio: <data e ora ISO>, fine: null, esito: null, file: null}` (con `if_version`).
 - Genera il backup `.mbz` con `genera_quiz.py`, con il nome del quiz (`nomeQuiz`, o la lezione e il titolo come nei quiz già generati: `<lezione> - <titolo>`). Se il quiz ha `deposito` e righe con il campo `pdp`, genera anche la copia PDP. Se le tracce citano immagini, cercale come dicono le note del quiz: se non le trovi in questa sessione, non generare un backup senza immagini.
 - Non cambiare le righe né le tracce. Se lo script trova errori, il backup non si consegna: si scrive l'errore.
+- Se in questa sessione il database non si può salvare su file, non ricopiare le righe a mano: scrivi `esportazione` con `stato: "errore"` e l'esito «Serve il file del pulsante «Scarica il quiz»: allegalo in una chat con Claude».
 - Consegna in questa sessione con `SendUserFile` solo il `.mbz` (l'XML solo se la richiesta lo chiede).
 - Alla fine scrivi nel quiz `esportazione` con `stato: "fatta"` (oppure `"errore"`), `fine` (data e ora ISO), `file` (il nome del `.mbz`) ed `esito`: una riga con domande, punti, errori e avvisi del controllo, oppure il motivo dell'errore. La dashboard mostra questa riga.
 - L'utente non è presente: non fare domande. Chiudi con un messaggio breve: i file, l'esito del controllo, gli avvisi da guardare.

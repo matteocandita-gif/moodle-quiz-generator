@@ -18,7 +18,16 @@ Ripetere subito la stessa operazione aiuta a fissarla: la prima volta lo student
 - **Feedback delle due domande**: quello della prima spiega il procedimento; quello della seconda dice solo dove si è sbagliato («No: controllate il selettore»), e la spiegazione completa sta nella `correzione`. Nessuno dei due svela l'altra domanda, che sta sulla stessa pagina.
 - **Esercizi pratici brevi**, svolti dentro Moodle (CodeRunner, esercizio con controllo): due volte, la prima con lo strumento **suggerito**, la seconda con il solo obiettivo (strumento **non nominato**), su un caso diverso.
 - **Esercizi lunghi con una consegna di file**: una volta sola.
-- **Esercizio finale**: ha un doppio **per casa**, in un **quiz separato** di tipo EP (non in fondo all'esercitazione), con il titolo che dice che è per casa («1-CSS per casa: …», nome del quiz «Per casa - …»): stessa struttura e stessi criteri dell'esercizio finale, contesto e valori nuovi. La soluzione di riferimento sta nella `correzione`, così lo studente la vede nella revisione dopo la consegna. Le istruzioni del quiz dicono che è il lavoro per casa e che cosa serve.
+- **Esercizio finale**: ha un doppio **per casa**, in un **quiz separato** di tipo EP (non in fondo all'esercitazione), con il titolo che dice che è per casa («Per casa🏠 - 1. CSS: …», vedi «Il nome del quiz in Moodle»): stessa struttura e stessi criteri dell'esercizio finale, contesto e valori nuovi. La soluzione di riferimento sta nella `correzione`, così lo studente la vede nella revisione dopo la consegna. Le istruzioni del quiz dicono che è il lavoro per casa e che cosa serve.
+
+## Il nome del quiz in Moodle (ED, EDT, EP, ER)
+
+Il nome con cui il quiz compare nel corso (`nomeQuiz`, e il `titolo` nel menù della dashboard) dice dove si svolge e a quale lezione appartiene:
+
+- in classe: `In classe🛠️ - N. <argomento>: <titolo>`, per esempio «In classe🛠️ - 3. HTML: file, percorsi e link»;
+- per casa: `Per casa🏠 - N. <argomento>: <titolo>`, per esempio «Per casa🏠 - 3. HTML: i link del sito della gelateria».
+
+`N` è il numero progressivo della lezione dentro l'argomento (HTML, CSS…), **uguale** per l'esercitazione in classe e per il suo quiz per casa. Le emoji stanno solo nel nome del quiz: nei testi di pagine e domande non si usano. Il nome del file `.mbz` è lo stesso senza emoji, con ` - ` al posto dei due punti («In classe - 3. HTML - file, percorsi e link.mbz»). Le verifiche non seguono questo schema.
 
 ## ED · Esercitazione con spiegazione di dettaglio
 

@@ -2,6 +2,17 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.14.1 — 12/11/2026
+
+Generare il backup anche nelle chat in cui Claude non riesce a salvare la dashboard su file.
+
+- **Dashboard** (pagina 0.6.3): nel riquadro «Avanzamento» del quiz, quando ci sono le tracce, i pulsanti **«Scarica il quiz»** e **«Copia il quiz»**. Il primo scarica un file solo (`<id>.quiz.json`) con il quiz, tutte le righe e le impostazioni che servono a generare (depositi, Safe Exam Browser, domanda delle note, PDP). Lo alleghi in chat, oppure lo metti nella cartella collegata, e Claude genera il backup da lì. «Copia il quiz» serve se lo scaricamento non parte.
+- **Perché**: in alcune chat Claude legge la dashboard ma non può salvarla su file, e fin qui doveva ricopiare le righe a mano, con il rischio che il backup non fosse identico alla dashboard. Ora in quel caso chiede il file e non ricopia più niente.
+- **Generatore**: `genera_quiz.py` accetta direttamente il file scaricato al posto della cartella di esportazione. Il risultato è lo stesso: provato sui due quiz di prova, l'XML è identico byte per byte. Se il file ha più di un'ora, lo script avvisa di chiederne uno nuovo.
+- **«Esporta» dalla pagina**: se la sessione avviata non può salvare la dashboard su file, si ferma e scrive nell'esito che serve il file scaricato, invece di arrangiarsi. Il testo nuovo dell'attività programmata è in `installazione.md`.
+- **Il nome dei quiz delle esercitazioni** («In classe🛠️ - N. argomento: titolo», «Per casa🏠 - N. …»): la regola dell'11/11 non era arrivata nel plugin, ora è nel preset delle esercitazioni.
+- Prove superate.
+
 ## 0.14.0 — 11/11/2026
 
 Chiude il lavoro di riordino delle skill cominciato con la 0.13.5. Il plugin riordinato è stato provato su tre quiz veri, uno per tipo, dalla scaletta al ripristino in Moodle: uno studio con domande (quinta, «Il mondo dei dati»), una verifica SQL (quinta, JOIN e aggregazione) e un'esercitazione (quarta, introduzione a CSS). In questa versione entrano le regole nate da quelle prove.

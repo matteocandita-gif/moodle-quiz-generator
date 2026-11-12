@@ -6,8 +6,12 @@ Uso:
                            [--salta-coderunner] [--varianti=a[,b...]] [--immagini=CARTELLA]
                            [--pdp [--pdp-pei] [--pdp-dichiarazione=mappe|tempo|generica|nessuna]]
                            [--banca-note=FILE] [--senza-note]
+    python3 genera_quiz.py FILE.quiz.json USCITA [le stesse opzioni]
 
 EXPORT, QUIZ_ID, USCITA  come per da_dashboard.py
+FILE.quiz.json  al posto di EXPORT e QUIZ_ID: il file del pulsante «Scarica il quiz» della dashboard, quando
+                la sessione non può salvare il database su file. Viene spacchettato in USCITA/export
+                (spacchetta_quiz.py) e il resto procede uguale; l'id del quiz è quello scritto nel file
 --js=CARTELLA   cartella scripts/ della skill domande-coderunner-js (serve se il quiz ha righe
                 CodeRunner JavaScript); se manca la cerca accanto a materiali-moodle
 --sql=CARTELLA  cartella scripts/ della skill domande-coderunner-sql (righe CodeRunner SQL);
@@ -107,9 +111,19 @@ def cerca_js(skill="domande-coderunner-js"):
 
 def main():
     a = [x for x in sys.argv[1:] if not x.startswith("--")]
-    if len(a) != 3:
+    if len(a) == 2 and os.path.isfile(a[0]):
+        # il file del pulsante «Scarica il quiz» della dashboard: si spacchetta in USCITA/export
+        sys.path.insert(0, QUI)
+        import spacchetta_quiz
+        usc = a[1]
+        export = os.path.join(usc, "export")
+        print("== file scaricato dalla dashboard")
+        qid, msg = spacchetta_quiz.spacchetta(a[0], export)
+        print("\n".join(msg))
+    elif len(a) == 3:
+        export, qid, usc = a
+    else:
         raise SystemExit(__doc__)
-    export, qid, usc = a
     opz = dict(x[2:].split("=", 1) for x in sys.argv[1:] if x.startswith("--") and "=" in x)
     salta = "--salta-coderunner" in sys.argv
     base = re.sub(r"[/\\]", "-", opz.get("nome", "quiz"))
