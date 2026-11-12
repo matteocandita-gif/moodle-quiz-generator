@@ -1807,28 +1807,29 @@ function pacchettoQuiz(q,rows,imp,quando){
   return {formato:"bozze-dei-quiz",versione:1,pagina:VERSIONE_PAGINA,scaricato:quando,quiz:Object.assign({},q),
     domande:rows.map(function(r){return Object.assign({},r);}),impostazioni:imp||{}};
 }
-async function testoScarico(q){
-  const imp={};
-  for(const n of IMPOSTAZIONI_SCARICO){
-    try{const s=await S.db.doc("impostazioni/"+n).get();if(s&&s.exists)imp[n]=s.data()||{};}catch(e){}
-  }
-  return JSON.stringify(pacchettoQuiz(q,S.rows,imp,new Date().toISOString()),null,1);
+function testoScarico(q){
+  return JSON.stringify(pacchettoQuiz(q,S.rows,Object.assign({},S.impScarico||{}),new Date().toISOString()),null,1);
 }
+/* Lo scaricamento passa dalla capacità «downloads» (la pagina non può scaricare da sola): chi guarda conferma il salvataggio.
+   Copia e salvataggio partono subito dal clic, senza attese prima: per questo le impostazioni sono già lette (init). */
 async function scaricaQuiz(q,copia){
   if(!S.db||!S.rows.length||S.rowsFor!==q.id)return;
   let testo="";
-  try{testo=await testoScarico(q);}catch(e){toast("Non riesco a preparare il file del quiz.",true);return;}
+  try{testo=testoScarico(q);}catch(e){toast("Non riesco a preparare il file del quiz.",true);return;}
   if(copia){
     try{await navigator.clipboard.writeText(testo);toast("Quiz copiato: incollalo in chat con Claude.");}
-    catch(e){toast("Copia non riuscita: usa «Scarica il quiz».",true);}
+    catch(e){toast("Copia non riuscita"+(S.downloads?": usa «Scarica il quiz».":"."),true);}
     return;
   }
+  if(!S.downloads){toast("Da questa vista lo scaricamento non è disponibile: usa «Copia il quiz».",true);return;}
   try{
-    const url=URL.createObjectURL(new Blob([testo],{type:"application/json"}));
-    const a=document.createElement("a");a.href=url;a.download=q.id+".quiz.json";document.body.appendChild(a);a.click();a.remove();
-    setTimeout(function(){URL.revokeObjectURL(url);},2000);
-    toast("File "+q.id+".quiz.json scaricato: allegalo in chat con Claude.");
-  }catch(e){toast("Scaricamento non riuscito: usa «Copia il quiz» e incollalo in chat.",true);}
+    await S.downloads.save({filename:q.id+".quiz.json",data:testo});
+    toast("File "+q.id+".quiz.json salvato: allegalo in chat con Claude.");
+  }catch(e){
+    const c=e&&e.code;
+    if(c==="declined")return;
+    toast(c==="rate_limited"?"C'è già una richiesta di salvataggio aperta: riprova tra poco.":"Scaricamento non riuscito"+(c?" ("+c+")":"")+": usa «Copia il quiz».",true);
+  }
 }
 async function avviaSessione(id,titolo,materiale){
   let motivo="";
@@ -1898,7 +1899,7 @@ function metaHTML(q){
   btn='<div class="actrow">'+btn+"</div>";
   if(hint)btn+='<div class="hint">'+esc(hint)+"</div>";
   btn+=esportazioneHTML(q);
-  if(/^dettaglio/.test(q.fase||"")&&S.rows.length)btn+='<div class="actrow"><button class="btn sm" data-act="scarica-quiz">'+ico("down")+'Scarica il quiz</button><button class="btn sm" data-act="copia-quiz">Copia il quiz</button><span class="hint">Per generare il backup in una chat: allega il file a Claude. Serve quando Claude non riesce a salvare la dashboard su file.</span></div>';
+  if(/^dettaglio/.test(q.fase||"")&&S.rows.length)btn+='<div class="actrow">'+(S.downloads?'<button class="btn sm" data-act="scarica-quiz">'+ico("down")+'Scarica il quiz</button>':"")+'<button class="btn sm" data-act="copia-quiz">Copia il quiz</button><span class="hint">Per generare il backup in una chat: allega il file a Claude (o incolla il quiz copiato). Serve quando Claude non riesce a salvare la dashboard su file.</span></div>';
   if(q.fase==="dettaglio-approvato"&&!espInCorso(q))btn+='<div class="actrow"><button class="btn sm" data-act="segna-esportato">'+(esportato(q)?"Segna come da esportare":"Segna come già esportato")+'</button><span class="hint">Se hai generato il backup in un altro modo, o se lo devi rifare.</span></div>';
   return '<section class="meta" aria-label="Dati del quiz">'+
     '<label class="fld wide"><span>Nome del quiz (menù e attività in Moodle)</span><input class="ctl" '+k("titolo")+' value="'+esc(q.titolo)+'" aria-label="Nome del quiz"></label>'+
@@ -2540,6 +2541,9 @@ async function init(){
     apriNuovo();
     S.ready=true;selectQuiz();render();
   },function(err){if(err&&err.code==="revoked")S.error="revoked";else toast("Non riesco a leggere i quiz.",true);render();});
+  S.impScarico={};
+  IMPOSTAZIONI_SCARICO.forEach(function(n){db.doc("impostazioni/"+n).onSnapshot(function(snap){if(snap.exists)S.impScarico[n]=snap.data()||{};else delete S.impScarico[n];},function(){});});
+  window.claude.use("downloads").then(function(dl){if(dl&&dl.save){S.downloads=dl;render();}},function(){});
   try{const c=await window.claude.use("comments");if(c&&c.openComposer){S.comments=c;render();}}catch(e){}
 }
 init();

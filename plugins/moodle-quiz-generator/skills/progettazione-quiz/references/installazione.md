@@ -9,7 +9,7 @@ Si fa quando l'utente lo chiede («installa la dashboard dei quiz», comando `in
 1. **Controlla che non ci sia già.** `Artifact` con `action: "list"`: cerca un artifact il cui titolo contiene «Bozze dei quiz». Se c'è, non crearne un'altra: passa ad «Aggiornare».
 2. **Pubblica la pagina.** Copia `assets/dashboard.html` nella cartella di lavoro e pubblicala con `Artifact`, con `icon: "checklist"`, una `description` di una riga e queste capacità:
    ```json
-   {"db": {}, "comments": {"composer_only": true},
+   {"db": {}, "comments": {"composer_only": true}, "downloads": true,
     "mcp": {"servers": [{"server": "Claude Code Remote", "tools": ["fire_trigger"]}]}}
    ```
    L'URL del risultato è la dashboard dell'utente.
@@ -31,7 +31,7 @@ Quando l'utente ha già la dashboard ma «Inizia» non avvia la sessione (riquad
 Quando una nuova versione del plugin porta una pagina nuova (la costante `VERSIONE_PAGINA` in `assets/dashboard.html` è diversa da quella della pagina pubblicata), o quando l'utente lo chiede.
 
 1. Leggi la pagina pubblicata (`Artifact`, `action: "read"`) e confronta `VERSIONE_PAGINA`. Se è uguale, non serve niente.
-2. Ripubblica `assets/dashboard.html` sullo **stesso URL**, senza `capabilities` (restano quelle salvate). Se la pagina nuova richiede capacità diverse (lo dice il changelog del plugin), passale tutte. I quiz e le impostazioni restano: stanno nel database, non nella pagina.
+2. Ripubblica `assets/dashboard.html` sullo **stesso URL**, senza `capabilities` (restano quelle salvate). Se la pagina nuova richiede capacità diverse (lo dice il changelog del plugin), passale tutte: sono quelle del passo 2 di «Installare», e una capacità nuova si dichiara **prima** di pubblicare la pagina che la usa (dalla 0.6.3 serve `downloads`, per «Scarica il quiz»). I quiz e le impostazioni restano: stanno nel database, non nella pagina.
 3. Aggiorna `versione` in `impostazioni` / `avvio` (`update` con `if_version`).
 3a. **Collega le pagine del plugin** seguendo `references/navigazione.md`: scrive in ogni pagina installata gli indirizzi delle altre, per la barra di navigazione in cima. Va fatto anche se nessun indirizzo è cambiato: le pagine aggiornate prima della barra non hanno ancora il documento.
 3b. Se il changelog dice che è cambiato il prompt dell'attività programmata, aggiorna anche l'attività: prendi il suo id da `impostazioni` / `avvio` e sostituisci il prompt con il testo di «Prompt dell'attività», con l'URL della dashboard (`update_trigger` del connettore Claude Code Remote; cercalo con `ToolSearch` se è differito). Se lo strumento non c'è, dillo all'utente.
