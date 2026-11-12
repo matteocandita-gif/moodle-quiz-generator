@@ -59,6 +59,8 @@ Stanno in `references/` di questa skill; leggi solo quelli che servono:
 
 **Modifiche fatte in Moodle e quiz vecchi da importare**: se l'utente ha corretto delle domande direttamente in Moodle, o vuole portare nella dashboard un quiz fatto prima di questo percorso, segui `dashboard.md`, «Importare un quiz da un backup».
 
+**Registra la chat**: quando scrivi in un quiz, aggiungi questa conversazione al campo `chat` del quiz (`dashboard.md`, «Registrare la chat»), così l'utente la ritrova dalla dashboard.
+
 L'utente lavora nella pagina e poi scrive in chat; la pagina non ti avvisa. Prima di ogni scrittura rileggi le righe che tocchi e scrivi con `if_version`: l'utente può averle già cambiate, e le sue modifiche dicono che cosa voleva.
 
 **Commenti.** Quando l'utente nomina un commento, leggilo con `ArtifactComments`. Puoi rispondere nel thread e chiuderlo solo se è stato inviato a Claude («Invia a Claude» o @claude); altrimenti fai la modifica, dillo in chat e ricorda che quel thread resta aperto finché non lo chiude lui.

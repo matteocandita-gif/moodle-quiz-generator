@@ -53,7 +53,8 @@ Lavoro su un quiz Moodle partito dalla dashboard «Bozze dei quiz» dell'utente 
 5. Se `materiale` è true, non scrivere la scaletta: scrivi nelle `note` del quiz che aspetti i file in questa sessione, lascia la fase `richiesta` e fermati con un messaggio che lo dice.
 6. Altrimenti scrivi la scaletta come dice la skill: le righe in `quiz/<id>/domande` (con le varianti per tag se `varianti` è maggiore di 1), le scelte e i dubbi nelle `note` del quiz, poi porta la fase a `scaletta-revisione` e togli `inLavorazione`. Non scrivere le tracce: ci si ferma alla scaletta, che l'utente rivede nella dashboard.
 7. L'utente non è presente mentre lavori: non fare domande. Dove manca un dato prendi la scelta più ragionevole e scrivila nelle `note`. Se il quiz avrà bisogno di un database (SQL o PHP), non sceglierlo né crearlo: scrivi nelle `note` che la scelta del database va fatta dopo, insieme all'utente.
-8. Alla fine scrivi un messaggio breve: il quiz creato, quante righe, le scelte principali e i dubbi da guardare nella dashboard.
+8. Registra questa sessione nel campo `chat` del quiz (`dashboard.md`, «Registrare la chat»), con che cosa hai fatto: l'utente la ritrova dalla dashboard.
+9. Alla fine scrivi un messaggio breve: il quiz creato, quante righe, le scelte principali e i dubbi da guardare nella dashboard.
 
 Esportare («Quiz da esportare: <id>»)
 - Carica la skill `materiali-moodle` e segui «Dalla dashboard: XML e .mbz». Leggi `quiz/<id>`: se la fase non è `dettaglio-approvato`, non generare niente e scrivi nel quiz `esportazione` con `stato: "errore"` e l'esito «Il dettaglio non è approvato».
@@ -62,6 +63,6 @@ Esportare («Quiz da esportare: <id>»)
 - Non cambiare le righe né le tracce. Se lo script trova errori, il backup non si consegna: si scrive l'errore.
 - Se in questa sessione il database non si può salvare su file, non ricopiare le righe a mano: scrivi `esportazione` con `stato: "errore"` e l'esito «Serve il file del pulsante «Scarica il quiz»: allegalo in una chat con Claude».
 - Consegna in questa sessione con `SendUserFile` solo il `.mbz` (l'XML solo se la richiesta lo chiede).
-- Alla fine scrivi nel quiz `esportazione` con `stato: "fatta"` (oppure `"errore"`), `fine` (data e ora ISO), `file` (il nome del `.mbz`) ed `esito`: una riga con domande, punti, errori e avvisi del controllo, oppure il motivo dell'errore. La dashboard mostra questa riga.
+- Alla fine scrivi nel quiz `esportazione` con `stato: "fatta"` (oppure `"errore"`), `fine` (data e ora ISO), `file` (il nome del `.mbz`) ed `esito`: una riga con domande, punti, errori e avvisi del controllo, oppure il motivo dell'errore. La dashboard mostra questa riga. Nella stessa scrittura registra questa sessione nel campo `chat` del quiz (`dashboard.md`, «Registrare la chat»).
 - L'utente non è presente: non fare domande. Chiudi con un messaggio breve: i file, l'esito del controllo, gli avvisi da guardare.
 ```

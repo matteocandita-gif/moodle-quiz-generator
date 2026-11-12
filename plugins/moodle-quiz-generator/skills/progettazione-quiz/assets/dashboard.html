@@ -1553,7 +1553,7 @@ function renderHeader(){
   ["home","scaletta","dettaglio"].forEach(function(v){$("#tab-"+v).setAttribute("aria-selected",(S.view===v||(v==="home"&&S.view==="nuovo"))?"true":"false");});
 }
 /* ------------------------------------------------------------------ vista iniziale e nuovo quiz */
-const VERSIONE_PAGINA="0.6.3";
+const VERSIONE_PAGINA="0.6.4";
 const PERCORSO_IMPOSTAZIONI="impostazioni/avvio";
 /* depositi delle domande (banche qbank dei corsi deposito): li scrive Claude leggendo un backup */
 const PERCORSO_DEPOSITI="impostazioni/depositi";
@@ -1800,6 +1800,20 @@ async function esporta(q){
   }
   S.esportando=false;S.esporta={id:q.id,ok:false,motivo:motivo};render();
 }
+/* ---- chat del quiz: le conversazioni con Claude che hanno lavorato su questo quiz. Le scrive Claude nel campo
+   chat del quiz ([{url, quando, cosa}]); la pagina le mostra soltanto, dalla più recente */
+function chatValide(q){
+  return (Array.isArray(q.chat)?q.chat:[]).filter(function(c){return c&&typeof c.url==="string"&&/^https:\/\/claude\.ai\/[A-Za-z0-9_\/-]+$/.test(c.url);})
+    .slice().sort(function(a,b){return String(b.quando||"").localeCompare(String(a.quando||""));});
+}
+function chatHTML(q){
+  const l=chatValide(q);
+  if(!l.length)return "";
+  return '<div class="fld wide"><span>Chat di questo quiz</span><div>'+l.map(function(c){
+    const d=new Date(c.quando||""),g=isFinite(d)?d.toLocaleDateString("it-IT",{day:"numeric",month:"numeric",year:"numeric"}):"";
+    return '<div class="hint"><a href="'+esc(c.url)+'" target="_blank" rel="noopener" title="Apri la chat in una nuova scheda">'+(g?"Chat del "+esc(g):"Chat")+" ↗</a>"+(c.cosa?" · "+esc(String(c.cosa)):"")+"</div>";
+  }).join("")+"</div></div>";
+}
 /* ---- scarico: il quiz in un solo file (quiz, righe, impostazioni), per le chat in cui Claude non può salvare
    il database su file. Lo legge genera_quiz.py di materiali-moodle (spacchetta_quiz.py) */
 const IMPOSTAZIONI_SCARICO=["depositi","seb","note","pdp"];
@@ -1914,6 +1928,7 @@ function metaHTML(q){
     (depositiNoti().length||q.deposito?'<label class="fld wide"><span>Dove vanno le domande</span><select class="ctl" '+k("deposito")+' aria-label="Dove vanno le domande">'+opts([["","Nella banca del quiz (poi, se serve, la sposti tu nel deposito)"]].concat(depositiNoti().map(function(d){return [d.id,"Nel deposito «"+(d.nome||d.id)+"»"];})).concat(q.deposito&&!depositoDi(q)?[[q.deposito,"Deposito «"+q.deposito+"» (non registrato)"]]:[]),q.deposito||"")+"</select></label>":"")+
     avanzateHTML(q,k)+
     '<div class="fld wide"><span>Avanzamento</span><div>'+btn+"</div></div>"+
+    chatHTML(q)+
     '<div class="fld wide"><span>Categoria in Moodle</span><div class="cat">'+esc(categoriaQuiz(q))+"</div></div>"+
   "</section>";
 }

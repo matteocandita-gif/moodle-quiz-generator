@@ -2,6 +2,15 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.14.2 — 12/11/2026
+
+Dalla dashboard si ritrova la chat in cui un quiz è stato fatto.
+
+- **Dashboard** (pagina 0.6.4): nella scheda del quiz, sotto «Avanzamento», l'elenco **«Chat di questo quiz»**: un link per ogni conversazione con Claude che ha lavorato su quel quiz, con la data e che cosa è stato fatto (scaletta, tracce, una revisione, il backup), dalla più recente. Il link apre la chat in una nuova scheda.
+- **Chi lo scrive**: Claude, ogni volta che in una conversazione scrive in un quiz. Vale anche per le sessioni avviate da «Inizia» ed «Esporta» (il testo nuovo dell'attività programmata è in `installazione.md`).
+- **Limiti**: i quiz fatti prima di questa versione non hanno link; e se una conversazione non conosce il proprio indirizzo, Claude non registra niente invece di inventarlo.
+- Prove superate.
+
 ## 0.14.1 — 12/11/2026
 
 Generare il backup anche nelle chat in cui Claude non riesce a salvare la dashboard su file.
