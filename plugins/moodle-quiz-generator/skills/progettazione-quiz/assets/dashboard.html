@@ -828,9 +828,9 @@ const TIPI={
  /* quiz libero: nessun preset, tipi, quantità, punti e tempi li decide la richiesta */
  LIB:{nome:"Libero (senza preset)",p100:false,tempoRule:"nessuna",seq:false,senzaPreset:true,parti:[[0,"Pagina","pag"],[1,"Domanda","dom"]],
    gruppi:[{id:"pag",n:"Pagine",p:null,m:null},{id:"dom",n:"Domande",p:null,m:null}]},
- ED:{nome:"Esercitazione con spiegazione di dettaglio",p100:true,tempoRule:"margine",seq:true,parti:SEQ_PARTI,
+ ED:{nome:"Esercitazione con spiegazione di dettaglio",p100:true,oltre100:true,tempoRule:"margine",seq:true,parti:SEQ_PARTI,
    gruppi:[{id:"pag",n:"Pagine",p:0,m:[10,15]},{id:"es",n:"Esempio svolto e completamento",p:20,m:15},{id:"dbg",n:"Debugging",p:25,m:15},{id:"gui",n:"Esercizio guidato",p:20,m:15},{id:"fin",n:"Esercizi finali",p:35,m:25}]},
- EDT:{nome:"Esercitazione con spiegazione · solo teoria",p100:true,tempoRule:"margine",seq:false,cinque:true,parti:[[0,"Apertura","pag"],[1,"Pagina di spiegazione","pag"],[2,"Domande di comprensione","comp"]],
+ EDT:{nome:"Esercitazione con spiegazione · solo teoria",p100:true,oltre100:true,tempoRule:"margine",seq:false,cinque:true,parti:[[0,"Apertura","pag"],[1,"Pagina di spiegazione","pag"],[2,"Domande di comprensione","comp"]],
    gruppi:[{id:"pag",n:"Pagine",p:0,m:null},{id:"comp",n:"Domande di comprensione",p:100,m:null}]},
  /* teoria divisa in parti, dopo ogni parte le sue domande chiuse e aperte; navigazione sequenziale */
  SD:{nome:"Esercitazione con studio e domande sequenziale",p100:false,tempoRule:"margine",seq:false,studio:true,parti:[[1,"Pagina di teoria","pag"],[2,"Domande chiuse","chi"],[3,"Domande aperte","ape"]],
@@ -843,7 +843,7 @@ const TIPI={
    gruppi:BLOOM.map(function(b){return {id:b[2],n:b[1],p:null,m:null};})},
  EP:{nome:"Esercitazione pratica",p100:false,tempoRule:"margine",seq:false,parti:[[1,"Richiamo breve","a"],[4,"Completamento","b"],[5,"Debugging","c"],[6,"Esercizio guidato","d"],[7,"Esercizi finali","e"]],
    gruppi:[{id:"a",n:"Richiamo breve",p:null,m:null},{id:"b",n:"Completamento",p:null,m:null},{id:"c",n:"Debugging",p:null,m:null},{id:"d",n:"Esercizio guidato",p:null,m:null},{id:"e",n:"Esercizi finali",p:null,m:null}]},
- ER:{nome:"Esercitazione complessiva di ripasso",p100:true,tempoRule:"margine",seq:true,parti:SEQ_PARTI,
+ ER:{nome:"Esercitazione complessiva di ripasso",p100:true,oltre100:true,tempoRule:"margine",seq:true,parti:SEQ_PARTI,
    gruppi:SEQ_PARTI.reduce(function(acc,p){if(!acc.some(function(g){return g.id===p[2];}))acc.push({id:p[2],n:p[1],p:null,m:null});return acc;},[])},
  /* quiz importato da un backup Moodle: nessun preset, nessuna regola su punti, tempi e tipologie */
  IMP:{nome:"Importato da Moodle (senza preset)",p100:false,tempoRule:"nessuna",seq:false,importato:true,senzaPreset:true,parti:[[0,"Pagina","pag"],[1,"Domanda","dom"]],
@@ -1315,7 +1315,7 @@ function controlliRiga(q,r,add){
       if(/^(MULTICHOICE|MC)(_V|_H|V|H)?$/.test(f.tipo)&&cs.filter(function(g){return g.cont.split("~").length===f.cont.split("~").length;}).length===1)add("info",w+", campo "+n+": menù con ordine fisso; se non serve un ordine voluto usa MULTICHOICE_S.",r.id);
     });
     const peso=cs.reduce(function(a,f){return a+f.peso;},0);
-    if(q.tipoQuiz==="EDT"){if(cs.length&&Math.abs(peso*5-num(r.punti))>0.001)add("warn",w+": nella spiegazione solo teoria ogni campo vale 5 punti: "+cs.length+(cs.length===1?" campo":" campi")+" e "+f1(num(r.punti))+" punti.",r.id);}
+    if(q.tipoQuiz==="EDT"){if(cs.length&&Math.abs(peso*5-num(r.punti))>0.001&&!(cs.length>1&&Math.abs(num(r.punti)-5)<0.001))add("warn",w+": nella spiegazione solo teoria ogni campo vale 5 punti: "+cs.length+(cs.length===1?" campo":" campi")+" e "+f1(num(r.punti))+" punti.",r.id);}
     else if(cs.length&&Math.abs(peso-num(r.punti))>0.001)add("info",w+": i campi pesano "+f1(peso)+" e la riga vale "+f1(num(r.punti))+" punti: nel quiz contano i punti della riga, il peso dei campi si riproporziona.",r.id);
   }else if(["Risposta multipla","Vero/falso","Risposta breve"].indexOf(real)>=0){
     if(!gr.length)add("warn",w+": mancano le opzioni, una per riga con ( ) o [ ] e (x) / [x] sulle giuste.",r.id);
@@ -1492,7 +1492,7 @@ function avvisi(q,rows,C){
       add("info","Le domande vanno nel deposito «"+(dep.nome||dep.id)+"»: ripristina il backup nel corso «"+(dep.corso||dep.nome||dep.id)+"», perché solo lì Moodle scrive nella banca del deposito. Le domande uguali a quelle già presenti vengono riusate, senza doppioni.");
     }
   }
-  if(P.p100&&Math.abs(tot.p-100)>0.001)add(tot.p>100?"err":"warn","Il totale dei punti è "+f1(tot.p)+": dovrebbe essere 100.");
+  if(P.p100&&Math.abs(tot.p-100)>0.001){if(tot.p>100&&P.oltre100)add("info","Il totale dei punti è "+f1(tot.p)+", oltre 100: va bene se in più ci sono le domande di ricordare (5 punti ciascuna). L'esercitazione non è valutata e Moodle riporta comunque il voto in decimi.");else add(tot.p>100?"err":"warn","Il totale dei punti è "+f1(tot.p)+": dovrebbe essere 100.");}
   const T=num(q.tempo);
   if(P.importato)add("info","Quiz importato da un backup Moodle: nessun preset, quindi nessuna regola su punti, tempi, parti e tipologie. Per applicarle scegli un tipo di quiz nei dati del quiz.");
   else if(P.senzaPreset){if(T&&tot.m>T)add("warn","I tempi sommano "+tot.m+" minuti: superano i "+T+" disponibili.");}
@@ -1553,7 +1553,7 @@ function renderHeader(){
   ["home","scaletta","dettaglio"].forEach(function(v){$("#tab-"+v).setAttribute("aria-selected",(S.view===v||(v==="home"&&S.view==="nuovo"))?"true":"false");});
 }
 /* ------------------------------------------------------------------ vista iniziale e nuovo quiz */
-const VERSIONE_PAGINA="0.6.4";
+const VERSIONE_PAGINA="0.6.5";
 const PERCORSO_IMPOSTAZIONI="impostazioni/avvio";
 /* depositi delle domande (banche qbank dei corsi deposito): li scrive Claude leggendo un backup */
 const PERCORSO_DEPOSITI="impostazioni/depositi";

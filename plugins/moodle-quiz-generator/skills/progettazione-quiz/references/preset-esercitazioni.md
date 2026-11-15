@@ -20,6 +20,18 @@ Ripetere subito la stessa operazione aiuta a fissarla: la prima volta lo student
 - **Esercizi lunghi con una consegna di file**: una volta sola.
 - **Esercizio finale**: ha un doppio **per casa**, in un **quiz separato** di tipo EP (non in fondo all'esercitazione), con il titolo che dice che è per casa («Per casa🏠 - 1. CSS: …», vedi «Il nome del quiz in Moodle»): stessa struttura e stessi criteri dell'esercizio finale, contesto e valori nuovi. La soluzione di riferimento sta nella `correzione`, così lo studente la vede nella revisione dopo la consegna. Le istruzioni del quiz dicono che è il lavoro per casa e che cosa serve.
 
+## L'ordine delle domande e il livello «ricordare» (ED, EDT, ER)
+
+Deciso il 2026-11-16 (sostituisce il vecchio «chiedere di capire, non di riconoscere» delle domande di comprensione). Vale già nella scaletta.
+
+1. **Il livello non scende.** Dopo ogni pagina di spiegazione le domande seguono la tassonomia: ricordare, comprendere, applicare, analizzare. Una domanda non viene mai dopo una di livello più alto sulla stessa pagina. Non servono tutti i livelli in ogni blocco: si può partire da comprendere o da applicare e saltare dei gradini. Nella scaletta, nelle note interne di ogni domanda, scrivi il livello.
+2. **Ricordare: di norma una per pagina, come prima domanda.** Sta sotto la pagina di spiegazione, sulla stessa pagina del quiz, e serve a far leggere davvero il testo, anche se lo studente l'ha appena visto: rimettere in ordine, completare le frasi chiave, vero/falso sulle affermazioni della pagina. Le domande diventano due quando la pagina ha due concetti fondanti e conviene riguardarli entrambi. Le domande successive salgono di livello.
+3. **Quando la proponi.** Mettila nella scaletta quando la pagina è **lunga** o fitta di termini nuovi, o contiene una **sequenza** (fasi, passi) o delle **definizioni** che le domande successive danno per acquisite. Non la proporre quando la pagina è **breve** e ha un solo concetto, quando la prima domanda di comprensione costringe già a rileggere lo stesso punto, o quando il contenuto è **già noto** (un ripasso). Non è obbligatoria: ogni domanda di ricordare ha nella `nota` della scaletta il motivo per cui c'è, e l'utente la toglie o ne aggiunge una dove non c'è.
+4. **In ED** questo ruolo lo svolge spesso già il completamento che segue la pagina di spiegazione: se la prima domanda è un completamento degli elementi chiave della pagina, vale come domanda di ricordare e non se ne aggiunge un'altra.
+5. **Anche il ricordare chiede di leggere.** Affermazioni riformulate; nelle false cambia un solo elemento essenziale; opzioni e distrattori presi dai termini della pagina, così non si risponde confrontando le parole. Il metti in ordine solo per gli ordini che non si ricavano dal buon senso. I feedback delle risposte sbagliate possono rimandare al punto della pagina da rileggere («No: rileggete la sezione sulla progettazione logica»); la spiegazione completa sta nella `correzione`.
+6. **Resta escluso a ogni livello**: la frase copiata dalla pagina da dichiarare vera e l'abbinamento che si risolve perché due parole stanno vicine nel testo.
+7. **Punti**: ogni domanda di ricordare vale di norma 5 punti, divisi tra i suoi campi (anche in EDT, dove gli altri Cloze hanno un campo ogni 5 punti), anche se il totale del quiz supera 100: le esercitazioni non sono valutate e Moodle riporta il voto in decimi. Le altre domande seguono i punti del preset.
+
 ## Il nome del quiz in Moodle (ED, EDT, EP, ER)
 
 Il nome con cui il quiz compare nel corso (`nomeQuiz`, e il `titolo` nel menù della dashboard) dice dove si svolge e a quale lezione appartiene:
@@ -28,6 +40,8 @@ Il nome con cui il quiz compare nel corso (`nomeQuiz`, e il `titolo` nel menù d
 - per casa: `Per casa🏠 - N. <argomento>: <titolo>`, per esempio «Per casa🏠 - 3. HTML: i link del sito della gelateria».
 
 `N` è il numero progressivo della lezione dentro l'argomento (HTML, CSS…), **uguale** per l'esercitazione in classe e per il suo quiz per casa. Le emoji stanno solo nel nome del quiz: nei testi di pagine e domande non si usano. Il nome del file `.mbz` è lo stesso senza emoji, con ` - ` al posto dei due punti («In classe - 3. HTML - file, percorsi e link.mbz»). Le verifiche non seguono questo schema.
+
+Le esercitazioni **prevalentemente di teoria** (di norma EDT) si chiamano invece `TEORIA - Capitolo N. <titolo>`, per esempio «TEORIA - Capitolo 1. Progettazione di un SI e modello E/R»: senza emoji e senza «In classe», perché lo schema sopra vale per le esercitazioni pratiche. Il numero N lo decide l'utente: se non lo ha detto, chiedilo.
 
 ## ED · Esercitazione con spiegazione di dettaglio
 
@@ -47,10 +61,10 @@ Deciso il 2026-10-09 dopo il quiz «Internet e il Web» (chiude A12).
 
 - **Scopo**: spiegare un argomento di sola teoria (senza codice) e verificare subito la comprensione. Come ED: voto interno, non visto né verbalizzato.
 - **Quando**: se la richiesta mescola teoria e pratica (per esempio «che cos'è il Web» e poi HTML), proponi due quiz, uno EDT per la teoria e uno ED per la pratica, e chiedi all'utente prima di scrivere la scaletta.
-- **Progressione**: «Come lavoriamo oggi» (parte 0), poi blocchi; in ogni blocco una o più **pagine di spiegazione** (parte 1), ognuna seguita subito dalle sue **domande di comprensione** (parte 2): la prima sulla stessa pagina del quiz della spiegazione, le altre sulla pagina successiva. Una pagina di spiegazione tratta un argomento, al massimo due: se ne tratta di più si divide, anche dentro lo stesso blocco (B0, poi le sue domande, poi B6 e le sue).
+- **Progressione**: «Come lavoriamo oggi» (parte 0), poi blocchi; in ogni blocco una o più **pagine di spiegazione** (parte 1), ognuna seguita subito dalle sue **domande di comprensione** (parte 2), in ordine di livello a partire dall'eventuale domanda di ricordare («L'ordine delle domande e il livello «ricordare»»): la prima sulla stessa pagina del quiz della spiegazione, le altre sulla pagina successiva. Una pagina di spiegazione tratta un argomento, al massimo due: se ne tratta di più si divide, anche dentro lo stesso blocco (B0, poi le sue domande, poi B6 e le sue).
 - **Tipologie**: vero/falso, risposta multipla (una o più giuste), risposta breve, completamento di testo, metti in ordine, corrispondenza.
 - **Regole sulle domande**: i criteri delle domande di comprensione nella skill `progettazione-quiz`.
-- **Punteggi e tempi**: 100 punti, tutti nelle domande di comprensione, a multipli di 5; nei Cloze un campo ogni 5 punti. Pagine senza punti. Tempo da decidere quiz per quiz (30 minuti per «Internet e il Web»), con almeno 5 minuti di margine.
+- **Punteggi e tempi**: 100 punti, tutti nelle domande di comprensione, a multipli di 5; nei Cloze un campo ogni 5 punti. Le domande di ricordare valgono in più 5 punti ciascuna, divisi tra i campi, anche oltre i 100 («L'ordine delle domande e il livello «ricordare»»). Pagine senza punti. Tempo da decidere quiz per quiz (30 minuti per «Internet e il Web»), con almeno 5 minuti di margine.
 - **Pagine e sezioni**: una sezione per l'introduzione e una per blocco. La prima domanda di una pagina di spiegazione sta sulla stessa pagina del quiz, sotto la spiegazione; le altre insieme sulla pagina che la segue.
 - **Sostegno e feedback**: feedback su ogni opzione, visibile subito; non deve svelare la risposta di un'altra domanda della stessa pagina.
 - **Nomi**: la pagina di spiegazione ha il prefisso «Spiegazione», come in ED.

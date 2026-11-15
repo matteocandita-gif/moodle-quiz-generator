@@ -2,6 +2,18 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.14.3 — 16/11/2026
+
+Nelle esercitazioni con spiegazione le domande dopo ogni pagina salgono di livello, e la prima può chiedere di ricordare.
+
+- **Domande in ordine di livello** (esercitazioni con spiegazione, anche solo teoria, e complessive di ripasso): dopo ogni pagina le domande seguono la tassonomia (ricordare, comprendere, applicare, analizzare) e il livello non scende mai. Non servono tutti i livelli in ogni blocco.
+- **La domanda di ricordare**: di norma una per pagina (due se la pagina ha due concetti fondanti), subito sotto la spiegazione, per far leggere davvero il testo: rimettere in ordine delle fasi, completare le frasi chiave, vero/falso sulla pagina. Claude la propone sulle pagine lunghe o con sequenze e definizioni, non su quelle brevi; non è obbligatoria e nella scaletta scrive perché l'ha messa, così la togli o la aggiungi tu. Nelle esercitazioni di programmazione spesso questo ruolo lo fa già il completamento dopo la pagina.
+- **Che cosa resta vietato**: la frase copiata dalla pagina da dichiarare vera e l'abbinamento che si risolve perché due parole stanno vicine nel testo. Questa regola prende il posto del vecchio criterio «chiedere di capire, non di riconoscere».
+- **Punti**: ogni domanda di ricordare vale di norma 5 punti, divisi tra i suoi campi, anche se il totale supera 100 (le esercitazioni non sono valutate; Moodle riporta il voto in decimi).
+- **Nome dei quiz di teoria**: le esercitazioni prevalentemente di teoria si chiamano «TEORIA - Capitolo N. titolo»; lo schema «In classe🛠️ - N.» resta per quelle pratiche.
+- **Dashboard** (pagina 0.6.5): nelle esercitazioni con spiegazione un totale oltre 100 punti non è più un errore ma un'informazione; nella spiegazione solo teoria una Cloze da 5 punti con più campi (la domanda di ricordare) non dà più l'avviso «ogni campo vale 5 punti».
+- Prove superate.
+
 ## 0.14.2 — 12/11/2026
 
 Dalla dashboard si ritrova la chat in cui un quiz è stato fatto.
