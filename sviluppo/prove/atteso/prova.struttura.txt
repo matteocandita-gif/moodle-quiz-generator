@@ -2087,49 +2087,35 @@ FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca
 
   <question type="coderunner">
     <name>
-      <text>L9 - D5 - Esercizio libero: La mia lista</text>
+      <text>L9 - D5 - Sito: La mia lista</text>
     </name>
     <questiontext format="html">
-      <text><![CDATA[<p>Scrivere una pagina con una lista di tre frutti.</p>
-<div style="border: 1px solid #999999; border-radius: 6px; margin: 8px 0 16px; max-width: 100%; overflow: hidden;">
-<div style="background-color: #e3e3e3; border-bottom: 1px solid #999999; padding: 4px 10px; font-size: 0.8em; color: #555555;"><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background-color: #e06c5f; margin-right: 4px; vertical-align: middle;"></span><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background-color: #e5b84f; margin-right: 4px; vertical-align: middle;"></span><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background-color: #6cbf6a; margin-right: 4px; vertical-align: middle;"></span><span style="margin-left: 8px; vertical-align: middle;">Visualizzazione nel browser</span></div>
-<div style="background-color: #ffffff; padding: 8px 14px; overflow-x: auto;">
-<h1>Frutti</h1>
-<ul>
-    <li>mela</li>
-    <li>pera</li>
-</ul>
-</div>
-</div>
-<div style="background-color: #f9cb9c; border-left: 5px solid #e69138; padding: 12px 16px; border-radius: 4px; margin: 0 0 16px;">
-<p style="margin: 0 0 6px; color: #783f04;"><strong>Nessun controllo automatico</strong></p>
-<p style="margin: 0;">Questo esercizio <strong>non ha un controllo automatico</strong>: la correzione la fa il docente. Per vedere come appare la pagina premete <strong>Prova</strong>: compare sotto il pulsante, come nel browser. Viene salvato solo il campo Risposta, quando si cambia pagina: lo Scratchpad lasciatelo vuoto.</p>
-</div>]]></text>
+      <text><![CDATA[<p>Nell'editor, scrivere la pagina <strong>index.html</strong> con un titolo e una lista di tre frutti, e il foglio di stile <strong>css/stile.css</strong> che colora di verde le voci della lista.</p>]]></text>
     </questiontext>
     <generalfeedback format="html">
-      <text><![CDATA[<p>Lista 5, titolo 5.</p>]]></text>
+      <text><![CDATA[<p>Il sito di riferimento è la soluzione dell'autore.</p>]]></text>
     </generalfeedback>
     <defaultgrade>10.0000000</defaultgrade>
     <penalty>0.0000000</penalty>
     <hidden>0</hidden>
     <idnumber></idnumber>
-    <coderunnertype>php_con_test</coderunnertype>
+    <coderunnertype>html_con_file</coderunnertype>
     <prototypetype>0</prototypetype>
-    <allornothing>1</allornothing>
+    <allornothing>0</allornothing>
     <penaltyregime>0</penaltyregime>
     <precheck>0</precheck>
-    <hidecheck>1</hidecheck>
+    <hidecheck>0</hidecheck>
     <showsource>0</showsource>
     <answerboxlines>18</answerboxlines>
     <answerboxcolumns>100</answerboxcolumns>
-    <answerpreload><![CDATA[{"answer_code": [""], "test_code": [""], "show_hide": ["1"], "prefix_ans": ["1"]}]]></answerpreload>
+    <answerpreload></answerpreload>
     <globalextra></globalextra>
     <useace></useace>
     <resultcolumns></resultcolumns>
     <template></template>
     <iscombinatortemplate></iscombinatortemplate>
     <allowmultiplestdins></allowmultiplestdins>
-    <answer><![CDATA[{"answer_code": ["<h1>Frutti</h1>\n<ul>\n    <li>mela</li>\n</ul>"], "test_code": [""], "show_hide": [""], "prefix_ans": [""]}]]></answer>
+    <answer><![CDATA[{"htmlve": 1, "versione": "dashboard", "salvato": "", "cartelle": ["css"], "files": {"css/stile.css": "li {\n    color: green;\n}\n", "index.html": "<!DOCTYPE html>\n<html lang=\"it\">\n<head>\n    <meta charset=\"utf-8\">\n    <title>Frutti</title>\n    <link rel=\"stylesheet\" href=\"css/stile.css\">\n</head>\n<body>\n    <h1>Frutti</h1>\n    <ul>\n        <li>mela</li>\n        <li>pera</li>\n        <li>uva</li>\n    </ul>\n</body>\n</html>\n"}, "immagini": {}}]]></answer>
     <validateonsave>1</validateonsave>
     <testsplitterre></testsplitterre>
     <language></language>
@@ -2139,14 +2125,14 @@ FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca
     <cputimelimitsecs></cputimelimitsecs>
     <memlimitmb></memlimitmb>
     <sandboxparams></sandboxparams>
-    <templateparams></templateparams>
+    <templateparams>{"pagina": "index.html"}</templateparams>
     <hoisttemplateparams>1</hoisttemplateparams>
     <extractcodefromjson>1</extractcodefromjson>
     <templateparamslang>None</templateparamslang>
     <templateparamsevalpertry>0</templateparamsevalpertry>
     <templateparamsevald>{}</templateparamsevald>
     <twigall>0</twigall>
-    <uiplugin></uiplugin>
+    <uiplugin>html_sito</uiplugin>
     <uiparameters></uiparameters>
     <attachments>0</attachments>
     <attachmentsrequired>0</attachmentsrequired>
@@ -2157,16 +2143,46 @@ FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca
     <giveupallowed>0</giveupallowed>
     <prototypeextra></prototypeextra>
     <testcases>
-      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="2.0000000" >
       <testcode>
-                <text>//</text>
+                <text><![CDATA[struttura_base()]]></text>
       </testcode>
       <stdin>
                 <text></text>
       </stdin>
       <expected>[output 32]</expected>
       <extra>
+                <text><![CDATA[La pagina ha la struttura di base.]]></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="2.0000000" >
+      <testcode>
+                <text><![CDATA[almeno(3, "li", "ul")]]></text>
+      </testcode>
+      <stdin>
                 <text></text>
+      </stdin>
+      <expected>[output 33]</expected>
+      <extra>
+                <text><![CDATA[La lista ha almeno tre voci.]]></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+                <text><![CDATA[css_collegato("css/stile.css")]]></text>
+      </testcode>
+      <stdin>
+                <text></text>
+      </stdin>
+      <expected>[output 34]</expected>
+      <extra>
+                <text><![CDATA[La pagina collega il foglio di stile.]]></text>
       </extra>
       <display>
                 <text>SHOW</text>
@@ -2177,25 +2193,21 @@ FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca
 
   <question type="coderunner">
     <name>
-      <text>L9 - G5 - Esercizio libero: Lo stile della lista</text>
+      <text>L9 - G5 - Sito: Due pagine collegate</text>
     </name>
     <questiontext format="html">
-      <text><![CDATA[<p>Scrivere il foglio di stile che colora di rosso le voci di lista.</p>
-<div style="background-color: #f9cb9c; border-left: 5px solid #e69138; padding: 12px 16px; border-radius: 4px; margin: 0 0 16px;">
-<p style="margin: 0 0 6px; color: #783f04;"><strong>Nessun controllo automatico</strong></p>
-<p style="margin: 0;">Questo esercizio <strong>non ha un controllo automatico</strong>: i requisiti vanno verificati aprendo la pagina nel browser, e la correzione la fa il docente. Il codice del campo Risposta viene salvato quando si cambia pagina.</p>
-</div>]]></text>
+      <text><![CDATA[<p>Nell'editor, creare la pagina <strong>home.html</strong> con un link alla pagina <strong>pagine/contatti.html</strong>, che a sua volta torna alla home.</p>]]></text>
     </questiontext>
     <generalfeedback format="html">
-      <text><![CDATA[<p>Selettore 2, proprietà 2.</p>]]></text>
+      <text><![CDATA[<p>Il sito di riferimento è la soluzione dell'autore.</p>]]></text>
     </generalfeedback>
     <defaultgrade>4.0000000</defaultgrade>
     <penalty>0.0000000</penalty>
     <hidden>0</hidden>
     <idnumber></idnumber>
-    <coderunnertype>css</coderunnertype>
+    <coderunnertype>html_con_file</coderunnertype>
     <prototypetype>0</prototypetype>
-    <allornothing>1</allornothing>
+    <allornothing>0</allornothing>
     <penaltyregime>0</penaltyregime>
     <precheck>0</precheck>
     <hidecheck>1</hidecheck>
@@ -2209,9 +2221,7 @@ FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca
     <template></template>
     <iscombinatortemplate></iscombinatortemplate>
     <allowmultiplestdins></allowmultiplestdins>
-    <answer><![CDATA[li {
-    color: red;
-}]]></answer>
+    <answer><![CDATA[{"htmlve": 1, "versione": "dashboard", "salvato": "", "cartelle": ["img", "pagine"], "files": {"home.html": "<!DOCTYPE html>\n<html lang=\"it\">\n<head>\n    <meta charset=\"utf-8\">\n    <title>Home</title>\n</head>\n<body>\n    <h1>Home</h1>\n    <p><a href=\"pagine/contatti.html\">Contatti</a></p>\n</body>\n</html>\n", "pagine/contatti.html": "<!DOCTYPE html>\n<html lang=\"it\">\n<head>\n    <meta charset=\"utf-8\">\n    <title>Contatti</title>\n</head>\n<body>\n    <h1>Contatti</h1>\n    <p><a href=\"../home.html\">Torna alla home</a></p>\n</body>\n</html>\n"}, "immagini": {}}]]></answer>
     <validateonsave>1</validateonsave>
     <testsplitterre></testsplitterre>
     <language></language>
@@ -2221,34 +2231,49 @@ FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca
     <cputimelimitsecs></cputimelimitsecs>
     <memlimitmb></memlimitmb>
     <sandboxparams></sandboxparams>
-    <templateparams></templateparams>
+    <templateparams>{"pagina": "home.html"}</templateparams>
     <hoisttemplateparams>1</hoisttemplateparams>
     <extractcodefromjson>1</extractcodefromjson>
     <templateparamslang>None</templateparamslang>
     <templateparamsevalpertry>0</templateparamsevalpertry>
     <templateparamsevald>{}</templateparamsevald>
     <twigall>0</twigall>
-    <uiplugin></uiplugin>
-    <uiparameters></uiparameters>
+    <uiplugin>html_sito</uiplugin>
+    <uiparameters>{"chiusura_automatica": true, "segnala_errori": true}</uiparameters>
     <attachments>0</attachments>
     <attachmentsrequired>0</attachmentsrequired>
     <maxfilesize>10240</maxfilesize>
     <filenamesregex></filenamesregex>
     <filenamesexplain></filenamesexplain>
-    <displayfeedback>1</displayfeedback>
+    <displayfeedback>2</displayfeedback>
     <giveupallowed>0</giveupallowed>
     <prototypeextra></prototypeextra>
     <testcases>
       <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
       <testcode>
-                <text>//</text>
+                <text><![CDATA[link_a("pagine/contatti.html")]]></text>
       </testcode>
       <stdin>
                 <text></text>
       </stdin>
-      <expected>[output 33]</expected>
+      <expected>[output 35]</expected>
       <extra>
+                <text><![CDATA[La home porta alla pagina dei contatti.]]></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+                <text><![CDATA[link_validi("home.html", "pagine/contatti.html")]]></text>
+      </testcode>
+      <stdin>
                 <text></text>
+      </stdin>
+      <expected>[output 36]</expected>
+      <extra>
+                <text><![CDATA[I link portano a file che esistono.]]></text>
       </extra>
       <display>
                 <text>SHOW</text>
@@ -2322,7 +2347,7 @@ FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca
       <stdin>
                 <text></text>
       </stdin>
-      <expected>[output 34]</expected>
+      <expected>[output 37]</expected>
       <extra>
                 <text><![CDATA[La cartella è in ordine.]]></text>
       </extra>
@@ -2337,7 +2362,7 @@ FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca
       <stdin>
                 <text></text>
       </stdin>
-      <expected>[output 35]</expected>
+      <expected>[output 38]</expected>
       <extra>
                 <text><![CDATA[La pagina collega il foglio di stile.]]></text>
       </extra>
@@ -2352,7 +2377,7 @@ FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca
       <stdin>
                 <text></text>
       </stdin>
-      <expected>[output 36]</expected>
+      <expected>[output 39]</expected>
       <extra>
                 <text><![CDATA[I link portano a file che esistono.]]></text>
       </extra>
@@ -2430,7 +2455,7 @@ FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca
       <stdin>
                 <text></text>
       </stdin>
-      <expected>[output 37]</expected>
+      <expected>[output 40]</expected>
       <extra>
                 <text><![CDATA[La regola è scritta senza errori.]]></text>
       </extra>
@@ -2445,7 +2470,7 @@ FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca
       <stdin>
                 <text></text>
       </stdin>
-      <expected>[output 38]</expected>
+      <expected>[output 41]</expected>
       <extra>
                 <text><![CDATA[I paragrafi hanno il testo blu.]]></text>
       </extra>
@@ -2538,7 +2563,7 @@ FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca
      "punti": 14.0
     },
     {
-     "nome": "L9 - D5 - Esercizio libero: La mia lista",
+     "nome": "L9 - D5 - Sito: La mia lista",
      "pagina": 11,
      "punti": 10.0
     }
@@ -2648,7 +2673,7 @@ FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca
      "punti": 0.0
     },
     {
-     "nome": "L9 - G5 - Esercizio libero: Lo stile della lista",
+     "nome": "L9 - G5 - Sito: Due pagine collegate",
      "pagina": 31,
      "punti": 4.0
     },

@@ -1,61 +1,18 @@
-# API del prototipo php_mysqli_mock (FakeDB con mappa delle query)
+# La facciata FakeDB: mappa delle query, formati, funzioni
 
-_Per il prototipo `php_mysqli_sqlite` vedi `prototipo-sqlite.md`; le sezioni 6, 7 e lo schema «Output normalizzato» valgono anche lì._
+_Il prototipo `php_mysqli_sqlite` è descritto in `prototipo-sqlite.md` (database allegato, `FakeDB::configure`, test, messaggi). Qui: la mappa `queries` per i risultati forzati (sezioni 1 e 2), gli errori di connessione, le funzioni per lo studente e per i test, gli schemi del form e dell'output normalizzato. Il vecchio prototipo `php_mysqli_mock`, che rispondeva solo con la mappa, è stato tolto nella 0.15.0._
 
 ## Indice
-1. Come gira una domanda
-2. FakeDB::configure
-3. Normalizzazione e chiavi
-4. Formati dei risultati
-5. Errori generati automaticamente
-6. Funzioni disponibili allo studente
-7. Funzioni di supporto per i test
-8. Schemi ricorrenti (form, INSERT verificata, risultati calcolati, output normalizzato, chiavi tolleranti)
+1. Normalizzazione e chiavi della mappa
+2. Formati dei risultati
+3. Errori generati automaticamente
+4. Funzioni disponibili allo studente
+5. Funzioni di supporto per i test
+6. Schemi ricorrenti (dati del form, output normalizzato)
 
-## 1. Come gira una domanda
+## 1. Normalizzazione e chiavi della mappa
 
-Il template del prototipo (copia in `assets/prototipo-mock-template.php`) è un unico file PHP:
-
-```
-<?php
-[definizioni del mock: costanti MYSQLI_*, classi FakeDB, mysqli, mysqli_result, funzioni mysqli_*]
-{{ TEST.testcode }}
-?>
-{{ STUDENT_ANSWER }}
-```
-
-Quindi, per ogni test, nell'ordine: si caricano le definizioni, si esegue il **campo Test** (che configura il database simulato e può impostare `$_GET`/`$_POST`), poi gira il **codice dello studente**, che deve iniziare con `<?php`. Il prototipo **non è combinator**: ogni test è un processo separato, quindi lo stato non passa da un test all'altro e un `die()` non interrompe gli altri test.
-
-Il campo Test e il codice dello studente condividono l'ambito globale: per questo le variabili del campo Test iniziano con `$__`.
-
-## 2. FakeDB::configure
-
-```php
-FakeDB::configure([
-    'user' => 'root',
-    'password' => '',
-    'database' => 'dblibreria',
-    'unknownQueryError' => 'la query non è quella richiesta: stampala con echo e controllala',
-    'queries' => [ /* chiave => risultato */ ],
-]);
-```
-
-| Opzione | Predefinito | Significato |
-|---|---|---|
-| `user` | `'root'` | utente accettato |
-| `password` | `''` | password accettata |
-| `database` | `''` | nome del database esistente |
-| `hosts` | `['localhost', '127.0.0.1']` | host accettati |
-| `port` | `null` | porta richiesta (`null` = qualsiasi) |
-| `queries` | `[]` | query previste e risultati |
-| `exceptions` | `false` | `true` = gli errori lanciano `mysqli_sql_exception` (PHP 8.1+ senza `mysqli_report(MYSQLI_REPORT_OFF)`); lo studente lo cambia con `mysqli_report()` |
-| `unknownQueryError` | `'Query non riconosciuta dal correttore'` | messaggio di `mysqli_error()` per query non previste (errno 1064) |
-
-Un'opzione sconosciuta lancia un'eccezione: utile per accorgersi dei refusi nel campo Test.
-
-## 3. Normalizzazione e chiavi
-
-Prima del confronto, sia la query dello studente sia le chiavi testuali vengono normalizzate:
+Una query dello studente si confronta con le chiavi della mappa `queries` dopo averle normalizzate tutte e due:
 
 1. `trim`, tutto in minuscolo, backtick rimossi;
 2. punto e virgola e spazi finali rimossi;
@@ -71,7 +28,7 @@ INSERT INTO Libri (ISBN, Titolo, Autore, Prezzo)
 
 diventa `insert into libri(isbn,titolo,autore,prezzo) values('9788806','la storia','morante',14)`.
 
-Attenzione: anche i valori tra apici finiscono in minuscolo, quindi il mock non distingue `'Calvino'` da `'calvino'`.
+Attenzione: anche i valori tra apici finiscono in minuscolo, quindi una chiave non distingue `'Calvino'` da `'calvino'`.
 
 **Tipi di chiave**
 
@@ -80,9 +37,9 @@ Attenzione: anche i valori tra apici finiscono in minuscolo, quindi il mock non 
 
 Le chiavi vengono provate **nell'ordine in cui sono scritte** e vince la prima che corrisponde. Ordine consigliato: errori di sintassi, poi errori sui nomi, poi casi particolari (valori vuoti), infine la query corretta e le sue varianti.
 
-Una query che non corrisponde a nessuna chiave restituisce `false` con errno 1064 e il messaggio di `unknownQueryError`.
+Una query che non corrisponde a nessuna chiave viene eseguita davvero su SQLite.
 
-## 4. Formati dei risultati
+## 2. Formati dei risultati
 
 | Valore nella mappa | Effetto |
 |---|---|
@@ -94,11 +51,11 @@ Una query che non corrisponde a nessuna chiave restituisce `false` con errno 106
 
 I nomi delle colonne nelle righe devono essere scritti come nella query (`'Titolo'`, non `'titolo'`): lo studente li usa come chiavi di `$riga[...]`, che in PHP distinguono maiuscole e minuscole.
 
-Il mock **non ordina e non filtra**: le righe vanno scritte già nell'ordine e con il filtro che darebbe la query (oppure calcolate, vedi sezione 8).
+Un risultato forzato **non si ordina e non si filtra**: le righe vanno scritte già nell'ordine e con il filtro che darebbe la query.
 
-## 5. Errori generati automaticamente
+## 3. Errori generati automaticamente
 
-La connessione è controllata dal mock con messaggi realistici:
+La connessione è controllata dalla facciata, con i messaggi di MySQL:
 
 | Situazione | errno | Messaggio |
 |---|---|---|
@@ -112,7 +69,7 @@ In caso di errore di connessione `mysqli_connect` restituisce `false` e `mysqli_
 
 Altri errori PHP riprodotti fedelmente grazie ai type hint: `mysqli_fetch_array(): Argument #1 ($result) must be of type mysqli_result, string given` (se lo studente passa `$query` invece di `$risultato`). Chiamare metodi dopo `mysqli_close` lancia `Error: mysqli object is already closed`.
 
-## 6. Funzioni disponibili allo studente
+## 4. Funzioni disponibili allo studente
 
 Procedurali: `mysqli_connect`, `mysqli_connect_error`, `mysqli_connect_errno`, `mysqli_query`, `mysqli_error`, `mysqli_errno`, `mysqli_select_db`, `mysqli_set_charset`, `mysqli_real_escape_string` (equivale ad `addslashes`), `mysqli_affected_rows`, `mysqli_insert_id`, `mysqli_close`, `mysqli_fetch_assoc`, `mysqli_fetch_row`, `mysqli_fetch_array` (predefinito `MYSQLI_BOTH`), `mysqli_fetch_object`, `mysqli_fetch_all` (predefinito `MYSQLI_NUM`), `mysqli_num_rows`, `mysqli_num_fields`, `mysqli_data_seek`, `mysqli_free_result`, `mysqli_report`.
 
@@ -122,16 +79,16 @@ Costanti: `MYSQLI_ASSOC`, `MYSQLI_NUM`, `MYSQLI_BOTH`, `MYSQLI_REPORT_*`.
 
 **Non disponibili**: prepared statements (`mysqli_prepare`, `bind_param`…), transazioni, `mysqli_multi_query`.
 
-## 7. Funzioni di supporto per i test
+## 5. Funzioni di supporto per i test
 
 - `FakeDB::executedQueries()`: elenco delle query eseguite dallo studente, nel testo originale.
 - `FakeDB::connectionClosed()`: `true` se lo studente ha chiamato `mysqli_close`.
-- `FakeDB::normalize($sql)`: normalizza una query come fa il mock (utile per confronti).
+- `FakeDB::normalize($sql)`: normalizza una query come le chiavi della mappa (utile per confronti).
 - `FakeDB::$log`: registro grezzo (`['connect', host, user, pass, db]`, `['query', sql]`, `['close']`).
 
 Per stampare controlli **dopo** lo script dello studente, anche se termina con `die()`, usa `register_shutdown_function` nel campo Test. Ciò che stampa entra nell'output e va quindi messo anche nell'output atteso.
 
-## 8. Schemi ricorrenti
+## 6. Schemi ricorrenti
 
 ### Dati del form
 
@@ -140,77 +97,6 @@ $_GET = ['autore' => 'Calvino', 'max' => '15'];   // oppure $_POST = [...]
 ```
 
 I valori sono stringhe, come quelli che arrivano da un form vero.
-
-### INSERT con verifica dell'inserimento
-
-La riga finale mostra lo stato della tabella dopo l'esecuzione, come se lo studente guardasse PHPMyAdmin.
-
-```php
-$_POST = ['isbn' => '9788806', 'titolo' => 'La Storia', 'autore' => 'Morante', 'prezzo' => '14'];
-$__attesa = "INSERT INTO Libri (ISBN, Titolo, Autore, Prezzo) VALUES ('9788806', 'La Storia', 'Morante', 14)";
-FakeDB::configure([
-    'user' => 'root', 'password' => '', 'database' => 'dblibreria',
-    'unknownQueryError' => 'la query non è quella richiesta: stampala con echo e controllala',
-    'queries' => [
-        // ... chiavi per gli errori previsti, prima della query corretta ...
-        $__attesa => ['affected' => 1],
-    ],
-]);
-register_shutdown_function(function () use ($__attesa) {
-    $eseguite = array_map(['FakeDB', 'normalize'], FakeDB::executedQueries());
-    $inserito = in_array(FakeDB::normalize($__attesa), $eseguite, true);
-    echo "\n[tabella Libri: " . ($inserito ? 5 : 4) . " libri]";
-});
-```
-
-Se la query corretta deve fallire (chiave duplicata), la shutdown stampa direttamente il conteggio invariato. La conferma dello studente (`echo "<p>Libro inserito: ..."`) va **senza** `"\n"` finale e la shutdown inizia con `"\n"`, così l'output atteso ha due righe pulite; lo stesso vale per i messaggi di `die`.
-
-### Risultati calcolati (debugging silenzioso e scrittura guidata)
-
-Quando le query sbagliate devono restituire dati plausibili invece di un errore, il campo Test contiene la tabella completa e una funzione che calcola il risultato di ogni variante. Nei test cambiano solo le prime righe (dati del form e tabella); il resto si copia identico.
-
-```php
-$_GET = ['stato' => 'Spedito', 'minimo' => '50'];
-$__ordini = [
-    ['Numero' => '1041', 'Cliente' => 'Rossi', 'Data' => '2026-09-12', 'Totale' => '50.00', 'Stato' => 'Spedito'],
-    // ...
-];
-
-// ---- da qui in giù il codice è uguale in tutti i test ----
-$__risultato = function ($maggioreUguale, $decrescente) use ($__ordini) {
-    $righe = [];
-    foreach ($__ordini as $o) {
-        $totaleOk = $maggioreUguale
-            ? (float)$o['Totale'] >= (float)$_GET['minimo']
-            : (float)$o['Totale'] > (float)$_GET['minimo'];
-        if ($o['Stato'] === $_GET['stato'] && $totaleOk) {
-            unset($o['Stato']);          // solo le colonne della SELECT
-            $righe[] = $o;
-        }
-    }
-    usort($righe, function ($a, $b) use ($decrescente) {
-        return $decrescente ? strcmp($b['Data'], $a['Data']) : strcmp($a['Data'], $b['Data']);
-    });
-    return $righe;
-};
-$__inizio = "SELECT Numero, Cliente, Data, Totale FROM Ordini WHERE Stato = '" . $_GET['stato'] . "' AND Totale ";
-$__min = $_GET['minimo'];
-FakeDB::configure([
-    'user' => 'root', 'password' => '', 'database' => 'dblibreria',
-    'unknownQueryError' => 'la query non è quella richiesta: stampala con echo e controllala',
-    'queries' => [
-        "/stato=''/" => [],
-        $__inizio . ">= $__min ORDER BY Data DESC" => $__risultato(true, true),
-        $__inizio . ">= $__min ORDER BY Data"      => $__risultato(true, false),
-        $__inizio . ">= $__min ORDER BY Data ASC"  => $__risultato(true, false),
-        $__inizio . "> $__min ORDER BY Data DESC"  => $__risultato(false, true),
-        $__inizio . "> $__min ORDER BY Data"       => $__risultato(false, false),
-        $__inizio . "> $__min ORDER BY Data ASC"   => $__risultato(false, false),
-    ],
-]);
-```
-
-Adatta la funzione alle varianti che ti interessano (colonne stampate, condizioni, verso dell'ordinamento) e registra una chiave per ciascuna. Per l'ordinamento di testi usa `strcmp`; per numeri, il confronto tra `(float)`.
 
 ### Output normalizzato (scrittura completa e guidata)
 
@@ -237,16 +123,3 @@ L'output atteso si scrive quindi in forma canonica: un a capo dopo `<table>`, `<
 ```
 
 Non normalizza gli spazi dentro il testo (`<td> Calvino </td>` resta diverso da `<td>Calvino</td>`) né le maiuscole dei tag: la consegna deve indicare la struttura HTML esatta da produrre. Se nello stesso test c'è anche la riga di controllo di una INSERT, la sua `echo` **non** deve iniziare con `"\n"`, perché l'output normalizzato termina già con un a capo.
-
-### Chiavi tolleranti (scrittura completa)
-
-Chi scrive la query da sé può usare varianti equivalenti che il confronto testuale non riconosce. Per la query corretta usa una **regex ancorata** che accetti le varianti innocue più probabili, e se serve una seconda chiave con l'ordine delle condizioni invertito:
-
-```php
-// virgolette singole o doppie intorno al testo, ASC facoltativo
-'/^select titolo,prezzo from libri where autore=[\'"]calvino[\'"] and prezzo<=15 order by prezzo( asc)?$/' => $__righe,
-// stesse condizioni in ordine inverso
-'/^select titolo,prezzo from libri where prezzo<=15 and autore=[\'"]calvino[\'"] order by prezzo( asc)?$/' => $__righe,
-```
-
-(Dentro una stringa PHP tra apici singoli, l'apice nella classe di caratteri va scritto `\'`.) Le righe vanno in una variabile (`$__righe`) per non ripeterle. Le varianti che cambiano il risultato (colonne diverse, `SELECT *`, condizioni in più) non vanno accettate: la consegna e il disclaimer le escludono, e il messaggio di `unknownQueryError` invita a stampare la query.

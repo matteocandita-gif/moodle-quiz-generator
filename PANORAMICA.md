@@ -13,6 +13,7 @@ Una panoramica delle funzioni del plugin «Moodle: quiz generator». Non corrisp
 
 - Cloze, risposta multipla, vero/falso, risposta breve, corrispondenza e risposta aperta, più la consegna di un file.
 - Domande di codice a correzione automatica con CodeRunner: JavaScript, SQL e PHP/MySQL. Per SQL e PHP girano su database didattici di prova, con dati italiani coerenti, in tre taglie.
+- HTML e CSS con controlli automatici: la regola o la pagina scritta nella casella, la cartella del sito consegnata come .zip, oppure il sito intero scritto dentro Moodle con un editor (file, cartelle, immagini e anteprima), senza usare i file del PC: è il modo pensato per le verifiche con Safe Exam Browser.
 - Pagine di teoria con riquadri, snippet HTML con l'anteprima accanto e immagini.
 
 ## Progettazione dei database

@@ -4,16 +4,16 @@
  "minuti": 5,
  "strumento": "",
  "sostegno": "",
- "correzione": "Selettore 2, proprietà 2.",
- "coderunner": "=== answer\nli {\n    color: red;\n}",
+ "correzione": "Il sito di riferimento è la soluzione dell'autore.",
+ "coderunner": "=== options\npagina: home.html\ncontrollo: nascosto\naiuti: chiusura, errori\n=== file home.html\n<!DOCTYPE html>\n<html lang=\"it\">\n<head>\n    <meta charset=\"utf-8\">\n    <title>Home</title>\n</head>\n<body>\n    <h1>Home</h1>\n    <p><a href=\"pagine/contatti.html\">Contatti</a></p>\n</body>\n</html>\n=== file pagine/contatti.html\n<!DOCTYPE html>\n<html lang=\"it\">\n<head>\n    <meta charset=\"utf-8\">\n    <title>Contatti</title>\n</head>\n<body>\n    <h1>Contatti</h1>\n    <p><a href=\"../home.html\">Torna alla home</a></p>\n</body>\n</html>\n=== cartella img\n=== test 1\nlink_a(\"pagine/contatti.html\")\n=== extra\nLa home porta alla pagina dei contatti.\n=== test 1\nlink_validi(\"home.html\", \"pagine/contatti.html\")\n=== extra\nI link portano a file che esistono.",
  "docente": "",
  "sintesi": "x",
  "sezione": "Altre tipologie",
  "parte": 7,
  "pos": "G5",
  "pag": 31,
- "titolo": "Lo stile della lista",
- "tipologia": "libero_css",
+ "titolo": "Due pagine collegate",
+ "tipologia": "sito_html",
  "punti": 4,
- "traccia": "Scrivere il foglio di stile che colora di rosso le voci di lista."
+ "traccia": "Nell'editor, creare la pagina **home.html** con un link alla pagina **pagine/contatti.html**, che a sua volta torna alla home."
 }

@@ -813,8 +813,7 @@ const CAT_RAW=[
  ["esercizio_libero","Esercizio libero","Altro","Aperta","V ED EP ER","om","Esercizio libero"],
  ["consegna_file","Consegna di un file","Altro","Aperta","V","om","Consegna"],
  ["consegna_auto","Consegna con controllo automatico","Altro","CodeRunner html_con_file (file allegato)","ED EP ER","o","Consegna"],
- ["libero_html","Esercizio HTML","Altro","CodeRunner HTML (senza test)","V ED EP ER","om","Esercizio libero"],
- ["libero_css","Esercizio CSS","Altro","CodeRunner CSS (senza test)","V ED EP ER","om","Esercizio libero"],
+ ["sito_html","Sito con l'editor","Altro","CodeRunner html_con_file con l'interfaccia html_sito (editor del sito, controlli automatici)","V ED EP ER","o","Sito"],
  ["esercizio_controllo","Esercizio con controllo (CSS o HTML)","Altro","CodeRunner css_con_test (casella con controlli automatici)","V ED EP ER","o","Scrivere"],
  ["campo_prova","Campo di prova","Altro","CodeRunner SQL","V EP","o","Campo di prova"]
 ];
@@ -1033,10 +1032,6 @@ function chiaveHTML(r){
 /* ------------------------------------------------------------------ CodeRunner: campo «Soluzione e test» */
 function tipiConsegna(r){let t="";sezioniCR(r.coderunner).forEach(function(x){if(x.k!=="options")return;String(x.t||"").split("\n").forEach(function(l){const m=/^\s*tipi\s*:\s*(.+)$/i.exec(l);if(m)t=m[1].trim();});});if(!t)return ".html, .htm o .css";const a=t.toLowerCase().split(/[\s,;]+/).filter(Boolean).map(function(x){return x.charAt(0)==="."?x:"."+x;});return a.length>1?a.slice(0,-1).join(", ")+" o "+a[a.length-1]:a[0];}
 function isCR(c){return !!c&&/CodeRunner/.test(c.real);}
-const CR_WEB={libero_html:"html",libero_css:"css"};
-/* prototipo Moodle degli esercizi liberi: l'HTML usa php_con_test, che ha lo scratchpad (come da_dashboard.py) */
-const PROTO_WEB={html:"php_con_test",css:"css"};
-/* esercizi HTML: con anteprima (php_con_test, scratchpad) o senza (prototipo html), scelto nei dati del quiz */
 /* impostazioni avanzate: le valorizza il tipo di quiz (stessa regola di da_dashboard.py); nel quiz resta solo ciò che si è cambiato */
 const NAVIGAZIONE=[["libero","Libero"],["sequenziale","Forzato: solo avanti"]];
 const FEEDBACK=[["immediato","Immediato"],["differito","Differito"]];
@@ -1049,13 +1044,11 @@ function avanzataDi(q,f){return q[f]||avanzateTipo(q)[f];}
 /* il valore uguale a quello del tipo non si salva: se il tipo cambia, segue il tipo */
 function valoreAvanzata(q,f,v){return v===avanzateTipo(q)[f]?"":v;}
 function opzioniAvanzata(q,f,L){const d=avanzateTipo(q)[f];return L.map(function(o){return [o[0],o[0]===d?o[1]+" (dal tipo)":o[1]];});}
-const PROTO_HTML=[["php_con_test","Con anteprima: area di prova sotto la risposta (php_con_test)"],["html","Senza anteprima: solo il campo dove incollare il codice (prototipo html)"]];
-function protoWeb(web,q){q=q||S.quiz;if(web==="html"&&q&&q.prototipoHtml==="html")return "html";return PROTO_WEB[web];}
 const CR_SQL=["query","create_tabelle","query_due_passi","vincoli","campo_prova"],CR_PHP=["pagina_php"];
 /* linguaggio di una riga CodeRunner, come in da_dashboard.py: tipologia, sezione === linguaggio,
    altrimenti i test (SQL iniziano con «--» o con [[struttura]], JavaScript con «//») */
 function linguaggioCR(r,ss){
-  if(CR_WEB[r.tipologia])return CR_WEB[r.tipologia];
+  if(r.tipologia==="sito_html")return "sito";
   if(r.tipologia==="consegna_auto")return "consegna";
   if(r.tipologia==="esercizio_controllo")return "controllo";
   const lg=(ss||sezioniCR(r.coderunner)).find(function(x){return x.k==="linguaggio";});
@@ -1090,7 +1083,7 @@ function sezioniCR(src){
   return out;
 }
 function crInfo(r){
-  const ss=sezioniCR(r.coderunner),c=CAT[r.tipologia],I={opzioni:{},tests:[],answer:null,preload:null,code:null,linguaggio:null};
+  const ss=sezioniCR(r.coderunner),c=CAT[r.tipologia],I={opzioni:{},tests:[],answer:null,preload:null,code:null,linguaggio:null,files:[],cartelle:[],immagini:[]};
   ss.forEach(function(x){
     if(x.k==="test"){I.tests.push({hide:/HIDE/i.test(x.arg),arg:x.arg,peso:x.arg.trim()===""?1:Number(x.arg.replace(",",".")),code:x.t,stdin:"",extra:"",expected:"",descrizione:""});return;}
     if((x.k==="stdin"||x.k==="extra"||x.k==="expected"||x.k==="descrizione")&&I.tests.length){I.tests[I.tests.length-1][x.k]=x.t;return;}
@@ -1099,18 +1092,23 @@ function crInfo(r){
     else if(x.k==="preload")I.preload=x.t;
     else if(x.k==="code")I.code=x.t;
     else if(x.k==="linguaggio")I.linguaggio=x.t.trim()||x.arg;
+    else if(x.k==="file")I.files.push({p:x.arg,t:x.t});
+    else if(x.k==="cartella")I.cartelle.push(x.arg);
+    else if(x.k==="immagine"){const a=x.arg.split(/\s+/).filter(Boolean);I.immagini.push({p:a[0]||"",nome:a[1]||String(a[0]||"").split("/").pop(),arg:x.arg});}
   });
   I.lang=linguaggioCR(r,ss);
   I.sql=I.lang==="sql";
   I.php=I.lang==="php";
   I.gap=!I.sql&&!I.php&&(r.tipologia==="compl_eseguito"||I.code!=null);
-  I.web=CR_WEB[r.tipologia]||null;
-  if(I.web)I.gap=false;
   I.consegna=r.tipologia==="consegna_auto";
   I.controllo=r.tipologia==="esercizio_controllo";
-  if(I.consegna||I.controllo){I.gap=false;I.sql=false;I.php=false;}
-  I.nascosto=I.controllo&&I.opzioni.controllo==="nascosto";
-  I.prototipo=I.consegna?"html_con_file (file allegato, controlli automatici)":I.controllo?"css_con_test (casella "+((I.opzioni.risposta||"css")==="html"?"HTML":"CSS")+", controlli "+(I.nascosto?"nascosti: punteggio alla consegna":"visibili con Verifica")+")":I.web?protoWeb(I.web)+(protoWeb(I.web)==="php_con_test"?" (con lo scratchpad, senza test, correzione a mano)":" (senza test, correzione a mano)"):I.sql?"sql_salvemini (SQLite 3.46 su Jobe)":I.php?"php_mysqli_sqlite (PHP vero, query su SQLite)":I.gap?"Javascript (con gapfiller)":"Javascript (con prompt)";
+  I.sito=r.tipologia==="sito_html";
+  if(I.consegna||I.controllo||I.sito){I.gap=false;I.sql=false;I.php=false;}
+  /* nel sito con l'editor il controllo è nascosto per default nelle verifiche (come specifica_sito in da_dashboard.py) */
+  I.nascosto=I.controllo?I.opzioni.controllo==="nascosto":I.sito?(I.opzioni.controllo?I.opzioni.controllo.toLowerCase()==="nascosto":presetQuiz(S.quiz||{})==="verifica"):false;
+  I.pagina=I.opzioni.pagina||"index.html";
+  I.fornite=String(I.opzioni.immagini||"").split(/[,;]/).map(function(x){return x.trim();}).filter(Boolean);
+  I.prototipo=I.consegna?"html_con_file (file allegato, controlli automatici)":I.controllo?"css_con_test (casella "+((I.opzioni.risposta||"css")==="html"?"HTML":"CSS")+", controlli "+(I.nascosto?"nascosti: punteggio alla consegna":"visibili con Verifica")+")":I.sito?"html_con_file con l'interfaccia html_sito (editor del sito, controlli "+(I.nascosto?"nascosti: punteggio alla consegna":"visibili con Verifica")+")":I.sql?"sql_salvemini (SQLite 3.46 su Jobe)":I.php?"php_mysqli_sqlite (PHP vero, query su SQLite)":I.gap?"Javascript (con gapfiller)":"Javascript (con prompt)";
   I.spazi=I.code?(I.code.match(/\{\[\d+(?:-\d+)?\]\}/g)||[]).length:0;
   I.risposte=I.answer!=null?I.answer.split("\n").filter(function(l){return l.trim()!=="";}):[];
   return I;
@@ -1127,6 +1125,13 @@ function crStudenteHTML(r){
   if(I.consegna){
     h='<p class="crl">Al posto della casella di risposta, il promemoria del prototipo («OK» vuol dire che il controllo ha trovato quello che cercava, non che il lavoro è corretto; aprire sempre la pagina nel browser) e il riquadro per caricare il file. Accanto: <strong>Il file deve chiamarsi '+esc(I.opzioni.nome||"?")+', tutto minuscolo e senza spazi.</strong></p>';
     if(I.tests.length)h+='<p class="crl">Premendo <strong>Controlla</strong> lo studente vede questa tabella, con «OK» o il problema trovato:</p><div class="tbl"><table><thead><tr><th scope="col">Controllo</th><th scope="col">Trovato?</th></tr></thead><tbody>'+
+      I.tests.map(function(t){return "<tr><td>"+esc(t.extra)+'</td><td class="muted">OK, oppure il problema</td></tr>';}).join("")+"</tbody></table></div>";
+    return '<div class="crbox">'+h+"</div>";
+  }
+  if(I.sito){
+    h='<p class="crl">Al posto della casella di risposta, l\'editor del sito: albero di file e cartelle (all\'inizio vuoto: i file e le cartelle li crea lo studente; la pagina principale è <code>'+esc(I.pagina)+'</code>), codice con i colori e anteprima della pagina; la risposta si salva da sola.'+(I.fornite.length?" Immagini già disponibili da inserire nel sito: "+I.fornite.map(function(x){return "<code>"+esc(x)+"</code>";}).join(", ")+".":"")+'</p>';
+    if(I.nascosto)h+='<p class="crl muted">Controllo nascosto: niente pulsante Verifica e niente risultati dei controlli durante il tentativo; il punteggio si calcola alla consegna.</p>';
+    else if(I.tests.length)h+='<p class="crl">Premendo <strong>Verifica</strong> lo studente vede questa tabella, con «OK» o il problema trovato:</p><div class="tbl"><table><thead><tr><th scope="col">Controllo</th><th scope="col">Trovato?</th></tr></thead><tbody>'+
       I.tests.map(function(t){return "<tr><td>"+esc(t.extra)+'</td><td class="muted">OK, oppure il problema</td></tr>';}).join("")+"</tbody></table></div>";
     return '<div class="crbox">'+h+"</div>";
   }
@@ -1149,7 +1154,6 @@ function crStudenteHTML(r){
     if(I.opzioni.precheck==="1")h+='<p class="crl">Sotto la casella c\'è anche il pulsante <strong>Precheck</strong>: controlla solo la sintassi.</p>';
     return '<div class="crbox">'+h+"</div>";
   }
-  if(I.web)h+='<p class="crl muted">In Moodle, sotto la traccia, si aggiunge da solo il riquadro arancio «Nessun controllo automatico»: il pulsante di verifica è nascosto, il codice si salva cambiando pagina'+(protoWeb(I.web)==="php_con_test"?", e per vedere la pagina c'è il pulsante Prova dello Scratchpad":", e la pagina si prova aprendo il file nel browser")+'.</p>';
   const es=(I.opzioni.esempi||"primo");
   const ex=I.tests.filter(function(t){return !t.hide;}).slice(0,es==="tutti"?99:es==="nessuno"?0:1);
   if(ex.length)h+='<p class="crl">Per esempio:</p><div class="tbl"><table><thead><tr><th scope="col">Test</th><th scope="col">Input</th><th scope="col">Risultato atteso</th></tr></thead><tbody>'+
@@ -1169,6 +1173,17 @@ function crDocenteHTML(r){
     if(I.answer!=null&&I.answer.trim())h+='<p class="kh"><strong>Soluzione per struttura_come_soluzione()</strong></p>'+codiceHTML(I.answer,false);
     return h;
   }
+  if(I.sito){
+    const tot=I.tests.reduce(function(a,t){return a+(t.peso>0?t.peso:0);},0);
+    const albero=I.cartelle.map(function(x){return "<li><code>"+esc(x)+"/</code></li>";}).concat(I.immagini.map(function(x){return "<li><code>"+esc(x.p)+"</code> <small>immagine "+esc(x.nome)+"</small></li>";})).join("");
+    h+='<p class="kh"><strong>Pagina principale</strong> · <code>'+esc(I.pagina)+"</code>"+(I.fornite.length?" · immagini fornite: "+I.fornite.map(function(x){return "<code>"+esc(x)+"</code>";}).join(", "):"")+"</p>";
+    h+='<p class="kh"><strong>Soluzione</strong> <small>· il sito di riferimento: la parte 2 controlla che superi tutti i controlli e lo mette come soluzione dell\'autore</small></p>'+
+      I.files.map(function(f){return '<p class="crl"><code>'+esc(f.p)+"</code></p>"+codiceHTML(f.t,false);}).join("")+(albero?'<ul class="kc">'+albero+"</ul>":"");
+    h+='<p class="kh"><strong>Controlli</strong> · '+I.tests.length+" <small>· i punti della riga si dividono in proporzione ai pesi (totale "+f1(tot)+")</small></p>"+
+      '<div class="tbl"><table><thead><tr><th scope="col">#</th><th scope="col">Che cosa vede lo studente</th><th scope="col">Controllo</th><th scope="col">Peso</th></tr></thead><tbody>'+
+      I.tests.map(function(t,k){return "<tr><td>"+(k+1)+"</td><td>"+(t.extra?esc(t.extra):'<span class="muted">manca la frase</span>')+"</td><td><code>"+esc(t.code).replace(/\n/g,"<br>")+"</code></td><td>"+esc(String(t.arg||"1"))+"</td></tr>";}).join("")+"</tbody></table></div>";
+    return h;
+  }
   if(I.controllo){
     const tot=I.tests.reduce(function(a,t){return a+(t.peso>0?t.peso:0);},0);
     if(I.answer!=null)h+='<p class="kh"><strong>Soluzione</strong> <small>· la parte 2 controlla che superi tutti i controlli</small></p>'+codiceHTML(I.answer,false);
@@ -1179,7 +1194,6 @@ function crDocenteHTML(r){
   }
   if(I.gap)h+='<p class="kh"><strong>Risposte degli spazi</strong> · una per spazio, in ordine</p><ol class="kc">'+I.risposte.map(function(x){return "<li><code>"+esc(x)+"</code></li>";}).join("")+"</ol>";
   else if(I.answer!=null)h+='<p class="kh"><strong>Soluzione</strong></p>'+codiceHTML(I.answer,false);
-  if(I.web)return h;
   if(I.php){
     const nd=dbDellaRiga(S.quiz,I),db=dbList(S.quiz).find(function(x){return x.nome===nd;});
     const norm=I.opzioni.normalizza!=="0";
@@ -1239,6 +1253,45 @@ function controlliControllo(r,I,add,w){
   });
   if(campiDi(r.traccia).length||opzioniTraccia(r.traccia).length)add("warn",w+": in un esercizio con controllo la traccia non ha campi Cloze né opzioni.",r.id);
 }
+/* sito con l'editor (prototipo html_con_file, interfaccia html_sito): stesse regole di specifica_sito in da_dashboard.py */
+const SEGMENTO_RE=/^[a-z0-9_-][a-z0-9._-]*$/;
+function percorsoSitoOk(p){p=String(p||"").trim().replace(/^\/+|\/+$/g,"");return !!p&&p.split("/").every(function(x){return SEGMENTO_RE.test(x)&&x!=="."&&x!=="..";});}
+function controlliSito(q,r,I,add,w){
+  sezioniCR(r.coderunner).forEach(function(x){if(["options","test","extra","file","cartella","immagine"].indexOf(x.k)<0)add("err",w+": nel sito con l'editor la sezione === "+x.k+" non è prevista (options, test, extra, file, cartella, immagine).",r.id);});
+  const verifica=presetQuiz(q)==="verifica";
+  Object.keys(I.opzioni).forEach(function(k){
+    const v=I.opzioni[k].toLowerCase();
+    if(k==="controllo"){if(["visibile","nascosto"].indexOf(v)<0)add("err",w+": «controllo: "+v+"» non valido (visibile o nascosto).",r.id);}
+    else if(k==="pagina"){if(!percorsoSitoOk(I.opzioni[k]))add("err",w+": pagina principale «"+I.opzioni[k]+"» non valida: solo minuscole, numeri, - _ . e / tra le cartelle.",r.id);}
+    else if(k==="immagini"){I.fornite.forEach(function(n){if(!SEGMENTO_RE.test(n)||n.indexOf(".")<0)add("err",w+": immagine «"+n+"» non valida in «immagini:»: solo il nome del file, minuscolo (es. logo.png).",r.id);});}
+    else if(k==="aiuti"){const a=v.split(/[,;\s]+/).filter(Boolean);if(!(a.length===1&&(a[0]==="nessuno"||a[0]==="tutti"))&&a.some(function(x){return ["chiusura","completamento","errori"].indexOf(x)<0;}))add("err",w+": «aiuti: "+v+"» non valido: nessuno, tutti, oppure chiusura, completamento, errori.",r.id);}
+    else if(k==="carica_immagini"){if(verifica&&["sì","si","true","1"].indexOf(v)>=0)add("err",w+": «carica_immagini: sì» non va nelle verifiche: riapre il file system del PC dentro SEB.",r.id);}
+    else add("err",w+": opzione «"+k+"» non prevista (pagina, controllo, immagini, aiuti, carica_immagini).",r.id);
+  });
+  const visti={};
+  I.files.forEach(function(f){
+    if(!percorsoSitoOk(f.p))add("err",w+": file «"+f.p+"» non valido: solo minuscole, numeri, - _ . e / tra le cartelle.",r.id);
+    else if(visti[f.p])add("err",w+": il file "+f.p+" compare due volte nella soluzione.",r.id);
+    visti[f.p]=1;
+  });
+  I.cartelle.forEach(function(c){if(!percorsoSitoOk(c))add("err",w+": cartella «"+c+"» non valida: solo minuscole, numeri, - _ . e / tra le cartelle.",r.id);});
+  I.immagini.forEach(function(x){
+    if(!x.p||x.arg.split(/\s+/).filter(Boolean).length>2)add("err",w+": «=== immagine "+x.arg+"»: scrivi il percorso nel sito e, se il nome è diverso, l'immagine fornita (es. «=== immagine img/logo.png»).",r.id);
+    else if(!percorsoSitoOk(x.p))add("err",w+": immagine «"+x.p+"» non valida: solo minuscole, numeri, - _ . e / tra le cartelle.",r.id);
+    else if(I.fornite.indexOf(x.nome)<0)add("err",w+": «=== immagine "+x.arg+"»: l'immagine "+x.nome+" non è tra quelle fornite («immagini:» in === options).",r.id);
+  });
+  const pag=String(I.pagina).trim().replace(/^\/+|\/+$/g,"");
+  if(!I.files.length)add("err",w+": manca la soluzione: uno o più «=== file PERCORSO» con il codice del sito di riferimento.",r.id);
+  else if(!visti[pag])add("err",w+": la soluzione non ha la pagina principale "+pag+" (=== file "+pag+").",r.id);
+  if(!I.tests.length)add("err",w+": nessun controllo: servono uno o più «=== test PESO» con il loro «=== extra».",r.id);
+  I.tests.forEach(function(t,k){
+    const n=k+1;
+    if(!(t.peso>0))add("err",w+", controllo "+n+": peso «"+t.arg+"» non valido; non può essere 0 (Moodle va in errore mostrando i risultati): per un controllo che dà solo il messaggio usa 0.001.",r.id);
+    if(!String(t.extra||"").trim())add("err",w+", controllo "+n+": manca === extra, la frase che lo studente legge nella colonna «Controllo».",r.id);
+    if(!String(t.code||"").trim())add("err",w+", controllo "+n+": il test è vuoto.",r.id);
+  });
+  if(campiDi(r.traccia).length||opzioniTraccia(r.traccia).length)add("warn",w+": in un sito con l'editor la traccia non ha campi Cloze né opzioni.",r.id);
+}
 function controlliCR(q,r,add){
   const c=CAT[r.tipologia],w=r.pos||"senza posizione";
   if(!isCR(c))return;
@@ -1246,14 +1299,8 @@ function controlliCR(q,r,add){
   const I=crInfo(r);
   if(I.consegna){controlliConsegna(r,I,add,w);return;}
   if(I.controllo){controlliControllo(r,I,add,w);return;}
+  if(I.sito){controlliSito(q,r,I,add,w);return;}
   if(I.answer==null||!I.answer.trim())add("err",w+": manca la soluzione (=== answer).",r.id);
-  if(I.web){
-    sezioniCR(r.coderunner).forEach(function(x){if(["answer","preload","options","linguaggio"].indexOf(x.k)<0)add("err",w+": esercizio "+I.web.toUpperCase()+" senza test: la sezione === "+x.k+" non è prevista (solo answer, preload, options).",r.id);});
-    Object.keys(I.opzioni).forEach(function(k){if(["righe","colonne","answerboxlines","answerboxcolumns"].indexOf(k)<0)add("err",w+": opzione «"+k+"» non prevista (solo righe e colonne della casella).",r.id);});
-    if(!String(r.correzione||"").trim())add("warn",w+": esercizio a correzione manuale senza «Correzione»: criteri e punti vanno lì (in Moodle diventano il feedback generale).",r.id);
-    if(campiDi(r.traccia).length||opzioniTraccia(r.traccia).length)add("warn",w+": in una domanda CodeRunner la traccia non ha campi Cloze né opzioni.",r.id);
-    return;
-  }
   if(I.php){
     if(!I.tests.length)add("err",w+": nessuna prova (=== test).",r.id);
     sezioniCR(r.coderunner).forEach(function(x){if(["answer","preload","test","descrizione","expected","options","linguaggio"].indexOf(x.k)<0)add("err",w+": nelle domande PHP la sezione === "+x.k+" non è prevista (answer, preload, test, descrizione, expected, options).",r.id);});
@@ -1553,7 +1600,7 @@ function renderHeader(){
   ["home","scaletta","dettaglio"].forEach(function(v){$("#tab-"+v).setAttribute("aria-selected",(S.view===v||(v==="home"&&S.view==="nuovo"))?"true":"false");});
 }
 /* ------------------------------------------------------------------ vista iniziale e nuovo quiz */
-const VERSIONE_PAGINA="0.6.5";
+const VERSIONE_PAGINA="0.7.0";
 const PERCORSO_IMPOSTAZIONI="impostazioni/avvio";
 /* depositi delle domande (banche qbank dei corsi deposito): li scrive Claude leggendo un backup */
 const PERCORSO_DEPOSITI="impostazioni/depositi";
@@ -1591,7 +1638,7 @@ function codiceCasuale(classe){
 /* una ED è una lezione di due ore: propone 105 minuti se il tempo è vuoto (o era stato proposto dalla pagina) */
 const TEMPO_PROPOSTO={ED:"105",SD:"40"};
 function tempoProposto(n){const vuoto=!String(n.tempo||"").trim(),t=TEMPO_PROPOSTO[n.tipoQuiz];if(t){if(vuoto||n.tempoAuto){n.tempo=t;n.tempoAuto=true;}}else if(n.tempoAuto){n.tempo="";n.tempoAuto=false;}}
-function nuovoVuoto(){return {domandaNote:"",tipoQuiz:"",titolo:"",lezione:"",classe:"",area:"",argomento:"",tempo:"",linguaggio:"",varianti:"1",avanzata:"",richiesta:"",materiale:false,presetMbz:"esercitazione",prototipoHtml:"php_con_test",navigazione:"",feedback:"",seb:"",password:""};}
+function nuovoVuoto(){return {domandaNote:"",tipoQuiz:"",titolo:"",lezione:"",classe:"",area:"",argomento:"",tempo:"",linguaggio:"",varianti:"1",avanzata:"",richiesta:"",materiale:false,presetMbz:"esercitazione",navigazione:"",feedback:"",seb:"",password:""};}
 function avanzateHTML(q,k){
   const sel=function(f,lbl,L){return '<label class="fld"><span>'+lbl+'</span><select class="ctl" '+k(f)+' aria-label="'+lbl+'">'+opts(opzioniAvanzata(q,f,L),avanzataDi(q,f))+"</select></label>";};
   const v={n:avanzataDi(q,"navigazione"),f:avanzataDi(q,"feedback"),s:avanzataDi(q,"seb"),o:avanzataDi(q,"domandaNote")};
@@ -1732,7 +1779,6 @@ function nuovoHTML(){
     fld("Tempo disponibile (minuti)",'<input class="ctl" type="number" min="1" '+k("tempo")+' value="'+esc(n.tempo)+'" aria-required="true">',true)+
     fld("Linguaggio",'<select class="ctl" '+k("linguaggio")+">"+opts(LINGUAGGI,n.linguaggio)+"</select>",false)+
     (n.tipoQuiz==="LIB"?fld("In Moodle si comporta come",'<select class="ctl" '+k("presetMbz")+">"+opts([["esercitazione","Esercitazione: feedback subito, tentativi illimitati"],["verifica","Verifica: un tentativo, feedback alla restituzione"]],n.presetMbz||"esercitazione")+"</select>",false,true):"")+
-    (n.linguaggio==="html-css"?fld("Esercizi HTML",'<select class="ctl" '+k("prototipoHtml")+">"+opts(PROTO_HTML,n.prototipoHtml||"php_con_test")+"</select>",false,true):"")+
     (ver?fld("Varianti per domanda",'<select class="ctl" '+k("varianti")+">"+opts([["1","Una (nessuna variante)"],["2","Due"],["3","Tre"]],n.varianti)+"</select>",false):"")+
     (n.tipoQuiz==="V"?fld("Parte avanzata (per il 9 e il 10)",'<input class="ctl" '+k("avanzata")+' value="'+esc(n.avanzata)+'" placeholder="Gli argomenti: LEFT JOIN, GROUP BY e HAVING su tre tabelle…">',false,true):"")+
     (n.tipoQuiz?avanzateHTML(n,k):"")+
@@ -1876,7 +1922,6 @@ async function inizia(){
     linguaggio:n.linguaggio||"",varianti:ver?Number(n.varianti)||1:1,avanzata:n.tipoQuiz==="V"?String(n.avanzata||"").trim():"",richiesta:String(n.richiesta).trim(),materiale:!!n.materiale,
     fase:"richiesta",note:"",creato:new Date().toISOString()};
   if(n.tipoQuiz==="LIB")doc.presetMbz=n.presetMbz==="verifica"?"verifica":"esercitazione";
-  if(n.linguaggio==="html-css")doc.prototipoHtml=n.prototipoHtml==="html"?"html":"php_con_test";
   AVANZATE.forEach(function(f){const v=n[f]?valoreAvanzata(n,f,n[f]):"";if(v)doc[f]=v;});
   if(String(n.password||"").trim())doc.password=String(n.password).trim();
   try{await S.db.doc("quiz/"+id).set(doc);}catch(e){S.inviando=false;toast("Non sono riuscito a salvare il quiz"+(e&&e.code?" ("+e.code+")":"")+".",true);return render();}
@@ -1924,7 +1969,6 @@ function metaHTML(q){
     '<label class="fld wide"><span>Categoria Moodle</span><input class="ctl" '+k("argomento")+' value="'+esc(q.argomento)+'" aria-label="Categoria Moodle"></label>'+
     '<label class="fld"><span>Tempo disponibile (minuti)</span><input class="ctl" type="number" min="0" data-t="n" '+k("tempo")+' value="'+esc(q.tempo)+'" aria-label="Tempo disponibile in minuti"></label>'+
     '<label class="fld"><span>Fase</span><select class="ctl" '+k("fase")+' aria-label="Fase">'+opts(FASI,q.fase).replace('value="dettaglio-approvato"',mancanti()>0?'value="dettaglio-approvato" disabled':'value="dettaglio-approvato"')+"</select></label>"+
-    (q.linguaggio==="html-css"||q.prototipoHtml||S.rows.some(function(r){return r.tipologia==="libero_html";})?'<label class="fld wide"><span>Esercizi HTML</span><select class="ctl" '+k("prototipoHtml")+' aria-label="Esercizi HTML">'+opts(PROTO_HTML,q.prototipoHtml||"php_con_test")+"</select></label>":"")+
     (depositiNoti().length||q.deposito?'<label class="fld wide"><span>Dove vanno le domande</span><select class="ctl" '+k("deposito")+' aria-label="Dove vanno le domande">'+opts([["","Nella banca del quiz (poi, se serve, la sposti tu nel deposito)"]].concat(depositiNoti().map(function(d){return [d.id,"Nel deposito «"+(d.nome||d.id)+"»"];})).concat(q.deposito&&!depositoDi(q)?[[q.deposito,"Deposito «"+q.deposito+"» (non registrato)"]]:[]),q.deposito||"")+"</select></label>":"")+
     avanzateHTML(q,k)+
     '<div class="fld wide"><span>Avanzamento</span><div>'+btn+"</div></div>"+
@@ -2173,7 +2217,7 @@ function dettaglioHTML(){
   if(editing){
     body='<div class="edit-grid"><label class="fld"><span>Traccia: quello che vede lo studente</span><textarea class="ctl" data-draft="traccia" data-k="draft:traccia" aria-label="Traccia">'+esc(S.edit.traccia)+'</textarea></label>'+
       '<label class="fld"><span>Correzione: va in Moodle (criteri, mezzo punto e soluzione per le domande aperte; feedback generale per le altre)</span><textarea class="ctl" data-draft="correzione" data-k="draft:correzione" aria-label="Correzione">'+esc(S.edit.correzione)+"</textarea></label>"+
-      ((c&&c.id==="esercizio_controllo")?'<label class="fld"><span>Soluzione e test (esercizio con controllo): === options con «risposta: css» (un foglio di stile) o «risposta: html» (codice HTML, per lo stile in linea o il &lt;style&gt;), «controllo: visibile» o «nascosto», eventualmente «righe: N»; === answer con la soluzione (deve superare tutti i controlli), === preload facoltativo, poi per ogni controllo === test PESO con la funzione e === extra con la frase che vede lo studente. Il peso non è mai 0.</span><textarea class="ctl mono" data-draft="coderunner" data-k="draft:coderunner" aria-label="Soluzione e test">'+esc(S.edit.coderunner)+"</textarea></label>":(c&&c.id==="consegna_auto")?'<label class="fld"><span>Soluzione e test (consegna con controllo automatico): === options con «nome: sito-scuola.zip» (e «pagina: index.html» per lo .zip), poi per ogni controllo === test PESO con la funzione e === extra con la frase che vede lo studente. Il peso non è mai 0.</span><textarea class="ctl mono" data-draft="coderunner" data-k="draft:coderunner" aria-label="Soluzione e test">'+esc(S.edit.coderunner)+"</textarea></label>":(c&&c.id==="consegna_file")?'<label class="fld"><span>Opzioni della consegna: === options con «tipi: .zip» (uno o più tipi di file, separati da spazi). Vuoto: .html, .htm o .css</span><textarea class="ctl mono" data-draft="coderunner" data-k="draft:coderunner" aria-label="Opzioni della consegna">'+esc(S.edit.coderunner)+"</textarea></label>":(isCR(c)||String(S.edit.coderunner||"").trim())?'<label class="fld"><span>Soluzione e test (CodeRunner): sezioni === options, === preload o === code, === answer, === test con === stdin e === extra; gli output li calcola la parte 2. SQL: === options (database, dati, precheck), === preload, === answer, === test «-- commento» o [[struttura Tabella]], === extra; il database sta nel riquadro «Database del quiz» della scaletta. PHP: === options, === preload, === answer (con <?php), === test con i dati del form ($_GET o $_POST) seguito da === descrizione (quello che vede lo studente) ed eventualmente === expected; disclaimer, normalizzazione e FakeDB::configure si aggiungono da soli. Esercizi HTML e CSS: solo === answer, === preload e === options (righe: N)</span><textarea class="ctl mono" data-draft="coderunner" data-k="draft:coderunner" aria-label="Soluzione e test">'+esc(S.edit.coderunner)+"</textarea></label>":"")+
+      ((c&&c.id==="esercizio_controllo")?'<label class="fld"><span>Soluzione e test (esercizio con controllo): === options con «risposta: css» (un foglio di stile) o «risposta: html» (codice HTML, per lo stile in linea o il &lt;style&gt;), «controllo: visibile» o «nascosto», eventualmente «righe: N»; === answer con la soluzione (deve superare tutti i controlli), === preload facoltativo, poi per ogni controllo === test PESO con la funzione e === extra con la frase che vede lo studente. Il peso non è mai 0.</span><textarea class="ctl mono" data-draft="coderunner" data-k="draft:coderunner" aria-label="Soluzione e test">'+esc(S.edit.coderunner)+"</textarea></label>":(c&&c.id==="sito_html")?'<label class="fld"><span>Soluzione e test (sito con l\'editor): === options con «pagina: index.html» (la pagina principale, predefinita), «controllo: visibile» o «nascosto» (predefinito nelle verifiche), «immagini: logo.png, foto.jpg» (immagini fornite, nella traccia e nel sito), «aiuti: nessuno», «tutti» o un elenco tra chiusura, completamento, errori, «carica_immagini: sì» (mai nelle verifiche); poi il sito di riferimento, un === file PERCORSO per file con il suo codice, === cartella PERCORSO per le cartelle vuote, === immagine PERCORSO [NOME] per le immagini; poi per ogni controllo === test PESO con la funzione e === extra con la frase che vede lo studente. Il peso non è mai 0.</span><textarea class="ctl mono" data-draft="coderunner" data-k="draft:coderunner" aria-label="Soluzione e test">'+esc(S.edit.coderunner)+"</textarea></label>":(c&&c.id==="consegna_auto")?'<label class="fld"><span>Soluzione e test (consegna con controllo automatico): === options con «nome: sito-scuola.zip» (e «pagina: index.html» per lo .zip), poi per ogni controllo === test PESO con la funzione e === extra con la frase che vede lo studente. Il peso non è mai 0.</span><textarea class="ctl mono" data-draft="coderunner" data-k="draft:coderunner" aria-label="Soluzione e test">'+esc(S.edit.coderunner)+"</textarea></label>":(c&&c.id==="consegna_file")?'<label class="fld"><span>Opzioni della consegna: === options con «tipi: .zip» (uno o più tipi di file, separati da spazi). Vuoto: .html, .htm o .css</span><textarea class="ctl mono" data-draft="coderunner" data-k="draft:coderunner" aria-label="Opzioni della consegna">'+esc(S.edit.coderunner)+"</textarea></label>":(isCR(c)||String(S.edit.coderunner||"").trim())?'<label class="fld"><span>Soluzione e test (CodeRunner): sezioni === options, === preload o === code, === answer, === test con === stdin e === extra; gli output li calcola la parte 2. SQL: === options (database, dati, precheck), === preload, === answer, === test «-- commento» o [[struttura Tabella]], === extra; il database sta nel riquadro «Database del quiz» della scaletta. PHP: === options, === preload, === answer (con <?php), === test con i dati del form ($_GET o $_POST) seguito da === descrizione (quello che vede lo studente) ed eventualmente === expected; disclaimer, normalizzazione e FakeDB::configure si aggiungono da soli.</span><textarea class="ctl mono" data-draft="coderunner" data-k="draft:coderunner" aria-label="Soluzione e test">'+esc(S.edit.coderunner)+"</textarea></label>":"")+
       '<label class="fld"><span>Note interne: il ragionamento sulla domanda, non escono dalla dashboard</span><textarea class="ctl" data-draft="docente" data-k="draft:docente" aria-label="Note interne">'+esc(S.edit.docente)+"</textarea></label>"+
       '<details class="hint conv"><summary>Convenzioni della traccia</summary><ul>'+
         '<li>**grassetto**, __sottolineato__ (chiave primaria negli schemi), `codice`, blocchi di codice tra tre apici inversi, elenchi con «-» o «1.», tabelle con «|», titoli con «#» e «##». Ogni a capo dentro un paragrafo resta un a capo (utile per gli schemi relazionali, una relazione per riga); la riga vuota apre un nuovo paragrafo.</li>'+

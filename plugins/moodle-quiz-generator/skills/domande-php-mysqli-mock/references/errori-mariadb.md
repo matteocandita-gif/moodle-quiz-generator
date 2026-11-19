@@ -2,7 +2,7 @@
 
 Gli studenti lavorano con XAMPP, cioè con **MariaDB**: i messaggi simulati devono essere quelli che vedrebbero lì. Usa solo messaggi di cui sei sicuro; se un caso non è in questo elenco e non conosci il testo esatto, scegli un errore diverso piuttosto che inventarne uno.
 
-I messaggi di connessione (2002, 1045, 1049) e il 1046 li genera il mock da solo: non vanno messi nelle chiavi.
+Servono solo nella mappa `queries` del prototipo sqlite (`prototipo-sqlite.md`, sezione 8), quando un debugging deve mostrare apposta il messaggio di MySQL. I messaggi di connessione (2002, 1045, 1049) e il 1046 li genera la facciata da sola: non vanno messi nelle chiavi.
 
 ## Errori sui nomi (1146, 1054)
 

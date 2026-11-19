@@ -2,19 +2,75 @@
 
 Da leggere quando il quiz è di HTML e CSS, già per la scaletta: il risultato nel browser e gli esercizi «dal risultato al codice» decidono anche quali domande ci sono. Fa parte delle regole sulle tracce di `progettazione-quiz` (`SKILL.md`, «Le tracce»): le regole generali (tracce estese, convenzioni, feedback, correzione e note interne) restano lì e valgono anche qui. Le convenzioni generali della traccia (riquadri, scelte, campi Cloze, immagini) sono in `formato-consegna.md`; il formato del campo «Soluzione e test» di queste domande è qui sotto.
 
-## Esercizi HTML e CSS (CodeRunner senza test)
+## Sito con l'editor (CodeRunner html_con_file, interfaccia html_sito)
 
-Tipologie `libero_html` e `libero_css`: esercizi liberi a correzione manuale con l'editor di CodeRunner. L'HTML usa il prototipo scelto nei dati del quiz (campo `prototipoHtml`, «Esercizi HTML»): **con anteprima** il prototipo `php_con_test` del Moodle della scuola, che ha lo **scratchpad** (il pulsante Prova mostra sotto di sé la pagina interpretata, come nel browser; lo Scratchpad parte aperto, perché il pulsante sta lì dentro); **senza anteprima** (`prototipoHtml: html`) il prototipo `html`, in cui il campo serve solo a incollare il codice scritto nell'editor e provato aprendo il file nel browser: si sceglie quando l'esercizio deve far lavorare con editor e browser, e la traccia lo dice nelle indicazioni di svolgimento; il CSS usa il prototipo `css`. Sostituiscono la domanda aperta negli esercizi di HTML e CSS che si scrivono nella casella di risposta (esercizi brevi); `esercizio_libero` resta per le risposte senza codice. Quando lo studente crea i file nel suo computer (una pagina, la cartella del sito con CSS, immagini e script) la domanda è una «Consegna con controllo automatico» (`consegna_auto`, `tracce-consegna.md`). Negli esercizi HTML la consegna può chiedere anche CSS nel documento o in linea; nel prototipo `css` la risposta è solo il foglio di stile (la pagina HTML, se serve, sta nella traccia).
+Tipologia `sito_html`: lo studente crea dentro la domanda le cartelle e i file del sito (pagine HTML, fogli di stile, script) con l'**editor del sito** (interfaccia `html_sito` di CodeRunner), mette nel sito le immagini fornite dalla domanda e vede l'**anteprima** delle pagine, con i link che funzionano e le immagini che compaiono solo se il percorso è giusto. La risposta è il sito intero, che il template del prototipo `html_con_file` ricrea in una cartella e controlla con gli stessi controlli della consegna con controllo automatico (`tracce-consegna.md`, «I controlli»). Niente file del computer: per questo è la tipologia degli **esercizi di scrittura delle verifiche di HTML e CSS** (dentro Safe Exam Browser). Nelle esercitazioni la consegna dei file resta la «Consegna con controllo automatico» (`consegna_auto`), perché gli studenti devono lavorare con i file del loro computer: il sito con l'editor si usa solo quando l'utente lo chiede creando il quiz, per esempio nell'esercitazione di preparazione alla verifica, così gli studenti vedono l'ambiente della verifica.
 
-- `traccia`: la consegna, come per gli altri esercizi. Lo script aggiunge in fondo il riquadro arancio «Nessun controllo automatico» (l'esercizio non ha un controllo, il codice si salva cambiando pagina; nell'HTML con anteprima spiega anche Prova e Scratchpad), salvo che la traccia contenga già le parole «controllo automatico».
-- `correzione`: criteri e punti; diventa il **feedback generale** (lo studente lo vede quando le opzioni di revisione lo permettono: subito nelle esercitazioni, alla restituzione nelle verifiche).
-- `coderunner` («Soluzione e test»): `=== answer` obbligatoria, la soluzione di riferimento (Moodle la mostra come risposta giusta); `=== preload` facoltativa, il codice di partenza nella casella; `=== options` facoltativa, solo `righe: N` e `colonne: N` della casella (predefinite 18 e 100). Nessun test.
+- `traccia`: la consegna, estesa ed esplicita come per gli altri esercizi: le pagine e le cartelle che il sito deve avere, il contenuto di ogni pagina, i collegamenti, lo stile. Le **immagini fornite** si mostrano nella traccia con `![testo alternativo](logo.png)`: lo studente le vede e poi le mette nel sito con «+ Immagine»; quelle che la traccia non mostra, lo script le aggiunge in fondo. Nessun campo Cloze né opzione. Nelle verifiche la traccia non dice con che strumento fare le cose (regola delle verifiche), ma può ricordare i pulsanti dell'editor («+ Cartella», «+ File», «+ Immagine», «Sposta»).
+- `correzione`: criteri e punti; diventa il **feedback generale** (subito nelle esercitazioni, alla restituzione nelle verifiche).
+- `coderunner` («Soluzione e test»):
 
-In Moodle la domanda ha un solo test fittizio che si aspetta «codice salvato!» (`php_con_test`) o «codice salvato» (`html` e `css`), e il pulsante di verifica è nascosto (`hidecheck: 1`), perché darebbe sempre esito positivo. Alla consegna il test dà pieni punti a ogni risposta non vuota, e il punteggio vero lo mette il docente correggendo a mano. Con `php_con_test` (non con `html`) risposta e codice di partenza sono nel formato JSON dello scratchpad (`{"answer_code":[…],"test_code":[""],"show_hide":["1"],"prefix_ans":["1"]}` nel codice di partenza): lo scrive `da_dashboard.py`, nella dashboard si scrive solo il codice.
+```text
+=== options
+pagina: index.html
+controllo: nascosto
+immagini: logo.png, pizza.jpg
+aiuti: nessuno
+=== test 2
+struttura_base()
+=== extra
+index.html ha la struttura base: html, head con il title, body
+=== test 2
+cartella_ben_formata(pagine="pagine")
+=== extra
+I file stanno nelle cartelle giuste: css, img, pagine
+=== test 1
+usa_pagina("pagine/menu.html")
+css_collegato("css/stile.css")
+=== extra
+menu.html collega il foglio di stile
+=== test 2
+link_validi("index.html", "pagine/menu.html")
+=== extra
+Tutti i link e le immagini delle due pagine portano a file che esistono
+=== file index.html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pizzeria Da Mario</title>
+    <link rel="stylesheet" href="css/stile.css">
+</head>
+<body>
+    <img src="img/logo.png" alt="Logo della pizzeria">
+    <h1>Pizzeria Da Mario</h1>
+    <p><a href="pagine/menu.html">Guarda il menu</a></p>
+</body>
+</html>
+=== file pagine/menu.html
+…
+=== file css/stile.css
+h1 {
+    color: firebrick;
+}
+=== immagine img/logo.png
+=== immagine img/pizza.jpg
+```
+
+- **`=== options`**, tutte facoltative:
+  - `pagina`: la pagina principale, da cui partono i controlli (predefinita `index.html`; deve esserci tra i file della soluzione);
+  - `controllo: nascosto` (predefinito nelle **verifiche**: niente pulsante Verifica e niente risultati durante il tentativo, il punteggio si calcola alla consegna) oppure `controllo: visibile` (predefinito nelle esercitazioni: lo studente preme Verifica, vede che cosa c'è e che cosa manca e corregge);
+  - `immagini`: i nomi delle immagini fornite, separati da virgole. I file stanno nella cartella delle immagini del quiz (come le altre immagini delle tracce): vanno nel testo della domanda e anche tra i file di supporto, così il template controlla le immagini vere;
+  - `aiuti`: gli aiuti dell'editor Ace, `nessuno` (predefinito), `tutti`, oppure una lista tra `chiusura` (chiusura automatica di tag e virgolette), `completamento` (proposte di tag e proprietà mentre si scrive), `errori` (errori di sintassi segnati nel margine);
+  - `carica_immagini: sì`: lo studente può caricare anche immagini sue dal computer (massimo 500 KB l'una). Mai nelle verifiche: riapre il file system del PC dentro SEB (la parte 2 si ferma).
+- **La soluzione come sito**: `=== file PERCORSO` con il contenuto del file (una sezione per file), `=== immagine PERCORSO` per un'immagine fornita messa nel sito (con un nome diverso: `=== immagine img/marchio.png logo.png`), `=== cartella PERCORSO` per una cartella vuota. Percorsi con lettere minuscole, numeri, `- _ .`, come nell'editor. La soluzione è quella che lo studente vede come risposta giusta; la parte 2 la esegue con i controlli e si ferma se non li supera tutti.
+- **`=== test PESO`** con **`=== extra`**: come nella consegna con controllo automatico (`tracce-consegna.md`), un controllo per requisito, il peso mai 0, la frase dell'extra detta in positivo. Le funzioni partono dalla pagina principale; per controllare un'altra pagina si comincia il test con `usa_pagina("pagine/menu.html")`.
+- **Niente codice di partenza**: lo studente parte da un sito vuoto (nelle verifiche è la regola; nelle esercitazioni una struttura da completare si dà nella traccia).
+
+In Moodle la domanda è una CodeRunner `html_con_file` personalizzata: interfaccia `html_sito`, nessun allegato, i parametri dell'interfaccia dalle opzioni (aiuti, immagini, caricamento), «Nascondi Verifica» e «Forza nascondi» sul feedback con il controllo nascosto. L'interfaccia `html_sito` va installata una volta sul server Moodle (`interfaccia-html-sito.md` di `materiali-moodle`).
 
 ## Esercizi con controllo (CodeRunner css_con_test)
 
-Tipologia `esercizio_controllo`: lo studente scrive il codice nella casella di risposta e i controlli del prototipo `css_con_test` gli dicono che cosa va e che cosa no, con il numero di riga («regola «p» (riga 2): manca il ; dopo «color: blue»»). Sono gli stessi controlli della consegna con controllo automatico (`tracce-consegna.md`, «I controlli»), applicati al testo della casella invece che a un file. Si usa per gli esercizi brevi che il controllo può verificare: scrivere una regola CSS, correggere una regola sbagliata, dare uno stile in linea a un tag, scrivere il `<style>` di una piccola pagina. Quando conta come appare la pagina, o lo studente lavora sui file del suo computer, restano l'«Esercizio CSS» o «HTML» e la consegna con controllo automatico.
+Tipologia `esercizio_controllo`: lo studente scrive il codice nella casella di risposta e i controlli del prototipo `css_con_test` gli dicono che cosa va e che cosa no, con il numero di riga («regola «p» (riga 2): manca il ; dopo «color: blue»»). Sono gli stessi controlli della consegna con controllo automatico (`tracce-consegna.md`, «I controlli»), applicati al testo della casella invece che a un file. Si usa per gli esercizi brevi che il controllo può verificare: scrivere una regola CSS, correggere una regola sbagliata, dare uno stile in linea a un tag, scrivere il `<style>` di una piccola pagina. Quando serve un sito intero (più pagine, cartelle, immagini) si usa il sito con l'editor nelle verifiche e la consegna con controllo automatico nelle esercitazioni.
 
 - `traccia`: la consegna, come per gli altri esercizi (che cosa scrivere, su quali elementi, con quali proprietà). Nessun campo Cloze né opzione.
 - `correzione`: diventa il feedback generale (di solito una soluzione commentata o il perché della regola).

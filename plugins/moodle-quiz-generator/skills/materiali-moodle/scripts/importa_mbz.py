@@ -66,7 +66,7 @@ PREFISSI = {  # prefisso del nome -> tipologie possibili (la prima è quella pre
     "Esempio svolto": ["esempio_svolto"], "Tracciamento": ["tracciamento", "lettura_output"],
     "Trova l'errore": ["trova_errore"], "Completamento": ["compl_campi", "compl_eseguito"],
     "Esempio guidato": ["guidato"], "Debug": ["debug_msg", "debug_silenzioso", "debug_motivazione"],
-    "Esercizio libero": ["esercizio_libero", "libero_html", "libero_css"],
+    "Esercizio libero": ["esercizio_libero"], "Sito": ["sito_html"],
     "Scrivere": ["prog_completo", "funzione", "prog_dati", "prog_random", "query", "create_tabelle",
                  "query_due_passi", "pagina_php", "scrittura_scheletro", "esercizio_controllo"],
     "Esercizio": ["vincoli"], "Campo di prova": ["campo_prova"], "Consegna": ["consegna_file", "consegna_auto"],
@@ -625,7 +625,6 @@ class Importatore:
         self.bk = bk
         self.db = {}           # impronta -> {nome, sql, percorso}
         self.nomi_db = {}      # nome -> impronta
-        self.proto_html = set()  # prototipi degli esercizi HTML trovati (php_con_test, html)
 
     # --- database allegati
     def database_di(self, q):
@@ -888,6 +887,8 @@ class Importatore:
             if prefisso == "Scrivere" and preload.strip():
                 tip = "pagina_php"
         elif tl in ("php_con_test", "css", "html"):
+            # esercizi liberi HTML e CSS senza test: tipologia tolta dal plugin (0.15.0). Si importano come
+            # «Esercizio con controllo» senza controlli, da completare o da trasformare in «Sito con l'editor»
             def dal_json(s):
                 try:
                     return (json.loads(s).get("answer_code") or [""])[0]
@@ -895,19 +896,63 @@ class Importatore:
                     return s
             if tl == "php_con_test":
                 answer, preload = dal_json(answer), dal_json(preload)
-            if tl != "css":
-                self.proto_html.add(tl)
-            for k, v, nome in (("answerboxlines", "18", "righe"), ("answerboxcolumns", "100", "colonne")):
-                if tx(o, k, v) not in (v, ""):
-                    opzioni.append("%s: %s" % (nome, tx(o, k)))
-            if opzioni:
-                sez.append(("options", "\n".join(opzioni)))
+            opzioni.append("risposta: %s" % ("css" if tl == "css" else "html"))
+            sez.append(("options", "\n".join(opzioni)))
             if preload.strip():
                 sez.append(("preload", preload.strip("\n")))
             sez.append(("answer", answer.strip("\n")))
-            tip = "libero_css" if tl == "css" else "libero_html"
+            tip = "esercizio_controllo"
             testo = rimuovi_riquadro(testo, "Attenzione al controllo automatico")   # domande vecchie
             testo = rimuovi_riquadro(testo, "Nessun controllo automatico")
+            avvisi.append("esercizio %s senza test (prototipo %s): tipologia non più supportata. Importato come "
+                          "«Esercizio con controllo» senza controlli: aggiungi i controlli (=== test con === extra) "
+                          "o trasformalo in «Sito con l'editor»" % ("CSS" if tl == "css" else "HTML", tipo))
+        elif tl == "html_con_file" and tx(o, "uiplugin").lower() == "html_sito":
+            # sito con l'editor: opzioni dai parametri del template e dell'interfaccia, soluzione dal JSON del sito
+            try:
+                pagina = (json.loads(tx(o, "templateparams") or "{}") or {}).get("pagina", "")
+            except ValueError:
+                pagina = ""
+            try:
+                ui = json.loads(tx(o, "uiparameters") or "{}") or {}
+            except ValueError:
+                ui = {}
+            if pagina and pagina != "index.html":
+                opzioni.append("pagina: %s" % pagina)
+            opzioni.append("controllo: %s" % ("nascosto" if tx(o, "hidecheck", "0") not in ("0", "") else "visibile"))
+            if ui.get("immagini"):
+                opzioni.append("immagini: %s" % ui["immagini"])
+            aiuti = [k for k, v in (("chiusura", "chiusura_automatica"), ("completamento", "completamento"),
+                                    ("errori", "segnala_errori")) if ui.get(v) in (True, 1, "1", "true")]
+            if aiuti:
+                opzioni.append("aiuti: %s" % ", ".join(aiuti))
+            if ui.get("carica_immagini") in (True, 1, "1", "true"):
+                opzioni.append("carica_immagini: sì")
+            sez.append(("options", "\n".join(opzioni)))
+            for t in test:
+                peso = float(t["mark"] or 1)
+                sez.append(("test %s" % ("%g" % peso), t["testcode"].replace("\r", "").strip("\n")))
+                sez.append(("extra", t["extra"].strip()))
+            try:
+                sito = json.loads(answer) if answer.strip() else {}
+            except ValueError:
+                sito = {}
+                avvisi.append("la soluzione non è un sito dell'editor (JSON non valido): riscrivila con === file")
+            files = sito.get("files") or {}
+            immagini = sito.get("immagini") or {}
+            piene = {p.rsplit("/", 1)[0] for p in list(files) + list(immagini) if "/" in p}
+            for c in sito.get("cartelle") or []:
+                if not any(x == c or x.startswith(c + "/") for x in piene):
+                    sez.append(("cartella %s" % c, ""))
+            for p in sorted(files):
+                sez.append(("file %s" % p, files[p].rstrip("\n")))
+            for p in sorted(immagini):
+                nome = immagini[p]
+                if nome.startswith("data:"):
+                    avvisi.append("immagine %s caricata dal computer nella soluzione: non si importa" % p)
+                    continue
+                sez.append(("immagine %s" % (p if p.split("/")[-1] == nome else "%s %s" % (p, nome)), ""))
+            tip = "sito_html"
         elif tl == "html_con_file":
             # consegna con controllo automatico: nome del file dall'espressione dei nomi accettati,
             # pagina principale dai parametri del template, un test per controllo con peso ed extra
@@ -1234,11 +1279,6 @@ def importa(bk, cartella_quiz, qz, qid=None):
     quiz["seb"] = {"1": "manuale", "2": "manuale", "3": "file"}.get(richiede_seb, "no")
     if tx(qz, "password"):
         quiz["password"] = tx(qz, "password")
-    if imp.proto_html == {"html"}:
-        quiz["prototipoHtml"] = "html"     # esercizi HTML senza anteprima (prototipo html)
-    elif len(imp.proto_html) > 1:
-        rapporto.append("- Esercizi HTML con prototipi diversi (php_con_test e html): il quiz resta «con anteprima» "
-                        "(php_con_test); per generarli tutti con il prototipo html scegli «senza anteprima» nei dati del quiz.")
     qid = qid or slug_id(nome_quiz)
     return qid, quiz, righe, rapporto, imp, mancano_db
 

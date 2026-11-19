@@ -18,9 +18,9 @@ domande-coderunner-sql, con i database del quiz (campo `database`: {nome: script
 Le righe CodeRunner PHP vanno in USCITA/specifica-php.txt, nel formato di domande-php-mysqli-mock (prototipo
 php_mysqli_sqlite), con disclaimer, normalizzazione dell'output e FakeDB::configure aggiunti; gli output
 attesi non scritti restano @@CALCOLA@@ e li calcola php_attesi.py.
-Gli esercizi liberi HTML e CSS (CodeRunner html/css senza test, correzione manuale), le consegne con
-controllo automatico (CodeRunner html_con_file) e le corrispondenze, che crea_xml.py non gestisce, vanno
-direttamente in USCITA/domande-dirette.xml.
+Le consegne con controllo automatico e i siti con l'editor (CodeRunner html_con_file), gli esercizi con
+controllo (CodeRunner css_con_test) e le corrispondenze, che crea_xml.py non gestisce, vanno direttamente in
+USCITA/domande-dirette.xml.
 Tutta la catena (XML, XML CodeRunner, unione, controllo, .mbz) la esegue genera_quiz.py.
 
 Si ferma con l'elenco degli errori se una riga non rispetta le convenzioni.
@@ -80,39 +80,21 @@ CONSEGNA_FILE = {"responseformat": "noinline", "responserequired": "0", "attachm
                  "attachmentsrequired": "1", "filetypeslist": ".html .htm .css"}
 CODERUNNER = {"compl_eseguito", "scrittura_scheletro", "debug_msg", "debug_silenzioso", "prog_completo",
               "funzione", "prog_dati", "prog_random", "query", "create_tabelle", "query_due_passi",
-              "vincoli", "pagina_php", "campo_prova", "libero_html", "libero_css", "consegna_auto",
-              "esercizio_controllo"}
+              "vincoli", "pagina_php", "campo_prova", "consegna_auto", "esercizio_controllo", "sito_html"}
 # consegna di un file con controllo automatico (prototipo html_con_file): la scrive direttamente questo script
 CR_CONSEGNA = {"consegna_auto"}
+# sito scritto con l'editor (prototipo html_con_file, interfaccia html_sito): la scrive direttamente questo script
+CR_SITO = {"sito_html"}
 # esercizio con controllo automatico del codice scritto nella casella (prototipo css_con_test, stesso template
 # di html_con_file): la scrive direttamente questo script
 CR_CONTROLLO = {"esercizio_controllo"}
-# esercizi liberi con l'editor di CodeRunner (prototipi html e css): nessun test, correzione manuale
-CR_WEB = {"libero_html": "html", "libero_css": "css"}
-# prototipo Moodle di ogni esercizio libero. L'HTML lo sceglie il quiz (campo prototipoHtml): di norma php_con_test,
-# che ha lo scratchpad (lo studente prova il codice e vede la pagina interpretata; risposta e codice di partenza nel
-# formato JSON dello scratchpad); «html» per gli esercizi senza anteprima, in cui il campo serve solo a incollare il
-# codice scritto in un editor e provato nel browser.
-PROTOTIPO_WEB = {"libero_html": "php_con_test", "libero_css": "css"}
-PROTOTIPI_HTML = ("php_con_test", "html")
-
-
-def prototipo_web(quiz, tipologia):
-    """Prototipo CodeRunner di un esercizio libero HTML o CSS, secondo il campo prototipoHtml del quiz."""
-    if tipologia == "libero_html":
-        p = (quiz.get("prototipoHtml") or "php_con_test").strip()
-        if p not in PROTOTIPI_HTML:
-            raise ValueError("prototipoHtml '%s' non previsto (solo php_con_test o html)" % p)
-        return p
-    return PROTOTIPO_WEB[tipologia]
 # prefissi del nome per le tipologie CodeRunner (come nel catalogo della dashboard)
 PREFISSI_CR = {"compl_eseguito": "Completamento", "scrittura_scheletro": "Scrivere", "debug_msg": "Debug",
                "debug_silenzioso": "Debug", "prog_completo": "Scrivere", "funzione": "Scrivere",
                "prog_dati": "Scrivere", "prog_random": "Scrivere", "query": "Scrivere",
                "create_tabelle": "Scrivere", "query_due_passi": "Scrivere", "vincoli": "Esercizio",
                "pagina_php": "Scrivere", "campo_prova": "Campo di prova",
-               "libero_html": "Esercizio libero", "libero_css": "Esercizio libero", "consegna_auto": "Consegna",
-               "esercizio_controllo": "Scrivere"}
+               "consegna_auto": "Consegna", "esercizio_controllo": "Scrivere", "sito_html": "Sito"}
 CR_SQL = {"query", "create_tabelle", "query_due_passi", "vincoli", "campo_prova"}
 CR_PHP = {"pagina_php"}
 # tipi di quiz in cui la pagina del blocco è un ripasso e non una spiegazione nuova
@@ -478,8 +460,8 @@ def tipi_consegna(r):
 
 
 def linguaggio_cr(r):
-    if r.get("tipologia") in CR_WEB:
-        return CR_WEB[r["tipologia"]]
+    if r.get("tipologia") in CR_SITO:
+        return "sito"
     if r.get("tipologia") in CR_CONSEGNA:
         return "consegna"
     if r.get("tipologia") in CR_CONTROLLO:
@@ -694,88 +676,6 @@ def domanda_php(quiz, r):
     return "\n".join(s)
 
 
-AVVISO_WEB = """:::arancio Nessun controllo automatico
-Questo esercizio **non ha un controllo automatico**: i requisiti vanno verificati aprendo la pagina nel browser, e la correzione la fa il docente. Il codice del campo Risposta viene salvato quando si cambia pagina.
-:::"""
-AVVISO_SCRATCHPAD = """:::arancio Nessun controllo automatico
-Questo esercizio **non ha un controllo automatico**: la correzione la fa il docente. Per vedere come appare la pagina premete **Prova**: compare sotto il pulsante, come nel browser. Viene salvato solo il campo Risposta, quando si cambia pagina: lo Scratchpad lasciatelo vuoto.
-:::"""
-
-
-def json_scratchpad(codice, prefisso=""):
-    """Risposta o codice di partenza nel formato del prototipo php_con_test (interfaccia scratchpad)."""
-    return json.dumps({"answer_code": [codice], "test_code": [""], "show_hide": ["1" if prefisso else ""], "prefix_ans": [prefisso]},
-                      ensure_ascii=False)
-OPZIONI_WEB = {"answerboxlines": "18", "answerboxcolumns": "100"}
-
-
-def domanda_web(quiz, r):
-    """Domanda CodeRunner html o css senza test (esercizio libero a correzione manuale), già in Moodle XML.
-    Struttura copiata dalle domande dell'utente: un solo test fittizio che si aspetta «codice salvato»
-    («codice salvato!» nel prototipo php_con_test, che l'utente usa per l'HTML con anteprima perché ha lo scratchpad;
-    «codice salvato» nei prototipi html, per l'HTML senza anteprima, e css)."""
-    sez = sezioni_cr(r.get("coderunner"))
-    val = {n: c for n, _, c in sez}
-    for n in val:
-        if n not in ("answer", "preload", "options", "linguaggio"):
-            raise ValueError("«Soluzione e test» di un esercizio libero HTML/CSS: sezione '=== %s' non prevista "
-                             "(solo answer, preload, options)" % n)
-    if not val.get("answer", "").strip():
-        raise ValueError("manca la soluzione di riferimento (=== answer in «Soluzione e test»)")
-    tr = r.get("traccia") or ""
-    if not tr.strip():
-        raise ValueError("traccia vuota")
-    if CAMPO_RE.search(tr) or any(t == "opzioni" for t, _ in leggi_blocchi(tr)):
-        raise ValueError("in una domanda CodeRunner la traccia non ha campi Cloze né opzioni")
-    proto = prototipo_web(quiz, r["tipologia"])
-    scratch = proto == "php_con_test"
-    if "controllo automatico" not in tr.lower():
-        tr = tr.rstrip() + "\n\n" + (AVVISO_SCRATCHPAD if scratch else AVVISO_WEB)
-    testo = espandi_codice(html_blocchi(leggi_blocchi(tr)))
-    opz = dict(OPZIONI_WEB)
-    for l in val.get("options", "").split("\n"):
-        if l.strip():
-            k, _, v = l.partition(":")
-            k = {"righe": "answerboxlines", "colonne": "answerboxcolumns"}.get(k.strip(), k.strip())
-            if k not in OPZIONI_WEB or not v.strip().isdigit():
-                raise ValueError("opzione '%s' non prevista (solo righe: N, colonne: N)" % l.strip())
-            opz[k] = v.strip()
-    corr = (r.get("correzione") or "").strip()
-    gf = espandi_codice(html_blocchi(leggi_blocchi(corr))) if corr else ""
-    punti = "%.7f" % float(r.get("punti") or 1)
-
-    def t(tag, v):
-        return "    <%s>%s</%s>\n" % (tag, v, tag)
-    x = ['  <question type="coderunner">\n    <name>\n      <text>%s</text>\n    </name>\n' % esc_xml(nome_moodle(quiz, r)),
-         '    <questiontext format="html">\n      <text>%s</text>\n    </questiontext>\n' % cdata(testo),
-         '    <generalfeedback format="html">\n      <text>%s</text>\n    </generalfeedback>\n' % (cdata(gf) if gf else ""),
-         t("defaultgrade", punti), t("penalty", "0.0000000"), t("hidden", "0"), t("idnumber", ""),
-         t("coderunnertype", proto), t("prototypetype", "0"), t("allornothing", "1"),
-         t("penaltyregime", "0"), t("precheck", "0"), t("hidecheck", "1"), t("showsource", "0"),
-         t("answerboxlines", opz["answerboxlines"]), t("answerboxcolumns", opz["answerboxcolumns"]),
-         t("answerpreload", cdata(json_scratchpad(val.get("preload", "").strip("\n"), "1")) if scratch
-           else (cdata(val["preload"]) if val.get("preload", "").strip() else "")),
-         t("globalextra", ""), t("useace", ""), t("resultcolumns", ""), t("template", ""),
-         t("iscombinatortemplate", ""), t("allowmultiplestdins", ""),
-         t("answer", cdata(json_scratchpad(val["answer"]) if scratch else val["answer"])),
-         t("validateonsave", "1"), t("testsplitterre", ""), t("language", ""), t("acelang", ""),
-         t("sandbox", ""), t("grader", ""), t("cputimelimitsecs", ""), t("memlimitmb", ""),
-         t("sandboxparams", ""), t("templateparams", ""), t("hoisttemplateparams", "1"),
-         t("extractcodefromjson", "1"), t("templateparamslang", "None"), t("templateparamsevalpertry", "0"),
-         t("templateparamsevald", "{}"), t("twigall", "0"), t("uiplugin", ""), t("uiparameters", ""),
-         t("attachments", "0"), t("attachmentsrequired", "0"), t("maxfilesize", "10240"),
-         t("filenamesregex", ""), t("filenamesexplain", ""), t("displayfeedback", "1"),
-         t("giveupallowed", "0"), t("prototypeextra", ""),
-         '    <testcases>\n      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >\n'
-         '      <testcode>\n                <text>//</text>\n      </testcode>\n'
-         '      <stdin>\n                <text></text>\n      </stdin>\n'
-         '      <expected>\n                <text>@@ATTESO@@\n</text>\n      </expected>\n'
-         '      <extra>\n                <text></text>\n      </extra>\n'
-         '      <display>\n                <text>SHOW</text>\n      </display>\n'
-         '    </testcase>\n    </testcases>\n  </question>\n\n']
-    return "".join(x).replace("@@ATTESO@@", "codice salvato!" if scratch else "codice salvato")
-
-
 # ---------------------------------------------------------------- consegna con controllo automatico
 # Prototipo html_con_file (assets/prototipo-html-con-file.xml; sorgente e prove in sviluppo/ del repository).
 # La riga dice il file da caricare (=== options, nome e pagina) e i controlli (=== test PESO con === extra).
@@ -925,15 +825,16 @@ PROTOTIPO_CONTROLLO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "
 OPZIONI_CONTROLLO = {"risposta": ("css", "html"), "controllo": ("visibile", "nascosto")}
 
 
-def esegui_controlli(template, testcodes, risposta, pagina):
+def esegui_controlli(template, testcodes, risposta, pagina, soluzione=None):
     """Esegue il template del prototipo come CodeRunner su Jobe (senza allegati) e restituisce l'uscita di ogni
-    test. Le poche righe Twig del template si sostituiscono qui: sono le stesse di sviluppo/prototipo-html-con-file."""
+    test. Le poche righe Twig del template si sostituiscono qui: sono le stesse di sviluppo/prototipo-html-con-file.
+    soluzione: la soluzione dell'autore (QUESTION.answer), se diversa dalla risposta (correzione delle verifiche)."""
     import subprocess
     import tempfile
     py = lambda t: (t or "").replace("\\", "\\\\").replace('"', '\\"')   # filtro e('py') di CodeRunner
     corpo = template.split("{% for TEST in TESTCASES %}")[0]
     for twig, valore in (('{{ ATTACHMENTS }}', ""), ("{{ STUDENT_ANSWER | e('py') }}", py(risposta)),
-                         ("{{ QUESTION.answer | e('py') }}", py(risposta)),
+                         ("{{ QUESTION.answer | e('py') }}", py(risposta if soluzione is None else soluzione)),
                          ("{{ pagina | default('') }}", pagina)):
         if twig not in corpo:
             raise ValueError("template del prototipo css_con_test inatteso: manca %s" % twig)
@@ -1063,6 +964,187 @@ def domanda_controllo(quiz, r):
                  '      <extra>\n                <text>%s</text>\n      </extra>\n'
                  '      <display>\n                <text>SHOW</text>\n      </display>\n'
                  '    </testcase>\n' % (c["peso"], cdata(c["codice"]), cdata(c["extra"])))
+    x.append("    </testcases>\n  </question>\n\n")
+    return "".join(x)
+
+
+# ---------------------------------------------------------------- sito con l'editor
+# Prototipo html_con_file con l'interfaccia html_sito di CodeRunner (assets/interfaccia-html-sito/): lo studente
+# crea cartelle e file del sito nella domanda, con l'anteprima; la risposta è il sito in JSON ({"htmlve": 1, ...}),
+# che il template ricrea in una cartella e controlla come uno zip. La riga dice le opzioni (=== options), i
+# controlli (=== test PESO con === extra) e la soluzione come sito (=== file PERCORSO, === cartella PERCORSO,
+# === immagine PERCORSO [NOME]), che deve superare tutti i controlli. Formato in tracce-html.md.
+SEGMENTO_RE = re.compile(r"[a-z0-9_-][a-z0-9._-]*")
+AIUTI_SITO = {"chiusura": "chiusura_automatica", "completamento": "completamento", "errori": "segnala_errori"}
+SEGNAPOSTO_SUPPORTO = "@@DA_CARTELLA@@"   # allega_immagini.py ci mette il file della cartella --immagini
+
+
+def percorso_sito(p, cosa):
+    """Percorso di un file o di una cartella del sito: segmenti con minuscole, numeri, - _ . (come l'editor)."""
+    p = (p or "").strip().strip("/")
+    if not p or any(not SEGMENTO_RE.fullmatch(x) or x in (".", "..") for x in p.split("/")):
+        raise ValueError("%s «%s» non valido: solo lettere minuscole, numeri, - _ . e / tra le cartelle" % (cosa, p))
+    return p
+
+
+def specifica_sito(quiz, r):
+    """Opzioni, test e sito della soluzione di un «Sito con l'editor», già controllati."""
+    opzioni, test, files, cartelle, immagini = {}, [], {}, [], {}
+    for n, a, c in sezioni_cr(r.get("coderunner")):
+        if n == "options":
+            for l in c.split("\n"):
+                if l.strip():
+                    k, _, v = l.partition(":")
+                    k, v = k.strip().lower(), v.strip()
+                    if k not in ("pagina", "controllo", "immagini", "aiuti", "carica_immagini"):
+                        raise ValueError("opzione '%s' non prevista in un sito con l'editor (pagina, controllo, "
+                                         "immagini, aiuti, carica_immagini)" % l.strip())
+                    opzioni[k] = v
+        elif n == "test":
+            try:
+                peso = float((a or "1").replace(",", "."))
+            except ValueError:
+                raise ValueError("peso del test non valido: «=== test %s» (un numero, per esempio 2)" % a)
+            if peso <= 0:
+                raise ValueError("test con peso %s: il peso non può essere 0 (Moodle va in errore mostrando i "
+                                 "risultati); per un controllo che dà solo il messaggio usa 0.001" % a)
+            test.append({"codice": c, "peso": peso, "extra": ""})
+        elif n == "extra":
+            if not test:
+                raise ValueError("=== extra prima di un === test")
+            test[-1]["extra"] = c.strip()
+        elif n == "file":
+            p = percorso_sito(a, "file")
+            if p in files:
+                raise ValueError("il file %s compare due volte nella soluzione" % p)
+            files[p] = c + "\n" if c else ""
+        elif n == "cartella":
+            cartelle.append(percorso_sito(a, "cartella"))
+        elif n == "immagine":
+            parti = a.split()
+            if not parti or len(parti) > 2:
+                raise ValueError("«=== immagine %s»: scrivi il percorso nel sito e, se il nome è diverso, l'immagine "
+                                 "fornita (es. «=== immagine img/logo.png» o «=== immagine img/marchio.png logo.png»)" % a)
+            p = percorso_sito(parti[0], "immagine")
+            immagini[p] = parti[1] if len(parti) == 2 else p.split("/")[-1]
+        else:
+            raise ValueError("sezione '=== %s' non prevista in un sito con l'editor "
+                             "(options, test, extra, file, cartella, immagine)" % n)
+    verifica = quiz.get("tipoQuiz") in ("V", "VT")
+    controllo = (opzioni.get("controllo") or ("nascosto" if verifica else "visibile")).lower()
+    if controllo not in ("visibile", "nascosto"):
+        raise ValueError("«controllo: %s» non valido (visibile o nascosto)" % controllo)
+    fornite = [x.strip() for x in re.split(r"[,;]", opzioni.get("immagini", "")) if x.strip()]
+    for nome in fornite:
+        if not SEGMENTO_RE.fullmatch(nome) or "." not in nome:
+            raise ValueError("immagine «%s» non valida in «immagini:»: solo il nome del file, minuscolo (es. logo.png)"
+                             % nome)
+    for p, nome in immagini.items():
+        if nome not in fornite:
+            raise ValueError("«=== immagine %s»: l'immagine %s non è tra quelle fornite («immagini:» in === options)"
+                             % (p, nome))
+    aiuti = [x.strip().lower() for x in re.split(r"[,;\s]+", opzioni.get("aiuti", "")) if x.strip()]
+    if aiuti in (["nessuno"], []):
+        aiuti = []
+    elif aiuti == ["tutti"]:
+        aiuti = list(AIUTI_SITO)
+    elif any(x not in AIUTI_SITO for x in aiuti):
+        raise ValueError("«aiuti: %s» non valido: nessuno, tutti, oppure chiusura, completamento, errori"
+                         % opzioni.get("aiuti"))
+    carica = (opzioni.get("carica_immagini") or "no").lower() in ("sì", "si", "true", "1")
+    if carica and verifica:
+        raise ValueError("«carica_immagini: sì» non va nelle verifiche: riapre il file system del PC dentro SEB")
+    pagina = percorso_sito(opzioni.get("pagina") or "index.html", "pagina principale")
+    if pagina not in files:
+        raise ValueError("la soluzione non ha la pagina principale %s (=== file %s)" % (pagina, pagina))
+    if not test:
+        raise ValueError("nessun controllo: servono uno o più «=== test PESO» con il loro «=== extra»")
+    funzioni = funzioni_consegna()
+    for t in test:
+        if not t["codice"].strip():
+            raise ValueError("un «=== test» è vuoto")
+        if not t["extra"]:
+            raise ValueError("test «%s» senza «=== extra»: la frase che lo studente legge nella colonna Controllo"
+                             % t["codice"].split("\n")[0])
+        errore = controlla_test_consegna(t["codice"], funzioni)
+        if errore:
+            raise ValueError(errore)
+    tutte = set(cartelle)
+    for p in list(files) + list(immagini) + cartelle:
+        d = p.rsplit("/", 1)[0] if "/" in p else ""
+        while d:
+            tutte.add(d)
+            d = d.rsplit("/", 1)[0] if "/" in d else ""
+    sito = json.dumps({"htmlve": 1, "versione": "dashboard", "salvato": "", "cartelle": sorted(tutte),
+                       "files": dict(sorted(files.items())), "immagini": dict(sorted(immagini.items()))},
+                      ensure_ascii=False)
+    import xml.etree.ElementTree as ET
+    template = ET.parse(PROTOTIPO_CONSEGNA).getroot().find("question/template").text or ""
+    uscite = esegui_controlli(template, [t["codice"] for t in test], sito, pagina)
+    sbagliati = ["«%s»: %s" % (t["extra"], u.replace("\n", " | ")) for t, u in zip(test, uscite) if u != "OK"]
+    if len(uscite) != len(test) or sbagliati:
+        raise ValueError("la soluzione (=== file …) non supera tutti i controlli: " + "; ".join(sbagliati or uscite))
+    parametri = {AIUTI_SITO[x]: True for x in aiuti}
+    if fornite:
+        parametri["immagini"] = ", ".join(fornite)
+    if carica:
+        parametri["carica_immagini"] = True
+    return controllo, pagina, test, sito, fornite, parametri
+
+
+def domanda_sito(quiz, r):
+    """Sito con l'editor (prototipo html_con_file, interfaccia html_sito), già in Moodle XML. Le immagini fornite
+    vanno nel testo della domanda (lo studente le vede nella traccia) e come file di supporto, che il template copia
+    nel sito: le prende dalla cartella --immagini allega_immagini.py. Con «controllo: nascosto» (predefinito nelle
+    verifiche) pulsante Verifica e risultati dei test sono nascosti, come nell'esercizio con controllo."""
+    controllo, pagina, test, sito, fornite, parametri = specifica_sito(quiz, r)
+    tr = r.get("traccia") or ""
+    if not tr.strip():
+        raise ValueError("traccia vuota")
+    if CAMPO_RE.search(tr) or any(t == "opzioni" for t, _ in leggi_blocchi(tr)):
+        raise ValueError("in un sito con l'editor la traccia non ha campi Cloze né opzioni")
+    mancanti = [n for n in fornite if not re.search(r"\]\(%s\)" % re.escape(n), tr)]
+    if mancanti:
+        # le immagini fornite si vedono nella traccia: quelle che la traccia non mostra vanno in fondo
+        tr = tr.rstrip() + "\n\n" + " ".join("![%s](%s)" % (n, n) for n in mancanti)
+    testo = espandi_codice(html_blocchi(leggi_blocchi(tr)))
+    corr = (r.get("correzione") or "").strip()
+    gf = espandi_codice(html_blocchi(leggi_blocchi(corr))) if corr else ""
+    punti = "%.7f" % float(r.get("punti") or 1)
+    nascosto = controllo == "nascosto"
+
+    def t(tag, v):
+        return "    <%s>%s</%s>\n" % (tag, v, tag)
+    x = ['  <question type="coderunner">\n    <name>\n      <text>%s</text>\n    </name>\n' % esc_xml(nome_moodle(quiz, r)),
+         '    <questiontext format="html">\n      <text>%s</text>\n    </questiontext>\n' % cdata(testo),
+         '    <generalfeedback format="html">\n      <text>%s</text>\n    </generalfeedback>\n' % (cdata(gf) if gf else ""),
+         t("defaultgrade", punti), t("penalty", "0.0000000"), t("hidden", "0"), t("idnumber", ""),
+         t("coderunnertype", "html_con_file"), t("prototypetype", "0"), t("allornothing", "0"),
+         t("penaltyregime", "0"), t("precheck", "0"), t("hidecheck", "1" if nascosto else "0"), t("showsource", "0"),
+         t("answerboxlines", "18"), t("answerboxcolumns", "100"), t("answerpreload", ""),
+         t("globalextra", ""), t("useace", ""), t("resultcolumns", ""), t("template", ""),
+         t("iscombinatortemplate", ""), t("allowmultiplestdins", ""), t("answer", cdata(sito)),
+         t("validateonsave", "1"), t("testsplitterre", ""), t("language", ""), t("acelang", ""),
+         t("sandbox", ""), t("grader", ""), t("cputimelimitsecs", ""), t("memlimitmb", ""),
+         t("sandboxparams", ""), t("templateparams", esc_xml(json.dumps({"pagina": pagina}))),
+         t("hoisttemplateparams", "1"), t("extractcodefromjson", "1"), t("templateparamslang", "None"),
+         t("templateparamsevalpertry", "0"), t("templateparamsevald", "{}"), t("twigall", "0"),
+         t("uiplugin", "html_sito"), t("uiparameters", esc_xml(json.dumps(parametri, ensure_ascii=False)) if parametri else ""),
+         t("attachments", "0"), t("attachmentsrequired", "0"), t("maxfilesize", "10240"),
+         t("filenamesregex", ""), t("filenamesexplain", ""),
+         t("displayfeedback", "2" if nascosto else "1"), t("giveupallowed", "0"), t("prototypeextra", ""),
+         "    <testcases>\n"]
+    for c in test:
+        x.append('      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="%.7f" >\n'
+                 '      <testcode>\n                <text>%s</text>\n      </testcode>\n'
+                 '      <stdin>\n                <text></text>\n      </stdin>\n'
+                 '      <expected>\n                <text>OK\n</text>\n      </expected>\n'
+                 '      <extra>\n                <text>%s</text>\n      </extra>\n'
+                 '      <display>\n                <text>SHOW</text>\n      </display>\n'
+                 '    </testcase>\n' % (c["peso"], cdata(c["codice"]), cdata(c["extra"])))
+    for nome in fornite:
+        # file di supporto: il template copia nel sito l'immagine vera (allega_immagini.py la prende dalla cartella)
+        x.append('<file name="%s" path="/" encoding="base64">%s</file>\n' % (esc_xml(nome), SEGNAPOSTO_SUPPORTO))
     x.append("    </testcases>\n  </question>\n\n")
     return "".join(x)
 
@@ -1272,8 +1354,8 @@ def main():
                 web.append(domanda_consegna(quiz, r))
             elif r.get("tipologia") in CR_CONTROLLO:
                 web.append(domanda_controllo(quiz, r))
-            elif r.get("tipologia") in CR_WEB:
-                web.append(domanda_web(quiz, r))
+            elif r.get("tipologia") in CR_SITO:
+                web.append(domanda_sito(quiz, r))
             elif CATALOGO.get(r.get("tipologia"), ("",))[0] == "matching":
                 web.append(domanda_match(quiz, r))
             elif r.get("tipologia") in CODERUNNER:

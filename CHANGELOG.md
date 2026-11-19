@@ -2,6 +2,20 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.15.0 — 19/11/2026
+
+Una tipologia nuova per l'HTML: il **sito con l'editor**, scritto dagli studenti dentro Moodle, pensato per le verifiche con Safe Exam Browser. Tolte le tipologie e i prototipi che non servono più.
+
+- **Sito con l'editor** (`sito_html`): al posto della casella di risposta lo studente ha un editor del sito, con l'albero di file e cartelle, il codice colorato (Ace, lo stesso di CodeRunner) e l'anteprima delle pagine, link compresi. Può creare, rinominare, spostare (anche trascinando) ed eliminare file e cartelle, e inserire nel sito le immagini fornite con la domanda. Non usa i file del PC, quindi va bene con Safe Exam Browser. Il lavoro si salva da solo nella risposta, con una copia di sicurezza nel browser se la pagina si chiude. I controlli sono quelli della consegna con controllo automatico (struttura, tag, link, CSS…), e i punti si dividono in proporzione ai pesi.
+- **Quando si usa**: nelle verifiche sempre, con i controlli nascosti (il punteggio si calcola alla consegna; per una domanda si possono rendere visibili con «controllo: visibile»). Nelle esercitazioni resta la consegna della cartella dal PC, perché gli studenti lavorino con i file; il sito con l'editor solo quando lo chiedi, per esempio per prepararsi alla verifica. Gli aiuti dell'editor (chiusura automatica dei tag, completamento, segnalazione degli errori) si scelgono domanda per domanda: senza indicazioni sono spenti.
+- **Tolte**: le tipologie «Esercizio HTML» e «Esercizio CSS» (senza test, a correzione manuale), con il campo «Esercizi HTML» del quiz e i prototipi `php_con_test` e `css`; il prototipo PHP `php_mysqli_mock` (mappa delle query): le domande PHP si fanno solo con `php_mysqli_sqlite`. Le domande già in Moodle che li usano restano e funzionano: **non cancellare i vecchi prototipi** finché ci sono quiz che li usano. Importando un backup vecchio, gli esercizi HTML e CSS senza test diventano «Esercizio con controllo», segnati da rivedere: si completano con i controlli o si trasformano in «Sito con l'editor».
+- **Correzione delle verifiche**: le risposte del sito con l'editor si rieseguono con i controlli; nei file di lettura il sito si legge file per file. L'export Excel toglie i tag anche qui: queste risposte vanno sempre importate da Moodle (la tabella Risposte copiata dal browser), e Claude lo segnala.
+- **Importazione dei backup**: le domande del sito con l'editor tornano righe della dashboard con file, cartelle, immagini e opzioni.
+- **Dashboard** (pagina 0.7.0): la tipologia nuova nel catalogo, con l'anteprima di quello che vede lo studente, la soluzione file per file, i controlli e le verifiche sulla riga; tolti «Esercizio HTML», «Esercizio CSS» e il campo «Esercizi HTML».
+- **Da fare in Moodle** (una volta, da amministratore): installare l'interfaccia `html_sito` con lo script `installa.sh` (skill `materiali-moodle`, cartella `assets/interfaccia-html-sito`; chiedi a Claude «installa l'interfaccia del sito con l'editor» per i passi), poi svuotare le cache. **Aggiornare il prototipo `html_con_file`**: è cambiato il template (legge anche il sito dell'editor), da reimportare con `prototipo-html-con-file.xml`; le consegne con controllo automatico funzionano come prima.
+- **Domande generate**: nel quiz di prova le due righe «Esercizio HTML» ed «Esercizio CSS» sono diventate due «Sito con l'editor» (una con i controlli visibili, una nascosti con gli aiuti).
+- Prove superate.
+
 ## 0.14.3 — 16/11/2026
 
 Nelle esercitazioni con spiegazione le domande dopo ogni pagina salgono di livello, e la prima può chiedere di ricordare.

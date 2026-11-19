@@ -4,16 +4,16 @@
  "minuti": 5,
  "strumento": "",
  "sostegno": "",
- "correzione": "Lista 5, titolo 5.",
- "coderunner": "=== answer\n<h1>Frutti</h1>\n<ul>\n    <li>mela</li>\n</ul>",
+ "correzione": "Il sito di riferimento è la soluzione dell'autore.",
+ "coderunner": "=== options\npagina: index.html\n=== file index.html\n<!DOCTYPE html>\n<html lang=\"it\">\n<head>\n    <meta charset=\"utf-8\">\n    <title>Frutti</title>\n    <link rel=\"stylesheet\" href=\"css/stile.css\">\n</head>\n<body>\n    <h1>Frutti</h1>\n    <ul>\n        <li>mela</li>\n        <li>pera</li>\n        <li>uva</li>\n    </ul>\n</body>\n</html>\n=== file css/stile.css\nli {\n    color: green;\n}\n=== test 2\nstruttura_base()\n=== extra\nLa pagina ha la struttura di base.\n=== test 2\nalmeno(3, \"li\", \"ul\")\n=== extra\nLa lista ha almeno tre voci.\n=== test 1\ncss_collegato(\"css/stile.css\")\n=== extra\nLa pagina collega il foglio di stile.",
  "docente": "",
  "sintesi": "x",
  "sezione": "Finali",
  "pos": "D5",
  "pag": 11,
  "titolo": "La mia lista",
- "tipologia": "libero_html",
+ "tipologia": "sito_html",
  "parte": 7,
  "punti": 10,
- "traccia": "Scrivere una pagina con una lista di tre frutti.\n\n```html risultato\n<h1>Frutti</h1>\n<ul>\n    <li>mela</li>\n    <li>pera</li>\n</ul>\n```"
+ "traccia": "Nell'editor, scrivere la pagina **index.html** con un titolo e una lista di tre frutti, e il foglio di stile **css/stile.css** che colora di verde le voci della lista."
 }

@@ -33,14 +33,15 @@ def rendi(testcodes, allegati, risposta, soluzione, pagina):
     return t.render(**contesto)
 
 
-def esegui(testcodes, allegati=None, risposta="", soluzione="", pagina="", senza_node=False):
+def esegui(testcodes, allegati=None, risposta="", soluzione="", pagina="", senza_node=False, supporto=None):
+    """supporto: file di supporto della domanda (nella cartella di lavoro, ma non tra gli allegati)."""
     allegati = allegati or {}
     programma = rendi(testcodes, allegati, risposta, soluzione, pagina)
     if senza_node:
         # simula un Jobe in cui node non c'è: trova_node() restituisce sempre None
         programma = programma.replace("def trova_node():", "def trova_node():\n    return None\n\n\ndef _trova_node_vero():")
     with tempfile.TemporaryDirectory() as d:
-        for nome, dati in allegati.items():
+        for nome, dati in list(allegati.items()) + list((supporto or {}).items()):
             with open(os.path.join(d, nome), "wb") as f:
                 f.write(dati)
         with open(os.path.join(d, "__tester__.python3"), "w", encoding="utf-8") as f:

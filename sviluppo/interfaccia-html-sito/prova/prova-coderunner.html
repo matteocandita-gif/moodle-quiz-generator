@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Prova: interfaccia html_sito in una domanda CodeRunner</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; background: #f8f9fa; color: #1d2125; }
+  .pagina { max-width: 1150px; margin: 0 auto; padding: 16px; }
+  .que { display: flex; gap: 12px; background: #fff; border: 1px solid #dee2e6; border-radius: 6px; padding: 12px; }
+  .que .info { width: 110px; flex: none; background: #f1f3f5; border-radius: 4px; padding: 8px; font-size: 13px; }
+  .que .content { flex: 1; min-width: 0; }
+  .risultati { margin-top: 10px; font-size: 13px; border: 1px solid #c3e6cb; background: #eef8f0; padding: 6px 10px; border-radius: 4px; }
+  .simulazione { margin-top: 16px; background: #fff3cd; border: 1px solid #ffe08a; border-radius: 6px; padding: 10px 14px; font-size: 13px; }
+  .simulazione button { margin: 2px 4px 2px 0; }
+  #registro { max-height: 130px; overflow: auto; font-family: monospace; font-size: 12px; margin-top: 6px; }
+  .revisione .que { background: #fbfbf6; }
+</style>
+<!-- In Moodle questi file li carica CodeRunner (cartella question/type/coderunner/ace). -->
+<script src="ace/ace.js"></script>
+<script src="ace/ext-language_tools.js"></script>
+<script src="ace/ext-modelist.js"></script>
+<script>
+  // In Moodle il modulo lo carica RequireJS: qui basta raccoglierlo.
+  window.moduli = {};
+  window.define = function (nome, dipendenze, fabbrica) { window.moduli[nome] = fabbrica(); };
+</script>
+<script src="../../../plugins/moodle-quiz-generator/skills/materiali-moodle/assets/interfaccia-html-sito/ui_html_sito.js"></script>
+</head>
+<body>
+<div class="pagina">
+  <h2 id="titolo">Verifica di prova (CodeRunner, interfaccia html_sito)</h2>
+  <form id="responseform" action="#" method="post">
+    <div id="question-3-1" class="que coderunner deferredfeedback notyetanswered">
+      <div class="info"><h3 class="no">Domanda <span class="qno">1</span></h3><div class="grade">Punteggio max.: 10,00</div></div>
+      <div class="content">
+        <div class="formulation clearfix">
+          <div class="qtext">
+            <p>Creare il sito della pizzeria «Da Mario» con una pagina principale <b>index.html</b>, una pagina <b>menu.html</b> nella cartella <b>pagine</b> e un foglio di stile <b>stile.css</b> nella cartella <b>css</b>, collegato a entrambe le pagine. Le due pagine devono essere collegate tra loro con un link.</p>
+            <p>Usare il logo nella pagina principale e la foto della pizza nella pagina del menu, mettendo le immagini nella cartella <b>img</b>:</p>
+            <p><img src="logo.png" alt="logo.png" width="200" height="80"> <img src="pizza.jpg" alt="pizza.jpg" width="160" height="120"></p>
+          </div>
+          <input type="hidden" name="q3:1_:sequencecheck" value="1">
+          <div class="ablock">
+            <div class="answer">
+              <textarea id="id_q3_1_answer" name="q3:1_answer" class="coderunner-answer edit_code" rows="18" style="width:100%"></textarea>
+            </div>
+          </div>
+          <div class="risultati">Qui CodeRunner mostra i risultati dei test dopo «Controlla».</div>
+        </div>
+      </div>
+    </div>
+    <p><button type="submit">Pagina successiva</button></p>
+  </form>
+
+  <div class="simulazione">
+    <b>Simulazione di Moodle e CodeRunner</b> (solo in questa pagina di prova): il «server» è il localStorage del browser.
+    CodeRunner chiama <code>sync()</code> ogni 2 secondi e all'invio della pagina; il salvataggio automatico del quiz parte 3 secondi dopo un evento <code>change</code>.<br>
+    <button type="button" id="riapri">Simula spegnimento e riapertura</button>
+    <button type="button" id="revisione">Apri in revisione (sola lettura)</button>
+    <button type="button" id="ctrlaltm">Disattiva / riattiva l'interfaccia (come Ctrl-Alt-M)</button>
+    <button type="button" id="azzera">Azzera la prova</button>
+    <button type="button" id="aiuti">Aiuti dell'editor e caricamento di immagini: accesi / spenti</button>
+    <div id="registro"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var revisione = /[?&]revisione=1/.test(location.search);
+  var ta = document.getElementById('id_q3_1_answer');
+  ta.value = localStorage.getItem('prova-cr-server') || '';
+  if (revisione) {
+    ta.readOnly = true;
+    document.body.classList.add('revisione');
+    document.getElementById('titolo').textContent = 'Revisione del tentativo (prova, sola lettura)';
+  }
+  function log(t) {
+    document.getElementById('registro').insertAdjacentHTML('afterbegin', '<div>' + new Date().toLocaleTimeString('it-IT') + ' ' + t + '</div>');
+  }
+
+  // --- Come userinterfacewrapper.js di CodeRunner ---
+  var GUTTER = 6, ui = null, timer = null, wrapper = null;
+  function avviaUi() {
+    var h = Math.max(ta.clientHeight || 0, 18 * 18, 100);
+    var w = ta.clientWidth;
+    wrapper = document.createElement('div');
+    wrapper.style.resize = 'vertical';
+    wrapper.style.overflow = 'hidden';
+    wrapper.style.minHeight = h + 'px';
+    ta.insertAdjacentElement('afterend', wrapper);
+    // Parametri dell'interfaccia: con ?aiuti=1 nell'indirizzo si accendono tutti gli aiuti dell'editor.
+    var parametri = /[?&]aiuti=1/.test(location.search) ?
+      { chiusura_automatica: true, completamento: true, segnala_errori: true, carica_immagini: true } : {};
+    parametri.immagini = 'logo.png, pizza.jpg'; // Le immagini del testo della domanda.
+    ui = new window.moduli['qtype_coderunner/ui_html_sito'].Constructor(ta.id, w, h - GUTTER, parametri);
+    if (ui.failed()) { log('interfaccia non caricata: ' + ui.failMessage()); wrapper.remove(); ui = null; return; }
+    ta.style.display = 'none';
+    wrapper.appendChild(ui.getElement());
+    if (ui.postInsert) { ui.postInsert(); }
+    timer = setInterval(function () { ui.sync(); }, 1000 * ui.syncIntervalSecs());
+    new ResizeObserver(function () { if (ui) { ui.resize(wrapper.clientWidth, wrapper.clientHeight - GUTTER); } }).observe(wrapper);
+    log('interfaccia html_sito pronta' + (revisione ? ' (sola lettura)' : ''));
+  }
+  function fermaUi() {
+    clearInterval(timer);
+    ui.destroy();
+    ui = null;
+    wrapper.remove();
+    ta.style.display = '';
+    log('interfaccia disattivata: si vede la risposta grezza');
+  }
+  avviaUi();
+  document.getElementById('ctrlaltm').onclick = function () { if (ui) { fermaUi(); } else { avviaUi(); } };
+
+  // --- Come il quiz di Moodle ---
+  var form = document.getElementById('responseform'), attesa = null;
+  form.addEventListener('submit', function () { if (ui) { ui.sync(); } }, true);
+  form.addEventListener('change', function (e) {
+    if (revisione || !e.target.matches('input, select') || attesa) { return; }
+    attesa = setTimeout(function () {
+      attesa = null;
+      localStorage.setItem('prova-cr-server', ta.value);
+      log('salvataggio automatico sul «server» (' + ta.value.length + ' caratteri)');
+    }, 3000);
+  });
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (revisione) { return; }
+    localStorage.setItem('prova-cr-server', ta.value);
+    log('pagina inviata: risposta salvata (' + ta.value.length + ' caratteri)');
+  });
+  document.getElementById('riapri').onclick = function () { location.href = location.pathname; };
+  document.getElementById('revisione').onclick = function () { location.href = location.pathname + '?revisione=1'; };
+  document.getElementById('aiuti').onclick = function () {
+    location.href = location.pathname + (/[?&]aiuti=1/.test(location.search) ? '' : '?aiuti=1');
+  };
+  document.getElementById('azzera').onclick = function () {
+    Object.keys(localStorage).forEach(function (k) { if (k === 'prova-cr-server' || k.indexOf('html_sito:') === 0) { localStorage.removeItem(k); } });
+    location.href = location.pathname;
+  };
+})();
+</script>
+</body>
+</html>

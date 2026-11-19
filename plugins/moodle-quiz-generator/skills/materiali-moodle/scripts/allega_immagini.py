@@ -15,6 +15,10 @@ domanda. crea_mbz.py legge poi quei <file> e li mette nel backup (componente que
 Un file da scaricare si scrive [testo](sito-scuola.zip) e diventa <a href="@@PLUGINFILE@@/sito-scuola.zip?forcedownload=1">:
 si allega nello stesso modo (il parametro ?forcedownload=1 non fa parte del nome del file).
 
+Riempie anche i file di supporto delle domande CodeRunner che da_dashboard.py lascia vuoti, con il contenuto
+@@DA_CARTELLA@@ (le immagini fornite di un «Sito con l'editor»): <file name="logo.png" …>@@DA_CARTELLA@@</file>
+prende logo.png dalla stessa CARTELLA. crea_mbz.py li mette nel backup come file di supporto (area datafile).
+
 Si ferma se un'immagine manca nella cartella o se un riferimento sta fuori dal testo della domanda
 (feedback, risposte): lì le immagini non sono gestite. Senza riferimenti non cambia nulla.
 """
@@ -27,6 +31,7 @@ import urllib.parse
 RIF_RE = re.compile(r"@@PLUGINFILE@@/([^\"'\s<>)?#]+)")   # senza ?forcedownload=1 dei file da scaricare
 QT_RE = re.compile(r"(<questiontext\b[^>]*>)(.*?)(</questiontext>)", re.S)
 Q_RE = re.compile(r"<question\b.*?</question>", re.S)
+SUPPORTO_RE = re.compile(r'<file name="([^"]+)" path="/" encoding="base64">@@DA_CARTELLA@@</file>')
 
 
 def nome_domanda(blocco):
@@ -68,6 +73,17 @@ def allega(xml, cartella):
         return nuovo
 
     out = Q_RE.sub(domanda, xml)
+
+    def supporto(m):
+        f = m.group(1)
+        p = os.path.join(cartella, f)
+        if not os.path.isfile(p):
+            errori.append("file di supporto: manca il file «%s» in %s" % (f, cartella))
+            return m.group(0)
+        usate.append(f)
+        return '<file name="%s" path="/" encoding="base64">%s</file>' % (
+            f, base64.b64encode(open(p, "rb").read()).decode("ascii"))
+    out = SUPPORTO_RE.sub(supporto, out)
     return out, usate, errori
 
 

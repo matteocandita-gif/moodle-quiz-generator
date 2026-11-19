@@ -63,8 +63,8 @@ Lo script riproduce l'XML che Moodle esporta per una domanda CodeRunner con ques
 
 | Opzione | Predefinito | Significato |
 |---|---|---|
-| `prototipo` | `sqlite` | `sqlite` (php_mysqli_sqlite, query eseguite davvero) o `mock` (php_mysqli_mock, mappa delle query) |
-| `database` | l'unico definito | quale `=== database` allegare (solo prototipo sqlite) |
+| `prototipo` | `sqlite` | `sqlite` (php_mysqli_sqlite, query eseguite davvero): l'unico rimasto |
+| `database` | l'unico definito | quale `=== database` allegare |
 | `defaultgrade` | `1` | punteggio della domanda |
 | `penalty` | `0` | penalità per tentativo |
 | `allornothing` | `1` | `1` = punteggio solo se passano tutti i test; `0` = punteggio parziale per test (utile nella scrittura completa) |
@@ -89,7 +89,7 @@ python3 scripts/prova_query.py specifica.txt NOME_DB "SELECT ..." [--prima "SQL 
 
 `crea_xml.py` si ferma con un elenco di problemi se manca una sezione obbligatoria, se il testo non contiene il disclaimer, se la soluzione o il preload non iniziano con `<?php`, se un test non ha l'output atteso o non chiama `FakeDB::configure`, se un database ha errori SQL, se un nome è ripetuto, o se l'HTML non rispetta lo stile (emoji, tag vietati, blocchi di codice non chiusi). Alla fine controlla che l'XML sia ben formato. `--cartella-db` salva anche i file `.db`, da aprire con DB Browser.
 
-Con `--verifica`, se PHP (e per il prototipo sqlite il client `sqlite3`) sono installati, esegue la soluzione su ogni test e confronta l'output; per ogni test mostra anche la prima riga di output del preload. Nella chat di Claude.ai non ci sono: lo script lo dice e gli output vanno controllati con `prova_query.py` e a mano.
+Con `--verifica`, se PHP e il client `sqlite3` sono installati, esegue la soluzione su ogni test e confronta l'output; per ogni test mostra anche la prima riga di output del preload. Nella chat di Claude.ai non ci sono: lo script lo dice e gli output vanno controllati con `prova_query.py` e a mano.
 
 `prova_query.py` costruisce il database dalla specifica ed esegue una query, mostrando i valori come li vedrà lo studente: serve a calcolare le righe e il loro formato negli output attesi.
 
@@ -105,7 +105,7 @@ Ricavata dall'esportazione di una domanda reale. Per ogni domanda:
   <questiontext format="html"><text><![CDATA[…HTML…]]></text></questiontext>
   <generalfeedback format="html"><text></text></generalfeedback>
   <defaultgrade>1</defaultgrade> <penalty>0</penalty> <hidden>0</hidden> <idnumber></idnumber>
-  <coderunnertype>php_mysqli_mock</coderunnertype> <prototypetype>0</prototypetype>
+  <coderunnertype>php_mysqli_sqlite</coderunnertype> <prototypetype>0</prototypetype>
   <allornothing>1</allornothing> … <answerboxlines>18</answerboxlines> <answerboxcolumns>100</answerboxcolumns>
   <answerpreload><![CDATA[…]]></answerpreload>
   … campi vuoti ereditati dal prototipo (template, grader, language, sandbox…) …

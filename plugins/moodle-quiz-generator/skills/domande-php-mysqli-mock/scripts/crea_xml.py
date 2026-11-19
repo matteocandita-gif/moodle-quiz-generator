@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Genera l'XML Moodle di una o più domande CodeRunner PHP con database simulato
-(prototipi php_mysqli_sqlite e php_mysqli_mock) da un file di specifica.
+(prototipo php_mysqli_sqlite) da un file di specifica.
 
 Uso:
     python3 crea_xml.py SPECIFICA.txt OUTPUT.xml [--verifica] [--cartella-db DIR]
@@ -44,8 +44,8 @@ sys.path.insert(0, str(QUI))
 import moodle_lib as ml  # noqa: E402
 
 DISCLAIMER = "N.B. questa è una simulazione"
-PROTOTIPI = {"sqlite": "php_mysqli_sqlite", "mock": "php_mysqli_mock"}
-TEMPLATE = {"sqlite": "prototipo-sqlite-template.php", "mock": "prototipo-mock-template.php"}
+PROTOTIPI = {"sqlite": "php_mysqli_sqlite"}   # il prototipo mock è stato tolto nella 0.15.0
+TEMPLATE = {"sqlite": "prototipo-sqlite-template.php"}
 
 OPZIONI_PREDEFINITE = {
     "prototipo": "sqlite",
@@ -129,7 +129,7 @@ def opzioni(d, databases):
     o = dict(OPZIONI_PREDEFINITE)
     o.update(d["options"])
     if o["prototipo"] not in PROTOTIPI:
-        raise ValueError(f"{d.get('name')}: prototipo '{o['prototipo']}' sconosciuto (sqlite o mock)")
+        raise ValueError(f"{d.get('name')}: prototipo '{o['prototipo']}' sconosciuto: c'è solo sqlite (il mock è stato tolto)")
     if o["database"] is None and o["prototipo"] == "sqlite" and len(databases) == 1:
         o["database"] = next(iter(databases))
     if o["answerboxlines"] is None:
@@ -151,8 +151,6 @@ def controlla(d, o, databases):
         problemi.append(f"{nome}: il preload deve iniziare con <?php")
     if o["database"] and o["database"] not in databases:
         problemi.append(f"{nome}: il database '{o['database']}' non è definito")
-    if o["database"] and o["prototipo"] == "mock":
-        problemi.append(f"{nome}: il prototipo mock non usa database allegati")
     if not d["test"]:
         problemi.append(f"{nome}: nessun test")
     for i, t in enumerate(d["test"], 1):

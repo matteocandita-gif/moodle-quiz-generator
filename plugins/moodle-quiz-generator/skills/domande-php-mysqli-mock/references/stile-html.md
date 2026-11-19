@@ -137,7 +137,7 @@ _Le sezioni sopra sono una copia del file della skill `materiali-moodle`, che de
 
 Ogni domanda di questa skill ha il disclaimer come **ultimo elemento** del testo, copiato senza modifiche. Lo script controlla che ci sia il titolo «N.B. questa è una simulazione».
 
-### Prototipo php_mysqli_sqlite (domande nuove)
+### Prototipo php_mysqli_sqlite
 
 ```html
 <div style="background-color: #f9cb9c; border-left: 5px solid #e69138; padding: 12px 16px; border-radius: 4px; margin: 0 0 16px;">
@@ -147,12 +147,3 @@ Ogni domanda di questa skill ha il disclaimer come **ultimo elemento** del testo
 </div>
 ```
 
-### Prototipo php_mysqli_mock
-
-```html
-<div style="background-color: #f9cb9c; border-left: 5px solid #e69138; padding: 12px 16px; border-radius: 4px; margin: 0 0 16px;">
-<p style="margin: 0 0 6px; color: #783f04;"><strong>N.B. questa è una simulazione</strong></p>
-<p style="margin: 0 0 6px;">Non c'è un vero database: il correttore finge di essere il DBMS e risponde con i dati e i messaggi di errore che darebbe MySQL. Serve solo per imparare a leggere gli errori e a correggere il codice. Il codice corretto funziona allo stesso modo anche con XAMPP e PHPMyAdmin.</p>
-<p style="margin: 0;">Poiché la simulazione riconosce le query confrontandone il testo, scrivi la query <strong>esattamente come chiede la consegna</strong>, senza aggiungere colonne, alias o condizioni (per esempio, non usare <span style="font-family: monospace;">SELECT *</span>).</p>
-</div>
-```

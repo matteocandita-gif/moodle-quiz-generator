@@ -46,6 +46,10 @@ Un quiz fatto prima del plugin si importa dal suo backup (sempre con **Includi f
 
 Gli esercizi SQL e PHP lavorano su un database. Si sceglie dal catalogo dei database didattici (quattro pronti, in tre taglie) o se ne crea uno nuovo: dai i requisiti (quante tabelle, il contesto, gli argomenti da esercitare) e Claude propone lo schema prima di generarlo. Il catalogo è una tua pagina, «Database didattici», che Claude crea la prima volta che serve; lo stesso database ha anche lo script per phpMyAdmin, per usarlo a lezione.
 
+## Quiz con HTML e CSS
+
+Per scrivere una pagina o un sito ci sono tre tipologie con controlli automatici: l'**esercizio con controllo** (una regola CSS o un pezzo di HTML nella casella), la **consegna con controllo automatico** (la cartella del sito, compressa in .zip, dal PC) e il **sito con l'editor**: lo studente crea file, cartelle e immagini dentro Moodle e vede l'anteprima, senza usare i file del PC. Nelle esercitazioni Claude propone la consegna dal PC, perché gli studenti lavorino con i file; il sito con l'editor lo usa nelle verifiche (con Safe Exam Browser), e nelle esercitazioni solo quando lo chiedi tu, per esempio per prepararsi alla verifica. Nelle verifiche i controlli sono nascosti: il punteggio si calcola alla consegna. Il sito con l'editor ha bisogno dell'interfaccia `html_sito` installata in Moodle: «installa l'interfaccia del sito con l'editor» e Claude ti dà lo script e i passi per l'amministratore.
+
 ## Fuori dalla dashboard
 
 Per una domanda sola o poche domande per la banca non serve la dashboard: «una Cloze sull'ordine delle clausole di una SELECT», «controlla queste domande», «una pagina di ripasso sul box model». Claude consegna il Moodle XML da importare nella banca delle domande.

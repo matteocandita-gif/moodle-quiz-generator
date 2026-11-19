@@ -1,0 +1,25 @@
+{
+    "name": "ui_html_sito",
+    "parameters": {
+        "chiusura_automatica": {
+            "type": "boolean",
+            "default": false
+        },
+        "completamento": {
+            "type": "boolean",
+            "default": false
+        },
+        "segnala_errori": {
+            "type": "boolean",
+            "default": false
+        },
+        "immagini": {
+            "type": "string",
+            "default": ""
+        },
+        "carica_immagini": {
+            "type": "boolean",
+            "default": false
+        }
+    }
+}

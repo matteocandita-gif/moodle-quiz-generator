@@ -6,13 +6,13 @@ Crea anche le **tracce di progettazione** di database per le quinte, con diffico
 
 Contiene anche le **mappe dei prerequisiti**: un argomento scomposto in competenze collegate da prerequisiti, che in Moodle diventa un'attività in cui ogni studente spunta ciò che sa fare e tu vedi il riepilogo della classe.
 
-Le domande coprono Cloze, risposta multipla, vero/falso, risposta breve, aperta, corrispondenza e CodeRunner JavaScript, SQL, PHP, HTML e CSS. Le domande CodeRunner arrivano con gli output attesi già calcolati eseguendo la soluzione, e quelle SQL e PHP con il database allegato.
+Le domande coprono Cloze, risposta multipla, vero/falso, risposta breve, aperta, corrispondenza e CodeRunner JavaScript, SQL, PHP, HTML e CSS, compreso un piccolo sito scritto dentro Moodle con un editor (file, cartelle, immagini, anteprima), adatto alle verifiche con Safe Exam Browser. Le domande CodeRunner arrivano con gli output attesi già calcolati eseguendo la soluzione, e quelle SQL e PHP con il database allegato.
 
 ## Che cosa serve
 
 - Un account Claude a pagamento (Pro o superiore): i plugin non ci sono nel piano gratuito.
 - L'esecuzione del codice attiva nelle impostazioni di Claude: le skill usano script per costruire XML e backup.
-- Il Moodle della scuola, con i prototipi CodeRunner già installati (`sql_salvemini`, `php_mysqli_sqlite`, `php_con_test`, `css`, «Javascript (con prompt)», «Javascript (con gapfiller)»). Su un altro Moodle le domande CodeRunner vanno adattate.
+- Il Moodle della scuola, con i prototipi CodeRunner già installati (`sql_salvemini`, `php_mysqli_sqlite`, `html_con_file`, `css_con_test`, «Javascript (con prompt)», «Javascript (con gapfiller)») e, per i siti scritti con l'editor, l'interfaccia `html_sito` di CodeRunner (la installa l'amministratore con lo script nella skill `materiali-moodle`). Su un altro Moodle le domande CodeRunner vanno adattate.
 - Per l'avvio automatico dei quiz dalla dashboard: il connettore Claude Code Remote e le attività programmate. Senza, tutto funziona lo stesso: il pulsante «Inizia» ti dà una frase da incollare in chat.
 
 ## Installazione

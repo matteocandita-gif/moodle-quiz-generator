@@ -176,7 +176,8 @@ def main():
     if os.path.exists(ptag):
         print("== tag delle varianti")
         print(metti_tag(finale, json.load(open(ptag, encoding="utf-8"))))
-    if "@@PLUGINFILE@@" in open(finale, encoding="utf-8").read():
+    contenuto = open(finale, encoding="utf-8").read()
+    if "@@PLUGINFILE@@" in contenuto or "@@DA_CARTELLA@@" in contenuto:
         if not opz.get("immagini"):
             raise SystemExit("Le tracce citano delle immagini o dei file da scaricare: indica la cartella che li "
                              "contiene con --immagini=")

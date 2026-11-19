@@ -74,7 +74,7 @@ Quiz: `database` (solo con domande SQL, vedi sotto); `lezione` e `argomento` dan
 
 ## Domande CodeRunner ed esercizi HTML e CSS
 
-Il formato del campo «Soluzione e test» e le regole di ogni linguaggio stanno in un file per linguaggio, da leggere solo se il quiz lo riguarda: `tracce-javascript.md` («Domande CodeRunner JavaScript»), `tracce-sql.md` («Domande CodeRunner SQL», con il database del quiz), `tracce-php.md` («Domande CodeRunner PHP»), `tracce-html.md` («Esercizi HTML e CSS»).
+Il formato del campo «Soluzione e test» e le regole di ogni linguaggio stanno in un file per linguaggio, da leggere solo se il quiz lo riguarda: `tracce-javascript.md` («Domande CodeRunner JavaScript»), `tracce-sql.md` («Domande CodeRunner SQL», con il database del quiz), `tracce-php.md` («Domande CodeRunner PHP»), `tracce-html.md` («Sito con l'editor», «Esercizi con controllo»).
 
 ## Consegna di un file
 
@@ -95,7 +95,3 @@ In parte 2 tutte le varianti vanno nella banca del quiz con il loro tag (`genera
 ## Prefissi dei nomi
 
 Dal catalogo. La pagina del blocco usa «Spiegazione» nelle esercitazioni con spiegazione, «Teoria» nell'esercitazione con studio e domande sequenziale (SD) e «Ripasso» nel ripasso teorico (RT) e nella complessiva di ripasso (ER).
-
-## Non ancora gestito
-
-Le domande PHP con il prototipo `php_mysqli_mock` (mappa delle query): si fanno con la skill `domande-php-mysqli-mock` e si uniscono gli XML.

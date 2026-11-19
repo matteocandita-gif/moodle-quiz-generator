@@ -153,12 +153,14 @@ FUNZIONI = FUNZIONI_HTML + FUNZIONI_CARTELLA + FUNZIONI_CSS + FUNZIONI_STILE + F
 
 DESCRIZIONE_PROTOTIPO = "\n".join([
     "<p>Prototipo <strong>html_con_file</strong>: controlla la pagina HTML consegnata dallo studente "
-    "come <strong>file allegato</strong> (un .html, oppure la cartella del sito compressa in .zip). "
-    "Al posto della casella di risposta lo studente vede solo un promemoria e il riquadro per caricare i file. "
+    "come <strong>file allegato</strong> (un .html, oppure la cartella del sito compressa in .zip) oppure "
+    "<strong>scritta nell'editor del sito</strong> (interfaccia <em>html_sito</em>, vedi sotto). "
+    "Con gli allegati, al posto della casella di risposta lo studente vede solo un promemoria e il riquadro "
+    "per caricare i file. "
     "Ogni test è un requisito: lo studente vede che cosa manca, test per test.</p>",
     "<p>Con il plugin «Moodle: quiz generator» queste domande si scrivono nella dashboard «Bozze dei quiz» come "
-    "tipologia «Consegna con controllo automatico» e le genera il plugin. Le indicazioni qui sotto servono per "
-    "crearle o modificarle a mano in Moodle.</p>",
+    "tipologie «Consegna con controllo automatico» e «Sito con l'editor» e le genera il plugin. Le indicazioni "
+    "qui sotto servono per crearle o modificarle a mano in Moodle.</p>",
     "<p><strong>Come creare una domanda</strong></p>",
     "<ol>",
     "<li>In <em>Allegati</em> scegli il <strong>numero</strong> di file (di solito 1), se sono obbligatori, "
@@ -188,6 +190,34 @@ DESCRIZIONE_PROTOTIPO = "\n".join([
     "si controlla il codice della casella. Il campo <em>Risposta</em> resta testo semplice "
     "(enable_in_editor è false): ci si incolla la soluzione, che usa anche "
     + m("struttura_come_soluzione()") + ".</p>",
+    "<p><strong>Sito scritto con l'editor (interfaccia html_sito).</strong> Per le verifiche con Safe Exam "
+    "Browser, o quando gli studenti non devono passare dai file del PC: lo studente crea le cartelle e i file "
+    "del sito dentro la domanda, li scrive con l'editor e vede l'anteprima delle pagine. Il template ricrea il "
+    "sito in una cartella e fa gli stessi controlli dello zip. L'interfaccia va installata una volta "
+    "nella cartella di CodeRunner (istruzioni nel plugin), e di nuovo dopo ogni aggiornamento di CodeRunner.</p>",
+    "<ol>",
+    "<li>In <em>Personalizza</em> scegli <strong>Input UI: html_sito</strong>.</li>",
+    "<li>Metti <strong>Allegati</strong> a 0.</li>",
+    "<li>Nei <strong>Parametri dell'interfaccia</strong> puoi accendere gli aiuti dell'editor, spenti se non li "
+    "scrivi: " + m('{"chiusura_automatica": true, "completamento": true, "segnala_errori": true}')
+    + " (chiusura automatica di tag e virgolette, proposte di tag e proprietà, errori di sintassi segnati nel "
+    "margine), anche uno solo.</li>",
+    "<li>Per le <strong>immagini</strong>: inseriscile nel testo della domanda (lo studente le vede nella "
+    "traccia) e scrivi i loro nomi nei parametri dell'interfaccia, " + m('{"immagini": "logo.png, pizza.jpg"}')
+    + ". Lo studente le mette nel sito con «+ Immagine», nella cartella che sceglie. Se alleghi le stesse "
+    "immagini anche come <em>File di supporto</em>, il template usa quelle vere; altrimenti mette un "
+    "segnaposto con lo stesso nome, che basta per i controlli sui percorsi (" + m("immagine()") + ", "
+    + m("file_presente()") + ", " + m("cartella_ben_formata()") + "). Con " + m('"carica_immagini": true')
+    + " lo studente può caricare anche immagini sue dal computer (massimo 500 KB l'una): non nelle "
+    "verifiche con SEB.</li>",
+    "<li>Nella <strong>Risposta</strong> scrivi la soluzione con l'editor, come sito: la domanda si controlla "
+    "al salvataggio e " + m("struttura_come_soluzione()") + " usa la pagina principale della soluzione.</li>",
+    "<li>Lascia vuota la <strong>Risposta precaricata</strong>.</li>",
+    "</ol>",
+    "<p>L'editor accetta solo nomi con lettere minuscole, numeri, - _ . (maiuscole e minuscole contano nei "
+    "percorsi, come sul server). Nell'anteprima le immagini con il percorso giusto si vedono, quelle con il "
+    "percorso sbagliato compaiono rotte come nel browser. In revisione e in Valutazione manuale il sito si "
+    "vede in sola lettura, con l'anteprima e le immagini.</p>",
     "<p><strong>Funzioni di controllo: la pagina HTML</strong></p>",
     tabella(["Test", "Che cosa controlla"], [(m(f), d) for f, d in FUNZIONI_HTML]),
     "<p><strong>Funzioni di controllo: la cartella del sito e i collegamenti</strong></p>",

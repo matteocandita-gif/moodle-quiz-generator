@@ -32,12 +32,16 @@
     <useace>1</useace>
     <resultcolumns>[["Controllo", "extra"], ["Trovato?", "got"]]</resultcolumns>
     <template><![CDATA[# Prototipo html_con_file: controlla la pagina HTML consegnata dallo studente.
-# La pagina arriva come file allegato (.html, oppure .zip con la cartella del sito)
+# La pagina arriva come file allegato (.html, oppure .zip con la cartella del sito),
+# dal sito scritto con l'editor (interfaccia html_sito: JSON con "htmlve": 1)
 # o, se non ci sono allegati, dalla casella di risposta.
 # Ogni test chiama UNA funzione di controllo (elenco nella descrizione del prototipo):
 # la funzione stampa OK se il requisito c'è, altrimenti un messaggio per lo studente.
 # Output atteso di ogni test: OK.
 
+import base64
+import binascii
+import json
 import os
 import posixpath
 import re
@@ -88,6 +92,86 @@ def estrai_zip(nome):
                 shutil.copyfileobj(sorgente, uscita)
 
 
+def sito_dall_editor(testo):
+    """Se la risposta viene dall'editor HTML (JSON con "htmlve": 1), restituisce il sito, altrimenti None.
+    Il JSON può arrivare da solo (domanda Saggio) o dentro la serializzazione dell'interfaccia Html
+    di CodeRunner ({"crui_sito": ["{...}"]})."""
+    testo = testo.strip()
+    if not testo.startswith("{"):
+        return None
+    try:
+        dati = json.loads(testo)
+    except ValueError:
+        return None
+    if isinstance(dati, dict) and dati.get("htmlve") == 1 and isinstance(dati.get("files"), dict):
+        return dati
+    if isinstance(dati, dict):
+        for valore in dati.values():
+            for elemento in (valore if isinstance(valore, list) else [valore]):
+                if isinstance(elemento, str):
+                    sito = sito_dall_editor(elemento)
+                    if sito is not None:
+                        return sito
+    return None
+
+
+# Immagine PNG di 1x1 pixel: segnaposto quando l'immagine vera non è disponibile (i controlli guardano i percorsi).
+SEGNAPOSTO_PNG = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==")
+
+
+def percorso_sicuro(percorso):
+    """Percorso relativo dentro la cartella della consegna, oppure None se esce dalla cartella."""
+    parti = percorso.replace("\\", "/").split("/")
+    if percorso.startswith("/") or any(p in ("", ".", "..") for p in parti):
+        return None
+    return os.path.join(CARTELLA, *parti)
+
+
+def scrivi_sito(sito):
+    """Ricrea nella cartella della consegna le cartelle, i file e le immagini del sito scritto con l'editor HTML."""
+    for cartella in sito.get("cartelle") or []:
+        destinazione = percorso_sicuro(str(cartella))
+        if destinazione:
+            os.makedirs(destinazione, exist_ok=True)
+    for nome, contenuto in sito["files"].items():
+        destinazione = percorso_sicuro(str(nome))
+        if not destinazione or not isinstance(contenuto, str):
+            continue
+        os.makedirs(os.path.dirname(destinazione), exist_ok=True)
+        with open(destinazione, "w", encoding="utf-8") as f:
+            f.write(contenuto)
+    # Immagini: fornite dalla domanda (nome del file) oppure caricate dallo studente (data URL).
+    for nome, origine in (sito.get("immagini") or {}).items():
+        destinazione = percorso_sicuro(str(nome))
+        if not destinazione or not isinstance(origine, str):
+            continue
+        os.makedirs(os.path.dirname(destinazione), exist_ok=True)
+        dati = None
+        if origine.startswith("data:") and "," in origine:
+            try:
+                dati = base64.b64decode(origine.split(",", 1)[1])
+            except (ValueError, binascii.Error):
+                dati = None
+        elif os.path.isfile(os.path.basename(origine)):
+            # La stessa immagine allegata alla domanda come file di supporto: si usa quella vera.
+            with open(os.path.basename(origine), "rb") as f:
+                dati = f.read()
+        with open(destinazione, "wb") as f:
+            f.write(dati if dati is not None else SEGNAPOSTO_PNG)
+
+
+def pagina_della_soluzione(soluzione):
+    """Se la soluzione dell'autore è un sito dell'editor HTML, ne prende la pagina principale."""
+    sito = sito_dall_editor(soluzione)
+    if sito is None:
+        return soluzione
+    return sito["files"].get(PAGINA or "index.html", "")
+
+
+SOLUZIONE = pagina_della_soluzione(SOLUZIONE)
+
+
 def prepara_consegna():
     """Mette tutti i file consegnati in CARTELLA e restituisce (elenco dei file, avviso)."""
     os.makedirs(CARTELLA, exist_ok=True)
@@ -100,7 +184,10 @@ def prepara_consegna():
                 avviso = "Il file %s non è un archivio .zip valido." % nome
         else:
             shutil.copy(nome, os.path.join(CARTELLA, nome))
-    if not ALLEGATI and RISPOSTA.strip():
+    sito_editor = None if ALLEGATI else sito_dall_editor(RISPOSTA)
+    if sito_editor is not None:
+        scrivi_sito(sito_editor)
+    elif not ALLEGATI and RISPOSTA.strip():
         with open(os.path.join(CARTELLA, PAGINA or "index.html"), "w", encoding="utf-8") as f:
             f.write(RISPOSTA)
     file_consegnati = []

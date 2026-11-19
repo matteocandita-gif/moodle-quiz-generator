@@ -12,7 +12,7 @@
 
 ## 1. Come funziona
 
-Il template (`assets/prototipo-sqlite-template.php`) ha la stessa facciata di mysqli del prototipo mock: funzioni procedurali, classi `mysqli` e `mysqli_result`, costanti, controllo di server, utente, password e nome del database con i messaggi di MySQL (1045, 1049, 2002, 1046). La differenza è nelle query: ogni `mysqli_query` viene **eseguita davvero** con il client `sqlite3` di Jobe (SQLite 3.46, lo stesso delle domande SQL) su un file di lavoro creato all'inizio del test. Il database dura per tutto lo script: un'INSERT seguita da una SELECT vede la riga nuova.
+Il template (`assets/prototipo-sqlite-template.php`) ha una facciata di mysqli: funzioni procedurali, classi `mysqli` e `mysqli_result`, costanti, controllo di server, utente, password e nome del database con i messaggi di MySQL (1045, 1049, 2002, 1046). La differenza è nelle query: ogni `mysqli_query` viene **eseguita davvero** con il client `sqlite3` di Jobe (SQLite 3.46, lo stesso delle domande SQL) su un file di lavoro creato all'inizio del test. Il database dura per tutto lo script: un'INSERT seguita da una SELECT vede la riga nuova.
 
 Per ogni query il template lancia `sqlite3` con `.mode json`, `PRAGMA foreign_keys = ON` (salvo `'foreignKeys' => false`), la query, e poi chiede `changes()` e `last_insert_rowid()`, che diventano `mysqli_affected_rows` e `mysqli_insert_id`. Le SELECT (e WITH, VALUES, PRAGMA, EXPLAIN) restituiscono un `mysqli_result` anche quando non hanno righe; le altre istruzioni restituiscono `true`.
 
@@ -44,7 +44,7 @@ FakeDB::configure([
 | `dbfile` | `''` | file `.db` allegato da copiare; vuoto = l'unico allegato, se c'è |
 | `schema` | `''` | SQL eseguito dopo la copia (o su un database vuoto) |
 | `foreignKeys` | `true` | chiavi esterne attive, come in MySQL con InnoDB |
-| `queries` | `[]` | facoltativa: risultati forzati, stesso formato del mock (sezione 8) |
+| `queries` | `[]` | facoltativa: risultati forzati (sezione 8) |
 | `exceptions` | `false` | `true` = errori come eccezioni (PHP 8.1+ senza `mysqli_report`) |
 
 `configure` va chiamato in ogni test: è lui che prepara il database di lavoro. Un errore nello schema ferma il test con «FakeDB: errore nello schema del test».
@@ -53,7 +53,7 @@ Funzioni per i test, da usare dopo lo script dello studente (in una `register_sh
 
 - `FakeDB::rows($sql)`: righe di una SELECT sul database di lavoro, con i valori come stringhe;
 - `FakeDB::count($tabella)`: numero di righe;
-- `FakeDB::executedQueries()`, `FakeDB::connectionClosed()`: come nel mock.
+- `FakeDB::executedQueries()`, `FakeDB::connectionClosed()`: le query eseguite e la chiusura della connessione (`fakedb-api.md`, sezione 5).
 
 ## 4. Che cosa vede lo studente
 
@@ -120,4 +120,4 @@ python3 scripts/prova_query.py specifica.txt dblibreria "SELECT Data, Titolo FRO
 
 ## 8. Quando usare la mappa delle query
 
-`'queries'` ha la precedenza su SQLite: una query che vi compare restituisce il risultato forzato (stesso formato del mock, `fakedb-api.md` sezione 4), tutte le altre vengono eseguite. Serve raramente: per un messaggio di MySQL che si vuole mostrare apposta in un debugging, o per un comportamento che SQLite non riproduce (una funzione di data di MySQL). Nella domanda di taratura `'/from libro\b/' => ['error' => [1146, "Table 'dblibreria.Libro' doesn't exist"]]` ha dato il messaggio di MySQL al posto di quello di SQLite.
+`'queries'` ha la precedenza su SQLite: una query che vi compare restituisce il risultato forzato (chiavi e formati in `fakedb-api.md`, sezioni 1 e 2), tutte le altre vengono eseguite. Serve raramente: per un messaggio di MySQL che si vuole mostrare apposta in un debugging, o per un comportamento che SQLite non riproduce (una funzione di data di MySQL). Nella domanda di taratura `'/from libro\b/' => ['error' => [1146, "Table 'dblibreria.Libro' doesn't exist"]]` ha dato il messaggio di MySQL al posto di quello di SQLite.

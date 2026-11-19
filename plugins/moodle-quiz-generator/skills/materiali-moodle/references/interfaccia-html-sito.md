@@ -1,0 +1,54 @@
+# L'interfaccia «html_sito» di CodeRunner
+
+Da leggere quando il quiz ha un «Sito con l'editor» (`sito_html`), o quando l'utente chiede di installare o aggiornare l'interfaccia sul server Moodle. Fa parte di `materiali-moodle`; il formato della riga è in `tracce-html.md` di `progettazione-quiz`, la generazione in `righe-coderunner.md`.
+
+## Che cos'è
+
+Un'interfaccia di CodeRunner, come Ace, Html o Table, che si sceglie in una domanda con **Personalizza → Input UI: html_sito**. Lo studente crea cartelle e file del sito («+ File», «+ Cartella», «+ Immagine», «Rinomina», «Sposta» o trascinamento, «Elimina»), li scrive con l'editor Ace di CodeRunner e vede l'anteprima della pagina aperta, con i link che portano da una pagina all'altra, «Not Found» come un server vero quando il file non c'è e le immagini solo con il percorso giusto. Il codice dello studente gira in un riquadro isolato e non può toccare la pagina di Moodle.
+
+La risposta è il sito in JSON, che il template di `html_con_file` ricrea in una cartella e controlla come uno zip:
+
+```json
+{"htmlve":1,"versione":"0.6.1","salvato":"2026-11-19T10:57:28.000Z",
+ "cartelle":["css","img","pagine"],
+ "files":{"css/stile.css":"…","index.html":"…","pagine/menu.html":"…"},
+ "immagini":{"img/logo.png":"logo.png","img/foto.jpg":"data:image/jpeg;base64,…"}}
+```
+
+Nelle immagini, un nome è un'immagine fornita dalla domanda; un `data:` è un'immagine caricata dallo studente (solo con `carica_immagini`).
+
+**Salvataggio**: l'interfaccia scrive il sito nella risposta 0,8 secondi dopo ogni modifica e CodeRunner lo ricopia ogni 2 secondi e all'invio della pagina, poi lo salva il quiz di Moodle. Durante un tentativo c'è anche una copia nel browser, usata solo se è più recente della risposta salvata (PC spento prima del salvataggio automatico). In revisione, in Valutazione manuale e nella soluzione dell'autore il sito è in sola lettura. Ctrl-Alt-M (di CodeRunner) mostra la risposta grezza.
+
+## I parametri dell'interfaccia
+
+Tutti facoltativi; `da_dashboard.py` li scrive dalle opzioni della riga.
+
+| Parametro | Opzione della riga | Che cosa fa |
+|---|---|---|
+| `chiusura_automatica` | `aiuti: chiusura` | Ace chiude da solo tag, virgolette e parentesi |
+| `completamento` | `aiuti: completamento` | Ace propone tag, attributi e proprietà CSS mentre si scrive |
+| `segnala_errori` | `aiuti: errori` | Ace segna nel margine gli errori di sintassi che riconosce |
+| `immagini` | `immagini: logo.png, pizza.jpg` | le immagini del testo della domanda che lo studente mette nel sito con «+ Immagine» |
+| `carica_immagini` | `carica_immagini: sì` | lo studente carica immagini sue dal computer (massimo 500 KB l'una); mai nelle verifiche |
+
+Le immagini fornite l'interfaccia le cerca tra le immagini della domanda per nome del file. Nel modulo di modifica della domanda il testo non c'è e compaiono come riquadri grigi con il nome: i percorsi e i controlli funzionano lo stesso.
+
+## Installare o aggiornare l'interfaccia (una volta, l'amministratore di Moodle)
+
+I file stanno in `assets/interfaccia-html-sito/` di questa skill:
+
+| File | A che cosa serve |
+|---|---|
+| `ui_html_sito.js` | l'interfaccia (modulo AMD `qtype_coderunner/ui_html_sito`) |
+| `ui_html_sito.json` | i parametri dell'interfaccia, che CodeRunner mostra nel modulo della domanda |
+| `stringhe.php` | le descrizioni dei parametri, che lo script aggiunge alle stringhe di CodeRunner |
+| `installa.sh` | copia tutto al posto giusto e svuota le cache |
+
+1. Dai all'utente i quattro file (`SendUserFile`, oppure nella sua cartella collegata) e digli di copiarli in una cartella del server Moodle.
+2. Sul server, da quella cartella: `sudo bash installa.sh /percorso/di/moodle` (la cartella con `config.php`). Lo script trova CodeRunner (anche nella cartella `public` di Moodle 5.1 e successivi), copia `ui_html_sito.js` e `ui_html_sito.json` in `question/type/coderunner/amd/src/` e `ui_html_sito.js` come `amd/build/ui_html_sito.min.js`, aggiunge (o sostituisce) le descrizioni dei parametri in fondo a `lang/en/qtype_coderunner.php` controllando che il file resti corretto, e prova a svuotare le cache con l'utente `www-data` (un altro utente: `sudo UTENTE_WEB=nome bash installa.sh …`).
+3. **Svuotare le cache** di Moodle (Amministrazione del sito → Sviluppo → Svuota le cache), se lo script dice di non esserci riuscito: senza, la domanda mostra la casella di testo vuota al posto dell'editor.
+4. Controllo: in una domanda CodeRunner, **Personalizza → Input UI** elenca `html_sito`; nell'anteprima di una domanda che lo usa compare l'editor (dopo Ctrl+F5).
+
+**Dopo ogni aggiornamento di CodeRunner** l'interfaccia sparisce, perché sta nella cartella del plugin: si rilancia `installa.sh` e si svuotano le cache. Lo stesso quando cambia `ui_html_sito.js` nel plugin (lo dice il changelog).
+
+Il sorgente sta nel repository, in `sviluppo/interfaccia-html-sito/` (`modulo.js` e `stile.css`, costruiti con `build.py`), con una pagina di prova che simula CodeRunner: `ui_html_sito.js` non si modifica a mano.

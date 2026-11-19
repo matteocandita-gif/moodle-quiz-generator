@@ -17,10 +17,15 @@ Linguaggio deciso dal campo «coderunner» della riga:
   contano. Serve `php`; il client sqlite3 lo sostituisce sqlite3_cli.py di materiali-moodle.
 - JavaScript con prompt: nessun database e niente `=== code`. Esegue in Node con esegui_js.py di
   domande-coderunner-js.
+- Sito con l'editor (tipologia sito_html): la risposta è il sito dell'editor (JSON). Esegue i controlli
+  con il template del prototipo html_con_file, come da_dashboard.py di materiali-moodle; nei file
+  DNN.txt il sito si legge file per file. L'export in Excel toglie i tag HTML anche da qui: se le
+  pagine non hanno tag, l'esito lo dice e le risposte vanno importate da Moodle (SKILL.md, passo 4).
 Le righe senza test (HTML, CSS, teoria) restano alla correzione manuale.
 
 Il punteggio automatico è stimato: tutto o niente, salvo `allornothing: 0` nelle opzioni (frazione
-dei test superati). Se Moodle dice altro, vale Moodle.
+dei test superati); il sito con l'editor dà i punti in proporzione ai pesi dei controlli superati.
+Se Moodle dice altro, vale Moodle.
 """
 import glob
 import json
@@ -182,6 +187,59 @@ def esito_js(answer, tests, risposta, opz):
     return esiti
 
 
+def sito_della_risposta(testo):
+    """Il sito dell'editor html_sito dalla risposta (JSON, anche dentro {"crui_…": [json]}), oppure None."""
+    try:
+        o = json.loads((testo or "").strip())
+        if isinstance(o, dict) and "htmlve" not in o and len(o) == 1:
+            v = next(iter(o.values()))
+            o = json.loads(v[0] if isinstance(v, list) and v else v)
+    except (ValueError, TypeError, StopIteration):
+        return None
+    return o if isinstance(o, dict) and o.get("htmlve") == 1 and isinstance(o.get("files"), dict) else None
+
+
+def sito_leggibile(testo):
+    """La risposta di un sito con l'editor, file per file, per i DNN.txt."""
+    o = sito_della_risposta(testo)
+    if o is None:
+        return testo
+    parti = ["[sito con l'editor: %d file%s]" % (len(o["files"]), ", cartelle " + ", ".join(o.get("cartelle") or [])
+                                                 if o.get("cartelle") else "")]
+    for p in sorted(o["files"]):
+        parti.append("--- %s ---\n%s" % (p, str(o["files"][p]).rstrip("\n")))
+    for p, v in sorted((o.get("immagini") or {}).items()):
+        parti.append("--- %s --- immagine %s" % (p, v if not str(v).startswith("data:") else "caricata dallo studente"))
+    return "\n".join(parti)
+
+
+def prepara_sito(quiz, riga):
+    """Template, pagina, sito della soluzione e controlli di un «Sito con l'editor» (da_dashboard.py)."""
+    sys.path.insert(0, str(SKILLS / "materiali-moodle" / "scripts"))
+    import xml.etree.ElementTree as ET
+    import da_dashboard as dd
+    _, pagina, test, sito, _, _ = dd.specifica_sito(quiz, riga)
+    template = ET.parse(dd.PROTOTIPO_CONSEGNA).getroot().find("question/template").text or ""
+    return (dd.esegui_controlli, template, pagina, sito), [{"codice": t["codice"], "peso": t["peso"],
+                                                            "extra": t["extra"]} for t in test]
+
+
+def esito_sito(ctx, tests, risposta):
+    esegui, template, pagina, soluzione = ctx
+    o = sito_della_risposta(risposta)
+    if o is None:
+        return [("errore", "risposta non leggibile come sito dell'editor")] * len(tests)
+    html = [v for p, v in o["files"].items() if p.lower().endswith((".html", ".htm"))]
+    if html and not any("<" in str(v) for v in html):
+        return [("errore", "le pagine non hanno tag: l'export Excel li ha tolti, importa le risposte da Moodle")] * len(tests)
+    try:
+        uscite = esegui(template, [t["codice"] for t in tests], json.dumps(o, ensure_ascii=False), pagina, soluzione)
+    except Exception as e:
+        return [("errore", str(e)[:120])] * len(tests)
+    return [("ok", "") if u.strip() == "OK" else ("diverso", t["extra"].rstrip(".") + ": " + u.strip().replace("\n", " | "))
+            for t, u in zip(tests, uscite)]
+
+
 def main():
     arg = [a for a in sys.argv[1:] if not a.startswith("--")]
     opz = dict(a[2:].split("=", 1) for a in sys.argv[1:] if a.startswith("--") and "=" in a)
@@ -202,7 +260,10 @@ def main():
                               encoding="utf-8"))
         o, answer, code, tests = sezioni(riga.get("coderunner", ""))
         out = None
-        if tests and answer:
+        if riga.get("tipologia") == "sito_html":
+            ctx, tests = prepara_sito(quiz, riga)
+            out = ("sito", ctx, None, tests, float(riga.get("punti") or 0), False, o)
+        elif tests and answer:
             punti = float(riga.get("punti") or 0)
             tutto = o.get("allornothing", "1").strip() != "0"
             if o.get("database") and answer.lstrip().startswith("<?php"):
@@ -234,15 +295,21 @@ def main():
                 e = esito_sql(ctx, answer, tests, r)
             elif lingua == "php":
                 e = esito_php(ctx, answer, tests, r)
+            elif lingua == "sito":
+                e = esito_sito(ctx, tests, r)
             else:
                 e = esito_js(answer, tests, r, o)
             passati = sum(1 for x in e if x[0] == "ok")
-            auto = punti if passati == len(tests) else (0 if tutto else round(punti * passati / len(tests), 2))
+            if lingua == "sito":
+                pesi = [t["peso"] for t in tests]
+                auto = round(punti * sum(p for p, x in zip(pesi, e) if x[0] == "ok") / sum(pesi), 2)
+            else:
+                auto = punti if passati == len(tests) else (0 if tutto else round(punti * passati / len(tests), 2))
             if passati == len(tests):
                 testo = "OK, test superati"
             else:
                 primo = next(x for x in e if x[0] != "ok")
-                quale = "" if e[0][0] != "ok" else "test nascosto: "
+                quale = "" if e[0][0] != "ok" or lingua == "sito" else "test nascosto: "
                 testo = (f"{passati}/{len(tests)} test · " if not tutto else "") + quale + (
                     primo[1] if primo[0] != "errore" else "ERRORE: " + primo[1])
             risultati[s["chiave"]] = {"esito": testo[:110], "auto": auto, "riga": rid,
@@ -262,7 +329,11 @@ def main():
                 es = esiti.get(k, {}).get("studenti", {}).get(s["chiave"], {})
                 rid = s.get("righe", {}).get(k)
                 pos = f"[{posizioni.get(rid, rid)}] " if rid and len(dati["domande"][k].get("righe", [])) > 1 else ""
-                f.write(f"\n##### {s['sigla']}   {pos}{es.get('esito', '')}\n{s['risposte'][k]}\n")
+                testo = s["risposte"][k]
+                r2 = rid or dati["domande"][k].get("riga")
+                if r2 and cache.get(r2) and cache[r2][0] == "sito":
+                    testo = sito_leggibile(testo)
+                f.write(f"\n##### {s['sigla']}   {pos}{es.get('esito', '')}\n{testo}\n")
     print("esiti.json scritto; i file D01.txt… hanno l'esito accanto a ogni studente.")
 
 

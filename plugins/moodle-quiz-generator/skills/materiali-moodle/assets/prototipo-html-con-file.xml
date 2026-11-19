@@ -5,8 +5,8 @@
       <text>PROTOTYPE - html_con_file</text>
     </name>
     <questiontext format="html">
-      <text><![CDATA[<p>Prototipo <strong>html_con_file</strong>: controlla la pagina HTML consegnata dallo studente come <strong>file allegato</strong> (un .html, oppure la cartella del sito compressa in .zip). Al posto della casella di risposta lo studente vede solo un promemoria e il riquadro per caricare i file. Ogni test è un requisito: lo studente vede che cosa manca, test per test.</p>
-<p>Con il plugin «Moodle: quiz generator» queste domande si scrivono nella dashboard «Bozze dei quiz» come tipologia «Consegna con controllo automatico» e le genera il plugin. Le indicazioni qui sotto servono per crearle o modificarle a mano in Moodle.</p>
+      <text><![CDATA[<p>Prototipo <strong>html_con_file</strong>: controlla la pagina HTML consegnata dallo studente come <strong>file allegato</strong> (un .html, oppure la cartella del sito compressa in .zip) oppure <strong>scritta nell'editor del sito</strong> (interfaccia <em>html_sito</em>, vedi sotto). Con gli allegati, al posto della casella di risposta lo studente vede solo un promemoria e il riquadro per caricare i file. Ogni test è un requisito: lo studente vede che cosa manca, test per test.</p>
+<p>Con il plugin «Moodle: quiz generator» queste domande si scrivono nella dashboard «Bozze dei quiz» come tipologie «Consegna con controllo automatico» e «Sito con l'editor» e le genera il plugin. Le indicazioni qui sotto servono per crearle o modificarle a mano in Moodle.</p>
 <p><strong>Come creare una domanda</strong></p>
 <ol>
 <li>In <em>Allegati</em> scegli il <strong>numero</strong> di file (di solito 1), se sono obbligatori, il <strong>nome accettato</strong> e la <strong>dimensione massima</strong>. Questi campi non si ereditano dal prototipo. Il nome conviene fissarlo per ogni consegna, con un'espressione regolare (ad esempio <span style="font-family: monospace;">index\.html</span> oppure <span style="font-family: monospace;">libreria\.zip</span>, con il nome della cartella del sito), e ripeterlo nella <em>Descrizione</em> dei nomi, che lo studente vede accanto al riquadro di caricamento (accetta HTML: in grassetto, ad esempio <span style="font-family: monospace;">&lt;p&gt;&lt;strong&gt;Il file deve chiamarsi libreria.zip, tutto minuscolo e senza spazi.&lt;/strong&gt;&lt;/p&gt;</span>), e nel testo della domanda. CodeRunner rifiuta comunque i nomi con caratteri diversi da lettere, numeri, - _ . (spazi, parentesi, lettere accentate): <span style="font-family: monospace;">libreria (1).zip</span> non passa.</li>
@@ -16,6 +16,16 @@
 <li>Nella <em>Risposta</em> metti la soluzione (codice HTML) oppure allega i file in <em>Allegati della risposta</em>, così la domanda si controlla al salvataggio.</li>
 </ol>
 <p><strong>Casella di risposta.</strong> Il prototipo usa l'interfaccia <em>Html</em> con il solo promemoria del campo <em>Prototype extra</em>: la risposta resta vuota e serve almeno un allegato. Se in una domanda vuoi anche la casella per incollare il codice, in <em>Personalizza</em> scegli l'interfaccia <em>Ace</em> e metti gli allegati come facoltativi: se lo studente non allega niente, si controlla il codice della casella. Il campo <em>Risposta</em> resta testo semplice (enable_in_editor è false): ci si incolla la soluzione, che usa anche <span style="font-family: monospace;">struttura_come_soluzione()</span>.</p>
+<p><strong>Sito scritto con l'editor (interfaccia html_sito).</strong> Per le verifiche con Safe Exam Browser, o quando gli studenti non devono passare dai file del PC: lo studente crea le cartelle e i file del sito dentro la domanda, li scrive con l'editor e vede l'anteprima delle pagine. Il template ricrea il sito in una cartella e fa gli stessi controlli dello zip. L'interfaccia va installata una volta nella cartella di CodeRunner (istruzioni nel plugin), e di nuovo dopo ogni aggiornamento di CodeRunner.</p>
+<ol>
+<li>In <em>Personalizza</em> scegli <strong>Input UI: html_sito</strong>.</li>
+<li>Metti <strong>Allegati</strong> a 0.</li>
+<li>Nei <strong>Parametri dell'interfaccia</strong> puoi accendere gli aiuti dell'editor, spenti se non li scrivi: <span style="font-family: monospace;">{&quot;chiusura_automatica&quot;: true, &quot;completamento&quot;: true, &quot;segnala_errori&quot;: true}</span> (chiusura automatica di tag e virgolette, proposte di tag e proprietà, errori di sintassi segnati nel margine), anche uno solo.</li>
+<li>Per le <strong>immagini</strong>: inseriscile nel testo della domanda (lo studente le vede nella traccia) e scrivi i loro nomi nei parametri dell'interfaccia, <span style="font-family: monospace;">{&quot;immagini&quot;: &quot;logo.png, pizza.jpg&quot;}</span>. Lo studente le mette nel sito con «+ Immagine», nella cartella che sceglie. Se alleghi le stesse immagini anche come <em>File di supporto</em>, il template usa quelle vere; altrimenti mette un segnaposto con lo stesso nome, che basta per i controlli sui percorsi (<span style="font-family: monospace;">immagine()</span>, <span style="font-family: monospace;">file_presente()</span>, <span style="font-family: monospace;">cartella_ben_formata()</span>). Con <span style="font-family: monospace;">&quot;carica_immagini&quot;: true</span> lo studente può caricare anche immagini sue dal computer (massimo 500 KB l'una): non nelle verifiche con SEB.</li>
+<li>Nella <strong>Risposta</strong> scrivi la soluzione con l'editor, come sito: la domanda si controlla al salvataggio e <span style="font-family: monospace;">struttura_come_soluzione()</span> usa la pagina principale della soluzione.</li>
+<li>Lascia vuota la <strong>Risposta precaricata</strong>.</li>
+</ol>
+<p>L'editor accetta solo nomi con lettere minuscole, numeri, - _ . (maiuscole e minuscole contano nei percorsi, come sul server). Nell'anteprima le immagini con il percorso giusto si vedono, quelle con il percorso sbagliato compaiono rotte come nel browser. In revisione e in Valutazione manuale il sito si vede in sola lettura, con l'anteprima e le immagini.</p>
 <p><strong>Funzioni di controllo: la pagina HTML</strong></p>
 <table style="border-collapse: collapse; margin: 8px 0;">
 <thead>
@@ -135,12 +145,16 @@
     <useace>1</useace>
     <resultcolumns>[["Controllo", "extra"], ["Trovato?", "got"]]</resultcolumns>
     <template><![CDATA[# Prototipo html_con_file: controlla la pagina HTML consegnata dallo studente.
-# La pagina arriva come file allegato (.html, oppure .zip con la cartella del sito)
+# La pagina arriva come file allegato (.html, oppure .zip con la cartella del sito),
+# dal sito scritto con l'editor (interfaccia html_sito: JSON con "htmlve": 1)
 # o, se non ci sono allegati, dalla casella di risposta.
 # Ogni test chiama UNA funzione di controllo (elenco nella descrizione del prototipo):
 # la funzione stampa OK se il requisito c'è, altrimenti un messaggio per lo studente.
 # Output atteso di ogni test: OK.
 
+import base64
+import binascii
+import json
 import os
 import posixpath
 import re
@@ -191,6 +205,86 @@ def estrai_zip(nome):
                 shutil.copyfileobj(sorgente, uscita)
 
 
+def sito_dall_editor(testo):
+    """Se la risposta viene dall'editor HTML (JSON con "htmlve": 1), restituisce il sito, altrimenti None.
+    Il JSON può arrivare da solo (domanda Saggio) o dentro la serializzazione dell'interfaccia Html
+    di CodeRunner ({"crui_sito": ["{...}"]})."""
+    testo = testo.strip()
+    if not testo.startswith("{"):
+        return None
+    try:
+        dati = json.loads(testo)
+    except ValueError:
+        return None
+    if isinstance(dati, dict) and dati.get("htmlve") == 1 and isinstance(dati.get("files"), dict):
+        return dati
+    if isinstance(dati, dict):
+        for valore in dati.values():
+            for elemento in (valore if isinstance(valore, list) else [valore]):
+                if isinstance(elemento, str):
+                    sito = sito_dall_editor(elemento)
+                    if sito is not None:
+                        return sito
+    return None
+
+
+# Immagine PNG di 1x1 pixel: segnaposto quando l'immagine vera non è disponibile (i controlli guardano i percorsi).
+SEGNAPOSTO_PNG = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==")
+
+
+def percorso_sicuro(percorso):
+    """Percorso relativo dentro la cartella della consegna, oppure None se esce dalla cartella."""
+    parti = percorso.replace("\\", "/").split("/")
+    if percorso.startswith("/") or any(p in ("", ".", "..") for p in parti):
+        return None
+    return os.path.join(CARTELLA, *parti)
+
+
+def scrivi_sito(sito):
+    """Ricrea nella cartella della consegna le cartelle, i file e le immagini del sito scritto con l'editor HTML."""
+    for cartella in sito.get("cartelle") or []:
+        destinazione = percorso_sicuro(str(cartella))
+        if destinazione:
+            os.makedirs(destinazione, exist_ok=True)
+    for nome, contenuto in sito["files"].items():
+        destinazione = percorso_sicuro(str(nome))
+        if not destinazione or not isinstance(contenuto, str):
+            continue
+        os.makedirs(os.path.dirname(destinazione), exist_ok=True)
+        with open(destinazione, "w", encoding="utf-8") as f:
+            f.write(contenuto)
+    # Immagini: fornite dalla domanda (nome del file) oppure caricate dallo studente (data URL).
+    for nome, origine in (sito.get("immagini") or {}).items():
+        destinazione = percorso_sicuro(str(nome))
+        if not destinazione or not isinstance(origine, str):
+            continue
+        os.makedirs(os.path.dirname(destinazione), exist_ok=True)
+        dati = None
+        if origine.startswith("data:") and "," in origine:
+            try:
+                dati = base64.b64decode(origine.split(",", 1)[1])
+            except (ValueError, binascii.Error):
+                dati = None
+        elif os.path.isfile(os.path.basename(origine)):
+            # La stessa immagine allegata alla domanda come file di supporto: si usa quella vera.
+            with open(os.path.basename(origine), "rb") as f:
+                dati = f.read()
+        with open(destinazione, "wb") as f:
+            f.write(dati if dati is not None else SEGNAPOSTO_PNG)
+
+
+def pagina_della_soluzione(soluzione):
+    """Se la soluzione dell'autore è un sito dell'editor HTML, ne prende la pagina principale."""
+    sito = sito_dall_editor(soluzione)
+    if sito is None:
+        return soluzione
+    return sito["files"].get(PAGINA or "index.html", "")
+
+
+SOLUZIONE = pagina_della_soluzione(SOLUZIONE)
+
+
 def prepara_consegna():
     """Mette tutti i file consegnati in CARTELLA e restituisce (elenco dei file, avviso)."""
     os.makedirs(CARTELLA, exist_ok=True)
@@ -203,7 +297,10 @@ def prepara_consegna():
                 avviso = "Il file %s non è un archivio .zip valido." % nome
         else:
             shutil.copy(nome, os.path.join(CARTELLA, nome))
-    if not ALLEGATI and RISPOSTA.strip():
+    sito_editor = None if ALLEGATI else sito_dall_editor(RISPOSTA)
+    if sito_editor is not None:
+        scrivi_sito(sito_editor)
+    elif not ALLEGATI and RISPOSTA.strip():
         with open(os.path.join(CARTELLA, PAGINA or "index.html"), "w", encoding="utf-8") as f:
             f.write(RISPOSTA)
     file_consegnati = []

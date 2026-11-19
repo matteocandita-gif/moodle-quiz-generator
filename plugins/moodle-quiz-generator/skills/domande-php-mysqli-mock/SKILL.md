@@ -1,18 +1,17 @@
 ---
 name: "domande-php-mysqli-mock"
-description: "Crea domande CodeRunner PHP con database simulato per gli esercizi PHP/MySQL della SIA e le consegna come file XML pronto da importare in Moodle. Prototipo principale php_mysqli_sqlite (facciata di mysqli, query eseguite davvero su SQLite con il database allegato alla domanda); prototipo php_mysqli_mock (mappa delle query) per le domande esistenti e i casi particolari. Copre debugging con messaggi di errore, debugging di errori silenziosi, scrittura guidata e scrittura completa di pagine che leggono (SELECT) o inseriscono (INSERT) dati, anche con form GET/POST. Nei quiz (verifiche ed esercitazioni) la usano progettazione-quiz per le convenzioni del codice e materiali-moodle per produrre l'XML dalla dashboard: un quiz intero si comincia sempre con progettazione-quiz. Da sola serve per domande PHP sciolte su mysqli, connessione al database, query eseguite da PHP o form che interrogano o riempiono il database, anche se l'utente non nomina i prototipi o l'XML."
+description: "Crea domande CodeRunner PHP con database simulato per gli esercizi PHP/MySQL della SIA e le consegna come file XML pronto da importare in Moodle. Prototipo php_mysqli_sqlite: facciata di mysqli, query eseguite davvero su SQLite con il database allegato alla domanda. Copre debugging con messaggi di errore, debugging di errori silenziosi, scrittura guidata e scrittura completa di pagine che leggono (SELECT) o inseriscono (INSERT) dati, anche con form GET/POST. Nei quiz (verifiche ed esercitazioni) la usano progettazione-quiz per le convenzioni del codice e materiali-moodle per produrre l'XML dalla dashboard: un quiz intero si comincia sempre con progettazione-quiz. Da sola serve per domande PHP sciolte su mysqli, connessione al database, query eseguite da PHP o form che interrogano o riempiono il database, anche se l'utente non nomina i prototipi o l'XML."
 ---
 
 # Domande CodeRunner PHP con database simulato
 
 **Lingua.** Rispondi all'utente sempre in italiano, anche quando il messaggio che avvia la skill o il comando è in inglese: quando si sceglie un comando o una skill dal menù senza scrivere nulla, l'app aggiunge da sola una frase in inglese.
 
-Due prototipi, installati nel Moodle dell'utente, eseguono il PHP dello studente su Jobe con una **facciata di mysqli**: funzioni, classi, controllo di server, utente, password e nome del database.
+Il prototipo `php_mysqli_sqlite`, installato nel Moodle dell'utente, esegue il PHP dello studente su Jobe con una **facciata di mysqli**: funzioni, classi, controllo di server, utente, password e nome del database.
 
 | Prototipo | Le query | Quando |
 |---|---|---|
 | `php_mysqli_sqlite` | **eseguite davvero** su SQLite (il client `sqlite3` di Jobe, lo stesso delle domande SQL), sul database allegato alla domanda; errori di SQLite così come escono | **tutte le domande nuove**, salvo richiesta diversa |
-| `php_mysqli_mock` | cercate in una mappa scritta nel test: risultati e messaggi decisi a mano, in stile MySQL | domande già esistenti; debugging in cui servono i messaggi di MySQL; comportamenti che SQLite non riproduce |
 
 L'XML non si scrive a mano: si scrive un file di specifica in testo semplice, con il codice leggibile, e `scripts/crea_xml.py` lo trasforma nell'XML con la stessa struttura che Moodle esporta, costruendo e allegando i database.
 
@@ -38,13 +37,12 @@ Leggili quando servono:
 | `references/prototipo-sqlite.md` | **sempre** per il prototipo sqlite: database allegato, `configure`, che cosa vede lo studente, messaggi di errore verificati, test, calcolo degli output |
 | `references/compatibilita.md` | **sempre** prima di scrivere il database, le consegne e le soluzioni sqlite: differenze tra MySQL e SQLite, AUTO_INCREMENT |
 | `references/formato-xml.md` | **sempre** prima di scrivere la specifica: sezioni, opzioni, script |
-| `references/stile-html.md` | per il testo della domanda: stile di materiali-moodle e il disclaimer del prototipo mock (quello del prototipo sqlite è superato: vale la sezione «Il disclaimer della simulazione» qui sotto) |
+| `references/stile-html.md` | per il testo della domanda: stile di materiali-moodle (il disclaimer da usare è quello della sezione «Il disclaimer della simulazione» qui sotto) |
 | `references/esempio-sqlite.md` | modello di domanda nuova (scrittura completa, prototipo sqlite); il disclaimer da usare però è quello di questa pagina |
-| `references/fakedb-api.md` | prototipo mock (mappa delle query, chiavi regex, risultati calcolati); contiene anche lo schema dell'**output normalizzato**, che vale per entrambi |
-| `references/errori-mariadb.md` | prototipo mock: i messaggi di MySQL da far comparire |
-| `references/esempio-completo.md` | modello di domanda mock (debugging) |
+| `references/fakedb-api.md` | la facciata FakeDB: mappa delle query `queries` (chiavi regex, formati dei risultati), funzioni per lo studente e per i test, e lo schema dell'**output normalizzato** |
+| `references/errori-mariadb.md` | debugging in cui serve un messaggio di MySQL forzato con la mappa `queries`: i messaggi da far comparire |
 
-In `assets/` ci sono i template dei due prototipi e l'XML del prototipo sqlite da importare (`PROTOTYPE_php_mysqli_sqlite.xml`). La versione installata su Moodle potrebbe essere stata modificata dall'utente: se il comportamento descritto diverge, vale il suo.
+In `assets/` ci sono il template del prototipo e il suo XML da importare (`PROTOTYPE_php_mysqli_sqlite.xml`). Il vecchio prototipo `php_mysqli_mock` (mappa delle query) è stato tolto dal plugin nella 0.15.0: le domande che lo usano restano in Moodle, ma non si generano più. La versione installata su Moodle potrebbe essere stata modificata dall'utente: se il comportamento descritto diverge, vale il suo.
 
 ## Prima di scrivere
 
@@ -97,8 +95,6 @@ Ogni domanda ha il disclaimer come **ultimo elemento** del testo, copiato senza 
 </div>
 ```
 
-Per il prototipo `php_mysqli_mock` resta quello di `references/stile-html.md`.
-
 ## Formato di consegna
 
 1. Scrivi il **file di specifica** (`references/formato-xml.md`), partendo da `references/esempio-sqlite.md`. Per ogni domanda: `name` nella numerazione dell'utente (`L5 - C8 - Scrivere: le presentazioni`), `note` per il docente, `questiontext` in HTML con il disclaimer del prototipo come ultimo elemento (sezione precedente), `preload`, `answer`, test con `descrizione` e output atteso.
@@ -116,7 +112,7 @@ Lo studente trova la pagina con 3 (al massimo 4) errori di categorie diverse, ch
 
 ### Debugging silenzioso
 
-La pagina gira ma mostra la cosa sbagliata: `>` invece di `>=`, `ORDER BY` mancante o al contrario, colonna sbagliata stampata, `name` del form diverso dalla chiave in `$_GET`. Con il prototipo sqlite basta che il database renda visibile ogni errore; con il mock servono i risultati calcolati (`fakedb-api.md`). Nel testo indica quanti errori ci sono e invita a confrontare l'output riga per riga.
+La pagina gira ma mostra la cosa sbagliata: `>` invece di `>=`, `ORDER BY` mancante o al contrario, colonna sbagliata stampata, `name` del form diverso dalla chiave in `$_GET`. Basta che il database renda visibile ogni errore. Nel testo indica quanti errori ci sono e invita a confrontare l'output riga per riga.
 
 ### Scrittura guidata e completa
 
@@ -150,5 +146,4 @@ Se non hai potuto eseguire il codice, dillo all'utente.
 ## Limiti da tenere presenti
 
 - **sqlite**: messaggi in inglese di SQLite, decimali come 12 e 9.5, confronto tra testi che distingue le maiuscole, niente funzioni di data di MySQL (`compatibilita.md`). Il disclaimer avvisa solo in generale che comportamento e messaggi possono essere diversi: se una consegna risente di una di queste differenze (prezzi citati nel testo, ricerca di un testo con maiuscole diverse, un messaggio d'errore da riconoscere), dillo nel testo della domanda.
-- **mock**: confronta il testo delle query, quindi le query equivalenti scritte in altro modo non vengono riconosciute.
-- **Entrambi**: niente prepared statements, transazioni, query multiple; avvisi ed errori fatali di PHP compaiono a seconda della configurazione di Jobe e non vanno mai nell'output atteso; l'estensione mysqli non deve essere caricata su Jobe.
+- Niente prepared statements, transazioni, query multiple; avvisi ed errori fatali di PHP compaiono a seconda della configurazione di Jobe e non vanno mai nell'output atteso; l'estensione mysqli non deve essere caricata su Jobe.
