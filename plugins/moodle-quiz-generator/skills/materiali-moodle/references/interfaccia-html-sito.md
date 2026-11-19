@@ -15,7 +15,7 @@ La risposta è il sito in JSON, che il template di `html_con_file` ricrea in una
  "immagini":{"img/logo.png":"logo.png","img/foto.jpg":"data:image/jpeg;base64,…"}}
 ```
 
-Nelle immagini, un nome è un'immagine fornita dalla domanda; un `data:` è un'immagine caricata dallo studente (solo con `carica_immagini`).
+Nelle immagini, un nome è un'immagine fornita dalla domanda; un `data:` è un'immagine caricata dallo studente (solo con `file_pc`).
 
 **Salvataggio**: l'interfaccia scrive il sito nella risposta 0,8 secondi dopo ogni modifica e CodeRunner lo ricopia ogni 2 secondi e all'invio della pagina, poi lo salva il quiz di Moodle. Durante un tentativo c'è anche una copia nel browser, usata solo se è più recente della risposta salvata (PC spento prima del salvataggio automatico). In revisione, in Valutazione manuale e nella soluzione dell'autore il sito è in sola lettura. Ctrl-Alt-M (di CodeRunner) mostra la risposta grezza.
 
@@ -29,7 +29,9 @@ Tutti facoltativi; `da_dashboard.py` li scrive dalle opzioni della riga.
 | `completamento` | `aiuti: completamento` | Ace propone tag, attributi e proprietà CSS mentre si scrive |
 | `segnala_errori` | `aiuti: errori` | Ace segna nel margine gli errori di sintassi che riconosce |
 | `immagini` | `immagini: logo.png, pizza.jpg` | le immagini del testo della domanda che lo studente mette nel sito con «+ Immagine» |
-| `carica_immagini` | `carica_immagini: sì` | lo studente carica immagini sue dal computer (massimo 500 KB l'una); mai nelle verifiche |
+| `file_pc` | `file_pc: sì` | file del computer: «Scarica .zip» (il sito in uno .zip), «Importa» (file sciolti o uno .zip, nella cartella selezionata), immagini caricate con «+ Immagine» (massimo 500 KB l'una); mai nelle verifiche |
+| `carica_immagini` | (nome vecchio) | come `file_pc`: vale ancora per le domande già fatte |
+| `copia_incolla` | (sempre acceso) | pulsanti «Copia sito» e «Incolla sito»: il sito di una domanda si porta in un'altra dello stesso tentativo, per gli esercizi a passi. Gli appunti stanno nel browser e valgono solo nello stesso tentativo |
 
 Le immagini fornite l'interfaccia le cerca tra le immagini della domanda per nome del file. Nel modulo di modifica della domanda il testo non c'è e compaiono come riquadri grigi con il nome: i percorsi e i controlli funzionano lo stesso.
 

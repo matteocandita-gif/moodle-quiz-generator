@@ -20,7 +20,7 @@ Il prototipo delle domande «Consegna con controllo automatico» (tipologia `con
 3. Aggiungi le prove della funzione nuova in un `test_*.py` (consegne giuste e sbagliate, con l'esito atteso), e mettilo in `SERIE` di `prove.py`.
 4. `python3 prove.py` deve dire «TUTTO A POSTO».
 5. `python3 crea_prototipo.py`, poi le prove del plugin (`python3 sviluppo/prove/prova_tutto.py`).
-6. Nel CHANGELOG: che il prototipo è cambiato (cambiando il template cambiano tutti e due) e che va reimportato in Moodle (Banca delle domande → Importa, formato Moodle XML), nella stessa banca in cui c'era.
+6. Nel CHANGELOG: che il prototipo è cambiato (cambiando il template cambiano tutti e due) e che in Moodle va **aggiornato il prototipo esistente**: si apre la domanda prototipo, si sostituiscono il Template e il testo della domanda con quelli dell'XML del plugin, e si salva. Non si importa l'XML una seconda volta: due prototipi con lo stesso nome mandano in errore CodeRunner. Se il prototipo non c'è ancora, invece, si importa (Banca delle domande → Importa, formato Moodle XML).
 
 ## Cose da sapere
 

@@ -926,8 +926,8 @@ class Importatore:
                                     ("errori", "segnala_errori")) if ui.get(v) in (True, 1, "1", "true")]
             if aiuti:
                 opzioni.append("aiuti: %s" % ", ".join(aiuti))
-            if ui.get("carica_immagini") in (True, 1, "1", "true"):
-                opzioni.append("carica_immagini: sì")
+            if ui.get("file_pc") in (True, 1, "1", "true") or ui.get("carica_immagini") in (True, 1, "1", "true"):
+                opzioni.append("file_pc: sì")
             sez.append(("options", "\n".join(opzioni)))
             for t in test:
                 peso = float(t["mark"] or 1)

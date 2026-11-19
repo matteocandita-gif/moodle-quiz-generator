@@ -2,6 +2,18 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.15.1 — 19/11/2026
+
+Nel sito con l'editor si può ripartire dal sito di un'altra domanda (esercizi a passi) e, nelle esercitazioni, lavorare con i file del computer.
+
+- **Copia sito e Incolla sito** (interfaccia `html_sito` 0.8.0): due pulsanti nuovi nell'editor. «Copia sito» copia file, cartelle e immagini; «Incolla sito», in un'altra domanda dello stesso quiz, mette lì il sito copiato (chiede conferma se l'editor non è vuoto). Gli appunti valgono solo nello stesso tentativo: il sito di uno studente non si incolla nel tentativo di un altro, anche sullo stesso computer. Servono agli esercizi in cui lo stesso sito cresce di domanda in domanda (come HTML7).
+- **File del computer** (opzione `file_pc: sì` della riga, mai nelle verifiche): «Scarica .zip» scarica tutto il sito in uno .zip; «Importa» aggiunge nella cartella selezionata file sciolti (.html, .css, .js, immagini) o il contenuto di uno .zip, anche fatto con «Comprimi» di Windows (se tutto sta in una cartella, la cartella si toglie; i nomi si sistemano in minuscolo, senza spazi né accenti, e la finestra dice quali; i file che ci sono già si sostituiscono solo dopo conferma); «+ Immagine» carica anche immagini dal computer. Prende il posto di `carica_immagini`, che resta valido per le domande già fatte.
+- **Dashboard** (pagina 0.7.1): l'opzione `file_pc` nei controlli e nell'aiuto di «Soluzione e test» del sito con l'editor.
+- **Tracce**: in `tracce-html.md` la regola degli esercizi a passi con l'editor, e il limite dell'anteprima: il pulsante di un modulo non invia i dati, quindi le tracce fanno provare etichette e menù.
+- **Correzione delle istruzioni della 0.15.0**: il prototipo `html_con_file` non si reimporta (due prototipi con lo stesso nome mandano in errore CodeRunner): si aggiorna quello che c'è, sostituendo il Template e il testo della domanda con quelli di `prototipo-html-con-file.xml`.
+- **Da fare in Moodle**: reinstallare l'interfaccia con `installa.sh` (skill `materiali-moodle`, `assets/interfaccia-html-sito`) e svuotare le cache. Il prototipo non cambia. Aggiornare la pagina «Bozze dei quiz».
+- Prove superate.
+
 ## 0.15.0 — 19/11/2026
 
 Una tipologia nuova per l'HTML: il **sito con l'editor**, scritto dagli studenti dentro Moodle, pensato per le verifiche con Safe Exam Browser. Tolte le tipologie e i prototipi che non servono più.

@@ -996,9 +996,11 @@ def specifica_sito(quiz, r):
                 if l.strip():
                     k, _, v = l.partition(":")
                     k, v = k.strip().lower(), v.strip()
-                    if k not in ("pagina", "controllo", "immagini", "aiuti", "carica_immagini"):
+                    if k == "carica_immagini":
+                        k = "file_pc"   # nome vecchio dell'opzione
+                    if k not in ("pagina", "controllo", "immagini", "aiuti", "file_pc"):
                         raise ValueError("opzione '%s' non prevista in un sito con l'editor (pagina, controllo, "
-                                         "immagini, aiuti, carica_immagini)" % l.strip())
+                                         "immagini, aiuti, file_pc)" % l.strip())
                     opzioni[k] = v
         elif n == "test":
             try:
@@ -1051,9 +1053,9 @@ def specifica_sito(quiz, r):
     elif any(x not in AIUTI_SITO for x in aiuti):
         raise ValueError("«aiuti: %s» non valido: nessuno, tutti, oppure chiusura, completamento, errori"
                          % opzioni.get("aiuti"))
-    carica = (opzioni.get("carica_immagini") or "no").lower() in ("sì", "si", "true", "1")
+    carica = (opzioni.get("file_pc") or "no").lower() in ("sì", "si", "true", "1")
     if carica and verifica:
-        raise ValueError("«carica_immagini: sì» non va nelle verifiche: riapre il file system del PC dentro SEB")
+        raise ValueError("«file_pc: sì» non va nelle verifiche: riapre il file system del PC dentro SEB")
     pagina = percorso_sito(opzioni.get("pagina") or "index.html", "pagina principale")
     if pagina not in files:
         raise ValueError("la soluzione non ha la pagina principale %s (=== file %s)" % (pagina, pagina))
@@ -1088,7 +1090,7 @@ def specifica_sito(quiz, r):
     if fornite:
         parametri["immagini"] = ", ".join(fornite)
     if carica:
-        parametri["carica_immagini"] = True
+        parametri["file_pc"] = True
     return controllo, pagina, test, sito, fornite, parametri
 
 

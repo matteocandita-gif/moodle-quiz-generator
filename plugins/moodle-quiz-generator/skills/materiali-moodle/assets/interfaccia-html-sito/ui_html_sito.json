@@ -17,9 +17,17 @@
             "type": "string",
             "default": ""
         },
+        "file_pc": {
+            "type": "boolean",
+            "default": false
+        },
         "carica_immagini": {
             "type": "boolean",
             "default": false
+        },
+        "copia_incolla": {
+            "type": "boolean",
+            "default": true
         }
     }
 }
