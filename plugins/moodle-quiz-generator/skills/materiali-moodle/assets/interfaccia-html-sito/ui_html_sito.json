@@ -28,6 +28,18 @@
         "copia_incolla": {
             "type": "boolean",
             "default": true
+        },
+        "anteprima_php": {
+            "type": "boolean",
+            "default": false
+        },
+        "anteprima_php_db": {
+            "type": "string",
+            "default": ""
+        },
+        "traccia": {
+            "type": "boolean",
+            "default": true
         }
     }
 }

@@ -1039,8 +1039,9 @@ def percorso_sito(p, cosa):
     return p
 
 
-OPZIONI_SITO = {"sito_html": ("pagina", "controllo", "immagini", "aiuti", "file_pc"),
-                "sito_php": ("pagina", "controllo", "immagini", "aiuti", "file_pc", "tollerante", "database"),
+OPZIONI_SITO = {"sito_html": ("pagina", "controllo", "immagini", "aiuti", "file_pc", "traccia"),
+                "sito_php": ("pagina", "controllo", "immagini", "aiuti", "file_pc", "tollerante", "database", "anteprima_php",
+                             "traccia"),
                 "consegna_php": ("nome", "pagina", "controllo", "tollerante", "database")}
 SI = ("sì", "si", "true", "1")
 
@@ -1175,6 +1176,21 @@ def specifica_sito(quiz, r):
         parametri["immagini"] = ", ".join(fornite)
     if carica:
         parametri["file_pc"] = True
+    traccia = (opzioni.get("traccia") or "sì").lower()
+    if traccia not in SI + ("no", "false", "0"):
+        raise ValueError("«traccia: %s» non valido (sì o no)" % opzioni.get("traccia"))
+    if traccia not in SI:
+        parametri["traccia"] = False   # senza il pannello con la copia del testo della domanda
+    anteprima = (opzioni.get("anteprima_php") or "no").lower()
+    if anteprima not in SI + ("no", "false", "0"):
+        raise ValueError("«anteprima_php: %s» non valido (sì o no)" % opzioni.get("anteprima_php"))
+    if anteprima in SI:
+        # l'anteprima dell'editor esegue le pagine PHP su Jobe (servizio web di CodeRunner); con il database
+        # riceve anche lo script SQL, perché il file .db allegato non è visibile allo studente
+        parametri["anteprima_php"] = True
+        if db:
+            parametri["anteprima_php_db"] = json.dumps({"nome": database, "nomedb": "*" if lasco else database,
+                                                        "sql": databases_quiz(quiz)[database]}, ensure_ascii=False)
     return controllo, pagina, test, sito, fornite, parametri, {"php": php, "lasco": lasco, "nome": nome,
                                                                "database": (database, db) if db else None}
 

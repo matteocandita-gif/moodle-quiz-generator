@@ -92,6 +92,25 @@
     var parametri = /[?&]aiuti=1/.test(location.search) ?
       { chiusura_automatica: true, completamento: true, segnala_errori: true, carica_immagini: true } : {};
     parametri.immagini = 'logo.png, pizza.jpg'; // Le immagini del testo della domanda.
+    // Con ?php=1 l'anteprima esegue le pagine PHP con server_prova.py (al posto del servizio web di CodeRunner e Jobe);
+    // con ?php=db anche con un piccolo database.
+    var php = (/[?&]php=([^&]+)/.exec(location.search) || [])[1];
+    if (php) {
+      parametri.anteprima_php = true;
+      if (php === 'db') {
+        parametri.anteprima_php_db = JSON.stringify({nome: 'dbprova', nomedb: 'dbprova', sql:
+          'CREATE TABLE Iscritti (Id INTEGER PRIMARY KEY AUTOINCREMENT, Nome TEXT NOT NULL);' +
+          "INSERT INTO Iscritti (Nome) VALUES ('Anna'), ('Luca');"});
+      }
+      window.M = {cfg: {contextid: 1}};
+      window.require = function (dip, ok) {
+        ok({call: function (richieste) {
+          var r = richieste[0];
+          fetch('/esegui', {method: 'POST', body: JSON.stringify(r.args)}).then(function (x) { return x.json(); })
+            .then(r.done, r.fail);
+        }});
+      };
+    }
     ui = new window.moduli['qtype_coderunner/ui_html_sito'].Constructor(ta.id, w, h - GUTTER, parametri);
     if (ui.failed()) { log('interfaccia non caricata: ' + ui.failMessage()); wrapper.remove(); ui = null; return; }
     ta.style.display = 'none';

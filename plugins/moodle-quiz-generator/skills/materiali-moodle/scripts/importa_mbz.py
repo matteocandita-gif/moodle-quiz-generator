@@ -947,6 +947,10 @@ class Importatore:
                 opzioni.append("aiuti: %s" % ", ".join(aiuti))
             if ui.get("file_pc") in (True, 1, "1", "true") or ui.get("carica_immagini") in (True, 1, "1", "true"):
                 opzioni.append("file_pc: sì")
+            if ui.get("anteprima_php") in (True, 1, "1", "true"):
+                opzioni.append("anteprima_php: sì")
+            if ui.get("traccia") in (False, 0, "0", "false"):
+                opzioni.append("traccia: no")
             sez.append(("options", "\n".join(opzioni)))
             for t in test:
                 peso = float(t["mark"] or 1)

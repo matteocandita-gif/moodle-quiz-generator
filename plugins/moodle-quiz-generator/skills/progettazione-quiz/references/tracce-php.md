@@ -26,7 +26,7 @@ La parte 2 stampa anche che cosa vede lo studente eseguendo il codice di partenz
 Lo studente scrive nell'**editor del sito** (interfaccia `html_sito`, la stessa del «Sito con l'editor», `tracce-html.md`) pagine HTML e PHP: tipicamente la pagina con il modulo e la pagina PHP che riceve i dati, oppure una pagina con link `?id=…` e la pagina che li legge con `$_GET`. Nell'anteprima le pagine HTML si vedono e i moduli si possono inviare: il browser controlla i campi (`required`, `min`, `type="email"`…) e l'anteprima mostra la pagina dell'`action` con i dati che riceverebbe, con il metodo e i `name`; le pagine PHP invece non si eseguono nell'anteprima, le esegue il prototipo quando lo studente preme Controlla. Il prototipo `php_sito` ricrea il sito ed esegue davvero le pagine PHP con `php` su Jobe (errori e avvisi visibili con la pagina e la riga, 5 secondi al massimo, nessun file fuori dal sito). Con l'opzione `database` le pagine usano anche **mysqli** su un database del quiz (sotto, «Pagine con il database»). Per ora senza sessioni, cookie e reindirizzamenti.
 
 - `traccia`: estesa come le altre; le pagine da scrivere con i loro nomi, il modulo (campi e `name`, che i test usano, e il metodo), che cosa deve stampare la pagina PHP nei vari casi. Nessun campo Cloze né opzione.
-- `coderunner` («Soluzione e test»): lo stesso formato del «Sito con l'editor» (`tracce-html.md`): `=== options` (`pagina`, anche `index.php`; `controllo`, `immagini`, `aiuti`, `file_pc`, `tollerante`, `database`), il sito di riferimento con `=== file PERCORSO`, e per ogni controllo `=== test PESO` con `=== extra`. Oltre a tutte le funzioni dell'HTML, i test hanno quelle delle pagine PHP; ogni richiesta si esegue anche sulla soluzione e si confrontano le uscite (spazi e a capo non contano):
+- `coderunner` («Soluzione e test»): lo stesso formato del «Sito con l'editor» (`tracce-html.md`): `=== options` (`pagina`, anche `index.php`; `controllo`, `immagini`, `aiuti`, `file_pc`, `tollerante`, `database`, `anteprima_php`), il sito di riferimento con `=== file PERCORSO`, e per ogni controllo `=== test PESO` con `=== extra`. Oltre a tutte le funzioni dell'HTML, i test hanno quelle delle pagine PHP; ogni richiesta si esegue anche sulla soluzione e si confrontano le uscite (spazi e a capo non contano):
 
 | Test | Che cosa controlla |
 |---|---|
@@ -41,6 +41,10 @@ Lo studente scrive nell'**editor del sito** (interfaccia `html_sito`, la stessa 
 
 - **I casi dei test**: come nelle altre domande PHP, dati diversi che portano a rami diversi (un minorenne e un maggiorenne, un campo vuoto), così lo studente non può adattarsi a un solo caso; `invia` per il percorso completo dal modulo alla pagina PHP, `stessa_uscita` per provare la pagina PHP anche con dati che il modulo non permetterebbe.
 - La parte 2 esegue ogni test sulla soluzione e si ferma se un controllo non passa: serve `php` sul computer che genera il quiz.
+
+### Anteprima delle pagine PHP (`anteprima_php: sì`)
+
+Facoltativa, domanda per domanda (solo nel sito PHP con l'editor): l'anteprima dell'editor esegue davvero le pagine `.php` sul server, con gli errori di PHP come in XAMPP, e con il database se la riga ne ha uno (lo stato resta tra una pagina e l'altra, e 🗄 riparte dai dati iniziali). Senza l'opzione l'anteprima mostra solo i dati che arriverebbero alla pagina. Serve il servizio web della sandbox di CodeRunner attivo (`interfaccia-html-sito.md` di `materiali-moodle`); ogni pagina aperta è una richiesta a Jobe, con un limite per studente all'ora.
 
 ### Pagine con il database (`database: nome`)
 

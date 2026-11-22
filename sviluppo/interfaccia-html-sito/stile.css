@@ -7,9 +7,6 @@ html.htmlve-blocca-scorrimento, html.htmlve-blocca-scorrimento body { overflow: 
   position: relative;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--htmlve-bordo);
-  border-radius: 6px;
-  background: #fff;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-size: 14px;
   line-height: 1.35;
@@ -20,6 +17,66 @@ html.htmlve-blocca-scorrimento, html.htmlve-blocca-scorrimento body { overflow: 
 
 .htmlve * { box-sizing: border-box; }
 
+/* tre blocchi: Traccia | Editor | Anteprima del browser */
+.htmlve-blocchi { flex: 1; min-height: 0; display: grid; }
+.htmlve-blocco {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--htmlve-bordo);
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+}
+.htmlve-testata {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 4px 0 10px;
+  background: #e4e8ee;
+  border-bottom: 1px solid var(--htmlve-bordo);
+  font-size: 12px;
+  font-weight: 600;
+  color: #3f4750;
+}
+.htmlve-testata-titolo { flex: none; white-space: nowrap; }
+.htmlve-testata .htmlve-btn { flex: none; white-space: nowrap; padding: 0 7px; font-size: 12px; font-weight: 400; line-height: 16px; }
+.htmlve-testata .htmlve-spinta { margin-left: auto; }
+.htmlve-testata .htmlve-stato { font-weight: 400; font-size: 11px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; min-width: 0; }
+.htmlve-traccia { flex: 1; min-height: 0; overflow: auto; padding: 10px 12px; font-size: 13px; line-height: 1.45; }
+.htmlve-traccia img { max-width: 100%; height: auto; }
+.htmlve-traccia pre { white-space: pre-wrap; font-size: 12px; }
+.htmlve-traccia > :first-child > :first-child, .htmlve-traccia > :first-child { margin-top: 0; }
+.htmlve-striscia {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--htmlve-accento);
+  background: #eef3fa;
+  border: 1px solid var(--htmlve-bordo);
+  border-radius: 6px;
+  writing-mode: vertical-rl;
+  padding: 10px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+}
+.htmlve-striscia:hover { background: #dfeaf7; }
+.htmlve-striscia.htmlve-orizzontale { writing-mode: horizontal-tb; padding: 4px 10px; }
+.htmlve-maniglia { position: relative; cursor: col-resize; touch-action: none; }
+.htmlve-maniglia::after { content: ""; position: absolute; top: 30%; bottom: 30%; left: 3px; width: 2px; border-radius: 1px; background: transparent; }
+.htmlve-maniglia:hover::after, .htmlve-trascina .htmlve-maniglia::after { background: #9fb3c8; }
+.htmlve-maniglia.htmlve-ferma { cursor: default; }
+.htmlve-maniglia.htmlve-ferma::after { background: transparent !important; }
+.htmlve-trascina, .htmlve-trascina * { cursor: col-resize !important; user-select: none !important; }
+.htmlve-trascina iframe { pointer-events: none; }
+.htmlve-btn.htmlve-premuto { background: #dfeaf7; border-color: #9fb3c8; }
+
 /* barra dei comandi */
 .htmlve-barra {
   display: flex;
@@ -29,7 +86,6 @@ html.htmlve-blocca-scorrimento, html.htmlve-blocca-scorrimento body { overflow: 
   padding: 6px 8px;
   background: var(--htmlve-sfondo);
   border-bottom: 1px solid var(--htmlve-bordo);
-  border-radius: 6px 6px 0 0;
 }
 .htmlve-btn {
   font: inherit;
@@ -49,19 +105,14 @@ html.htmlve-blocca-scorrimento, html.htmlve-blocca-scorrimento body { overflow: 
 .htmlve-btn.htmlve-mini { padding: 1px 7px; font-size: 13px; }
 .htmlve-stato { margin-left: auto; font-size: 12px; color: #5c6670; }
 
-/* corpo: albero | codice | anteprima */
+/* l'editor: albero | codice */
 .htmlve-corpo {
   flex: 1;
   display: grid;
-  grid-template-columns: 170px minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: 160px minmax(0, 1fr);
   min-height: 0;
 }
-.htmlve-stretto .htmlve-corpo {
-  grid-template-columns: 160px minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
-}
-.htmlve-stretto .htmlve-albero { grid-row: 1 / span 2; }
-.htmlve-stretto .htmlve-vista { grid-column: 2; border-top: 1px solid var(--htmlve-bordo); }
+.htmlve-stretto .htmlve-corpo { grid-template-columns: 130px minmax(0, 1fr); }
 
 .htmlve-albero {
   overflow: auto;
@@ -86,16 +137,22 @@ html.htmlve-blocca-scorrimento, html.htmlve-blocca-scorrimento body { overflow: 
 .htmlve-nome { overflow: hidden; text-overflow: ellipsis; }
 .htmlve-suggerimento { padding: 8px 10px; font-size: 12px; color: #5c6670; white-space: normal; }
 
-.htmlve-codice { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; border-right: 1px solid var(--htmlve-bordo); }
-.htmlve-stretto .htmlve-codice { border-right: 0; }
+.htmlve-codice { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .htmlve-titolo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 12px;
   font-family: Consolas, "Courier New", monospace;
-  padding: 4px 8px;
+  padding: 2px 4px 2px 8px;
   border-bottom: 1px solid var(--htmlve-bordo);
   background: var(--htmlve-sfondo);
-  min-height: 25px;
+  min-height: 26px;
 }
+.htmlve-nome-file { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.htmlve-btn.htmlve-apri { flex: none; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 12px;
+  padding: 0 8px; line-height: 18px; color: var(--htmlve-accento); border-color: #9fb3c8; background: #fff; }
+.htmlve-btn.htmlve-apri:disabled { color: #6a737d; border-color: var(--htmlve-bordo); }
 .htmlve-cm { flex: 1; min-height: 0; position: relative; }
 .htmlve-ace { position: absolute; inset: 0; }
 .htmlve-vuoto {
@@ -151,16 +208,21 @@ html.htmlve-blocca-scorrimento, html.htmlve-blocca-scorrimento body { overflow: 
 }
 .htmlve-url {
   flex: 1;
+  min-width: 0;
   background: #fff;
+  border: 1px solid transparent;
   border-radius: 10px;
   padding: 1px 10px;
   font-size: 12px;
+  line-height: 18px;
   color: #3c4043;
   font-family: Consolas, "Courier New", monospace;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  margin: 0;
 }
+.htmlve-url:focus { outline: none; border-color: var(--htmlve-accento); color: #1d2125; }
 .htmlve-iframe { flex: 1; width: 100%; border: 0; background: #fff; min-height: 0; }
 .htmlve-avviso { display: none; font-size: 12px; padding: 4px 8px; background: #fff8e1; border-top: 1px solid #f0d78c; color: #6b5300; }
 
@@ -180,14 +242,11 @@ html.htmlve-blocca-scorrimento, html.htmlve-blocca-scorrimento body { overflow: 
 .htmlve-grezza pre { max-height: 240px; overflow: auto; font-size: 12px; white-space: pre-wrap; word-break: break-all; }
 
 /* schermo intero */
-.htmlve.htmlve-pieno { position: fixed; inset: 0; z-index: 100000; margin: 0; border-radius: 0; height: auto !important; }
-.htmlve.htmlve-pieno .htmlve-corpo { grid-template-columns: 200px minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: none; }
-.htmlve.htmlve-pieno .htmlve-albero { grid-row: auto; }
-.htmlve.htmlve-pieno .htmlve-vista { grid-column: auto; border-top: 0; }
-.htmlve.htmlve-pieno .htmlve-codice { border-right: 1px solid var(--htmlve-bordo); }
+.htmlve.htmlve-pieno { position: fixed; inset: 0; z-index: 100000; margin: 0; height: auto !important; padding: 6px; background: #f4f5f7; }
+.htmlve.htmlve-pieno .htmlve-corpo { grid-template-columns: 190px minmax(0, 1fr); }
 
 /* immagini */
-.htmlve-immagine { display: none; position: absolute; top: 26px; left: 0; right: 0; bottom: 0; background: #fafbfc;
+.htmlve-immagine { display: none; position: absolute; top: 27px; left: 0; right: 0; bottom: 0; background: #fafbfc;
   flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px; z-index: 4; }
 .htmlve-immagine img { max-width: 100%; max-height: 80%; object-fit: contain; border: 1px solid var(--htmlve-bordo);
   background: repeating-conic-gradient(#eee 0% 25%, #fff 0% 50%) 50% / 16px 16px; }

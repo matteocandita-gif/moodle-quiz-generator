@@ -13,7 +13,10 @@
  * Il codice degli studenti gira in un iframe isolato (sandbox senza allow-same-origin):
  * non può leggere né modificare la pagina di Moodle. I moduli si possono «inviare» (allow-forms, così il
  * browser controlla i campi), ma l'invio lo ferma lo script dell'anteprima: l'editor mostra la pagina
- * dell'action con i dati ricevuti. Le pagine .php non si eseguono: le esegue il template con Controlla.
+ * dell'action con i dati ricevuti. Le pagine .php le esegue il template con Verifica; con anteprima_php
+ * le esegue anche l'anteprima, con il servizio web di CodeRunner che manda il sito a Jobe.
+ * L'anteprima è un browser: non segue il file aperto; le pagine si aprono con «▶ Apri nel browser» (Ctrl+Invio),
+ * con i link e i moduli, o scrivendo l'indirizzo. Editor e anteprima stanno nei blocchi Traccia | Editor | Anteprima.
  *
  * Parametri dell'interfaccia (tutti falsi se non indicati), es. {"chiusura_automatica": true}:
  *  - chiusura_automatica: Ace chiude da solo tag, virgolette e parentesi;
@@ -25,7 +28,13 @@
  *    «Importa» aggiunge file sciolti o il contenuto di uno .zip, «+ Immagine» carica anche immagini dal computer;
  *  - carica_immagini: nome vecchio di file_pc, vale ancora per le domande già fatte;
  *  - copia_incolla (vero se non indicato): pulsanti «Copia sito» e «Incolla sito», per ripartire nella
- *    domanda successiva dal sito di una domanda precedente dello stesso tentativo.
+ *    domanda successiva dal sito di una domanda precedente dello stesso tentativo;
+ *  - traccia (vero se non indicato): pannello «Traccia» a sinistra, con una copia del testo della domanda;
+ *  - anteprima_php: l'anteprima esegue davvero le pagine .php su Jobe, con il servizio web di CodeRunner
+ *    (qtype_coderunner_run_in_sandbox, da attivare nelle impostazioni di CodeRunner): errori di PHP compresi;
+ *  - anteprima_php_db: con anteprima_php, il database delle pagine, JSON {"nome": ..., "nomedb": ..., "sql": ...}
+ *    (script SQL per SQLite; nomedb "*" accetta qualsiasi nome in mysqli_connect). Lo stato del database
+ *    resta nell'editor tra una richiesta e l'altra, finché non si ricarica la pagina o si riparte con 🗄.
  * Nella risposta le immagini sono in "immagini": {"img/logo.png": "logo.png"} (immagine fornita)
  * oppure {"img/foto.jpg": "data:image/jpeg;base64,..."} (immagine caricata).
  *
@@ -42,6 +51,7 @@ define('qtype_coderunner/ui_html_sito', [], function() {
     var ALTEZZA_MINIMA = 420;
     var ALTEZZA_PREDEFINITA = 560;
     var STILE = __STILE__;
+    var ANTEPRIMA_PHP = __ANTEPRIMA_PHP__; // Programma Python che esegue una pagina PHP su Jobe (anteprima_php.py).
     var MAX_IMMAGINE = 500 * 1024; // Dimensione massima di un'immagine caricata dallo studente.
     var ESTENSIONI_IMMAGINE = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'ico', 'bmp'];
 
@@ -323,9 +333,16 @@ define('qtype_coderunner/ui_html_sito', [], function() {
             'td,th{border:1px solid #bbb;padding:4px 10px;text-align:left}th{background:#eee}' +
             '.nota{background:#fff8e1;border-left:4px solid #f0ad4e;padding:8px 12px}</style></head><body>' +
             '<h1>Pagina PHP: ' + esc(percorso) + '</h1>' + tabellaDati(richiesta) +
-            '<p class="nota">Il codice PHP gira sul server: qui l\'anteprima non lo può eseguire. Premi ' +
-            '<b>Controlla</b> per eseguire le pagine PHP con i dati delle prove e vedere che cosa stampano.</p>' +
+            '<p class="nota">In questa domanda l\'anteprima non esegue il PHP: mostra solo i dati che arrivano alla ' +
+            'pagina. Le pagine PHP le esegue il pulsante <b>Verifica</b> sotto l\'editor, con i dati delle prove: ' +
+            'i risultati compaiono sotto la domanda.</p>' +
             '</body></html>';
+    }
+
+    /* Quando l'anteprima non riesce a far eseguire la pagina PHP: il motivo e i dati che la pagina riceverebbe. */
+    function paginaErrorePhp(percorso, richiesta, testo) {
+        return paginaPhp(percorso, richiesta).replace(/<p class="nota">[\s\S]*?<\/p>/,
+            '<p class="nota">' + esc(testo) + '</p>');
     }
 
     function paginaNonTrovata(url) {
@@ -383,12 +400,28 @@ define('qtype_coderunner/ui_html_sito', [], function() {
         this.filePc = vero(this.params.file_pc) || vero(this.params.carica_immagini);
         this.caricaConsentito = this.filePc;
         this.copiaConsentita = this.params.copia_incolla === undefined || vero(this.params.copia_incolla);
+        this.anteprimaPhp = vero(this.params.anteprima_php);
+        this.dbPhp = null;
+        if (this.anteprimaPhp && this.params.anteprima_php_db) {
+            try {
+                this.dbPhp = typeof this.params.anteprima_php_db === 'string' ?
+                    JSON.parse(this.params.anteprima_php_db) : this.params.anteprima_php_db;
+            } catch (e) {
+                window.console.error('anteprima_php_db non è un JSON valido', e);
+            }
+        }
+        this.statoDb = '';        // Il database dopo l'ultima richiesta (base64), rimandato a quella successiva.
+        this.uscitaPhp = null;    // Ultima pagina PHP eseguita: {chiave, firma, html}.
+        this.numeroPhp = 0;       // Le risposte arrivate tardi (di una richiesta precedente) si scartano.
+        this.forzaPhp = false;
         try {
             if (!window.ace) {
                 throw new Error('Ace non è caricato');
             }
             this.solaLettura = this.textarea.readOnly || this.textarea.disabled;
             this.que = this.textarea.closest('.que');
+            this.disposizione = leggiDisposizione();
+            this.preparaTraccia();
             aggiungiStile();
             this.carica();
             this.costruisci();
@@ -420,6 +453,7 @@ define('qtype_coderunner/ui_html_sito', [], function() {
         if (this.fail || this.editor || !this.radice.isConnected) {
             return;
         }
+        this.disponi();
         this.creaEditor();
         this.disegnaAlbero();
         var prima = this.files['index.html'] !== undefined ? 'index.html' : Object.keys(this.files).sort()[0];
@@ -552,6 +586,9 @@ define('qtype_coderunner/ui_html_sito', [], function() {
         var self = this;
         var r = this.radice = el('div', 'htmlve' + (this.solaLettura ? ' htmlve-lettura' : ''));
         r.style.height = this.altezza + 'px';
+        // Tre blocchi: Traccia | Editor | Anteprima del browser; i due ai lati si chiudono e si allargano trascinando.
+        var blocchi = this.blocchi = el('div', 'htmlve-blocchi');
+        r.appendChild(blocchi);
 
         var barra = el('div', 'htmlve-barra');
         var bottone = function(testo, titolo, fn) {
@@ -608,19 +645,68 @@ define('qtype_coderunner/ui_html_sito', [], function() {
                 });
             }
         }
-        this.stato = el('span', 'htmlve-stato');
-        barra.appendChild(this.stato);
-        this.btnSchermo = bottone('Schermo intero', 'Allarga l\'editor a tutta la finestra (Esc per tornare)', function() {
+        // Nell'intestazione dell'editor: lo stato del salvataggio e i pulsanti dei blocchi (la barra resta ai file).
+        var testataEditor = testata('Editor');
+        this.stato = el('span', 'htmlve-stato htmlve-spinta');
+        testataEditor.appendChild(this.stato);
+        var mini = function(testo, titolo, fn) {
+            var b = el('button', 'htmlve-btn htmlve-mini', testo);
+            b.type = 'button';
+            b.title = titolo;
+            b.addEventListener('click', fn);
+            testataEditor.appendChild(b);
+            return b;
+        };
+        if (this.tracciaDisponibile) {
+            this.btnTraccia = mini('Traccia', 'Mostra o nasconde la traccia (il testo della domanda)', function() {
+                self.mostraPannello('traccia', !self.disposizione.traccia);
+            });
+        }
+        this.btnVista = mini('Anteprima', 'Mostra o nasconde l\'anteprima del browser', function() {
+            self.mostraPannello('vista', !self.disposizione.vista);
+        });
+        this.btnSchermo = mini('Schermo intero', 'Allarga l\'editor a tutta la finestra (Esc per tornare)', function() {
             self.schermoIntero();
         });
-        r.appendChild(barra);
+
+        if (this.tracciaDisponibile) {
+            this.bTraccia = el('div', 'htmlve-blocco htmlve-b-traccia');
+            this.bTraccia.appendChild(testata('Traccia', '‹', 'Chiudi la traccia', function() {
+                self.mostraPannello('traccia', false);
+            }));
+            this.contenutoTraccia = el('div', 'htmlve-traccia');
+            this.contenutoTraccia.appendChild(this.copiaTraccia);
+            this.bTraccia.appendChild(this.contenutoTraccia);
+            blocchi.appendChild(this.bTraccia);
+            this.sTraccia = striscia('Traccia ›', 'Apri la traccia', function() {
+                self.mostraPannello('traccia', true);
+            });
+            blocchi.appendChild(this.sTraccia);
+            this.m1 = el('div', 'htmlve-maniglia');
+            this.m1.title = 'Trascina per allargare o stringere la traccia';
+            blocchi.appendChild(this.m1);
+        }
+        var bEditor = this.bEditor = el('div', 'htmlve-blocco htmlve-b-editor');
+        bEditor.appendChild(testataEditor);
+        bEditor.appendChild(barra);
+        blocchi.appendChild(bEditor);
 
         var corpo = el('div', 'htmlve-corpo');
         this.albero = el('div', 'htmlve-albero');
         corpo.appendChild(this.albero);
 
         var codice = el('div', 'htmlve-codice');
-        this.titoloFile = el('div', 'htmlve-titolo', '');
+        this.titoloFile = el('div', 'htmlve-titolo');
+        this.nomeFile = el('span', 'htmlve-nome-file', '');
+        this.titoloFile.appendChild(this.nomeFile);
+        // L'anteprima non segue il file aperto: la pagina si apre nel browser con questo pulsante (o Ctrl+Invio).
+        this.btnApri = el('button', 'htmlve-btn htmlve-mini htmlve-apri', '▶ Apri nel browser');
+        this.btnApri.type = 'button';
+        this.btnApri.title = 'Apre questa pagina nell\'anteprima del browser (Ctrl+Invio); una pagina PHP viene eseguita';
+        this.btnApri.addEventListener('click', function() {
+            self.apriNelBrowser();
+        });
+        this.titoloFile.appendChild(this.btnApri);
         codice.appendChild(this.titoloFile);
         var contenitore = el('div', 'htmlve-cm');
         this.ospiteAce = el('div', 'htmlve-ace');
@@ -631,8 +717,15 @@ define('qtype_coderunner/ui_html_sito', [], function() {
         this.vistaImmagine = el('div', 'htmlve-immagine');
         codice.appendChild(this.vistaImmagine);
         corpo.appendChild(codice);
+        bEditor.appendChild(corpo);
 
-        var vista = el('div', 'htmlve-vista');
+        this.m2 = el('div', 'htmlve-maniglia');
+        this.m2.title = 'Trascina per allargare o stringere l\'anteprima';
+        blocchi.appendChild(this.m2);
+        var vista = this.bVista = el('div', 'htmlve-blocco htmlve-vista');
+        vista.appendChild(testata('Anteprima del browser', '›', 'Chiudi l\'anteprima', function() {
+            self.mostraPannello('vista', false);
+        }));
         // La scheda del browser: il <title> della pagina, come lo vede chi visita il sito.
         var schede = el('div', 'htmlve-schede');
         this.scheda = el('div', 'htmlve-scheda');
@@ -651,11 +744,41 @@ define('qtype_coderunner/ui_html_sito', [], function() {
         ricarica.type = 'button';
         ricarica.title = 'Ricarica l\'anteprima';
         ricarica.addEventListener('click', function() {
+            self.forzaPhp = true;
             self.aggiornaAnteprima();
         });
-        this.campoIndirizzo = el('span', 'htmlve-url', '');
+        // La barra dell'indirizzo si può scrivere, come nel browser: pagine/libri.php?genere=Giallo e Invio.
+        this.campoIndirizzo = el('input', 'htmlve-url');
+        this.campoIndirizzo.type = 'text';
+        this.campoIndirizzo.spellcheck = false;
+        this.campoIndirizzo.setAttribute('aria-label', 'Indirizzo della pagina nell\'anteprima');
+        this.campoIndirizzo.title = 'Scrivi l\'indirizzo di una pagina del sito (anche con ?nome=valore) e premi Invio';
+        this.campoIndirizzo.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                self.vaiIndirizzo(self.campoIndirizzo.value);
+            } else if (e.key === 'Escape') {
+                e.stopPropagation();
+                self.campoIndirizzo.value = self.indirizzoMostrato || '';
+                self.campoIndirizzo.blur();
+            }
+        });
+        this.campoIndirizzo.addEventListener('blur', function() {
+            self.campoIndirizzo.value = self.indirizzoMostrato || '';
+        });
         indirizzo.appendChild(this.btnIndietro);
         indirizzo.appendChild(ricarica);
+        if (this.dbPhp) {
+            var riparti = el('button', 'htmlve-btn htmlve-mini', '🗄');
+            riparti.type = 'button';
+            riparti.title = 'Database: riparti dai dati iniziali (annulla gli inserimenti e le modifiche fatti nell\'anteprima)';
+            riparti.addEventListener('click', function() {
+                self.statoDb = '';
+                self.forzaPhp = true;
+                self.aggiornaAnteprima();
+            });
+            indirizzo.appendChild(riparti);
+        }
         indirizzo.appendChild(this.campoIndirizzo);
         vista.appendChild(indirizzo);
         this.iframe = el('iframe', 'htmlve-iframe');
@@ -665,8 +788,12 @@ define('qtype_coderunner/ui_html_sito', [], function() {
         vista.appendChild(this.iframe);
         this.avviso = el('div', 'htmlve-avviso');
         vista.appendChild(this.avviso);
-        corpo.appendChild(vista);
-        r.appendChild(corpo);
+        blocchi.appendChild(vista);
+        this.sVista = striscia('‹ Anteprima', 'Apri l\'anteprima del browser', function() {
+            self.mostraPannello('vista', true);
+        });
+        blocchi.appendChild(this.sVista);
+        this.preparaManiglie();
 
         this.finestra = el('div', 'htmlve-finestra');
         r.appendChild(this.finestra);
@@ -695,13 +822,216 @@ define('qtype_coderunner/ui_html_sito', [], function() {
 
         if (window.ResizeObserver) {
             this.osservatore = new ResizeObserver(function() {
-                self.radice.classList.toggle('htmlve-stretto', self.radice.clientWidth < 820);
-                if (self.editor) {
-                    self.editor.resize();
-                }
+                self.disponi();
             });
             this.osservatore.observe(r);
         }
+    };
+
+    /* ---------- i tre blocchi: Traccia | Editor | Anteprima del browser ---------- */
+
+    function testata(titolo, simbolo, etichetta, fn) {
+        var t = el('div', 'htmlve-testata');
+        t.appendChild(el('span', 'htmlve-testata-titolo', titolo));
+        if (fn) {
+            var b = el('button', 'htmlve-btn htmlve-mini htmlve-spinta', simbolo);
+            b.type = 'button';
+            b.title = etichetta;
+            b.setAttribute('aria-label', etichetta);
+            b.addEventListener('click', fn);
+            t.appendChild(b);
+        }
+        return t;
+    }
+
+    function striscia(testo, etichetta, fn) {
+        var b = el('button', 'htmlve-striscia', testo);
+        b.type = 'button';
+        b.title = etichetta;
+        b.setAttribute('aria-label', etichetta);
+        b.addEventListener('click', fn);
+        return b;
+    }
+
+    var CHIAVE_DISPOSIZIONE = 'html_sito:disposizione';
+
+    /* Quali blocchi sono aperti e quanto sono larghi: si ricorda nel browser, per tutte le domande. */
+    function leggiDisposizione() {
+        var d = {traccia: true, vista: true, lt: 0, lv: 0};
+        try {
+            var salvata = JSON.parse(window.localStorage.getItem(CHIAVE_DISPOSIZIONE) || 'null');
+            if (salvata && typeof salvata === 'object') {
+                ['traccia', 'vista'].forEach(function(k) {
+                    if (typeof salvata[k] === 'boolean') {
+                        d[k] = salvata[k];
+                    }
+                });
+                ['lt', 'lv'].forEach(function(k) {
+                    if (typeof salvata[k] === 'number' && salvata[k] > 0) {
+                        d[k] = salvata[k];
+                    }
+                });
+            }
+        } catch (e) {
+            // Senza la memoria del browser si riparte ogni volta dalla disposizione predefinita.
+        }
+        return d;
+    }
+
+    SitoUi.prototype.salvaDisposizione = function() {
+        try {
+            window.localStorage.setItem(CHIAVE_DISPOSIZIONE, JSON.stringify(this.disposizione));
+        } catch (e) {
+            // Memoria del browser piena o non disponibile: pazienza.
+        }
+    };
+
+    /* La traccia è una copia del testo della domanda, che sta nella stessa pagina sopra l'editor. */
+    SitoUi.prototype.preparaTraccia = function() {
+        this.tracciaDisponibile = false;
+        if (this.params.traccia !== undefined && !(this.params.traccia === true || this.params.traccia === 1 ||
+                this.params.traccia === '1' || this.params.traccia === 'true')) {
+            return;
+        }
+        var fonte = this.que ? this.que.querySelector('.qtext') : null;
+        var copia;
+        if (fonte) {
+            copia = fonte.cloneNode(true);
+        } else {
+            var formulazione = this.que ? this.que.querySelector('.formulation') : null;
+            if (!formulazione) {
+                return;
+            }
+            copia = formulazione.cloneNode(true);
+            Array.prototype.forEach.call(copia.querySelectorAll('.ablock, .htmlve, .im-controls, .outcome, ' +
+                    '.validationerror, textarea, input, select, button'), function(x) {
+                x.remove();
+            });
+        }
+        Array.prototype.forEach.call(copia.querySelectorAll('script'), function(x) {
+            x.remove();
+        });
+        Array.prototype.forEach.call(copia.querySelectorAll('[id]'), function(x) {
+            x.removeAttribute('id'); // Gli id restano unici nella pagina del quiz.
+        });
+        copia.removeAttribute('id');
+        if (!copia.textContent.trim() && !copia.querySelector('img')) {
+            return;
+        }
+        this.copiaTraccia = copia;
+        this.tracciaDisponibile = true;
+    };
+
+    SitoUi.prototype.mostraPannello = function(nome, aperto) {
+        this.disposizione[nome] = aperto;
+        this.salvaDisposizione();
+        this.disponi();
+    };
+
+    function limita(x, min, max) {
+        return Math.max(min, Math.min(max, x));
+    }
+
+    /* Larghezze e posizione dei blocchi. Largo: i tre affiancati. Stretto (dentro una pagina del quiz piccola):
+       la traccia a sinistra, editor e anteprima uno sopra l'altro. */
+    SitoUi.prototype.disponi = function() {
+        if (!this.blocchi) {
+            return;
+        }
+        var d = this.disposizione;
+        var W = this.blocchi.clientWidth || 1000;
+        var stretto = W < 820;
+        this.radice.classList.toggle('htmlve-stretto', stretto);
+        var t = this.tracciaDisponibile && d.traccia;
+        var v = d.vista;
+        var lv = v && !stretto ? limita(d.lv || Math.round(W * 0.34), 220, Math.max(220, W - 360)) : 0;
+        var lt = t ? limita(d.lt || Math.round(W * (stretto ? 0.3 : 0.24)), 160,
+            Math.max(160, W - (stretto ? 380 : 360 + (v ? lv : 30)))) : 0;
+        this.larghezze = {lt: lt, lv: lv, W: W};
+        var mostra = function(x, si) {
+            if (x) {
+                x.style.display = si ? '' : 'none';
+            }
+        };
+        mostra(this.bTraccia, t);
+        mostra(this.sTraccia, this.tracciaDisponibile && !t);
+        mostra(this.bVista, v);
+        mostra(this.sVista, !v);
+        if (this.m1) {
+            this.m1.classList.toggle('htmlve-ferma', !t);
+        }
+        this.m2.classList.toggle('htmlve-ferma', !v || stretto);
+        this.sVista.classList.toggle('htmlve-orizzontale', stretto);
+        var colonne = this.tracciaDisponibile ? [t ? lt + 'px' : '30px', '8px'] : [];
+        var c0 = colonne.length; // Numero di colonne della traccia (0 o 2).
+        var posto = function(x, colonna, riga) {
+            if (x) {
+                x.style.gridColumn = colonna;
+                x.style.gridRow = riga;
+            }
+        };
+        if (stretto) {
+            colonne.push('minmax(0, 1fr)');
+            this.blocchi.style.gridTemplateColumns = colonne.join(' ');
+            this.blocchi.style.gridTemplateRows = 'minmax(0, 1fr) 8px ' + (v ? 'minmax(0, 1fr)' : 'auto');
+            posto(this.bTraccia, '1', '1 / span 3');
+            posto(this.sTraccia, '1', '1 / span 3');
+            posto(this.m1, '2', '1 / span 3');
+            posto(this.bEditor, String(c0 + 1), '1');
+            posto(this.m2, String(c0 + 1), '2');
+            posto(this.bVista, String(c0 + 1), '3');
+            posto(this.sVista, String(c0 + 1), '3');
+        } else {
+            colonne.push('minmax(0, 1fr)', '8px', v ? lv + 'px' : '30px');
+            this.blocchi.style.gridTemplateColumns = colonne.join(' ');
+            this.blocchi.style.gridTemplateRows = 'minmax(0, 1fr)';
+            [this.bTraccia, this.sTraccia, this.m1, this.bEditor, this.m2, this.bVista, this.sVista].forEach(function(x) {
+                posto(x, '', '');
+            });
+        }
+        if (this.btnTraccia) {
+            this.btnTraccia.classList.toggle('htmlve-premuto', t);
+            this.btnTraccia.setAttribute('aria-pressed', t ? 'true' : 'false');
+        }
+        this.btnVista.classList.toggle('htmlve-premuto', v);
+        this.btnVista.setAttribute('aria-pressed', v ? 'true' : 'false');
+        if (this.editor) {
+            this.editor.resize();
+        }
+    };
+
+    /* Le maniglie tra i blocchi: trascinandole cambia la larghezza della traccia o dell'anteprima. */
+    SitoUi.prototype.preparaManiglie = function() {
+        var self = this;
+        var trascina = function(maniglia, chiave, verso) {
+            if (!maniglia) {
+                return;
+            }
+            maniglia.addEventListener('pointerdown', function(e) {
+                if (maniglia.classList.contains('htmlve-ferma') || e.button !== 0) {
+                    return;
+                }
+                e.preventDefault();
+                var x0 = e.clientX;
+                var w0 = self.larghezze[chiave];
+                self.radice.classList.add('htmlve-trascina');
+                var muovi = function(ev) {
+                    self.disposizione[chiave] = Math.max(120, w0 + verso * (ev.clientX - x0));
+                    self.disponi();
+                };
+                var lascia = function() {
+                    document.removeEventListener('pointermove', muovi);
+                    document.removeEventListener('pointerup', lascia);
+                    self.radice.classList.remove('htmlve-trascina');
+                    self.disposizione[chiave] = self.larghezze[chiave]; // Quella davvero usata, dentro i limiti.
+                    self.salvaDisposizione();
+                };
+                document.addEventListener('pointermove', muovi);
+                document.addEventListener('pointerup', lascia);
+            });
+        };
+        trascina(this.m1, 'lt', 1);
+        trascina(this.m2, 'lv', -1);
     };
 
     SitoUi.prototype.creaEditor = function() {
@@ -726,6 +1056,13 @@ define('qtype_coderunner/ui_html_sito', [], function() {
             readOnly: this.solaLettura
         });
         ed.$blockScrolling = Infinity;
+        ed.commands.addCommand({
+            name: 'apriNelBrowser',
+            bindKey: {win: 'Ctrl-Enter', mac: 'Command-Enter'},
+            exec: function() {
+                self.apriNelBrowser();
+            }
+        });
         ed.on('change', function() {
             if (!self.aperto || self.solaLettura || self.cambioSessione) {
                 return;
@@ -864,13 +1201,7 @@ define('qtype_coderunner/ui_html_sito', [], function() {
         this.cambioSessione = false;
         this.editor.setReadOnly(this.solaLettura);
         this.vuoto.style.display = 'none';
-        this.titoloFile.textContent = percorso;
-        if (eHtml(percorso) || ePhp(percorso)) {
-            this.pagina = percorso;
-            this.richiesta = null;
-            this.storia = [];
-            this.aggiornaAnteprima();
-        }
+        this.mostraNomeFile(percorso);
         this.disegnaAlbero();
         if (!this.solaLettura && !senzaFuoco) {
             this.editor.focus();
@@ -887,7 +1218,7 @@ define('qtype_coderunner/ui_html_sito', [], function() {
         this.cambioSessione = false;
         this.editor.setReadOnly(true);
         this.vuoto.style.display = 'none';
-        this.titoloFile.textContent = percorso;
+        this.mostraNomeFile(percorso);
         var origine = this.immagini[percorso];
         this.vistaImmagine.textContent = '';
         var img = el('img');
@@ -909,7 +1240,7 @@ define('qtype_coderunner/ui_html_sito', [], function() {
         this.editor.setSession(window.ace.createEditSession(''));
         this.cambioSessione = false;
         this.editor.setReadOnly(true);
-        this.titoloFile.textContent = '';
+        this.mostraNomeFile('');
         this.vuoto.textContent = this.solaLettura ? 'Nessun file aperto.' :
             'Seleziona un file nell\'elenco a sinistra, oppure creane uno con «+ File».';
         this.vuoto.style.display = 'block';
@@ -1108,9 +1439,9 @@ define('qtype_coderunner/ui_html_sito', [], function() {
             this.apri(nuovo);
         } else {
             if (this.aperto) {
-                this.titoloFile.textContent = this.aperto;
+                this.mostraNomeFile(this.aperto);
             } else if (this.apertaImmagine) {
-                this.titoloFile.textContent = this.apertaImmagine;
+                this.mostraNomeFile(this.apertaImmagine);
             }
             this.disegnaAlbero();
         }
@@ -1783,6 +2114,51 @@ define('qtype_coderunner/ui_html_sito', [], function() {
         return Object.keys(this.files).filter(eHtml).sort()[0] || Object.keys(this.files).filter(ePhp).sort()[0] || null;
     };
 
+    SitoUi.prototype.mostraNomeFile = function(testo) {
+        this.nomeFile.textContent = testo;
+        var pagina = !!this.aperto && (eHtml(this.aperto) || ePhp(this.aperto));
+        this.btnApri.disabled = !pagina;
+        this.btnApri.title = pagina ? 'Apre questa pagina nell\'anteprima del browser (Ctrl+Invio)' +
+            (ePhp(this.aperto) ? ': la pagina PHP viene eseguita' : '') :
+            'Si apre nel browser una pagina .html o .php: apri la pagina che usa questo file';
+    };
+
+    SitoUi.prototype.mostraIndirizzo = function(testo) {
+        this.indirizzoMostrato = testo;
+        if (document.activeElement !== this.campoIndirizzo) {
+            this.campoIndirizzo.value = testo;
+        }
+    };
+
+    /* «Apri nel browser»: la pagina aperta nell'editor va nell'anteprima (una pagina PHP si esegue). */
+    SitoUi.prototype.apriNelBrowser = function() {
+        if (!this.aperto || !(eHtml(this.aperto) || ePhp(this.aperto))) {
+            return;
+        }
+        if (this.disposizione && !this.disposizione.vista) {
+            this.mostraPannello('vista', true);
+        }
+        if (this.pagina) {
+            this.storia.push(this.pagina);
+        }
+        this.pagina = this.aperto;
+        this.richiesta = null;
+        this.forzaPhp = true;
+        this.aggiornaAnteprima();
+    };
+
+    /* L'indirizzo scritto nella barra: dalla cartella del sito, con o senza / all'inizio, anche con ?dati. */
+    SitoUi.prototype.vaiIndirizzo = function(testo) {
+        var t = String(testo || '').trim().replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i, '');
+        this.campoIndirizzo.blur();
+        if (!t) {
+            this.mostraIndirizzo(this.indirizzoMostrato || '');
+            return;
+        }
+        this.forzaPhp = true;
+        this.vai(ESTERNO.test(t) ? t : (t.charAt(0) === '/' ? t : '/' + t));
+    };
+
     SitoUi.prototype.aggiornaAnteprima = function() {
         if (!this.pagina || (this.files[this.pagina] === undefined && !this.paginaNonTrovata) || this.immagini[this.pagina] !== undefined) {
             this.pagina = this.paginaPredefinita();
@@ -1790,16 +2166,19 @@ define('qtype_coderunner/ui_html_sito', [], function() {
         var html;
         if (!this.pagina) {
             html = paginaMessaggio('Nessuna pagina da visualizzare', 'Crea una pagina HTML (per esempio index.html) per vederla qui.');
-            this.campoIndirizzo.textContent = '';
+            this.mostraIndirizzo('');
         } else if (this.files[this.pagina] === undefined) {
             html = paginaNonTrovata('/' + this.pagina);
-            this.campoIndirizzo.textContent = '/' + this.pagina;
+            this.mostraIndirizzo('/' + this.pagina);
+        } else if (ePhp(this.pagina) && this.anteprimaPhp) {
+            this.mostraIndirizzo('/' + this.pagina + this.coda());
+            html = this.anteprimaDiPhp();
         } else if (ePhp(this.pagina)) {
             html = paginaPhp(this.pagina, this.richiesta);
-            this.campoIndirizzo.textContent = '/' + this.pagina + this.coda();
+            this.mostraIndirizzo('/' + this.pagina + this.coda());
         } else {
             html = this.costruisciPagina(this.pagina);
-            this.campoIndirizzo.textContent = '/' + this.pagina + this.coda();
+            this.mostraIndirizzo('/' + this.pagina + this.coda());
         }
         this.btnIndietro.disabled = !this.storia.length;
         this.aggiornaScheda();
@@ -1810,13 +2189,144 @@ define('qtype_coderunner/ui_html_sito', [], function() {
             }).join(', ') + ' (una pagina HTML non li legge: servirebbe una pagina PHP).';
             this.avviso.style.display = 'block';
         }
+        if (this.avvisoPhp) {
+            this.avviso.textContent = this.avvisoPhp;
+            this.avviso.style.display = 'block';
+            this.avvisoPhp = '';
+        }
+        this.forzaPhp = false;
         // L'iframe è isolato: a ogni aggiornamento l'anteprima riparte dall'inizio della pagina.
         this.iframe.srcdoc = html;
     };
 
-    SitoUi.prototype.costruisciPagina = function(percorso) {
+    /* ---------- anteprima delle pagine PHP (anteprima_php) ---------- */
+
+    /* Una firma del sito: se cambia, la pagina PHP mostrata non corrisponde più al codice. */
+    function firma(oggetto) {
+        var t = JSON.stringify(oggetto), h = 0;
+        for (var i = 0; i < t.length; i++) {
+            h = (h * 31 + t.charCodeAt(i)) | 0;
+        }
+        return t.length + ':' + h;
+    }
+
+    /* L'HTML da mostrare per la pagina PHP aperta: l'ultima esecuzione se vale ancora, altrimenti la richiesta a
+       Jobe (intanto un messaggio). Cambiare pagina o dati esegue di nuovo; cambiare solo il codice no, per non
+       mandare una richiesta a ogni tasto: lo dice l'avviso, e ⟳ riesegue. */
+    SitoUi.prototype.anteprimaDiPhp = function() {
+        var chiave = this.pagina + ' ' + JSON.stringify(this.richiesta || null);
+        var f = firma(this.files);
+        var u = this.uscitaPhp;
+        if (u && u.chiave === chiave && !this.forzaPhp) {
+            if (u.firma !== f) {
+                this.avvisoPhp = 'Hai modificato il sito: premi ⟳ per eseguire di nuovo la pagina PHP.';
+            }
+            return u.html;
+        }
+        this.eseguiPhp(chiave, f);
+        return paginaMessaggio('Esecuzione di ' + esc(this.pagina) + '…', 'Il server sta eseguendo la pagina PHP.');
+    };
+
+    SitoUi.prototype.eseguiPhp = function(chiave, f) {
         var self = this;
-        var sorgente = this.files[percorso];
+        var numero = ++this.numeroPhp;
+        var pagina = this.pagina, richiesta = this.richiesta;
+        var testi = {};
+        Object.keys(this.files).forEach(function(k) {
+            testi[k] = self.files[k];
+        });
+        var dati = {files: testi, pagina: pagina, metodo: richiesta ? richiesta.metodo : 'get',
+            dati: richiesta ? richiesta.dati : [], db: this.dbPhp, stato: this.statoDb};
+        var mostra = function(html, titolo) {
+            if (numero !== self.numeroPhp || self.pagina !== pagina) {
+                return; // Nel frattempo lo studente è andato su un'altra pagina.
+            }
+            self.uscitaPhp = {chiave: chiave, firma: f, html: html, titolo: titolo};
+            self.aggiornaScheda();
+            self.iframe.srcdoc = html;
+        };
+        var errore = function(testo) {
+            mostra(paginaErrorePhp(pagina, richiesta, testo), '');
+            self.uscitaPhp = null; // Al prossimo aggiornamento si riprova.
+        };
+        chiamaJobe(dati, function(risultato) {
+            if (risultato.errore) {
+                errore(risultato.errore);
+                return;
+            }
+            if (self.dbPhp) {
+                self.statoDb = risultato.stato || '';
+            }
+            var uscita = risultato.html || '';
+            var titolo = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(uscita);
+            mostra(self.costruisciPagina(pagina, uscita), titolo ? titolo[1] : '');
+        }, errore);
+    };
+
+    /* Manda il programma dell'anteprima a Jobe con il servizio web di CodeRunner (come l'interfaccia scratchpad). */
+    function chiamaJobe(dati, fatto, errore) {
+        var req = window.require;
+        if (typeof req !== 'function' || !window.M || !window.M.cfg) {
+            errore('Qui non c\'è il servizio web di CodeRunner. Premi Verifica per eseguire le pagine PHP con i dati delle prove.');
+            return;
+        }
+        req(['core/ajax'], function(ajax) {
+            ajax.call([{
+                methodname: 'qtype_coderunner_run_in_sandbox',
+                args: {
+                    contextid: window.M.cfg.contextid,
+                    sourcecode: ANTEPRIMA_PHP,
+                    language: 'python3',
+                    stdin: '',
+                    files: JSON.stringify({'richiesta.json': JSON.stringify(dati)}),
+                    params: ''
+                },
+                done: function(testo) {
+                    var r;
+                    try {
+                        r = JSON.parse(testo);
+                    } catch (e) {
+                        errore('Risposta del server non leggibile.');
+                        return;
+                    }
+                    // Il servizio risponde come la sandbox di CodeRunner: {error, result, output, stderr, cmpinfo}
+                    // (error 0 e result 15 = eseguito); per sicurezza si accetta anche la forma di Jobe (outcome, stdout).
+                    var esito = r.result !== undefined ? r.result : r.outcome;
+                    var uscita = r.output !== undefined ? r.output : r.stdout;
+                    if (r.error) {
+                        errore('Il server delle prove non risponde (errore ' + r.error + '): riprova tra poco o premi Verifica.');
+                        return;
+                    }
+                    if (esito !== 15) {
+                        errore('Il server non ha eseguito la pagina (esito ' + esito + '). ' +
+                            String(r.cmpinfo || r.stderr || '').slice(0, 300));
+                        return;
+                    }
+                    try {
+                        fatto(JSON.parse(uscita));
+                    } catch (e) {
+                        errore('Risposta del server non leggibile: ' + String(uscita || r.stderr || '').slice(0, 300));
+                    }
+                },
+                fail: function(e) {
+                    var m = (e && (e.message || e.errorcode)) || String(e);
+                    if (/disabled|disattivato/i.test(m)) {
+                        m = 'Il servizio che esegue il PHP nell\'anteprima non è attivo: lo attiva l\'amministratore ' +
+                            'nelle impostazioni di CodeRunner (servizio web della sandbox). Intanto premi Verifica.';
+                    } else if (/rate|exceeded|superato/i.test(m)) {
+                        m = 'Hai eseguito troppe pagine PHP nell\'ultima ora: aspetta un po\' oppure premi Verifica.';
+                    }
+                    errore(m);
+                }
+            }]);
+        }, function() {
+            errore('Il servizio web di CodeRunner non si è caricato. Premi Verifica per eseguire le pagine PHP con i dati delle prove.');
+        });
+    }
+
+    SitoUi.prototype.costruisciPagina = function(percorso, sorgenteDato) {
+        var self = this;
+        var sorgente = sorgenteDato !== undefined ? sorgenteDato : this.files[percorso];
         var conDoctype = /^\s*(<!--[\s\S]*?-->\s*)*<!doctype/i.test(sorgente);
         var doc = new DOMParser().parseFromString(sorgente, 'text/html');
         var dir = cartellaDi(percorso);
@@ -1887,7 +2397,10 @@ define('qtype_coderunner/ui_html_sito', [], function() {
         var titolo = '';
         var sorgente = p && this.files[p];
         if (typeof sorgente === 'string') {
-            if (ePhp(p)) {
+            if (ePhp(p) && this.uscitaPhp && this.uscitaPhp.chiave.split(' ')[0] === p && this.uscitaPhp.titolo) {
+                // Pagina PHP eseguita nell'anteprima: il <title> di quello che ha stampato.
+                titolo = new DOMParser().parseFromString(this.uscitaPhp.titolo, 'text/html').documentElement.textContent;
+            } else if (ePhp(p)) {
                 // Di una pagina PHP si legge il <title> scritto nel codice, se c'è (senza eseguire il PHP).
                 var m = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(sorgente);
                 titolo = m && !/<\?/.test(m[1]) ? new DOMParser().parseFromString(m[1], 'text/html').documentElement.textContent : '';
@@ -1942,7 +2455,7 @@ define('qtype_coderunner/ui_html_sito', [], function() {
             this.richiesta = null;
             this.storia.push(this.pagina);
             this.pagina = p;
-            this.campoIndirizzo.textContent = '/' + p;
+            this.mostraIndirizzo('/' + p);
             this.btnIndietro.disabled = false;
             this.aggiornaScheda();
             this.iframe.srcdoc = '<!DOCTYPE html><html><body style="margin:0;background:#0e0e0e;display:flex;' +
@@ -2192,11 +2705,9 @@ define('qtype_coderunner/ui_html_sito', [], function() {
         var pieno = this.radice.classList.toggle('htmlve-pieno');
         document.documentElement.classList.toggle('htmlve-blocca-scorrimento', pieno);
         this.btnSchermo.textContent = pieno ? 'Riduci' : 'Schermo intero';
-        var ed = this.editor;
+        var self = this;
         setTimeout(function() {
-            if (ed) {
-                ed.resize();
-            }
+            self.disponi();
         }, 0);
     };
 

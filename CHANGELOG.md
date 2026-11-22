@@ -2,6 +2,18 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.16.2 — 22/11/2026
+
+L'editor del sito diventa un piccolo ambiente di lavoro: traccia sempre a portata, anteprima che si comporta come un browser, pagine PHP eseguite anche nell'anteprima.
+
+- **Tre blocchi** (interfaccia `html_sito` 0.12.0): **Traccia** (una copia del testo della domanda, letta dalla pagina del quiz: non si scrive due volte e non finisce nella risposta), **Editor** (barra dei file, elenco, codice) e **Anteprima del browser**, ognuno con la sua intestazione. Traccia e anteprima si chiudono a scomparsa e si allargano trascinando il bordo; la scelta resta nel browser per tutte le domande. Nelle domande strette editor e anteprima vanno uno sopra l'altro. Il pannello della traccia si toglie con `traccia: no` nella riga.
+- **L'anteprima è un browser**: non segue più il file aperto nell'editor. Una pagina si apre con «▶ Apri nel browser» sopra il codice (o Ctrl+Invio), con i link e i moduli, oppure scrivendo l'indirizzo nella barra (`pagine/libri.php?genere=Giallo` e Invio). Così aprire una pagina PHP per modificarla non la esegue. Le pagine HTML si aggiornano da sole mentre si scrive.
+- **Pagine PHP eseguite nell'anteprima** (opzione `anteprima_php: sì` del sito PHP con l'editor): l'anteprima manda il sito a Jobe con il servizio web di CodeRunner e mostra quello che la pagina stampa, errori di PHP compresi, come XAMPP; con il database, le pagine usano mysqli e lo stato resta tra una pagina e l'altra (🗄 riparte dai dati iniziali). Il PHP è lo stesso del controllo, quindi anteprima e Verifica danno lo stesso risultato. La valutazione non cambia.
+- **Messaggi**: l'editor nomina il pulsante «Verifica», come in Moodle.
+- **Dashboard** (pagina 0.8.2): le opzioni `anteprima_php` e `traccia` nel sito con l'editor.
+- **Da fare in Moodle**: reinstallare l'interfaccia con `installa.sh` (ci sono tre parametri nuovi) e svuotare le cache. Per `anteprima_php`, una volta: Amministrazione del sito → Plugin → Tipi di domanda → CodeRunner, «Sandbox web-service settings», spuntare «Enable sandbox web service» (il limite di pagine eseguite per studente all'ora è «Max hourly rate of submissions», 200 di default). Il prototipo `php_sito` non cambia. Aggiornare la pagina «Bozze dei quiz».
+- Prove superate.
+
 ## 0.16.1 — 22/11/2026
 
 Le pagine del sito PHP possono usare il database con mysqli.
