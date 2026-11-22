@@ -11,7 +11,9 @@
  * CodeRunner carica Ace da sé perché il nome dell'interfaccia contiene «html».
  *
  * Il codice degli studenti gira in un iframe isolato (sandbox senza allow-same-origin):
- * non può leggere né modificare la pagina di Moodle.
+ * non può leggere né modificare la pagina di Moodle. I moduli si possono «inviare» (allow-forms, così il
+ * browser controlla i campi), ma l'invio lo ferma lo script dell'anteprima: l'editor mostra la pagina
+ * dell'action con i dati ricevuti. Le pagine .php non si eseguono: le esegue il template con Controlla.
  *
  * Parametri dell'interfaccia (tutti falsi se non indicati), es. {"chiusura_automatica": true}:
  *  - chiusura_automatica: Ace chiude da solo tag, virgolette e parentesi;
@@ -63,6 +65,14 @@ define('qtype_coderunner/ui_html_sito', [], function() {
     function eHtml(p) {
         var e = estensione(p);
         return e === 'html' || e === 'htm';
+    }
+    function ePhp(p) {
+        return estensione(p) === 'php';
+    }
+    function esc(t) {
+        return String(t).replace(/[<>&"]/g, function(c) {
+            return {'<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;'}[c];
+        });
     }
 
     /* Risolve un href relativo alla cartella della pagina. Restituisce null se il percorso
@@ -133,6 +143,9 @@ define('qtype_coderunner/ui_html_sito', [], function() {
         }
         if (e === 'js') {
             return 'ace/mode/javascript';
+        }
+        if (e === 'php') {
+            return 'ace/mode/php';
         }
         return 'ace/mode/text';
     }
@@ -260,6 +273,28 @@ define('qtype_coderunner/ui_html_sito', [], function() {
             }
             parent.postMessage({htmlve: 'vai', href: h}, '*');
         }, true);
+        // Invio di un modulo: il browser ha già controllato i campi (required, min, type=email...).
+        // Se lo script della pagina non l'ha fermato, i dati passano all'editor, che mostra dove vanno.
+        window.addEventListener('submit', function(e) {
+            if (e.defaultPrevented) {
+                return;
+            }
+            e.preventDefault();
+            var f = e.target, s = e.submitter;
+            var dati = [];
+            var fd;
+            try {
+                fd = new FormData(f, s || undefined);
+            } catch (x) {
+                fd = new FormData(f);
+            }
+            fd.forEach(function(v, k) {
+                dati.push([k, typeof v === 'string' ? v : (v && v.name) || '']);
+            });
+            var metodo = (s && s.getAttribute('formmethod')) || f.getAttribute('method') || 'get';
+            var azione = (s && s.getAttribute('formaction')) || f.getAttribute('action') || '';
+            parent.postMessage({htmlve: 'invio', metodo: metodo.toLowerCase(), azione: azione, dati: dati}, '*');
+        }, false);
     }.toString() + ')();';
 
     function paginaMessaggio(titolo, testo) {
@@ -268,10 +303,33 @@ define('qtype_coderunner/ui_html_sito', [], function() {
             '<body><h1>' + titolo + '</h1><p>' + testo + '</p></body></html>';
     }
 
+    /* Tabella dei dati ricevuti da una pagina (dopo un modulo o un link con ?...). */
+    function tabellaDati(richiesta) {
+        if (!richiesta || !richiesta.dati.length) {
+            return '<p>La pagina non ha ricevuto dati.</p>';
+        }
+        var nome = richiesta.metodo === 'post' ? '$_POST' : '$_GET';
+        return '<p>Dati ricevuti con il metodo <b>' + richiesta.metodo.toUpperCase() + '</b> (in PHP si leggono in <code>' +
+            nome + '</code>):</p><table><tr><th>name</th><th>valore</th></tr>' +
+            richiesta.dati.map(function(d) {
+                return '<tr><td><code>' + esc(d[0]) + '</code></td><td>' + (d[1] === '' ? '<i>(vuoto)</i>' : esc(d[1])) +
+                    '</td></tr>';
+            }).join('') + '</table>';
+    }
+
+    function paginaPhp(percorso, richiesta) {
+        return '<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:system-ui,sans-serif;' +
+            'color:#444;padding:20px}h1{font-size:18px}table{border-collapse:collapse;margin-top:6px}' +
+            'td,th{border:1px solid #bbb;padding:4px 10px;text-align:left}th{background:#eee}' +
+            '.nota{background:#fff8e1;border-left:4px solid #f0ad4e;padding:8px 12px}</style></head><body>' +
+            '<h1>Pagina PHP: ' + esc(percorso) + '</h1>' + tabellaDati(richiesta) +
+            '<p class="nota">Il codice PHP gira sul server: qui l\'anteprima non lo può eseguire. Premi ' +
+            '<b>Controlla</b> per eseguire le pagine PHP con i dati delle prove e vedere che cosa stampano.</p>' +
+            '</body></html>';
+    }
+
     function paginaNonTrovata(url) {
-        var u = url.replace(/[<>&"]/g, function(c) {
-            return {'<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;'}[c];
-        });
+        var u = esc(url);
         return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>404 Not Found</title></head><body>' +
             '<h1>Not Found</h1><p>The requested URL ' + u + ' was not found on this server.</p><hr>' +
             '<address>Apache Server</address></body></html>';
@@ -575,6 +633,13 @@ define('qtype_coderunner/ui_html_sito', [], function() {
         corpo.appendChild(codice);
 
         var vista = el('div', 'htmlve-vista');
+        // La scheda del browser: il <title> della pagina, come lo vede chi visita il sito.
+        var schede = el('div', 'htmlve-schede');
+        this.scheda = el('div', 'htmlve-scheda');
+        this.titoloScheda = el('span', '', '');
+        this.scheda.appendChild(this.titoloScheda);
+        schede.appendChild(this.scheda);
+        vista.appendChild(schede);
         var indirizzo = el('div', 'htmlve-indirizzo');
         this.btnIndietro = el('button', 'htmlve-btn htmlve-mini', '←');
         this.btnIndietro.type = 'button';
@@ -594,7 +659,8 @@ define('qtype_coderunner/ui_html_sito', [], function() {
         indirizzo.appendChild(this.campoIndirizzo);
         vista.appendChild(indirizzo);
         this.iframe = el('iframe', 'htmlve-iframe');
-        this.iframe.setAttribute('sandbox', 'allow-scripts');
+        // allow-forms solo perché il browser controlli i campi prima dell'invio: l'invio vero lo ferma lo script.
+        this.iframe.setAttribute('sandbox', 'allow-scripts allow-forms');
         this.iframe.setAttribute('title', 'Anteprima della pagina');
         vista.appendChild(this.iframe);
         this.avviso = el('div', 'htmlve-avviso');
@@ -606,10 +672,16 @@ define('qtype_coderunner/ui_html_sito', [], function() {
         r.appendChild(this.finestra);
 
         this.suMessaggio = function(e) {
-            if (e.source !== self.iframe.contentWindow || !e.data || e.data.htmlve !== 'vai') {
+            if (e.source !== self.iframe.contentWindow || !e.data) {
                 return;
             }
-            self.vai(String(e.data.href));
+            if (e.data.htmlve === 'vai') {
+                self.vai(String(e.data.href));
+            } else if (e.data.htmlve === 'invio' && Array.isArray(e.data.dati)) {
+                self.invio(String(e.data.metodo || 'get'), String(e.data.azione || ''), e.data.dati.map(function(d) {
+                    return [String(d[0]), String(d[1])];
+                }));
+            }
         };
         window.addEventListener('message', this.suMessaggio);
 
@@ -793,8 +865,9 @@ define('qtype_coderunner/ui_html_sito', [], function() {
         this.editor.setReadOnly(this.solaLettura);
         this.vuoto.style.display = 'none';
         this.titoloFile.textContent = percorso;
-        if (eHtml(percorso)) {
+        if (eHtml(percorso) || ePhp(percorso)) {
             this.pagina = percorso;
+            this.richiesta = null;
             this.storia = [];
             this.aggiornaAnteprima();
         }
@@ -1426,7 +1499,7 @@ define('qtype_coderunner/ui_html_sito', [], function() {
         return Promise.all(lavori);
     }
 
-    var ESTENSIONI_TESTO = ['html', 'htm', 'css', 'js', 'txt', 'json', 'md', 'xml', 'csv'];
+    var ESTENSIONI_TESTO = ['html', 'htm', 'css', 'js', 'php', 'txt', 'json', 'md', 'xml', 'csv'];
 
     function tipoMime(p) {
         var e = estensione(p);
@@ -1489,7 +1562,7 @@ define('qtype_coderunner/ui_html_sito', [], function() {
         var input = el('input');
         input.type = 'file';
         input.multiple = true;
-        input.accept = '.zip,.html,.htm,.css,.js,.txt,image/*';
+        input.accept = '.zip,.html,.htm,.css,.js,.php,.txt,image/*';
         input.style.display = 'none';
         input.addEventListener('change', function() {
             var scelti = Array.prototype.slice.call(input.files || []);
@@ -1700,10 +1773,14 @@ define('qtype_coderunner/ui_html_sito', [], function() {
     };
 
     SitoUi.prototype.paginaPredefinita = function() {
+        this.richiesta = null;
         if (this.files['index.html'] !== undefined) {
             return 'index.html';
         }
-        return Object.keys(this.files).filter(eHtml).sort()[0] || null;
+        if (this.files['index.php'] !== undefined) {
+            return 'index.php';
+        }
+        return Object.keys(this.files).filter(eHtml).sort()[0] || Object.keys(this.files).filter(ePhp).sort()[0] || null;
     };
 
     SitoUi.prototype.aggiornaAnteprima = function() {
@@ -1717,12 +1794,22 @@ define('qtype_coderunner/ui_html_sito', [], function() {
         } else if (this.files[this.pagina] === undefined) {
             html = paginaNonTrovata('/' + this.pagina);
             this.campoIndirizzo.textContent = '/' + this.pagina;
+        } else if (ePhp(this.pagina)) {
+            html = paginaPhp(this.pagina, this.richiesta);
+            this.campoIndirizzo.textContent = '/' + this.pagina + this.coda();
         } else {
             html = this.costruisciPagina(this.pagina);
-            this.campoIndirizzo.textContent = '/' + this.pagina;
+            this.campoIndirizzo.textContent = '/' + this.pagina + this.coda();
         }
         this.btnIndietro.disabled = !this.storia.length;
+        this.aggiornaScheda();
         this.avviso.style.display = 'none';
+        if (this.richiesta && this.richiesta.metodo === 'post' && !ePhp(this.pagina || '')) {
+            this.avviso.textContent = 'La pagina ha ricevuto con POST: ' + this.richiesta.dati.map(function(d) {
+                return d[0] + '=' + d[1];
+            }).join(', ') + ' (una pagina HTML non li legge: servirebbe una pagina PHP).';
+            this.avviso.style.display = 'block';
+        }
         // L'iframe è isolato: a ogni aggiornamento l'anteprima riparte dall'inizio della pagina.
         this.iframe.srcdoc = html;
     };
@@ -1794,7 +1881,54 @@ define('qtype_coderunner/ui_html_sito', [], function() {
         return (conDoctype ? '<!DOCTYPE html>\n' : '') + doc.documentElement.outerHTML;
     };
 
-    SitoUi.prototype.vai = function(href) {
+    /* Il titolo nella scheda: il <title> della pagina; senza, il nome del file, come fa il browser. */
+    SitoUi.prototype.aggiornaScheda = function() {
+        var p = this.pagina;
+        var titolo = '';
+        var sorgente = p && this.files[p];
+        if (typeof sorgente === 'string') {
+            if (ePhp(p)) {
+                // Di una pagina PHP si legge il <title> scritto nel codice, se c'è (senza eseguire il PHP).
+                var m = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(sorgente);
+                titolo = m && !/<\?/.test(m[1]) ? new DOMParser().parseFromString(m[1], 'text/html').documentElement.textContent : '';
+            } else {
+                titolo = new DOMParser().parseFromString(sorgente, 'text/html').title;
+            }
+        }
+        if (p && sorgente === undefined) {
+            titolo = this.immagini[p] !== undefined ? nomeDi(p) : '404 Not Found';
+        }
+        titolo = (titolo || '').replace(/\s+/g, ' ').trim();
+        var senza = !titolo;
+        this.scheda.classList.toggle('senza-titolo', senza && !!p);
+        this.titoloScheda.textContent = senza ? (p ? nomeDi(p) + this.coda() : 'Nuova scheda') : titolo;
+        this.scheda.title = senza && p ? 'La pagina non ha un <title> (o è vuoto): il browser mostra il nome del file.' : titolo;
+    };
+
+    /* Quello che segue il nome della pagina nella barra degli indirizzi: ?nome=valore per i dati GET. */
+    SitoUi.prototype.coda = function() {
+        var r = this.richiesta;
+        if (!r || r.metodo !== 'get' || !r.dati.length) {
+            return '';
+        }
+        return '?' + r.dati.map(function(d) {
+            return encodeURIComponent(d[0]) + '=' + encodeURIComponent(d[1]).replace(/%20/g, '+');
+        }).join('&');
+    };
+
+    /* Invio di un modulo nell'anteprima: si va alla pagina dell'action con i dati, come farebbe il browser. */
+    SitoUi.prototype.invio = function(metodo, azione, dati) {
+        if (ESTERNO.test(azione)) {
+            this.avviso.textContent = 'Il modulo invia i dati a un altro sito (' + azione + '): nell\'anteprima non si apre.';
+            this.avviso.style.display = 'block';
+            return;
+        }
+        metodo = metodo === 'post' ? 'post' : 'get';
+        var p = azione.split('#')[0].split('?')[0] === '' ? this.pagina : risolvi(cartellaDi(this.pagina || ''), azione);
+        this.vai(p === null ? azione : '/' + p, {metodo: metodo, dati: dati});
+    };
+
+    SitoUi.prototype.vai = function(href, richiesta) {
         if (ESTERNO.test(href)) {
             this.avviso.textContent = 'Link a un sito esterno (' + href + '): nell\'anteprima non si apre.';
             this.avviso.style.display = 'block';
@@ -1805,16 +1939,34 @@ define('qtype_coderunner/ui_html_sito', [], function() {
             p = unisci(p, 'index.html');
         }
         if (p !== null && this.immagini[p] !== undefined) {
+            this.richiesta = null;
             this.storia.push(this.pagina);
             this.pagina = p;
             this.campoIndirizzo.textContent = '/' + p;
             this.btnIndietro.disabled = false;
+            this.aggiornaScheda();
             this.iframe.srcdoc = '<!DOCTYPE html><html><body style="margin:0;background:#0e0e0e;display:flex;' +
                 'align-items:center;justify-content:center;height:100vh"><img src="' + this.urlImmagine(p) + '"></body></html>';
             return;
         }
+        if (!richiesta) {
+            // Un link con ?nome=valore porta i dati con GET, come un modulo.
+            var q = href.split('#')[0].split('?')[1];
+            richiesta = q ? {metodo: 'get', dati: q.split('&').filter(Boolean).map(function(c) {
+                var kv = c.split('=');
+                var dec = function(x) {
+                    try {
+                        return decodeURIComponent((x || '').replace(/\+/g, ' '));
+                    } catch (e) {
+                        return x || '';
+                    }
+                };
+                return [dec(kv[0]), dec(kv.slice(1).join('='))];
+            })} : null;
+        }
         this.storia.push(this.pagina);
         this.pagina = p === null ? href : p;
+        this.richiesta = richiesta;
         this.paginaNonTrovata = this.files[this.pagina] === undefined;
         this.aggiornaAnteprima();
         this.paginaNonTrovata = false;
@@ -1822,6 +1974,7 @@ define('qtype_coderunner/ui_html_sito', [], function() {
 
     SitoUi.prototype.indietro = function() {
         if (this.storia.length) {
+            this.richiesta = null;
             this.pagina = this.storia.pop();
             this.aggiornaAnteprima();
         }

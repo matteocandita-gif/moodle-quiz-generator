@@ -162,3 +162,24 @@ Un amore lontano]]></text>
 --- output 41 ---
 <text>OK
 </text>
+--- output 42 ---
+<text>OK
+</text>
+--- output 43 ---
+<text>OK
+</text>
+--- output 44 ---
+<text>OK
+</text>
+--- output 45 ---
+<text>OK
+</text>
+--- output 46 ---
+<text>OK
+</text>
+--- output 47 ---
+<text>OK
+</text>
+--- output 48 ---
+<text>OK
+</text>

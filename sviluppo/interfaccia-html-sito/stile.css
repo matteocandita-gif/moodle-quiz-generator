@@ -109,6 +109,37 @@ html.htmlve-blocca-scorrimento, html.htmlve-blocca-scorrimento body { overflow: 
 }
 
 .htmlve-vista { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.htmlve-schede {
+  display: flex;
+  align-items: flex-end;
+  padding: 4px 8px 0;
+  background: #dadce0;
+  min-height: 26px;
+}
+.htmlve-scheda {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 260px;
+  min-width: 90px;
+  padding: 4px 12px;
+  background: #e8eaed;
+  border-radius: 8px 8px 0 0;
+  font-size: 12px;
+  color: #202124;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.htmlve-scheda::before {
+  content: "";
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #9aa0a6;
+}
+.htmlve-scheda span { overflow: hidden; text-overflow: ellipsis; }
+.htmlve-scheda.senza-titolo span { color: #80868b; font-style: italic; }
 .htmlve-indirizzo {
   display: flex;
   align-items: center;

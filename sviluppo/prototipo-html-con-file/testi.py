@@ -383,3 +383,77 @@ DESCRIZIONE_CSS_CON_TEST = "\n".join([
     + m("OK") + ", in <em>Extra</em> la frase che lo studente vede nella colonna «Controllo». Le funzioni sono "
     "quelle descritte nel prototipo html_con_file; quelle sui file della cartella del sito qui non servono.</p>",
 ])
+
+
+FUNZIONI_PHP = [
+    ('stessa_uscita("pagine/risultato.php", post={"nome": "Mario"})', "Esegue la pagina PHP con i dati "
+     "indicati (" + CODICE % "get=" + " o " + CODICE % "post=" + ", un dizionario name → valore) e confronta "
+     "quello che stampa con la stessa pagina della soluzione: spazi e a capo non contano. Se è diverso, lo "
+     "studente vede che cosa doveva mostrare e che cosa mostra, e gli errori di PHP con la riga."),
+    ('stesso_testo("elenco.php", get={"genere": "giallo"})', "Come " + CODICE % "stessa_uscita" + ", ma "
+     "confronta solo il testo visibile: i tag HTML intorno possono essere diversi."),
+    ('invia("index.html", {"nome": "Mario", "eta": "17"})', "Compila il modulo della pagina come il browser "
+     "(i campi indicati con quei valori, gli altri come li invierebbe il browser: campi nascosti, caselle "
+     "spuntate, prima voce dei menù), lo invia con il suo " + CODICE % "method" + " alla pagina del suo "
+     + CODICE % "action" + " e confronta l'uscita con la stessa cosa fatta sulla soluzione. Trova i name "
+     "diversi tra modulo e PHP, GET al posto di POST, action sbagliati. Con " + CODICE % "numero=2"
+     + " il secondo modulo della pagina."),
+    ('invia("index.html", {"nome": "Mario", "eta": "17"}, cerca=["Mario", "minorenne"])', "Con "
+     + CODICE % "cerca=" + " (un testo o una lista) non si confronta tutta la pagina: basta che la pagina di "
+     "arrivo mostri quei dati (maiuscole, spazi e punteggiatura non contano), come la soluzione. Così lo "
+     "studente può scrivere le frasi come vuole. Vale anche per " + CODICE % "stessa_uscita" + " e "
+     + CODICE % "stesso_testo" + "."),
+    ('php_senza_errori("risultato.php", post={"nome": "Mario"})', "La pagina, eseguita con quei dati, "
+     "non stampa errori né avvisi di PHP (Warning, Notice, Deprecated)."),
+    ('usa_uscita("elenco.php", get={"genere": "giallo"})', "Esegue la pagina: i controlli che seguono nello "
+     "stesso test (" + CODICE % "almeno" + ", " + CODICE % "testo" + ", " + CODICE % "contiene" + "…) guardano "
+     "quello che stampa. Se la pagina si ferma con un errore, il test mostra solo quello."),
+    ('usa_invio("index.html", {"nome": "Mario"})', "Come " + CODICE % "usa_uscita" + ", ma arrivando alla "
+     "pagina con l'invio del modulo."),
+    ('contiene("Ciao Mario", "maggiorenne")', "Il testo visibile della pagina che si sta controllando "
+     "contiene tutte le parole indicate (maiuscole e spazi non contano)."),
+    ('modulo("risultato.php", "post", ["nome", "eta"])', "Il modulo (il primo, o " + CODICE % "numero="
+     + ") invia i dati alla pagina indicata, con il metodo indicato, e ha i campi con quei name. "
+     "Ogni argomento si può omettere."),
+]
+
+DESCRIZIONE_PHP_SITO = "\n".join([
+    "<p>Prototipo <strong>php_sito</strong>: lo studente scrive un piccolo sito con pagine HTML e PHP "
+    "nell'<strong>editor del sito</strong> (interfaccia <em>html_sito</em>), e il template esegue davvero le "
+    "pagine PHP con <strong>php</strong> su Jobe, con i dati in " + m("$_GET") + " o " + m("$_POST") + " come "
+    "dopo un link o l'invio di un modulo. Ogni richiesta si esegue anche sulla soluzione dell'autore (la "
+    "<em>Risposta</em> della domanda, scritta con l'editor) e i controlli confrontano le due uscite.</p>",
+    "<p>Con il plugin «Moodle: quiz generator» queste domande si scrivono nella dashboard «Bozze dei quiz» come "
+    "tipologia «Sito PHP con l'editor» e le genera il plugin. È lo stesso template di <strong>html_con_file</strong>: "
+    "valgono anche tutte le sue funzioni di controllo (pagina, cartella, CSS, JavaScript), descritte in quel "
+    "prototipo.</p>",
+    "<p><strong>Come creare una domanda</strong></p>",
+    "<ol>",
+    "<li>In <em>Parametri del template</em>: " + m('{"php": 1, "pagina": "index.html"}') + " (la pagina "
+    "principale, anche " + m("index.php") + ").</li>",
+    "<li>Interfaccia <strong>html_sito</strong>, allegati 0, Tutto o niente a No; gli aiuti dell'editor e le "
+    "immagini fornite come per «Sito con l'editor».</li>",
+    "<li>Per ogni requisito un test: una funzione di controllo, " + m("OK") + " in <em>Output atteso</em>, "
+    "la frase per lo studente in <em>Extra</em>.</li>",
+    "<li>Nella <em>Risposta</em> il sito di riferimento, scritto con l'editor: serve a ogni test.</li>",
+    "</ol>",
+    "<p><strong>Consegna dello .zip.</strong> Lo stesso prototipo controlla anche un sito consegnato come file "
+    ".zip (lavoro fatto con XAMPP): nella domanda interfaccia <strong>html</strong> con " +
+    m('{"html_src": "globalextra"}') + " e un promemoria nel <em>globalextra</em>, allegati 1 (richiesto) con il "
+    "nome del file in <em>Nomi dei file</em>. Lo zip può avere le pagine nella cartella principale o dentro una "
+    "cartella. La <em>Risposta</em> resta il sito di riferimento in JSON, come lo scrive l'editor.</p>",
+    "<p><strong>Controllo tollerante.</strong> Con " + m('"lasco": 1') + " nei parametri del template: le pagine "
+    "si trovano anche con maiuscole diverse, in un'altra cartella o seguendo l'" + m("action") + " del modulo "
+    "e i link dello studente; i campi del modulo si abbinano per name, poi per etichetta, poi per posizione, e "
+    "si inviano con i name dello studente, anche quando un test apre direttamente la pagina PHP; l'uscita si confronta parola per parola (tag, punteggiatura e "
+    "maiuscole non contano), o solo sui dati di " + m("cerca=") + "; gli avvisi Deprecated e Notice non contano. "
+    "Il " + m("method") + " resta controllato.</p>",
+    "<p><strong>Funzioni di controllo: le pagine PHP</strong></p>",
+    tabella(["Test", "Che cosa controlla"], [(m(f), d) for f, d in FUNZIONI_PHP]),
+    "<p><strong>Come gira PHP.</strong> Ogni richiesta è un'esecuzione di php con " + m("display_errors")
+    + " acceso (errori e avvisi si vedono, con la pagina e la riga), un limite di 5 secondi e "
+    + m("open_basedir") + " sulla cartella del sito: una pagina non legge file fuori dal sito. "
+    + m("$_SERVER['REQUEST_METHOD']") + ", " + m("$_REQUEST") + " e " + m("include") + " di altre pagine del sito "
+    "funzionano. Per ora non ci sono sessioni, cookie e reindirizzamenti (" + m("header('Location: …')")
+    + " non fa niente) né database.</p>",
+])

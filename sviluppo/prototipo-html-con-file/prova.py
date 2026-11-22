@@ -17,7 +17,7 @@ def escaper_py(s, lingua=None):
     return (s or "").replace("\\", "\\\\").replace('"', '\\"')
 
 
-def rendi(testcodes, allegati, risposta, soluzione, pagina):
+def rendi(testcodes, allegati, risposta, soluzione, pagina, php=False, lasco=False):
     env = jinja2.Environment(undefined=jinja2.Undefined, autoescape=False,
                              keep_trailing_newline=True)
     env.filters["e"] = escaper_py
@@ -30,13 +30,18 @@ def rendi(testcodes, allegati, risposta, soluzione, pagina):
     }
     if pagina:
         contesto["pagina"] = pagina
+    if php:
+        contesto["php"] = "1"
+    if lasco:
+        contesto["lasco"] = "1"
     return t.render(**contesto)
 
 
-def esegui(testcodes, allegati=None, risposta="", soluzione="", pagina="", senza_node=False, supporto=None):
+def esegui(testcodes, allegati=None, risposta="", soluzione="", pagina="", senza_node=False, supporto=None, php=False,
+           lasco=False):
     """supporto: file di supporto della domanda (nella cartella di lavoro, ma non tra gli allegati)."""
     allegati = allegati or {}
-    programma = rendi(testcodes, allegati, risposta, soluzione, pagina)
+    programma = rendi(testcodes, allegati, risposta, soluzione, pagina, php, lasco)
     if senza_node:
         # simula un Jobe in cui node non c'è: trova_node() restituisce sempre None
         programma = programma.replace("def trova_node():", "def trova_node():\n    return None\n\n\ndef _trova_node_vero():")

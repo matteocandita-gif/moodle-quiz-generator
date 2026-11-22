@@ -1,0 +1,19 @@
+{
+ "ordine": 380,
+ "pos": "G9",
+ "pag": 35,
+ "titolo": "Iscrizione al torneo (PHP)",
+ "tipologia": "sito_php",
+ "parte": 7,
+ "punti": 5,
+ "minuti": 15,
+ "sezione": "Altre tipologie",
+ "strumento": "suggerito",
+ "sostegno": "",
+ "stato": "approvata",
+ "traccia": "Scrivere nell'editor la pagina **index.html** con un modulo che invia nome ed età alla pagina **pagine/conferma.php** con il metodo POST; la pagina PHP risponde con la categoria: Junior sotto i 18 anni, Senior dai 18 in su.",
+ "correzione": "",
+ "coderunner": "=== options\npagina: index.html\naiuti: chiusura\n=== test 2\nmodulo(\"pagine/conferma.php\", \"post\", [\"nome\", \"eta\"])\n=== extra\nIl modulo invia nome ed età a conferma.php con POST\n=== test 3\ninvia(\"index.html\", {\"nome\": \"Mario\", \"eta\": \"17\"})\n=== extra\nCon un iscritto di 17 anni la pagina di conferma dice Junior\n=== test 3\ninvia(\"index.html\", {\"nome\": \"Giulia\", \"eta\": \"18\"})\n=== extra\nCon un'iscritta di 18 anni la pagina di conferma dice Senior\n=== test 1\nphp_senza_errori(\"pagine/conferma.php\", post={\"nome\": \"Mario\", \"eta\": \"15\"})\n=== extra\nLa pagina di conferma non dà errori di PHP\n=== file index.html\n<!DOCTYPE html>\n<html lang=\"it\">\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Iscrizione al torneo</title>\n</head>\n<body>\n    <h1>Iscrizione al torneo</h1>\n    <form action=\"pagine/conferma.php\" method=\"post\">\n        <p>\n            <label for=\"nome\">Nome</label>\n            <input type=\"text\" id=\"nome\" name=\"nome\" required>\n        </p>\n        <p>\n            <label for=\"eta\">Età</label>\n            <input type=\"number\" id=\"eta\" name=\"eta\" min=\"14\" max=\"19\" required>\n        </p>\n        <button>Iscriviti</button>\n    </form>\n</body>\n</html>\n=== file pagine/conferma.php\n<?php\n$nome = $_POST[\"nome\"];\n$eta = $_POST[\"eta\"];\necho \"<h1>Iscrizione ricevuta</h1>\";\nif ($eta >= 18) {\n    echo \"<p>$nome, giochi nella categoria Senior.</p>\";\n} else {\n    echo \"<p>$nome, giochi nella categoria Junior.</p>\";\n}",
+ "docente": "",
+ "sintesi": "x"
+}

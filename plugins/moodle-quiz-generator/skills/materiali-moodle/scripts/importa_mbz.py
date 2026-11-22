@@ -66,7 +66,8 @@ PREFISSI = {  # prefisso del nome -> tipologie possibili (la prima è quella pre
     "Esempio svolto": ["esempio_svolto"], "Tracciamento": ["tracciamento", "lettura_output"],
     "Trova l'errore": ["trova_errore"], "Completamento": ["compl_campi", "compl_eseguito"],
     "Esempio guidato": ["guidato"], "Debug": ["debug_msg", "debug_silenzioso", "debug_motivazione"],
-    "Esercizio libero": ["esercizio_libero"], "Sito": ["sito_html"],
+    "Esercizio libero": ["esercizio_libero"], "Sito": ["sito_html"], "Sito PHP": ["sito_php"],
+    "Consegna PHP": ["consegna_php"],
     "Scrivere": ["prog_completo", "funzione", "prog_dati", "prog_random", "query", "create_tabelle",
                  "query_due_passi", "pagina_php", "scrittura_scheletro", "esercizio_controllo"],
     "Esercizio": ["vincoli"], "Campo di prova": ["campo_prova"], "Consegna": ["consegna_file", "consegna_auto"],
@@ -709,6 +710,9 @@ class Importatore:
                     r["coderunner"] = "=== options\ntipi: " + " ".join(tipi)
         elif tipo == "coderunner":
             r.update(self.coderunner(q, prefisso, conv, avvisi))
+            if r.get("tipologia") == "consegna_php":
+                # la soluzione in chiaro nel feedback la aggiunge da_dashboard.py: non è parte della correzione
+                gf = gf.split("<p><strong>Una soluzione possibile</strong></p>")[0]
             r["correzione"] = conv.markdown(gf)
         else:
             r["traccia"] = conv.markdown(testo_html)
@@ -907,19 +911,28 @@ class Importatore:
             avvisi.append("esercizio %s senza test (prototipo %s): tipologia non più supportata. Importato come "
                           "«Esercizio con controllo» senza controlli: aggiungi i controlli (=== test con === extra) "
                           "o trasformalo in «Sito con l'editor»" % ("CSS" if tl == "css" else "HTML", tipo))
-        elif tl == "html_con_file" and tx(o, "uiplugin").lower() == "html_sito":
+        elif (tl == "html_con_file" and tx(o, "uiplugin").lower() == "html_sito") or tl == "php_sito":
             # sito con l'editor: opzioni dai parametri del template e dell'interfaccia, soluzione dal JSON del sito
             try:
-                pagina = (json.loads(tx(o, "templateparams") or "{}") or {}).get("pagina", "")
+                tp = json.loads(tx(o, "templateparams") or "{}") or {}
             except ValueError:
-                pagina = ""
+                tp = {}
+            pagina = tp.get("pagina", "")
             try:
                 ui = json.loads(tx(o, "uiparameters") or "{}") or {}
             except ValueError:
                 ui = {}
+            # consegna PHP: lo stesso prototipo php_sito, con lo .zip allegato al posto dell'editor
+            consegna = tl == "php_sito" and tx(o, "attachments", "0") not in ("0", "")
+            if consegna:
+                opzioni.append("nome: %s" % re.sub(r"\\(.)", r"\1", tx(o, "filenamesregex") or ""))
+                ui = {}
             if pagina and pagina != "index.html":
                 opzioni.append("pagina: %s" % pagina)
             opzioni.append("controllo: %s" % ("nascosto" if tx(o, "hidecheck", "0") not in ("0", "") else "visibile"))
+            if tl == "php_sito":
+                # sempre scritto: il valore predefinito cambia tra esercitazioni e verifiche
+                opzioni.append("tollerante: %s" % ("sì" if tp.get("lasco") in (1, "1", True) else "no"))
             if ui.get("immagini"):
                 opzioni.append("immagini: %s" % ui["immagini"])
             aiuti = [k for k, v in (("chiusura", "chiusura_automatica"), ("completamento", "completamento"),
@@ -952,7 +965,7 @@ class Importatore:
                     avvisi.append("immagine %s caricata dal computer nella soluzione: non si importa" % p)
                     continue
                 sez.append(("immagine %s" % (p if p.split("/")[-1] == nome else "%s %s" % (p, nome)), ""))
-            tip = "sito_html"
+            tip = "consegna_php" if consegna else "sito_php" if tl == "php_sito" else "sito_html"
         elif tl == "html_con_file":
             # consegna con controllo automatico: nome del file dall'espressione dei nomi accettati,
             # pagina principale dai parametri del template, un test per controllo con peso ed extra

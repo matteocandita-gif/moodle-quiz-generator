@@ -2,6 +2,21 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.16.0 — 22/11/2026
+
+Siti con pagine PHP che girano davvero: gli studenti scrivono la pagina con il modulo e la pagina PHP che riceve i dati, e i controlli le eseguono.
+
+- **Sito PHP con l'editor** (`sito_php`, prototipo nuovo `php_sito`): lo stesso editor del sito, con pagine HTML e PHP. Premendo Verifica il prototipo esegue davvero le pagine PHP su Jobe, con i dati in `$_GET` e `$_POST`, e confronta quello che stampano con la soluzione; errori e avvisi di PHP si vedono con la pagina e la riga. Nei test: `invia` (compila e invia il modulo dello studente), `stessa_uscita`, `php_senza_errori`, `modulo`, `usa_uscita`. Per ora senza database, sessioni e reindirizzamenti.
+- **Consegna PHP (.zip)** (`consegna_php`), solo nelle esercitazioni: lo studente fa il sito con XAMPP e carica la cartella compressa; gli stessi controlli del sito PHP, senza editor. Dopo la consegna il feedback mostra una soluzione, file per file. Si può anche importare lo .zip nell'editor del sito PHP, con `file_pc: sì`.
+- **Controllo tollerante** (`tollerante: sì`, predefinito nelle esercitazioni, spento nelle verifiche): le pagine si trovano anche con altri nomi, seguendo il modulo e i link dello studente; i campi del modulo si abbinano per nome, etichetta o posizione, e ai test arrivano i dati con i nomi dello studente; con `cerca=["Mario", "Junior"]` si controlla solo che la pagina mostri quei dati, e le frasi sono libere. Così gli studenti non perdono tempo a ricopiare esattamente nomi e frasi.
+- **Editor del sito** (interfaccia `html_sito` 0.9.1): nell'anteprima i moduli si possono inviare (il browser controlla i campi obbligatori e mostra i dati che arrivano alla pagina; le pagine PHP le esegue Verifica); colori del PHP nell'editor; sopra l'anteprima una scheda con il titolo della pagina (`<title>`), in grigio il nome del file se il titolo manca; «Importa» accetta anche i file `.php`.
+- **Dashboard** (pagina 0.8.0): le due tipologie nuove nel catalogo, con anteprima, controlli sulla riga e aiuto di «Soluzione e test».
+- **Correzione delle verifiche**: le risposte del sito PHP con l'editor si rieseguono con i controlli. Le consegne .zip no, perché lo .zip non è nell'export di Moodle.
+- **Importazione dei backup**: le domande dei due tipi tornano righe della dashboard, con le opzioni.
+- **Da fare in Moodle**: reinstallare l'interfaccia con `installa.sh` e svuotare le cache; importare una volta il prototipo `prototipo-php-sito.xml` (skill `materiali-moodle`, `assets/`), che ha un nome nuovo. Chi l'ha già importato in prova aggiorna il Template in quello che c'è, senza reimportarlo. `html_con_file` e `css_con_test` non vanno toccati. Aggiornare la pagina «Bozze dei quiz».
+- **Domande generate**: nel quiz di prova due righe nuove, un sito PHP con l'editor e una consegna PHP.
+- Prove superate.
+
 ## 0.15.1 — 19/11/2026
 
 Nel sito con l'editor si può ripartire dal sito di un'altra domanda (esercizi a passi) e, nelle esercitazioni, lavorare con i file del computer.

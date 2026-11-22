@@ -50,6 +50,8 @@ Gli esercizi SQL e PHP lavorano su un database. Si sceglie dal catalogo dei data
 
 Per scrivere una pagina o un sito ci sono tre tipologie con controlli automatici: l'**esercizio con controllo** (una regola CSS o un pezzo di HTML nella casella), la **consegna con controllo automatico** (la cartella del sito, compressa in .zip, dal PC) e il **sito con l'editor**: lo studente crea file, cartelle e immagini dentro Moodle e vede l'anteprima, senza usare i file del PC. Nelle esercitazioni Claude propone la consegna dal PC, perché gli studenti lavorino con i file; il sito con l'editor lo usa nelle verifiche (con Safe Exam Browser), e nelle esercitazioni solo quando lo chiedi tu, per esempio per prepararsi alla verifica. Nelle verifiche i controlli sono nascosti: il punteggio si calcola alla consegna. Il sito con l'editor ha bisogno dell'interfaccia `html_sito` installata in Moodle: «installa l'interfaccia del sito con l'editor» e Claude ti dà lo script e i passi per l'amministratore.
 
+Per il PHP ci sono il **sito PHP con l'editor** (pagine HTML e PHP scritte in Moodle) e la **consegna PHP** (il sito fatto con XAMPP, caricato in .zip): in tutti e due le pagine PHP girano davvero e i controlli inviano il modulo dello studente. Nelle esercitazioni il controllo è tollerante: accetta nomi di pagine e campi diversi da quelli della traccia e guarda solo i dati che contano, così gli studenti non perdono tempo a ricopiare.
+
 ## Fuori dalla dashboard
 
 Per una domanda sola o poche domande per la banca non serve la dashboard: «una Cloze sull'ordine delle clausole di una SELECT», «controlla queste domande», «una pagina di ripasso sul box model». Claude consegna il Moodle XML da importare nella banca delle domande.

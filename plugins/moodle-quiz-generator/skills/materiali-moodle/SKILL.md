@@ -80,7 +80,7 @@ Leggi solo i file che servono alla richiesta:
 | `references/verifiche.md` | generi una verifica o la sua copia PDP: «Copia PDP», «Domanda delle note», «Safe Exam Browser», «Verifiche ripetibili» |
 | `references/depositi.md` | il quiz ha `deposito`, o c'è un deposito da registrare: «Depositi», «Registrare un deposito» |
 | `references/righe-coderunner.md` | il quiz ha domande CodeRunner o corrispondenze: «Righe CodeRunner», «Corrispondenze» |
-| `references/interfaccia-html-sito.md` | il quiz ha un «Sito con l'editor», o l'utente chiede di installare o aggiornare l'interfaccia `html_sito` sul server Moodle |
+| `references/interfaccia-html-sito.md` | il quiz ha un «Sito con l'editor» o un «Sito PHP con l'editor», o l'utente chiede di installare o aggiornare l'interfaccia `html_sito` sul server Moodle |
 | `references/aggiornare-quiz.md` | il quiz è già in Moodle: «Aggiornare un quiz già in Moodle», «Riallineare la dashboard» |
 | `references/fuori-dashboard.md` | la richiesta non viene dalla dashboard: «Distribuzione su pagine», «Produrre le domande», «Produrre le pagine», «Controllare materiale esistente» |
 | `references/regole-comuni.md` | **sempre**: le regole comuni a tutte le domande (tracce degli esercizi, Cloze, feedback, risposta multipla, alternative ammesse, nomi) |

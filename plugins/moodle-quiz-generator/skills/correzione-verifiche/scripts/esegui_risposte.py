@@ -17,10 +17,13 @@ Linguaggio deciso dal campo «coderunner» della riga:
   contano. Serve `php`; il client sqlite3 lo sostituisce sqlite3_cli.py di materiali-moodle.
 - JavaScript con prompt: nessun database e niente `=== code`. Esegue in Node con esegui_js.py di
   domande-coderunner-js.
-- Sito con l'editor (tipologia sito_html): la risposta è il sito dell'editor (JSON). Esegue i controlli
-  con il template del prototipo html_con_file, come da_dashboard.py di materiali-moodle; nei file
+- Sito con l'editor (tipologie sito_html e sito_php): la risposta è il sito dell'editor (JSON). Esegue i
+  controlli con il template del prototipo html_con_file (php_sito per le pagine PHP, eseguite con php),
+  come da_dashboard.py di materiali-moodle; nei file
   DNN.txt il sito si legge file per file. L'export in Excel toglie i tag HTML anche da qui: se le
   pagine non hanno tag, l'esito lo dice e le risposte vanno importate da Moodle (SKILL.md, passo 4).
+- Consegna PHP (.zip, tipologia consegna_php): lo .zip non è nell'export delle risposte, quindi non si
+  riesegue: resta alla correzione manuale.
 Le righe senza test (HTML, CSS, teoria) restano alla correzione manuale.
 
 Il punteggio automatico è stimato: tutto o niente, salvo `allornothing: 0` nelle opzioni (frazione
@@ -218,14 +221,15 @@ def prepara_sito(quiz, riga):
     sys.path.insert(0, str(SKILLS / "materiali-moodle" / "scripts"))
     import xml.etree.ElementTree as ET
     import da_dashboard as dd
-    _, pagina, test, sito, _, _ = dd.specifica_sito(quiz, riga)
-    template = ET.parse(dd.PROTOTIPO_CONSEGNA).getroot().find("question/template").text or ""
-    return (dd.esegui_controlli, template, pagina, sito), [{"codice": t["codice"], "peso": t["peso"],
+    _, pagina, test, sito, _, _, altro = dd.specifica_sito(quiz, riga)
+    php, lasco = altro["php"], altro["lasco"]
+    template = ET.parse(dd.PROTOTIPO_PHP_SITO if php else dd.PROTOTIPO_CONSEGNA).getroot().find("question/template").text or ""
+    return (dd.esegui_controlli, template, pagina, sito, php, lasco), [{"codice": t["codice"], "peso": t["peso"],
                                                             "extra": t["extra"]} for t in test]
 
 
 def esito_sito(ctx, tests, risposta):
-    esegui, template, pagina, soluzione = ctx
+    esegui, template, pagina, soluzione, php, lasco = ctx
     o = sito_della_risposta(risposta)
     if o is None:
         return [("errore", "risposta non leggibile come sito dell'editor")] * len(tests)
@@ -233,7 +237,7 @@ def esito_sito(ctx, tests, risposta):
     if html and not any("<" in str(v) for v in html):
         return [("errore", "le pagine non hanno tag: l'export Excel li ha tolti, importa le risposte da Moodle")] * len(tests)
     try:
-        uscite = esegui(template, [t["codice"] for t in tests], json.dumps(o, ensure_ascii=False), pagina, soluzione)
+        uscite = esegui(template, [t["codice"] for t in tests], json.dumps(o, ensure_ascii=False), pagina, soluzione, php, lasco)
     except Exception as e:
         return [("errore", str(e)[:120])] * len(tests)
     return [("ok", "") if u.strip() == "OK" else ("diverso", t["extra"].rstrip(".") + ": " + u.strip().replace("\n", " | "))
@@ -260,7 +264,7 @@ def main():
                               encoding="utf-8"))
         o, answer, code, tests = sezioni(riga.get("coderunner", ""))
         out = None
-        if riga.get("tipologia") == "sito_html":
+        if riga.get("tipologia") in ("sito_html", "sito_php"):
             ctx, tests = prepara_sito(quiz, riga)
             out = ("sito", ctx, None, tests, float(riga.get("punti") or 0), False, o)
         elif tests and answer:

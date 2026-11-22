@@ -15,13 +15,14 @@ import sys
 import xml.dom.minidom
 
 from domande import Q1_SOLUZIONE, Q1_TEST, Q2_TEST, Q3_TEST, Q4_TEST, q2_file_corretti, q3_file_corretti, q4_file_corretti, zip_sito
-from testi import DESCRIZIONE_CSS_CON_TEST, DESCRIZIONE_PROTOTIPO, PROMEMORIA, TESTO_Q1, TESTO_Q2, TESTO_Q3, TESTO_Q4
+from testi import DESCRIZIONE_CSS_CON_TEST, DESCRIZIONE_PHP_SITO, DESCRIZIONE_PROTOTIPO, PROMEMORIA, TESTO_Q1, TESTO_Q2, TESTO_Q3, TESTO_Q4
 
 QUI = os.path.dirname(os.path.abspath(__file__))
 RADICE = os.path.abspath(os.path.join(QUI, "..", ".."))
 SKILLS = os.path.join(RADICE, "plugins", "moodle-quiz-generator", "skills")
 ASSET = os.path.join(SKILLS, "materiali-moodle", "assets", "prototipo-html-con-file.xml")
 ASSET_CSS = os.path.join(SKILLS, "materiali-moodle", "assets", "prototipo-css-con-test.xml")
+ASSET_PHP = os.path.join(SKILLS, "materiali-moodle", "assets", "prototipo-php-sito.xml")
 TRACCE = os.path.join(SKILLS, "progettazione-quiz", "references", "tracce-consegna.md")
 INIZIO, FINE = "<!-- funzioni-html-con-file: inizio", "<!-- funzioni-html-con-file: fine -->"
 
@@ -56,8 +57,10 @@ def testcase(codice, descrizione):
 
 
 def prototipo(tipo="html_con_file"):
-    """Il prototipo html_con_file (file allegato) o css_con_test (casella di risposta): stesso template."""
+    """Il prototipo html_con_file (file allegato), css_con_test (casella di risposta) o php_sito (sito con
+    pagine PHP, interfaccia html_sito): stesso template."""
     casella = tipo == "css_con_test"
+    php = tipo == "php_sito"
     template = open(os.path.join(QUI, "template.py"), encoding="utf-8").read()
     colonne = json.dumps([["Controllo", "extra"], ["Trovato?", "got"]], ensure_ascii=False)
     return f"""  <question type="coderunner">
@@ -65,7 +68,7 @@ def prototipo(tipo="html_con_file"):
       <text>PROTOTYPE - {tipo}</text>
     </name>
     <questiontext format="html">
-      <text>{cdata(DESCRIZIONE_CSS_CON_TEST if casella else DESCRIZIONE_PROTOTIPO)}</text>
+      <text>{cdata(DESCRIZIONE_CSS_CON_TEST if casella else DESCRIZIONE_PHP_SITO if php else DESCRIZIONE_PROTOTIPO)}</text>
     </questiontext>
     <generalfeedback format="html">
       <text></text>
@@ -94,29 +97,29 @@ def prototipo(tipo="html_con_file"):
     <validateonsave>0</validateonsave>
     <testsplitterre>{cdata("|#<ab@17943918#@>#\\n|ms")}</testsplitterre>
     <language>python3</language>
-    <acelang>{"css" if casella else "html"}</acelang>
+    <acelang>{"css" if casella else "php" if php else "html"}</acelang>
     <sandbox></sandbox>
     <grader>EqualityGrader</grader>
-    <cputimelimitsecs></cputimelimitsecs>
+    <cputimelimitsecs>{30 if php else ""}</cputimelimitsecs>
     <memlimitmb>1000</memlimitmb>
     <sandboxparams></sandboxparams>
-    <templateparams>{esc(json.dumps({"pagina": "stile.css"})) if casella else ""}</templateparams>
+    <templateparams>{esc(json.dumps({"pagina": "stile.css"})) if casella else esc(json.dumps({"php": 1, "pagina": "index.html"})) if php else ""}</templateparams>
     <hoisttemplateparams>1</hoisttemplateparams>
     <extractcodefromjson>1</extractcodefromjson>
     <templateparamslang>None</templateparamslang>
     <templateparamsevalpertry>0</templateparamsevalpertry>
     <templateparamsevald>{{}}</templateparamsevald>
     <twigall>0</twigall>
-    <uiplugin>{"ace" if casella else "html"}</uiplugin>
-    <uiparameters>{"" if casella else esc(json.dumps({"html_src": "prototypeextra", "enable_in_editor": False}))}</uiparameters>
-    <attachments>{0 if casella else 1}</attachments>
-    <attachmentsrequired>{0 if casella else 1}</attachmentsrequired>
+    <uiplugin>{"ace" if casella else "html_sito" if php else "html"}</uiplugin>
+    <uiparameters>{"" if casella or php else esc(json.dumps({"html_src": "prototypeextra", "enable_in_editor": False}))}</uiparameters>
+    <attachments>{0 if casella or php else 1}</attachments>
+    <attachmentsrequired>{0 if casella or php else 1}</attachmentsrequired>
     <maxfilesize>102400</maxfilesize>
-    <filenamesregex>{"" if casella else esc(r".*\.(html|htm|zip)")}</filenamesregex>
+    <filenamesregex>{"" if casella or php else esc(r".*\.(html|htm|zip)")}</filenamesregex>
     <filenamesexplain></filenamesexplain>
     <displayfeedback>1</displayfeedback>
     <giveupallowed>0</giveupallowed>
-    <prototypeextra>{"" if casella else cdata(PROMEMORIA)}</prototypeextra>
+    <prototypeextra>{"" if casella or php else cdata(PROMEMORIA)}</prototypeextra>
     <testcases>
     </testcases>
   </question>
@@ -238,6 +241,7 @@ def aggiorna_tracce():
 def main():
     scrivi(ASSET, [prototipo()])
     scrivi(ASSET_CSS, [prototipo("css_con_test")])
+    scrivi(ASSET_PHP, [prototipo("php_sito")])
     aggiorna_tracce()
     if "--prove" in sys.argv:
         cartella = sys.argv[sys.argv.index("--prove") + 1]

@@ -2481,6 +2481,267 @@ FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca
     </testcases>
   </question>
 
+  <question type="coderunner">
+    <name>
+      <text>L9 - G9 - Sito PHP: Iscrizione al torneo (PHP)</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Scrivere nell'editor la pagina <strong>index.html</strong> con un modulo che invia nome ed età alla pagina <strong>pagine/conferma.php</strong> con il metodo POST; la pagina PHP risponde con la categoria: Junior sotto i 18 anni, Senior dai 18 in su.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>5.0000000</defaultgrade>
+    <penalty>0.0000000</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>php_sito</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>0</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>18</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload></answerpreload>
+    <globalextra></globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer><![CDATA[{"htmlve": 1, "versione": "dashboard", "salvato": "", "cartelle": ["pagine"], "files": {"index.html": "<!DOCTYPE html>\n<html lang=\"it\">\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Iscrizione al torneo</title>\n</head>\n<body>\n    <h1>Iscrizione al torneo</h1>\n    <form action=\"pagine/conferma.php\" method=\"post\">\n        <p>\n            <label for=\"nome\">Nome</label>\n            <input type=\"text\" id=\"nome\" name=\"nome\" required>\n        </p>\n        <p>\n            <label for=\"eta\">Età</label>\n            <input type=\"number\" id=\"eta\" name=\"eta\" min=\"14\" max=\"19\" required>\n        </p>\n        <button>Iscriviti</button>\n    </form>\n</body>\n</html>\n", "pagine/conferma.php": "<?php\n$nome = $_POST[\"nome\"];\n$eta = $_POST[\"eta\"];\necho \"<h1>Iscrizione ricevuta</h1>\";\nif ($eta >= 18) {\n    echo \"<p>$nome, giochi nella categoria Senior.</p>\";\n} else {\n    echo \"<p>$nome, giochi nella categoria Junior.</p>\";\n}\n"}, "immagini": {}}]]></answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams>{"pagina": "index.html", "php": 1, "lasco": 1}</templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin>html_sito</uiplugin>
+    <uiparameters>{"chiusura_automatica": true}</uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="2.0000000" >
+      <testcode>
+                <text><![CDATA[modulo("pagine/conferma.php", "post", ["nome", "eta"])]]></text>
+      </testcode>
+      <stdin>
+                <text></text>
+      </stdin>
+      <expected>[output 42]</expected>
+      <extra>
+                <text><![CDATA[Il modulo invia nome ed età a conferma.php con POST]]></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="3.0000000" >
+      <testcode>
+                <text><![CDATA[invia("index.html", {"nome": "Mario", "eta": "17"})]]></text>
+      </testcode>
+      <stdin>
+                <text></text>
+      </stdin>
+      <expected>[output 43]</expected>
+      <extra>
+                <text><![CDATA[Con un iscritto di 17 anni la pagina di conferma dice Junior]]></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="3.0000000" >
+      <testcode>
+                <text><![CDATA[invia("index.html", {"nome": "Giulia", "eta": "18"})]]></text>
+      </testcode>
+      <stdin>
+                <text></text>
+      </stdin>
+      <expected>[output 44]</expected>
+      <extra>
+                <text><![CDATA[Con un'iscritta di 18 anni la pagina di conferma dice Senior]]></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.0000000" >
+      <testcode>
+                <text><![CDATA[php_senza_errori("pagine/conferma.php", post={"nome": "Mario", "eta": "15"})]]></text>
+      </testcode>
+      <stdin>
+                <text></text>
+      </stdin>
+      <expected>[output 45]</expected>
+      <extra>
+                <text><![CDATA[La pagina di conferma non dà errori di PHP]]></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+    </testcases>
+  </question>
+
+  <question type="coderunner">
+    <name>
+      <text>L9 - G10 - Consegna PHP: Iscrizione al torneo (consegna .zip)</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Con XAMPP, creare la pagina <strong>index.html</strong> con un modulo che invia nome ed età a una pagina PHP con il metodo POST; la pagina PHP risponde con il nome e la categoria: Junior sotto i 18 anni, Senior dai 18 in su.</p>
+<p>Comprimere la cartella del sito nel file <strong>torneo.zip</strong> e caricarlo qui sotto.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p><strong>Una soluzione possibile</strong></p>
+<p><code>index.html</code></p>
+<pre>&lt;!DOCTYPE html&gt;
+&lt;html lang="it"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Iscrizione al torneo&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Iscrizione al torneo&lt;/h1&gt;
+    &lt;form action="pagine/conferma.php" method="post"&gt;
+        &lt;p&gt;
+            &lt;label for="nome"&gt;Nome&lt;/label&gt;
+            &lt;input type="text" id="nome" name="nome" required&gt;
+        &lt;/p&gt;
+        &lt;p&gt;
+            &lt;label for="eta"&gt;Età&lt;/label&gt;
+            &lt;input type="number" id="eta" name="eta" min="14" max="19" required&gt;
+        &lt;/p&gt;
+        &lt;button&gt;Iscriviti&lt;/button&gt;
+    &lt;/form&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+<p><code>pagine/conferma.php</code></p>
+<pre>&lt;?php
+$nome = $_POST["nome"];
+$eta = $_POST["eta"];
+echo "&lt;h1&gt;Iscrizione ricevuta&lt;/h1&gt;";
+if ($eta &gt;= 18) {
+    echo "&lt;p&gt;$nome, giochi nella categoria Senior.&lt;/p&gt;";
+} else {
+    echo "&lt;p&gt;$nome, giochi nella categoria Junior.&lt;/p&gt;";
+}</pre>]]></text>
+    </generalfeedback>
+    <defaultgrade>5.0000000</defaultgrade>
+    <penalty>0.0000000</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>php_sito</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>0</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>3</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload></answerpreload>
+    <globalextra><![CDATA[<p style="margin: 0 0 6px; color: #555555;">Comprimi la cartella del sito nel file <strong>torneo.zip</strong>, caricalo nel riquadro qui sotto, poi premi <strong>Verifica</strong>.</p>
+<p style="margin: 0; color: #555555;"><strong>Attenzione:</strong> «OK» vuol dire che il controllo ha trovato quello che cercava, non che il lavoro è perfetto. <strong>Prova sempre le pagine nel browser</strong> (con XAMPP) e confrontale con la consegna.</p>]]></globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer><![CDATA[{"htmlve": 1, "versione": "dashboard", "salvato": "", "cartelle": ["pagine"], "files": {"index.html": "<!DOCTYPE html>\n<html lang=\"it\">\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Iscrizione al torneo</title>\n</head>\n<body>\n    <h1>Iscrizione al torneo</h1>\n    <form action=\"pagine/conferma.php\" method=\"post\">\n        <p>\n            <label for=\"nome\">Nome</label>\n            <input type=\"text\" id=\"nome\" name=\"nome\" required>\n        </p>\n        <p>\n            <label for=\"eta\">Età</label>\n            <input type=\"number\" id=\"eta\" name=\"eta\" min=\"14\" max=\"19\" required>\n        </p>\n        <button>Iscriviti</button>\n    </form>\n</body>\n</html>\n", "pagine/conferma.php": "<?php\n$nome = $_POST[\"nome\"];\n$eta = $_POST[\"eta\"];\necho \"<h1>Iscrizione ricevuta</h1>\";\nif ($eta >= 18) {\n    echo \"<p>$nome, giochi nella categoria Senior.</p>\";\n} else {\n    echo \"<p>$nome, giochi nella categoria Junior.</p>\";\n}\n"}, "immagini": {}}]]></answer>
+    <validateonsave>0</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams>{"pagina": "index.html", "php": 1, "lasco": 1}</templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin>html</uiplugin>
+    <uiparameters>{"html_src": "globalextra", "enable_in_editor": false}</uiparameters>
+    <attachments>1</attachments>
+    <attachmentsrequired>1</attachmentsrequired>
+    <maxfilesize>10485760</maxfilesize>
+    <filenamesregex>torneo\.zip</filenamesregex>
+    <filenamesexplain>&lt;p&gt;&lt;strong&gt;Il file deve chiamarsi torneo.zip, tutto minuscolo e senza spazi.&lt;/strong&gt;&lt;/p&gt;</filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="2.0000000" >
+      <testcode>
+                <text><![CDATA[modulo("pagine/conferma.php", "post", ["nome", "eta"])]]></text>
+      </testcode>
+      <stdin>
+                <text></text>
+      </stdin>
+      <expected>[output 46]</expected>
+      <extra>
+                <text><![CDATA[Il modulo invia nome ed età a una pagina PHP con POST]]></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="3.0000000" >
+      <testcode>
+                <text><![CDATA[invia("index.html", {"nome": "Mario", "eta": "17"}, cerca=["Mario", "Junior"])]]></text>
+      </testcode>
+      <stdin>
+                <text></text>
+      </stdin>
+      <expected>[output 47]</expected>
+      <extra>
+                <text><![CDATA[Con un iscritto di 17 anni la pagina PHP mostra il nome e la categoria Junior]]></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="3.0000000" >
+      <testcode>
+                <text><![CDATA[invia("index.html", {"nome": "Giulia", "eta": "18"}, cerca=["Giulia", "Senior"])]]></text>
+      </testcode>
+      <stdin>
+                <text></text>
+      </stdin>
+      <expected>[output 48]</expected>
+      <extra>
+                <text><![CDATA[Con un'iscritta di 18 anni la pagina PHP mostra il nome e la categoria Senior]]></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+    </testcases>
+  </question>
+
 </quiz>
 
 
@@ -2691,6 +2952,16 @@ FakeDB::configure(['user' => 'root', 'password' => '', 'database' => 'biblioteca
      "nome": "L9 - G8 - Dal risultato al codice",
      "pagina": 34,
      "punti": 1.0
+    },
+    {
+     "nome": "L9 - G9 - Sito PHP: Iscrizione al torneo (PHP)",
+     "pagina": 35,
+     "punti": 5.0
+    },
+    {
+     "nome": "L9 - G10 - Consegna PHP: Iscrizione al torneo (consegna .zip)",
+     "pagina": 36,
+     "punti": 5.0
     }
    ],
    "titolo": "Altre tipologie"

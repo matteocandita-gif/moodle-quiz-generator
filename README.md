@@ -12,7 +12,7 @@ Le domande coprono Cloze, risposta multipla, vero/falso, risposta breve, aperta,
 
 - Un account Claude a pagamento (Pro o superiore): i plugin non ci sono nel piano gratuito.
 - L'esecuzione del codice attiva nelle impostazioni di Claude: le skill usano script per costruire XML e backup.
-- Il Moodle della scuola, con i prototipi CodeRunner già installati (`sql_salvemini`, `php_mysqli_sqlite`, `html_con_file`, `css_con_test`, «Javascript (con prompt)», «Javascript (con gapfiller)») e, per i siti scritti con l'editor, l'interfaccia `html_sito` di CodeRunner (la installa l'amministratore con lo script nella skill `materiali-moodle`). Su un altro Moodle le domande CodeRunner vanno adattate.
+- Il Moodle della scuola, con i prototipi CodeRunner già installati (`sql_salvemini`, `php_mysqli_sqlite`, `html_con_file`, `css_con_test`, `php_sito`, «Javascript (con prompt)», «Javascript (con gapfiller)») e, per i siti scritti con l'editor, l'interfaccia `html_sito` di CodeRunner (la installa l'amministratore con lo script nella skill `materiali-moodle`). Su un altro Moodle le domande CodeRunner vanno adattate.
 - Per l'avvio automatico dei quiz dalla dashboard: il connettore Claude Code Remote e le attività programmate. Senza, tutto funziona lo stesso: il pulsante «Inizia» ti dà una frase da incollare in chat.
 
 ## Installazione

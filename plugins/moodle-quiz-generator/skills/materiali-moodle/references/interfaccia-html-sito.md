@@ -1,10 +1,12 @@
 # L'interfaccia «html_sito» di CodeRunner
 
-Da leggere quando il quiz ha un «Sito con l'editor» (`sito_html`), o quando l'utente chiede di installare o aggiornare l'interfaccia sul server Moodle. Fa parte di `materiali-moodle`; il formato della riga è in `tracce-html.md` di `progettazione-quiz`, la generazione in `righe-coderunner.md`.
+Da leggere quando il quiz ha un «Sito con l'editor» (`sito_html`) o un «Sito PHP con l'editor» (`sito_php`), o quando l'utente chiede di installare o aggiornare l'interfaccia sul server Moodle. Fa parte di `materiali-moodle`; il formato della riga è in `tracce-html.md` di `progettazione-quiz`, la generazione in `righe-coderunner.md`.
 
 ## Che cos'è
 
 Un'interfaccia di CodeRunner, come Ace, Html o Table, che si sceglie in una domanda con **Personalizza → Input UI: html_sito**. Lo studente crea cartelle e file del sito («+ File», «+ Cartella», «+ Immagine», «Rinomina», «Sposta» o trascinamento, «Elimina»), li scrive con l'editor Ace di CodeRunner e vede l'anteprima della pagina aperta, con i link che portano da una pagina all'altra, «Not Found» come un server vero quando il file non c'è e le immagini solo con il percorso giusto. Il codice dello studente gira in un riquadro isolato e non può toccare la pagina di Moodle.
+
+**Moduli e pagine PHP nell'anteprima**: inviando un modulo, il browser controlla i campi (`required`, `min`, `type="email"`…) e l'anteprima va alla pagina dell'`action`: con GET i dati compaiono nella barra degli indirizzi (`cerca.html?q=giallo`), con POST in un avviso. Le pagine `.php` (con i colori di PHP nell'editor) non si eseguono: l'anteprima mostra il nome della pagina e la tabella dei dati che riceverebbe, con il metodo e i `name`, e ricorda che le esegue Controlla. Anche un link con `?id=3` porta i suoi dati GET. «Copia sito» e «Incolla sito» portano il sito da una domanda all'altra dello stesso tentativo.
 
 La risposta è il sito in JSON, che il template di `html_con_file` ricrea in una cartella e controlla come uno zip:
 
@@ -29,7 +31,7 @@ Tutti facoltativi; `da_dashboard.py` li scrive dalle opzioni della riga.
 | `completamento` | `aiuti: completamento` | Ace propone tag, attributi e proprietà CSS mentre si scrive |
 | `segnala_errori` | `aiuti: errori` | Ace segna nel margine gli errori di sintassi che riconosce |
 | `immagini` | `immagini: logo.png, pizza.jpg` | le immagini del testo della domanda che lo studente mette nel sito con «+ Immagine» |
-| `file_pc` | `file_pc: sì` | file del computer: «Scarica .zip» (il sito in uno .zip), «Importa» (file sciolti o uno .zip, nella cartella selezionata), immagini caricate con «+ Immagine» (massimo 500 KB l'una); mai nelle verifiche |
+| `file_pc` | `file_pc: sì` | file del computer: «Scarica .zip» (il sito in uno .zip), «Importa» (file sciolti o uno .zip, nella cartella selezionata; anche le pagine `.php` dalla 0.9.1), immagini caricate con «+ Immagine» (massimo 500 KB l'una); mai nelle verifiche |
 | `carica_immagini` | (nome vecchio) | come `file_pc`: vale ancora per le domande già fatte |
 | `copia_incolla` | (sempre acceso) | pulsanti «Copia sito» e «Incolla sito»: il sito di una domanda si porta in un'altra dello stesso tentativo, per gli esercizi a passi. Gli appunti stanno nel browser e valgono solo nello stesso tentativo |
 

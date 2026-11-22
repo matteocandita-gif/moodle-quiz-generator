@@ -32,6 +32,8 @@
     <useace>1</useace>
     <resultcolumns>[["Controllo", "extra"], ["Trovato?", "got"]]</resultcolumns>
     <template><![CDATA[# Prototipo html_con_file: controlla la pagina HTML consegnata dallo studente.
+# Lo stesso template fa anche css_con_test (CSS o HTML nella casella) e php_sito (sito con pagine PHP
+# eseguite davvero con php: parametro del template "php").
 # La pagina arriva come file allegato (.html, oppure .zip con la cartella del sito),
 # dal sito scritto con l'editor (interfaccia html_sito: JSON con "htmlve": 1)
 # o, se non ci sono allegati, dalla casella di risposta.
@@ -47,6 +49,7 @@ import posixpath
 import re
 import shutil
 import subprocess
+import tempfile
 import zipfile
 from html.parser import HTMLParser
 from urllib.parse import unquote
@@ -56,6 +59,10 @@ ALLEGATI = [n for n in "{{ ATTACHMENTS }}".split(",") if n.strip()]
 RISPOSTA = """{{ STUDENT_ANSWER | e('py') }}"""
 SOLUZIONE = """{{ QUESTION.answer | e('py') }}"""
 PAGINA = "{{ pagina | default('') }}".strip()   # parametro del template: il file da controllare
+PHP = "{{ php | default('') }}".strip() not in ("", "0")   # parametro del template: prototipo php_sito
+# parametro del template: controllo tollerante (pagine e campi del modulo trovati anche con nomi diversi,
+# uscita confrontata parola per parola o solo sui dati indicati con cerca=)
+LASCO = "{{ lasco | default('') }}".strip() not in ("", "0")
 
 CARTELLA = "consegna"
 FILE_DI_SISTEMA = {"thumbs.db", "desktop.ini", ".ds_store"}   # li crea il sistema operativo: si ignorano
@@ -169,6 +176,7 @@ def pagina_della_soluzione(soluzione):
     return sito["files"].get(PAGINA or "index.html", "")
 
 
+SITO_SOLUZIONE = sito_dall_editor(SOLUZIONE)   # la soluzione intera, per eseguire le sue pagine PHP
 SOLUZIONE = pagina_della_soluzione(SOLUZIONE)
 
 
@@ -206,10 +214,14 @@ def scegli_pagina(file_consegnati):
             return PAGINA, ""
         return None, "La risposta è vuota: scrivi il codice CSS nella casella."
     html = [f for f in file_consegnati if f.lower().endswith((".html", ".htm"))]
+    if PAGINA.lower().endswith(".php"):
+        html = [f for f in file_consegnati if f.lower().endswith(".php")]   # prototipo php_sito
     if PAGINA:
         trovati = [f for f in html if posixpath.basename(f) == PAGINA]
         if not trovati:
             simili = [f for f in html if posixpath.basename(f).lower() == PAGINA.lower()]
+            if simili and LASCO:
+                return min(simili, key=lambda f: f.count("/")), ""
             if simili:
                 return None, ("Il file si deve chiamare %s, tu l'hai chiamato %s: "
                               "attenzione a maiuscole e minuscole." % (PAGINA, posixpath.basename(simili[0])))
@@ -298,8 +310,9 @@ class Lettore(HTMLParser):
 
 def usa_pagina(percorso):
     """Legge la pagina indicata (percorso dalla cartella del sito) e la rende quella da controllare."""
-    global PAGINA_SCELTA, LETTORE, ELEMENTI
-    completo = nel_sito(percorso)
+    global PAGINA_SCELTA, PAGINA_TRACCIA, LETTORE, ELEMENTI
+    PAGINA_TRACCIA = percorso
+    completo = nel_sito(file_dello_studente(percorso))
     if completo not in FILE_CONSEGNATI:
         raise ConsegnaIncompleta("Non trovo la pagina %s nella tua consegna." % percorso)
     PAGINA_SCELTA = completo
@@ -327,6 +340,129 @@ def dal_sito(percorso):
     return posixpath.relpath(percorso, SITO) if SITO else percorso
 
 
+# ------------------------------------------------------------ modalità tollerante (parametro lasco)
+
+def leggi_html(testo):
+    lettore = Lettore()
+    lettore.feed(testo)
+    lettore.close()
+    return lettore
+
+
+def stesso_file(percorso):
+    """Il file dello studente con il percorso indicato, anche con maiuscole diverse o in un'altra cartella
+    del sito (percorso dalla cartella del sito), oppure None."""
+    completo = nel_sito(percorso)
+    if completo in FILE_CONSEGNATI:
+        return percorso
+    for f in FILE_CONSEGNATI:
+        if f.lower() == completo.lower():
+            return dal_sito(f)
+    nome = posixpath.basename(completo).lower()
+    stessi = [f for f in FILE_CONSEGNATI if posixpath.basename(f).lower() == nome
+              and (not SITO or f.startswith(SITO + "/"))]
+    if stessi:
+        return dal_sito(min(stessi, key=lambda f: f.count("/")))
+    return None
+
+
+def indirizzo_locale(indirizzo):
+    pulito = unquote(indirizzo.strip().split("#")[0].split("?")[0])
+    if not pulito or pulito.lower().startswith(("http:", "https:", "mailto:", "tel:", "javascript:", "data:", "/")):
+        return None
+    return pulito
+
+
+def collegamenti(percorso):
+    """I moduli e i link che nella soluzione portano alla pagina indicata, ognuno con il modulo o il link che
+    gli corrisponde nella stessa pagina dello studente (stesso testo del link, altrimenti stessa posizione)."""
+    if SITO_SOLUZIONE is None:
+        return
+    for pagina_s, testo in sorted(SITO_SOLUZIONE["files"].items()):
+        if not pagina_s.lower().endswith((".html", ".htm", ".php")):
+            continue
+        pagina_stu = stesso_file(pagina_s)
+        if pagina_stu is None:
+            continue
+        el_sol = leggi_html(testo).elementi
+        el_stu = leggi_html(leggi_testo(os.path.join(CARTELLA, nel_sito(pagina_stu)))).elementi
+        for tag, attributo in (("form", "action"), ("a", "href")):
+            del_sol = [e for e in el_sol if e.tag == tag]
+            dello_stu = [e for e in el_stu if e.tag == tag]
+            for i, e in enumerate(del_sol):
+                pulito = indirizzo_locale(e.attributi.get(attributo) or "")
+                if pulito is None:
+                    continue
+                if posixpath.normpath(posixpath.join(posixpath.dirname(pagina_s), pulito)) != posixpath.normpath(percorso):
+                    continue
+                candidati = [x for x in dello_stu if tag == "a" and x.testo().lower() == e.testo().lower()]
+                if not candidati and i < len(dello_stu):
+                    candidati = [dello_stu[i]]
+                for x in candidati:
+                    suo = indirizzo_locale(x.attributi.get(attributo) or "")
+                    if suo is None:
+                        continue
+                    arrivo = stesso_file(posixpath.normpath(posixpath.join(posixpath.dirname(pagina_stu), suo)))
+                    yield {"tag": tag, "sol": e, "stu": x, "el_sol": el_sol, "el_stu": el_stu, "arrivo": arrivo}
+
+
+def pagina_collegata(percorso):
+    """La pagina dello studente a cui portano il suo modulo o il suo link che, nella soluzione, portano
+    alla pagina indicata: così il controllo segue i suoi collegamenti anche se ha scelto altri nomi."""
+    for c in collegamenti(percorso):
+        if c["arrivo"] is not None:
+            return c["arrivo"]
+    return None
+
+
+def nomi_della_coda(href):
+    """I nomi dei dati nel ?… di un link, nell'ordine."""
+    coda = href.split("#")[0].split("?", 1)[1] if "?" in href else ""
+    return [unquote(x.split("=")[0]) for x in coda.split("&") if x.split("=")[0]]
+
+
+def dati_dello_studente(pagina, get, post):
+    """Controllo tollerante: i dati di un test che apre direttamente una pagina PHP, con i nomi che usa lo
+    studente: quelli del suo modulo (o dei suoi link ?…) che porta alla pagina, abbinati come in invia."""
+    if not LASCO:
+        return get, post
+    dati = dict(get or {}, **(post or {}))
+    if not dati:
+        return get, post
+    for c in collegamenti(pagina):
+        if c["arrivo"] is None:
+            continue
+        if c["tag"] == "form":
+            campi_sol = campi_del_modulo(c["sol"], c["el_sol"])
+            campi_stu = campi_del_modulo(c["stu"], c["el_stu"])
+            mappa = mappa_campi(list(dati), campi_sol, c["el_sol"], campi_stu, c["el_stu"])
+            traduci = lambda d: None if d is None else {
+                mappa.get(k, k): valore_per_lo_studente(v, k, campi_sol, mappa.get(k, k), campi_stu) for k, v in d.items()}
+        else:
+            nomi_sol = nomi_della_coda(c["sol"].attributi.get("href", ""))
+            nomi_stu = nomi_della_coda(c["stu"].attributi.get("href", ""))
+            mappa = {k: k for k in dati if k in nomi_stu}
+            for k in dati:
+                if k not in mappa:
+                    simile = next((n for n in nomi_stu if n.lower() == k.lower() and n not in mappa.values()), None)
+                    if simile:
+                        mappa[k] = simile
+            rimasti_sol = [k for k in nomi_sol if k in dati and k not in mappa]
+            rimasti_stu = [n for n in nomi_stu if n not in mappa.values() and n not in dati]
+            mappa.update(zip(rimasti_sol, rimasti_stu))
+            traduci = lambda d: None if d is None else {mappa.get(k, k): v for k, v in d.items()}
+        return traduci(get), traduci(post)
+    return get, post
+
+
+def file_dello_studente(percorso):
+    """Il file dello studente che corrisponde a quello della traccia: con il controllo tollerante si cerca
+    anche senza maiuscole, in un'altra cartella o seguendo i suoi moduli e link."""
+    if not LASCO or nel_sito(percorso) in FILE_CONSEGNATI:
+        return percorso
+    return stesso_file(percorso) or pagina_collegata(percorso) or percorso
+
+
 FILE_CONSEGNATI, ERRORE_CONSEGNA = prepara_consegna()
 PAGINA_PRINCIPALE, SITO = None, ""
 if not ERRORE_CONSEGNA:
@@ -334,6 +470,7 @@ if not ERRORE_CONSEGNA:
 if PAGINA_PRINCIPALE:
     SITO = posixpath.dirname(PAGINA_PRINCIPALE)   # la cartella del sito è quella della pagina principale
 PAGINA_SCELTA, LETTORE, ELEMENTI = None, None, []
+PAGINA_TRACCIA = None   # la pagina come la chiama la traccia (con il controllo tollerante può avere un altro nome)
 
 
 # ------------------------------------------------------------ funzioni di supporto
@@ -1345,6 +1482,509 @@ def struttura_come_soluzione(ignora=("div", "span", "br", "hr"),
         esito([])
 
 
+
+# ------------------------------------------------------------ PHP: pagine eseguite davvero (prototipo php_sito)
+# Ogni «richiesta» esegue una pagina .php con php, con i dati in $_GET o $_POST, come farebbe il server
+# dopo un link o l'invio di un modulo. La stessa richiesta si esegue anche sulla soluzione dell'autore,
+# e i controlli confrontano le due uscite.
+
+AVVIO_PHP = r"""<?php
+$__r = json_decode(file_get_contents($argv[1]), true);
+$_GET = $__r["get"];
+$_POST = $__r["post"];
+$_REQUEST = array_merge($_GET, $_POST);
+$_COOKIE = [];
+$_FILES = [];
+$_SERVER["REQUEST_METHOD"] = $__r["metodo"];
+$_SERVER["QUERY_STRING"] = http_build_query($_GET);
+$_SERVER["SCRIPT_NAME"] = $_SERVER["PHP_SELF"] = "/" . $__r["pagina"];
+$_SERVER["REQUEST_URI"] = "/" . $__r["pagina"] . ($_GET ? "?" . http_build_query($_GET) : "");
+$_SERVER["HTTP_HOST"] = $_SERVER["SERVER_NAME"] = "localhost";
+chdir($__r["cartella"]);
+ini_set("open_basedir", $__r["radice"]);
+$GLOBALS["__file_php_sito"] = $__r["file"];
+unset($__r, $argv, $argc);
+include $GLOBALS["__file_php_sito"];
+"""
+ERRORE_PHP = re.compile(r"^(PHP )?(Parse error|Fatal error|Warning|Notice|Deprecated|Uncaught)\b.*$", re.M)
+PHP_TROPPO_LENTO = "La pagina non finisce entro 5 secondi: c'è un ciclo che non si ferma?"
+
+
+class ErrorePHP(Exception):
+    pass
+
+
+def radice_sito(soluzione=False):
+    """La cartella del sito (dello studente o della soluzione) sul disco."""
+    if soluzione:
+        cartella = "soluzione"
+        if not os.path.isdir(cartella) and SITO_SOLUZIONE is not None:
+            for nome, contenuto in SITO_SOLUZIONE["files"].items():
+                destinazione = os.path.join(cartella, *[p for p in str(nome).split("/") if p not in ("", ".", "..")])
+                os.makedirs(os.path.dirname(destinazione) or cartella, exist_ok=True)
+                with open(destinazione, "w", encoding="utf-8") as f:
+                    f.write(contenuto)
+            os.makedirs(cartella, exist_ok=True)
+        return os.path.abspath(cartella)
+    return os.path.abspath(os.path.join(CARTELLA, SITO))
+
+
+USCITE_PHP = {}   # le richieste già eseguite: ogni test che rifà la stessa richiesta non riesegue php
+
+
+def esegui_php(pagina, get=None, post=None, soluzione=False):
+    """Esegue la pagina (percorso dalla cartella del sito) e restituisce quello che stampa,
+    con i percorsi del server tolti dai messaggi di errore."""
+    chiave = json.dumps([pagina, get, post, soluzione], sort_keys=True)
+    if chiave not in USCITE_PHP:
+        USCITE_PHP[chiave] = esegui_php_davvero(pagina, get, post, soluzione)
+    return USCITE_PHP[chiave]
+
+
+def esegui_php_davvero(pagina, get, post, soluzione):
+    radice = radice_sito(soluzione)
+    pagina = posixpath.normpath(pagina)
+    completo = os.path.join(radice, *pagina.split("/"))
+    if not os.path.isfile(completo):
+        if soluzione:
+            raise ErrorePHP("Errore nella domanda (avvisa l'insegnante): la soluzione non ha la pagina %s." % pagina)
+        raise ConsegnaIncompleta("Non trovo la pagina %s nel tuo sito." % pagina)
+    with open("avvio_php_sito.php", "w", encoding="utf-8") as f:
+        f.write(AVVIO_PHP)
+    dati = {"get": {k: v for k, v in (get or {}).items()}, "post": {k: v for k, v in (post or {}).items()},
+            "metodo": "POST" if post is not None else "GET", "pagina": pagina,
+            "cartella": os.path.dirname(completo), "radice": radice, "file": os.path.basename(completo)}
+    with tempfile.NamedTemporaryFile("w", suffix=".json", dir=".", delete=False, encoding="utf-8") as f:
+        json.dump(dati, f)
+        nome_dati = f.name
+    try:
+        r = subprocess.run(["php", "-d", "display_errors=stdout", "-d", "html_errors=0", "-d", "log_errors=0",
+                            "-d", "error_reporting=E_ALL", "-d", "max_execution_time=5",
+                            os.path.abspath("avvio_php_sito.php"), nome_dati],
+                           capture_output=True, text=True, timeout=10, cwd=radice)
+        uscita = r.stdout + r.stderr
+    except subprocess.TimeoutExpired:
+        uscita = PHP_TROPPO_LENTO
+    finally:
+        os.remove(nome_dati)
+    uscita = uscita.replace(radice + os.sep, "").replace(radice, "")
+    uscita = re.sub(r"(PHP )?Fatal error: +Maximum execution time of \d+ seconds? exceeded.*", PHP_TROPPO_LENTO, uscita)
+    return re.sub(r" on line (\d+)", r" alla riga \1", uscita)
+
+
+def errori_php(uscita):
+    """Le righe con un errore o un avviso di PHP nell'uscita di una pagina."""
+    errori = [m.group(0).strip() for m in ERRORE_PHP.finditer(uscita)]
+    return errori + ([PHP_TROPPO_LENTO] if PHP_TROPPO_LENTO in uscita else [])
+
+
+def solo_testo(uscita):
+    """Il testo che si vede nel browser: senza tag e con gli spazi normalizzati."""
+    lettore = Lettore()
+    lettore.feed(uscita)
+    lettore.close()
+    return lettore.radice.testo()
+
+
+def compatta(uscita):
+    """L'uscita senza spazi né a capo, per i confronti (come in php_mysqli_sqlite)."""
+    return re.sub(r"\s+", "", uscita)
+
+
+def descrivi_dati(get=None, post=None):
+    dati = post if post is not None else get
+    if not dati:
+        return "senza dati"
+    coppie = []
+    for k, v in dati.items():
+        for x in (v if isinstance(v, list) else [v]):
+            coppie.append("%s=%s" % (k, x))
+    return ("con %s " % ("POST" if post is not None else "GET")) + ", ".join(coppie)
+
+
+def accorcia(t, n=300):
+    t = " ".join(t.split())
+    return t if len(t) <= n else t[:n] + "…"
+
+
+def parole(testo):
+    """Le parole del testo, minuscole e senza punteggiatura, separate da uno spazio."""
+    return " ".join(re.findall(r"\w+", testo.lower()))
+
+
+def voci_da_cercare(cerca):
+    return [str(v) for v in ([cerca] if isinstance(cerca, (str, int, float)) else list(cerca))]
+
+
+def mancano(voci, uscita):
+    """Le voci di cerca che non compaiono nel testo visibile (maiuscole, spazi e punteggiatura non contano)."""
+    testo = " %s " % parole(solo_testo(uscita))
+    return [v for v in voci if " %s " % parole(v) not in testo]
+
+
+def confronta(uscita, attesa, come, solo_testo_visibile=False, cerca=None):
+    """Problemi tra l'uscita dello studente e quella della soluzione (lista vuota se sono uguali).
+    Con cerca si controlla solo che compaiano quei dati; con il controllo tollerante contano solo le parole."""
+    errori = errori_php(uscita)
+    if LASCO:   # gli avvisi su funzioni vecchie o variabili non usate non fermano la pagina
+        errori = [e for e in errori if not e.startswith(("Deprecated", "PHP Deprecated", "Notice", "PHP Notice"))]
+    mancanti = []
+    if cerca is not None:
+        voci = voci_da_cercare(cerca)
+        if mancano(voci, attesa):
+            raise ErrorePHP("Errore nella domanda (avvisa l'insegnante): la soluzione non mostra %s."
+                            % ", ".join("«%s»" % v for v in mancano(voci, attesa)))
+        mancanti = mancano(voci, uscita)
+        uguali = not mancanti
+    elif LASCO:
+        uguali = parole(solo_testo(uscita)) == parole(solo_testo(attesa))
+    elif solo_testo_visibile:
+        uguali = solo_testo(uscita).split() == solo_testo(attesa).split()
+    else:
+        uguali = compatta(uscita) == compatta(attesa)
+    if uguali and not errori:
+        return []
+    problemi = ["%s la pagina mostra un errore di PHP:" % come] + errori if errori else []
+    if mancanti:
+        problemi.append("%s nella pagina che si apre non trovo %s." % (come, ", ".join("«%s»" % v for v in mancanti)))
+        problemi.append("La tua pagina mostra: «%s»" % accorcia(solo_testo(uscita) or uscita or "(niente)"))
+        problemi.append("Un esempio di pagina giusta: «%s»" % accorcia(solo_testo(attesa) or attesa))
+    elif not uguali:
+        problemi.append("%s la pagina doveva mostrare: «%s»" % (come, accorcia(solo_testo(attesa) or attesa)))
+        problemi.append("invece mostra: «%s»" % accorcia(solo_testo(uscita) or uscita or "(niente)"))
+        if solo_testo(uscita) == solo_testo(attesa):
+            problemi.append("Il testo è lo stesso: cambiano i tag HTML intorno.")
+    return problemi
+
+
+def stessa_uscita(pagina, get=None, post=None, cerca=None):
+    """La pagina PHP, eseguita con i dati indicati, stampa la stessa cosa della soluzione (spazi e a capo
+    non contano). Esempio: stessa_uscita("risultato.php", post={"nome": "Mario"}).
+    Con cerca (un testo o una lista) si controlla solo che compaiano quei dati, come nella soluzione."""
+    uscita = esegui_php(file_dello_studente(pagina), *dati_dello_studente(pagina, get, post))
+    attesa = esegui_php(pagina, get, post, soluzione=True)
+    esito(confronta(uscita, attesa, "Aprendo %s %s" % (pagina, descrivi_dati(get, post)), cerca=cerca))
+
+
+def stesso_testo(pagina, get=None, post=None, cerca=None):
+    """Come stessa_uscita, ma confronta solo il testo visibile: i tag HTML possono essere diversi."""
+    uscita = esegui_php(file_dello_studente(pagina), *dati_dello_studente(pagina, get, post))
+    attesa = esegui_php(pagina, get, post, soluzione=True)
+    esito(confronta(uscita, attesa, "Aprendo %s %s" % (pagina, descrivi_dati(get, post)), solo_testo_visibile=True,
+                    cerca=cerca))
+
+
+def php_senza_errori(pagina, get=None, post=None):
+    """La pagina PHP, eseguita con i dati indicati, non stampa errori né avvisi di PHP."""
+    errori = errori_php(esegui_php(file_dello_studente(pagina), *dati_dello_studente(pagina, get, post)))
+    esito(["Aprendo %s %s PHP segnala:" % (pagina, descrivi_dati(get, post))] + errori if errori else [])
+
+
+def carica_uscita(uscita, pagina):
+    """Rende l'uscita di una pagina PHP quella da controllare con le altre funzioni (testo, almeno, ...)."""
+    global PAGINA_SCELTA, LETTORE, ELEMENTI
+    fatali = [e for e in errori_php(uscita) if e.startswith(("Parse error", "Fatal error", "PHP Parse", "PHP Fatal",
+                                                              "Uncaught", PHP_TROPPO_LENTO))]
+    if fatali:
+        raise ConsegnaIncompleta("La pagina %s si ferma con un errore di PHP: %s" % (pagina, fatali[0]))
+    PAGINA_SCELTA = nel_sito(pagina)
+    LETTORE = Lettore()
+    LETTORE.feed(uscita)
+    LETTORE.close()
+    ELEMENTI = LETTORE.elementi
+
+
+def usa_uscita(pagina, get=None, post=None):
+    """Esegue la pagina PHP con i dati indicati: i controlli che seguono guardano quello che stampa.
+    Esempio: usa_uscita("elenco.php", get={"genere": "giallo"}) e poi almeno(3, "li")."""
+    get, post = dati_dello_studente(pagina, get, post)
+    pagina = file_dello_studente(pagina)
+    carica_uscita(esegui_php(pagina, get, post), pagina)
+
+
+def contiene(*parole):
+    """Il testo visibile della pagina che si sta controllando contiene tutte le parole indicate
+    (maiuscole e spazi non contano)."""
+    testo_pagina = " ".join(LETTORE.radice.testo().lower().split())
+    mancanti = [p for p in parole if " ".join(str(p).lower().split()) not in testo_pagina]
+    esito(["Nella pagina non c'è «%s»." % p for p in mancanti])
+
+
+def campi_del_modulo(modulo, elementi=None):
+    """I campi del modulo con il loro name: [(elemento, name)]."""
+    return [(e, e.attributi.get("name", "")) for e in (ELEMENTI if elementi is None else elementi)
+            if e.tag in ("input", "select", "textarea", "button") and modulo in e.antenati()]
+
+
+def tipo_campo(e):
+    if e.tag in ("select", "textarea"):
+        return e.tag
+    return (e.attributi.get("type") or ("submit" if e.tag == "button" else "text")).strip().lower()
+
+
+def nomi_da_compilare(campi):
+    """I name dei campi che si compilano (non i pulsanti né i campi nascosti), nell'ordine, senza doppi."""
+    nomi = []
+    for e, n in campi:
+        if n and n not in nomi and tipo_campo(e) not in ("hidden", "submit", "button", "reset", "image", "file"):
+            nomi.append(n)
+    return nomi
+
+
+def etichetta(nome, campi, elementi):
+    """Il testo dell'etichetta del campo (label con for, label intorno o placeholder), in parole."""
+    e = next((e for e, n in campi if n == nome), None)
+    if e is None:
+        return ""
+    ident = e.attributi.get("id")
+    for x in elementi:
+        if x.tag == "label" and ((ident and x.attributi.get("for") == ident) or x in e.antenati()):
+            if parole(x.testo()):
+                return parole(x.testo())
+    return parole(e.attributi.get("placeholder", ""))
+
+
+def modulo_della_soluzione(pagina, numero):
+    """(campi, elementi) del modulo della soluzione nella pagina, oppure None."""
+    testo_pagina = SITO_SOLUZIONE["files"].get(pagina, "") if SITO_SOLUZIONE else ""
+    if not testo_pagina:
+        return None
+    elementi = leggi_html(testo_pagina).elementi
+    moduli = [e for e in elementi if e.tag == "form"]
+    if len(moduli) < numero:
+        return None
+    return campi_del_modulo(moduli[numero - 1], elementi), elementi
+
+
+def mappa_campi(nomi, campi_sol, el_sol, campi_stu, el_stu):
+    """Controllo tollerante: per ogni name della traccia, il name che lo studente usa per lo stesso campo
+    (lo stesso name, poi senza maiuscole, poi la stessa etichetta, poi la stessa posizione nel modulo)."""
+    da_stu = nomi_da_compilare(campi_stu)
+    tutti_stu = {n for _, n in campi_stu if n}
+    mappa = {}
+    for nome in nomi:
+        if nome in tutti_stu:
+            mappa[nome] = nome
+    for nome in nomi:
+        if nome in mappa:
+            continue
+        liberi = [n for n in da_stu if n not in mappa.values()]
+        simile = next((n for n in liberi if n.lower() == nome.lower()), None)
+        if simile is None:
+            et = etichetta(nome, campi_sol, el_sol)
+            simile = next((n for n in liberi if et and etichetta(n, campi_stu, el_stu) == et), None)
+        if simile is not None:
+            mappa[nome] = simile
+    da_sol = nomi_da_compilare(campi_sol)
+    rimasti_sol = [n for n in da_sol if n in nomi and n not in mappa]
+    rimasti_stu = [n for n in da_stu if n not in mappa.values() and n not in nomi]
+    for nome, suo in zip(rimasti_sol, rimasti_stu):
+        mappa[nome] = suo
+    return mappa
+
+
+def valore_per_lo_studente(valore, nome_sol, campi_sol, nome_stu, campi_stu):
+    """Il valore da inviare nel campo dello studente: per caselle, pulsanti di opzione e menù si sceglie la
+    sua opzione che corrisponde a quella della traccia (stesso valore, stesso testo o stessa posizione)."""
+    if isinstance(valore, list):
+        return [valore_per_lo_studente(v, nome_sol, campi_sol, nome_stu, campi_stu) for v in valore]
+    sol = [e for e, n in campi_sol if n == nome_sol]
+    stu = [e for e, n in campi_stu if n == nome_stu]
+    if not sol or not stu:
+        return valore
+    if tipo_campo(stu[0]) in ("checkbox", "radio"):
+        valori_stu = [e.attributi.get("value", "on") for e in stu]
+        if valore in valori_stu:
+            return valore
+        valori_sol = [e.attributi.get("value", "on") for e in sol]
+        i = valori_sol.index(valore) if valore in valori_sol else 0
+        return valori_stu[i] if i < len(valori_stu) else valori_stu[0]
+    if stu[0].tag == "select" and sol[0].tag == "select":
+        opz_stu = [o for o in stu[0].figli if o.tag == "option"]
+        opz_sol = [o for o in sol[0].figli if o.tag == "option"]
+        valore_di = lambda o: o.attributi.get("value", o.testo())
+        if valore in [valore_di(o) for o in opz_stu]:
+            return valore
+        scelta = next((o for o in opz_sol if valore_di(o) == valore), None)
+        if scelta is not None:
+            stessa = next((o for o in opz_stu if parole(o.testo()) == parole(scelta.testo())), None)
+            if stessa is not None:
+                return valore_di(stessa)
+            i = opz_sol.index(scelta)
+            if i < len(opz_stu):
+                return valore_di(opz_stu[i])
+    return valore
+
+
+def modulo_numero(numero):
+    moduli = trova("form")
+    if not moduli:
+        raise ConsegnaIncompleta("Nella pagina %s non c'è nessun modulo (<form>)." % dal_sito(PAGINA_SCELTA))
+    if len(moduli) < numero:
+        raise ConsegnaIncompleta("Nella pagina %s ci sono solo %d moduli." % (dal_sito(PAGINA_SCELTA), len(moduli)))
+    return moduli[numero - 1]
+
+
+def richiesta_del_modulo(pagina, dati, numero=1, soluzione=False):
+    """Compila il modulo della pagina come farebbe il browser e restituisce (pagina di arrivo, get, post,
+    problemi). I campi indicati in dati prendono quei valori; gli altri quelli che il browser invierebbe."""
+    global PAGINA_SCELTA, LETTORE, ELEMENTI
+    if soluzione:
+        testo_pagina = SITO_SOLUZIONE["files"].get(pagina, "") if SITO_SOLUZIONE else ""
+        if not testo_pagina:
+            raise ErrorePHP("Errore nella domanda (avvisa l'insegnante): la soluzione non ha la pagina %s." % pagina)
+        PAGINA_SCELTA = nel_sito(pagina)
+        LETTORE = Lettore()
+        LETTORE.feed(testo_pagina)
+        LETTORE.close()
+        ELEMENTI = LETTORE.elementi
+    else:
+        usa_pagina(pagina)
+    modulo = modulo_numero(numero)
+    metodo = (modulo.attributi.get("method") or "get").strip().lower()
+    azione = (modulo.attributi.get("action") or "").strip()
+    problemi = []
+    if metodo not in ("get", "post"):
+        problemi.append('Riga %d: method="%s" non esiste: si usa get o post.' % (modulo.riga, metodo))
+        metodo = "get"
+    if azione:
+        problema = None if soluzione else problema_indirizzo(azione)   # la soluzione ha i suoi file
+        if problema:
+            problemi.append('Riga %d: action="%s" %s.' % (modulo.riga, azione, problema))
+            return None, None, None, problemi
+        arrivo = dal_sito(risolvi(azione))
+    else:
+        arrivo = pagina
+    campi = campi_del_modulo(modulo)
+    nomi = {n for _, n in campi if n}
+    if LASCO and not soluzione:
+        della_soluzione = modulo_della_soluzione(pagina, numero)
+        if della_soluzione:
+            campi_sol, el_sol = della_soluzione
+            mappa = mappa_campi(list(dati), campi_sol, el_sol, campi, ELEMENTI)
+            dati = {mappa.get(k, k): valore_per_lo_studente(v, k, campi_sol, mappa.get(k, k), campi)
+                    for k, v in dati.items()}
+    for nome in dati:
+        if nome not in nomi:
+            simili = [n for n in nomi if n.lower() == nome.lower()]
+            problemi.append('Nel modulo non c\'è un campo con name="%s"%s.'
+                            % (nome, " (c'è name=\"%s\": maiuscole e minuscole contano)" % simili[0] if simili else ""))
+    if problemi:
+        return None, None, None, problemi
+    inviati = {}
+
+    def aggiungi(nome, valore):
+        if nome.endswith("[]"):
+            inviati.setdefault(nome[:-2], []).append(valore)
+        else:
+            inviati[nome] = valore
+
+    for e, nome in campi:
+        if not nome or nome in dati or "disabled" in e.attributi:
+            continue
+        tipo = (e.attributi.get("type") or ("submit" if e.tag == "button" else "text")).lower()
+        if tipo in ("submit", "button", "reset", "image", "file"):
+            continue
+        if tipo in ("checkbox", "radio"):
+            if "checked" in e.attributi:
+                aggiungi(nome, e.attributi.get("value", "on"))
+        elif e.tag == "select":
+            opzioni = [o for o in e.figli if o.tag == "option"]
+            scelta = next((o for o in opzioni if "selected" in o.attributi), opzioni[0] if opzioni else None)
+            if scelta is not None:
+                aggiungi(nome, scelta.attributi.get("value", scelta.testo()))
+        elif e.tag == "textarea":
+            aggiungi(nome, e.testo())
+        else:
+            aggiungi(nome, e.attributi.get("value", ""))
+    for nome, valore in dati.items():
+        if nome.endswith("[]"):
+            inviati[nome[:-2]] = valore if isinstance(valore, list) else [valore]
+        else:
+            inviati[nome] = valore
+    if metodo == "post":
+        return arrivo, {}, inviati, []
+    return arrivo, inviati, None, []
+
+
+def invio_del_modulo(pagina, dati, numero, soluzione):
+    arrivo, get, post, problemi = richiesta_del_modulo(pagina, dati, numero, soluzione)
+    if problemi:
+        return None, None, problemi
+    if not arrivo.lower().endswith(".php"):
+        return arrivo, None, ["Il modulo invia i dati a %s, che non è una pagina PHP: nessuno li legge." % arrivo]
+    return arrivo, esegui_php(arrivo, get, post, soluzione), []
+
+
+def invia(pagina, dati, numero=1, cerca=None):
+    """Compila il modulo della pagina con i dati (name -> valore), lo invia con il suo method alla pagina
+    del suo action, e confronta quello che stampa con la stessa cosa fatta sulla soluzione.
+    Esempio: invia("index.html", {"nome": "Mario", "eta": "17"}).
+    Con cerca (un testo o una lista) si controlla solo che la pagina di arrivo mostri quei dati:
+    invia("index.html", {"nome": "Mario", "eta": "17"}, cerca=["Mario", "minorenne"])."""
+    arrivo, uscita, problemi = invio_del_modulo(pagina, dati, numero, soluzione=False)
+    if problemi:
+        esito(problemi)
+        return
+    arrivo_s, attesa, problemi_s = invio_del_modulo(pagina, dati, numero, soluzione=True)
+    if problemi_s:
+        raise ErrorePHP("Errore nella domanda (avvisa l'insegnante): " + " ".join(problemi_s))
+    come = "Inviando il modulo di %s con %s" % (pagina, ", ".join("%s=%s" % kv for kv in dati.items()) or "i campi vuoti")
+    esito(confronta(uscita, attesa, come, cerca=cerca))
+
+
+def usa_invio(pagina, dati, numero=1):
+    """Invia il modulo della pagina con i dati: i controlli che seguono guardano la pagina di arrivo."""
+    arrivo, uscita, problemi = invio_del_modulo(pagina, dati, numero, soluzione=False)
+    if problemi:
+        raise ConsegnaIncompleta(" ".join(problemi))
+    carica_uscita(uscita, arrivo)
+
+
+def modulo(azione=None, metodo=None, campi=(), numero=1):
+    """Il modulo (il primo, o quello indicato da numero) invia i dati alla pagina azione con il metodo
+    indicato e ha i campi con i name indicati. Esempio: modulo("risultato.php", "post", ["nome", "eta"])."""
+    m = modulo_numero(numero)
+    problemi = []
+    if metodo:
+        usato = (m.attributi.get("method") or "get").strip().lower()
+        if usato != metodo.lower():
+            if m.attributi.get("method"):
+                problemi.append('Riga %d: il modulo usa method="%s", ma deve inviare i dati con %s.'
+                                % (m.riga, usato, metodo.upper()))
+            else:
+                problemi.append("Riga %d: il modulo non ha method, quindi invia i dati con GET: qui ci vuole %s."
+                                % (m.riga, metodo.upper()))
+    if azione:
+        scritta = (m.attributi.get("action") or "").strip()
+        if not scritta:
+            problemi.append("Riga %d: il modulo non ha action: deve inviare i dati a %s." % (m.riga, azione))
+        else:
+            problema = problema_indirizzo(scritta)
+            if problema:
+                problemi.append('Riga %d: action="%s" %s.' % (m.riga, scritta, problema))
+            elif LASCO:
+                if azione.lower().endswith(".php") and not risolvi(scritta).lower().endswith(".php"):
+                    problemi.append('Riga %d: action="%s" porta a %s, che non è una pagina PHP: nessuno legge i dati.'
+                                    % (m.riga, scritta, dal_sito(risolvi(scritta))))
+            elif risolvi(scritta) != nel_sito(azione):
+                problemi.append('Riga %d: action="%s" porta a %s, ma i dati vanno a %s.'
+                                % (m.riga, scritta, dal_sito(risolvi(scritta)), azione))
+    campi_stu = campi_del_modulo(m)
+    nomi = [n for _, n in campi_stu]
+    if LASCO and campi:
+        della_soluzione = modulo_della_soluzione(PAGINA_TRACCIA or dal_sito(PAGINA_SCELTA), numero)
+        if della_soluzione:
+            mappa = mappa_campi(list(campi), della_soluzione[0], della_soluzione[1], campi_stu, ELEMENTI)
+            campi = [mappa.get(n, n) for n in campi]
+    for nome in campi:
+        if nome not in nomi:
+            simili = [n for n in nomi if n.lower() == nome.lower()]
+            problemi.append('Nel modulo manca il campo con name="%s"%s.'
+                            % (nome, " (c'è name=\"%s\": maiuscole e minuscole contano)" % simili[0] if simili else ""))
+    esito(problemi)
+
+
 def esegui_test(codice):
     if ERRORE_CONSEGNA:
         print(ERRORE_CONSEGNA)
@@ -1353,6 +1993,8 @@ def esegui_test(codice):
         usa_pagina(dal_sito(PAGINA_PRINCIPALE))   # ogni test riparte dalla pagina principale
         exec(codice, globals())
     except ConsegnaIncompleta as errore:
+        print(errore)
+    except ErrorePHP as errore:
         print(errore)
     except Exception as errore:
         print("Errore nel controllo (avvisa l'insegnante): %s" % errore)

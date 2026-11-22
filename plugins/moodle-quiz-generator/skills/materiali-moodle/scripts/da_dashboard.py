@@ -80,11 +80,14 @@ CONSEGNA_FILE = {"responseformat": "noinline", "responserequired": "0", "attachm
                  "attachmentsrequired": "1", "filetypeslist": ".html .htm .css"}
 CODERUNNER = {"compl_eseguito", "scrittura_scheletro", "debug_msg", "debug_silenzioso", "prog_completo",
               "funzione", "prog_dati", "prog_random", "query", "create_tabelle", "query_due_passi",
-              "vincoli", "pagina_php", "campo_prova", "consegna_auto", "esercizio_controllo", "sito_html"}
+              "vincoli", "pagina_php", "campo_prova", "consegna_auto", "esercizio_controllo", "sito_html", "sito_php",
+              "consegna_php"}
 # consegna di un file con controllo automatico (prototipo html_con_file): la scrive direttamente questo script
 CR_CONSEGNA = {"consegna_auto"}
-# sito scritto con l'editor (prototipo html_con_file, interfaccia html_sito): la scrive direttamente questo script
-CR_SITO = {"sito_html"}
+# sito scritto con l'editor (prototipo html_con_file, interfaccia html_sito) o, per consegna_php, consegnato come
+# .zip allegato (prototipo php_sito senza editor): li scrive direttamente questo script
+CR_SITO = {"sito_html", "sito_php", "consegna_php"}
+CR_SITO_PHP = {"sito_php", "consegna_php"}
 # esercizio con controllo automatico del codice scritto nella casella (prototipo css_con_test, stesso template
 # di html_con_file): la scrive direttamente questo script
 CR_CONTROLLO = {"esercizio_controllo"}
@@ -94,7 +97,8 @@ PREFISSI_CR = {"compl_eseguito": "Completamento", "scrittura_scheletro": "Scrive
                "prog_dati": "Scrivere", "prog_random": "Scrivere", "query": "Scrivere",
                "create_tabelle": "Scrivere", "query_due_passi": "Scrivere", "vincoli": "Esercizio",
                "pagina_php": "Scrivere", "campo_prova": "Campo di prova",
-               "consegna_auto": "Consegna", "esercizio_controllo": "Scrivere", "sito_html": "Sito"}
+               "consegna_auto": "Consegna", "esercizio_controllo": "Scrivere", "sito_html": "Sito", "sito_php": "Sito PHP",
+               "consegna_php": "Consegna PHP"}
 CR_SQL = {"query", "create_tabelle", "query_due_passi", "vincoli", "campo_prova"}
 CR_PHP = {"pagina_php"}
 # tipi di quiz in cui la pagina del blocco è un ripasso e non una spiegazione nuova
@@ -681,6 +685,8 @@ def domanda_php(quiz, r):
 # La riga dice il file da caricare (=== options, nome e pagina) e i controlli (=== test PESO con === extra).
 PROTOTIPO_CONSEGNA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets",
                                   "prototipo-html-con-file.xml")
+PROTOTIPO_PHP_SITO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets",
+                                  "prototipo-php-sito.xml")
 NOME_FILE_RE = re.compile(r"[a-z0-9][a-z0-9_.-]*\.(html|htm|zip)")
 PAGINA_RE = re.compile(r"[a-z0-9_./-]+\.html?")
 
@@ -825,7 +831,7 @@ PROTOTIPO_CONTROLLO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "
 OPZIONI_CONTROLLO = {"risposta": ("css", "html"), "controllo": ("visibile", "nascosto")}
 
 
-def esegui_controlli(template, testcodes, risposta, pagina, soluzione=None):
+def esegui_controlli(template, testcodes, risposta, pagina, soluzione=None, php=False, lasco=False):
     """Esegue il template del prototipo come CodeRunner su Jobe (senza allegati) e restituisce l'uscita di ogni
     test. Le poche righe Twig del template si sostituiscono qui: sono le stesse di sviluppo/prototipo-html-con-file.
     soluzione: la soluzione dell'autore (QUESTION.answer), se diversa dalla risposta (correzione delle verifiche)."""
@@ -839,6 +845,8 @@ def esegui_controlli(template, testcodes, risposta, pagina, soluzione=None):
         if twig not in corpo:
             raise ValueError("template del prototipo css_con_test inatteso: manca %s" % twig)
         corpo = corpo.replace(twig, valore)
+    corpo = corpo.replace("{{ php | default('') }}", "1" if php else "")
+    corpo = corpo.replace("{{ lasco | default('') }}", "1" if lasco else "")
     separatore = "#<ab@17943918#@>#"
     corpo += "\nprint(SEPARATORE)\n".join('esegui_test("""%s""")' % py(c) for c in testcodes) + "\n"
     with tempfile.TemporaryDirectory() as d:
@@ -987,8 +995,19 @@ def percorso_sito(p, cosa):
     return p
 
 
+OPZIONI_SITO = {"sito_html": ("pagina", "controllo", "immagini", "aiuti", "file_pc"),
+                "sito_php": ("pagina", "controllo", "immagini", "aiuti", "file_pc", "tollerante"),
+                "consegna_php": ("nome", "pagina", "controllo", "tollerante")}
+SI = ("sì", "si", "true", "1")
+
+
 def specifica_sito(quiz, r):
-    """Opzioni, test e sito della soluzione di un «Sito con l'editor», già controllati."""
+    """Opzioni, test e sito della soluzione di un «Sito con l'editor» (o di una «Consegna PHP (.zip)»), già
+    controllati: (controllo, pagina, test, sito, immagini fornite, parametri dell'interfaccia, altro), dove altro
+    ha php, lasco (controllo tollerante) e nome (il file .zip della consegna)."""
+    tipologia = r.get("tipologia") or "sito_html"
+    ammesse = OPZIONI_SITO.get(tipologia, OPZIONI_SITO["sito_html"])
+    cosa = "una consegna PHP" if tipologia == "consegna_php" else "un sito con l'editor"
     opzioni, test, files, cartelle, immagini = {}, [], {}, [], {}
     for n, a, c in sezioni_cr(r.get("coderunner")):
         if n == "options":
@@ -998,9 +1017,8 @@ def specifica_sito(quiz, r):
                     k, v = k.strip().lower(), v.strip()
                     if k == "carica_immagini":
                         k = "file_pc"   # nome vecchio dell'opzione
-                    if k not in ("pagina", "controllo", "immagini", "aiuti", "file_pc"):
-                        raise ValueError("opzione '%s' non prevista in un sito con l'editor (pagina, controllo, "
-                                         "immagini, aiuti, file_pc)" % l.strip())
+                    if k not in ammesse:
+                        raise ValueError("opzione '%s' non prevista in %s (%s)" % (l.strip(), cosa, ", ".join(ammesse)))
                     opzioni[k] = v
         elif n == "test":
             try:
@@ -1053,9 +1071,23 @@ def specifica_sito(quiz, r):
     elif any(x not in AIUTI_SITO for x in aiuti):
         raise ValueError("«aiuti: %s» non valido: nessuno, tutti, oppure chiusura, completamento, errori"
                          % opzioni.get("aiuti"))
-    carica = (opzioni.get("file_pc") or "no").lower() in ("sì", "si", "true", "1")
+    carica = (opzioni.get("file_pc") or "no").lower() in SI
     if carica and verifica:
         raise ValueError("«file_pc: sì» non va nelle verifiche: riapre il file system del PC dentro SEB")
+    php = tipologia in CR_SITO_PHP
+    tollerante = (opzioni.get("tollerante") or ("no" if verifica else "sì")).lower()
+    if tollerante not in SI + ("no", "false", "0"):
+        raise ValueError("«tollerante: %s» non valido (sì o no)" % opzioni.get("tollerante"))
+    lasco = php and tollerante in SI
+    nome = opzioni.get("nome", "")
+    if tipologia == "consegna_php":
+        if not nome:
+            raise ValueError("manca il nome del file da consegnare (=== options, «nome: torneo.zip»)")
+        if not re.fullmatch(r"[a-z0-9][a-z0-9_-]*\.zip", nome):
+            raise ValueError("nome del file «%s» non valido: solo minuscole, numeri, - _ e l'estensione .zip" % nome)
+        if fornite or immagini:
+            raise ValueError("in una consegna PHP le immagini sono nello .zip dello studente: niente «immagini» né "
+                             "«=== immagine»")
     pagina = percorso_sito(opzioni.get("pagina") or "index.html", "pagina principale")
     if pagina not in files:
         raise ValueError("la soluzione non ha la pagina principale %s (=== file %s)" % (pagina, pagina))
@@ -1081,8 +1113,8 @@ def specifica_sito(quiz, r):
                        "files": dict(sorted(files.items())), "immagini": dict(sorted(immagini.items()))},
                       ensure_ascii=False)
     import xml.etree.ElementTree as ET
-    template = ET.parse(PROTOTIPO_CONSEGNA).getroot().find("question/template").text or ""
-    uscite = esegui_controlli(template, [t["codice"] for t in test], sito, pagina)
+    template = ET.parse(PROTOTIPO_PHP_SITO if php else PROTOTIPO_CONSEGNA).getroot().find("question/template").text or ""
+    uscite = esegui_controlli(template, [t["codice"] for t in test], sito, pagina, php=php, lasco=lasco)
     sbagliati = ["«%s»: %s" % (t["extra"], u.replace("\n", " | ")) for t, u in zip(test, uscite) if u != "OK"]
     if len(uscite) != len(test) or sbagliati:
         raise ValueError("la soluzione (=== file …) non supera tutti i controlli: " + "; ".join(sbagliati or uscite))
@@ -1091,15 +1123,34 @@ def specifica_sito(quiz, r):
         parametri["immagini"] = ", ".join(fornite)
     if carica:
         parametri["file_pc"] = True
-    return controllo, pagina, test, sito, fornite, parametri
+    return controllo, pagina, test, sito, fornite, parametri, {"php": php, "lasco": lasco, "nome": nome}
+
+
+PROMEMORIA_CONSEGNA_PHP = (
+    '<p style="margin: 0 0 6px; color: #555555;">Comprimi la cartella del sito nel file <strong>%s</strong>, '
+    'caricalo nel riquadro qui sotto, poi premi <strong>Verifica</strong>.</p>\n'
+    '<p style="margin: 0; color: #555555;"><strong>Attenzione:</strong> «OK» vuol dire che il controllo ha trovato '
+    'quello che cercava, non che il lavoro è perfetto. <strong>Prova sempre le pagine nel browser</strong> '
+    '(con XAMPP) e confrontale con la consegna.</p>')
+
+
+def soluzione_in_chiaro(sito):
+    """I file della soluzione come blocchi di codice, per il feedback generale di una consegna PHP."""
+    files = json.loads(sito)["files"]
+    parti = ["<p><strong>Una soluzione possibile</strong></p>"]
+    for p in sorted(files):
+        parti.append("<p><code>%s</code></p>\n<pre>%s</pre>" % (esc_xml(p), esc_xml(files[p].rstrip("\n"))))
+    return "\n".join(parti)
 
 
 def domanda_sito(quiz, r):
-    """Sito con l'editor (prototipo html_con_file, interfaccia html_sito), già in Moodle XML. Le immagini fornite
+    """Sito con l'editor (prototipo html_con_file, interfaccia html_sito), già in Moodle XML; con la tipologia
+    sito_php il prototipo è php_sito, che esegue davvero le pagine PHP (stesso template, parametro php). Le immagini fornite
     vanno nel testo della domanda (lo studente le vede nella traccia) e come file di supporto, che il template copia
     nel sito: le prende dalla cartella --immagini allega_immagini.py. Con «controllo: nascosto» (predefinito nelle
     verifiche) pulsante Verifica e risultati dei test sono nascosti, come nell'esercizio con controllo."""
-    controllo, pagina, test, sito, fornite, parametri = specifica_sito(quiz, r)
+    controllo, pagina, test, sito, fornite, parametri, altro = specifica_sito(quiz, r)
+    consegna = r.get("tipologia") == "consegna_php"
     tr = r.get("traccia") or ""
     if not tr.strip():
         raise ValueError("traccia vuota")
@@ -1114,6 +1165,22 @@ def domanda_sito(quiz, r):
     gf = espandi_codice(html_blocchi(leggi_blocchi(corr))) if corr else ""
     punti = "%.7f" % float(r.get("punti") or 1)
     nascosto = controllo == "nascosto"
+    php = altro["php"]
+    parametri_template = dict({"pagina": pagina}, **({"php": 1} if php else {}), **({"lasco": 1} if altro["lasco"] else {}))
+    if consegna:
+        # niente editor: lo .zip si carica come allegato; al posto della casella un promemoria (interfaccia html)
+        nome = altro["nome"]
+        interfaccia = ("html", esc_xml(json.dumps({"html_src": "globalextra", "enable_in_editor": False})))
+        promemoria = cdata(PROMEMORIA_CONSEGNA_PHP % nome)
+        allegati = ("1", "1", "10485760", esc_xml(re.escape(nome).replace("\\-", "-")),
+                    esc_xml("<p><strong>Il file deve chiamarsi %s, tutto minuscolo e senza spazi.</strong></p>" % nome))
+        if quiz.get("tipoQuiz") not in ("V", "VT"):
+            # nelle esercitazioni dopo la consegna si vede una soluzione: con l'allegato non c'è l'editor che la mostri
+            gf += soluzione_in_chiaro(sito)
+    else:
+        interfaccia = ("html_sito", esc_xml(json.dumps(parametri, ensure_ascii=False)) if parametri else "")
+        promemoria = ""
+        allegati = ("0", "0", "10240", "", "")
 
     def t(tag, v):
         return "    <%s>%s</%s>\n" % (tag, v, tag)
@@ -1121,19 +1188,19 @@ def domanda_sito(quiz, r):
          '    <questiontext format="html">\n      <text>%s</text>\n    </questiontext>\n' % cdata(testo),
          '    <generalfeedback format="html">\n      <text>%s</text>\n    </generalfeedback>\n' % (cdata(gf) if gf else ""),
          t("defaultgrade", punti), t("penalty", "0.0000000"), t("hidden", "0"), t("idnumber", ""),
-         t("coderunnertype", "html_con_file"), t("prototypetype", "0"), t("allornothing", "0"),
+         t("coderunnertype", "php_sito" if php else "html_con_file"), t("prototypetype", "0"), t("allornothing", "0"),
          t("penaltyregime", "0"), t("precheck", "0"), t("hidecheck", "1" if nascosto else "0"), t("showsource", "0"),
-         t("answerboxlines", "18"), t("answerboxcolumns", "100"), t("answerpreload", ""),
-         t("globalextra", ""), t("useace", ""), t("resultcolumns", ""), t("template", ""),
+         t("answerboxlines", "3" if consegna else "18"), t("answerboxcolumns", "100"), t("answerpreload", ""),
+         t("globalextra", promemoria), t("useace", ""), t("resultcolumns", ""), t("template", ""),
          t("iscombinatortemplate", ""), t("allowmultiplestdins", ""), t("answer", cdata(sito)),
-         t("validateonsave", "1"), t("testsplitterre", ""), t("language", ""), t("acelang", ""),
+         t("validateonsave", "0" if consegna else "1"), t("testsplitterre", ""), t("language", ""), t("acelang", ""),
          t("sandbox", ""), t("grader", ""), t("cputimelimitsecs", ""), t("memlimitmb", ""),
-         t("sandboxparams", ""), t("templateparams", esc_xml(json.dumps({"pagina": pagina}))),
+         t("sandboxparams", ""), t("templateparams", esc_xml(json.dumps(parametri_template))),
          t("hoisttemplateparams", "1"), t("extractcodefromjson", "1"), t("templateparamslang", "None"),
          t("templateparamsevalpertry", "0"), t("templateparamsevald", "{}"), t("twigall", "0"),
-         t("uiplugin", "html_sito"), t("uiparameters", esc_xml(json.dumps(parametri, ensure_ascii=False)) if parametri else ""),
-         t("attachments", "0"), t("attachmentsrequired", "0"), t("maxfilesize", "10240"),
-         t("filenamesregex", ""), t("filenamesexplain", ""),
+         t("uiplugin", interfaccia[0]), t("uiparameters", interfaccia[1]),
+         t("attachments", allegati[0]), t("attachmentsrequired", allegati[1]), t("maxfilesize", allegati[2]),
+         t("filenamesregex", allegati[3]), t("filenamesexplain", allegati[4]),
          t("displayfeedback", "2" if nascosto else "1"), t("giveupallowed", "0"), t("prototypeextra", ""),
          "    <testcases>\n"]
     for c in test:
