@@ -15,6 +15,7 @@ import sys
 import xml.dom.minidom
 
 from domande import Q1_SOLUZIONE, Q1_TEST, Q2_TEST, Q3_TEST, Q4_TEST, q2_file_corretti, q3_file_corretti, q4_file_corretti, zip_sito
+import facciata
 from testi import DESCRIZIONE_CSS_CON_TEST, DESCRIZIONE_PHP_SITO, DESCRIZIONE_PROTOTIPO, PROMEMORIA, TESTO_Q1, TESTO_Q2, TESTO_Q3, TESTO_Q4
 
 QUI = os.path.dirname(os.path.abspath(__file__))
@@ -239,6 +240,8 @@ def aggiorna_tracce():
 
 
 def main():
+    if facciata.allinea():
+        print("facciata di mysqli ricopiata in template.py da domande-php-mysqli-mock: rilancia python3 prove.py")
     scrivi(ASSET, [prototipo()])
     scrivi(ASSET_CSS, [prototipo("css_con_test")])
     scrivi(ASSET_PHP, [prototipo("php_sito")])

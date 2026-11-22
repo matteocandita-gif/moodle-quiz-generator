@@ -30,6 +30,8 @@ PHP = "{{ php | default('') }}".strip() not in ("", "0")   # parametro del templ
 # parametro del template: controllo tollerante (pagine e campi del modulo trovati anche con nomi diversi,
 # uscita confrontata parola per parola o solo sui dati indicati con cerca=)
 LASCO = "{{ lasco | default('') }}".strip() not in ("", "0")
+# parametro del template: il database delle pagine PHP (nome di mysqli_connect e del file .db allegato)
+DATABASE = "{{ database | default('') }}".strip()
 
 CARTELLA = "consegna"
 FILE_DI_SISTEMA = {"thumbs.db", "desktop.ini", ".ds_store"}   # li crea il sistema operativo: si ignorano
@@ -442,9 +444,15 @@ PAGINA_TRACCIA = None   # la pagina come la chiama la traccia (con il controllo 
 
 # ------------------------------------------------------------ funzioni di supporto
 
+PROBLEMI_DEL_TEST = None   # dentro esegui_test: i problemi di tutti i controlli dello stesso test
+
+
 def esito(problemi):
-    """Stampa OK se non ci sono problemi, altrimenti un problema per riga."""
-    if problemi:
+    """Stampa OK se non ci sono problemi, altrimenti un problema per riga. Dentro un test i problemi si
+    raccolgono, così un test con più controlli (un invio e poi stessa_tabella) stampa un solo esito."""
+    if PROBLEMI_DEL_TEST is not None:
+        PROBLEMI_DEL_TEST.extend(problemi)
+    elif problemi:
         print("\n".join(problemi))
     else:
         print("OK")
@@ -1467,12 +1475,570 @@ $_SERVER["QUERY_STRING"] = http_build_query($_GET);
 $_SERVER["SCRIPT_NAME"] = $_SERVER["PHP_SELF"] = "/" . $__r["pagina"];
 $_SERVER["REQUEST_URI"] = "/" . $__r["pagina"] . ($_GET ? "?" . http_build_query($_GET) : "");
 $_SERVER["HTTP_HOST"] = $_SERVER["SERVER_NAME"] = "localhost";
+if ($__r["db"] !== "") {
+    // pagine con il database: la facciata di mysqli del prototipo php_mysqli_sqlite, sul database di lavoro
+    require $__r["fakedb"];
+    FakeDB::$file = $__r["db"];
+    FakeDB::$database = $__r["nomedb"];
+}
 chdir($__r["cartella"]);
 ini_set("open_basedir", $__r["radice"]);
 $GLOBALS["__file_php_sito"] = $__r["file"];
 unset($__r, $argv, $argc);
 include $GLOBALS["__file_php_sito"];
 """
+# fakedb: inizio (copia della facciata di mysqli di domande-php-mysqli-mock/assets/prototipo-sqlite-template.php:
+# non modificarla qui, la ricopia crea_prototipo.py)
+FAKEDB_PHP = r'''<?php
+/* =====================================================================
+ * Prototipo php_mysqli_sqlite per CodeRunner (PHP)
+ * La facciata di mysqli (funzioni, classi, controllo delle credenziali) è
+ * simulata; le query vengono ESEGUITE DAVVERO su un database SQLite creato
+ * dal campo Test, con il client sqlite3 di Jobe (lo stesso delle domande SQL).
+ * Gli errori delle query sono quelli di SQLite, così come escono.
+ *
+ * REQUISITI su Jobe: client sqlite3 nel PATH; proc_open consentito in PHP;
+ * estensione PHP mysqli NON caricata (altrimenti "Cannot redeclare").
+ *
+ * Nota Twig: in questo codice non usare mai due graffe aperte di seguito,
+ * né una graffa seguita da cancelletto o percento.
+ * ===================================================================== */
+
+define('MYSQLI_ASSOC', 1);
+define('MYSQLI_NUM', 2);
+define('MYSQLI_BOTH', 3);
+define('MYSQLI_REPORT_OFF', 0);
+define('MYSQLI_REPORT_ERROR', 1);
+define('MYSQLI_REPORT_STRICT', 2);
+define('MYSQLI_REPORT_ALL', 255);
+
+class mysqli_sql_exception extends RuntimeException {}
+
+final class FakeDB
+{
+    const SEP = '#@FAKEDB-SEPARATORE@#';
+
+    // ---- configurazione (impostata dal campo Test con FakeDB::configure) ----
+    public static $hosts = ['localhost', '127.0.0.1'];
+    public static $port = null;          // null = accetta qualsiasi porta
+    public static $user = 'root';
+    public static $password = '';
+    public static $database = '';       // '*' = qualsiasi nome (controllo tollerante del prototipo php_sito)
+    public static $schema = '';          // SQL che crea e popola il database
+    public static $dbfile = '';          // file .db allegato; se vuoto, l'unico .db allegato alla domanda
+    public static $foreignKeys = true;   // PRAGMA foreign_keys = ON a ogni query
+    public static $queries = [];         // facoltativo: query (o /regex/) => risultato forzato
+    public static $exceptions = false;   // true = comportamento predefinito di PHP 8.1+
+    public static $sqlite = 'sqlite3';   // comando del client
+
+    // ---- stato interno ----
+    public static $file = null;
+    public static $log = [];
+    public static $connectErrno = 0;
+    public static $connectError = null;
+
+    public static function configure(array $config)
+    {
+        foreach ($config as $key => $value) {
+            if (!property_exists(self::class, $key) || in_array($key, ['file', 'log'], true)) {
+                throw new InvalidArgumentException("FakeDB: opzione sconosciuta '$key'");
+            }
+            self::${$key} = $value;
+        }
+        self::prepareDatabase();
+    }
+
+    // Crea il database di lavoro: copia del file allegato e/o esecuzione dello schema
+    private static function prepareDatabase()
+    {
+        self::$file = getcwd() . '/fakedb_lavoro.sqlite';
+        if (file_exists(self::$file)) {
+            unlink(self::$file);
+        }
+        $sorgente = self::$dbfile;
+        if ($sorgente === '') {                       // nessun file indicato: l'unico .db allegato, se c'è
+            $allegati = glob('*.db');
+            if (count($allegati) > 1) {
+                throw new RuntimeException("FakeDB: la domanda ha più file .db allegati, indica quale con 'dbfile'");
+            }
+            $sorgente = $allegati ? $allegati[0] : '';
+        }
+        if ($sorgente !== '') {
+            if (!copy($sorgente, self::$file)) {
+                throw new RuntimeException("FakeDB: file del database non trovato: " . $sorgente);
+            }
+        }
+        if (trim(self::$schema) !== '') {
+            $prefisso = self::$foreignKeys ? "PRAGMA foreign_keys = ON;\n" : '';
+            $esito = self::cli($prefisso . self::$schema . "\n;\n");
+            $errori = self::parseErrors($esito[1]);
+            if ($errori) {
+                throw new RuntimeException("FakeDB: errore nello schema del test: " . $errori[0][0]);
+            }
+        } elseif ($sorgente === '') {
+            touch(self::$file);
+        }
+    }
+
+    // Esegue uno script con il client sqlite3 sul database di lavoro: [stdout, stderr]
+    public static function cli($script)
+    {
+        $descrittori = [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
+        $processo = proc_open([self::$sqlite, self::$file], $descrittori, $pipes);
+        if (!is_resource($processo)) {
+            throw new RuntimeException('FakeDB: impossibile avviare ' . self::$sqlite);
+        }
+        fwrite($pipes[0], $script);
+        fclose($pipes[0]);
+        $uscita = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+        $errori = stream_get_contents($pipes[2]);
+        fclose($pipes[2]);
+        proc_close($processo);
+        return [$uscita, $errori];
+    }
+
+    // Righe "Parse error near line N: messaggio" -> [[messaggio, codice], ...]
+    public static function parseErrors($stderr)
+    {
+        $errori = [];
+        foreach (preg_split('/\R/', (string)$stderr) as $riga) {
+            if (preg_match('/^(?:Parse error|Runtime error|Error)(?: near line \d+)?: (.*?)(?: \((\d+)\))?$/', $riga, $m)) {
+                $errori[] = [$m[1], isset($m[2]) && $m[2] !== '' ? (int)$m[2] : 1];
+            }
+        }
+        return $errori;
+    }
+
+    // true se apici, virgolette e commenti sono tutti chiusi
+    private static function balanced($sql)
+    {
+        $n = strlen($sql);
+        $i = 0;
+        while ($i < $n) {
+            $c = $sql[$i];
+            if ($c === '-' && substr($sql, $i, 2) === '--') {
+                $j = strpos($sql, "\n", $i);
+                if ($j === false) {
+                    return true;
+                }
+                $i = $j + 1;
+                continue;
+            }
+            if ($c === '/' && substr($sql, $i, 2) === '/*') {
+                $j = strpos($sql, '*/', $i + 2);
+                if ($j === false) {
+                    return false;
+                }
+                $i = $j + 2;
+                continue;
+            }
+            if ($c === "'" || $c === '"' || $c === '`') {
+                $j = strpos($sql, $c, $i + 1);
+                if ($j === false) {
+                    return false;
+                }
+                $i = $j + 1;
+                continue;
+            }
+            $i++;
+        }
+        return true;
+    }
+
+    // Prima parola della query (select, insert, ...), saltando spazi e commenti
+    public static function verb($sql)
+    {
+        $s = preg_replace('#^(\s+|--[^\n]*\n?|/\*.*?\*/)*#s', '', (string)$sql);
+        return preg_match('/^([a-z]+)/i', $s, $m) ? strtolower($m[1]) : '';
+    }
+
+    private static function decodeRows($testo)
+    {
+        $testo = trim($testo);
+        if ($testo === '') {
+            return [];
+        }
+        $dati = json_decode($testo, true);
+        if (!is_array($dati)) {                       // più risultati: si tiene il primo
+            $pezzi = preg_split('/\]\s*\R\[/', $testo, 2);
+            $dati = json_decode($pezzi[0] . ']', true);
+        }
+        return is_array($dati) ? $dati : [];
+    }
+
+    /* Esegue una query dello studente.
+     * Restituisce ['error' => [messaggio, codice] o null, 'rows' => [...],
+     *              'changes' => n, 'id' => n] */
+    public static function execute($sql)
+    {
+        $script = ".mode json\n" . (self::$foreignKeys ? "PRAGMA foreign_keys = ON;\n" : '');
+        $chiusa = self::balanced($sql);
+        if ($chiusa) {
+            $script .= $sql . "\n;\n.print " . self::SEP . "\nSELECT changes() AS c, last_insert_rowid() AS i;\n";
+        } else {
+            $script .= $sql . "\n";                   // l'errore lo segnala sqlite3
+        }
+        list($uscita, $stderr) = self::cli($script);
+        $errori = self::parseErrors($stderr);
+        $parti = preg_split('/^' . preg_quote(self::SEP, '/') . '\s*$/m', $uscita, 2);
+        $meta = isset($parti[1]) ? self::decodeRows($parti[1]) : [];
+        return [
+            'error' => $errori ? $errori[0] : null,
+            'rows' => self::decodeRows($parti[0]),
+            'changes' => isset($meta[0]['c']) ? (int)$meta[0]['c'] : 0,
+            'id' => isset($meta[0]['i']) ? (int)$meta[0]['i'] : 0,
+        ];
+    }
+
+    // ---- funzioni di supporto per i test ----
+
+    // Righe di una SELECT sul database di lavoro (valori come stringhe)
+    public static function rows($sql)
+    {
+        $esito = self::execute($sql);
+        if ($esito['error']) {
+            throw new RuntimeException('FakeDB::rows: ' . $esito['error'][0]);
+        }
+        return array_map(function ($riga) {
+            return array_map(function ($v) {
+                return $v === null ? null : (string)$v;
+            }, $riga);
+        }, $esito['rows']);
+    }
+
+    public static function count($tabella)
+    {
+        $righe = self::rows("SELECT COUNT(*) AS n FROM $tabella");
+        return (int)$righe[0]['n'];
+    }
+
+    public static function normalize($sql)
+    {
+        $sql = str_replace('`', '', strtolower(trim((string)$sql)));
+        $sql = rtrim($sql, "; \t\r\n");
+        $sql = preg_replace('/\s+/', ' ', $sql);
+        return preg_replace('/\s*([,=()<>])\s*/', '$1', $sql);
+    }
+
+    // Risultato forzato dalla mappa 'queries', se la query vi compare
+    public static function lookup($sql)
+    {
+        $normalized = self::normalize($sql);
+        foreach (self::$queries as $pattern => $result) {
+            $pattern = (string)$pattern;
+            $isRegex = strlen($pattern) > 1 && $pattern[0] === '/';
+            $match = $isRegex
+                ? preg_match($pattern, $normalized) === 1
+                : self::normalize($pattern) === $normalized;
+            if ($match) {
+                return [true, $result];
+            }
+        }
+        return [false, null];
+    }
+
+    public static function checkConnection($host, $user, $password, $database, $port)
+    {
+        $host = $host ?? 'localhost';
+        $user = (string)$user;
+        $password = (string)$password;
+        $database = (string)$database;
+
+        if (!in_array($host, self::$hosts, true)) {
+            return [2002, "php_network_getaddresses: getaddrinfo for $host failed: Name or service not known"];
+        }
+        if (self::$port !== null && $port !== null && (int)$port !== (int)self::$port) {
+            return [2002, 'Connection refused'];
+        }
+        if ($user !== self::$user || $password !== self::$password) {
+            $usingPassword = $password === '' ? 'NO' : 'YES';
+            return [1045, "Access denied for user '$user'@'localhost' (using password: $usingPassword)"];
+        }
+        if ($database !== '' && self::$database !== '*' && $database !== self::$database) {
+            return [1049, "Unknown database '$database'"];
+        }
+        return null;
+    }
+
+    public static function executedQueries()
+    {
+        $out = [];
+        foreach (self::$log as $entry) {
+            if ($entry[0] === 'query') {
+                $out[] = $entry[1];
+            }
+        }
+        return $out;
+    }
+
+    public static function connectionClosed()
+    {
+        foreach (self::$log as $entry) {
+            if ($entry[0] === 'close') {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+class mysqli
+{
+    public $connect_errno = 0;
+    public $connect_error = null;
+    public $errno = 0;
+    public $error = '';
+    public $affected_rows = 0;
+    public $insert_id = 0;
+    private $db = '';
+    private $connected = false;
+    private $closed = false;
+
+    public function __construct($hostname = null, $username = null, $password = null,
+                                $database = '', $port = null, $socket = null)
+    {
+        FakeDB::$log[] = ['connect', $hostname, $username, $password, $database];
+        $error = FakeDB::checkConnection($hostname, $username, $password, $database, $port);
+        if ($error !== null) {
+            $this->connect_errno = $error[0];
+            $this->connect_error = $error[1];
+            FakeDB::$connectErrno = $error[0];
+            FakeDB::$connectError = $error[1];
+            if (FakeDB::$exceptions) {
+                throw new mysqli_sql_exception($error[1], $error[0]);
+            }
+            return;
+        }
+        FakeDB::$connectErrno = 0;
+        FakeDB::$connectError = null;
+        $this->connected = true;
+        $this->db = (string)$database;
+    }
+
+    private function ensureUsable()
+    {
+        if ($this->closed) {
+            throw new Error('mysqli object is already closed');
+        }
+        if (!$this->connected) {
+            throw new Error('mysqli object is not fully initialized');
+        }
+    }
+
+    private function fail($errno, $message)
+    {
+        $this->errno = $errno;
+        $this->error = $message;
+        if (FakeDB::$exceptions) {
+            throw new mysqli_sql_exception($message, $errno);
+        }
+        return false;
+    }
+
+    public function query($query)
+    {
+        $this->ensureUsable();
+        FakeDB::$log[] = ['query', $query];
+        $this->errno = 0;
+        $this->error = '';
+
+        if ($this->db === '') {
+            return $this->fail(1046, 'No database selected');
+        }
+
+        // 1. risultato forzato dal test, se previsto
+        list($found, $result) = FakeDB::lookup($query);
+        if ($found) {
+            if ($result === true) {
+                $this->affected_rows = 0;
+                return true;
+            }
+            if (is_int($result)) {
+                $this->affected_rows = $result;
+                return true;
+            }
+            if (is_array($result) && isset($result['error'])) {
+                return $this->fail($result['error'][0], $result['error'][1]);
+            }
+            if (is_array($result) && (isset($result['affected']) || isset($result['insert_id']))) {
+                $this->affected_rows = $result['affected'] ?? 0;
+                $this->insert_id = $result['insert_id'] ?? 0;
+                return true;
+            }
+            $res = new mysqli_result($result);
+            $this->affected_rows = $res->num_rows;
+            return $res;
+        }
+
+        // 2. esecuzione vera su SQLite
+        $esito = FakeDB::execute($query);
+        if ($esito['error'] !== null) {
+            return $this->fail($esito['error'][1], $esito['error'][0]);
+        }
+        $verbo = FakeDB::verb($query);
+        if (in_array($verbo, ['select', 'with', 'values', 'pragma', 'explain'], true)) {
+            $res = new mysqli_result($esito['rows']);
+            $this->affected_rows = $res->num_rows;
+            return $res;
+        }
+        $this->affected_rows = $esito['changes'];
+        if (in_array($verbo, ['insert', 'replace'], true)) {
+            $this->insert_id = $esito['id'];
+        }
+        return true;
+    }
+
+    public function select_db($database)
+    {
+        $this->ensureUsable();
+        if (FakeDB::$database !== '*' && $database !== FakeDB::$database) {
+            return $this->fail(1049, "Unknown database '$database'");
+        }
+        $this->db = $database;
+        return true;
+    }
+
+    public function set_charset($charset)
+    {
+        $this->ensureUsable();
+        return true;
+    }
+
+    public function real_escape_string($string)
+    {
+        $this->ensureUsable();
+        return str_replace("'", "''", (string)$string);   // '' vale sia in SQLite sia in MySQL
+    }
+
+    public function close()
+    {
+        $this->ensureUsable();
+        $this->closed = true;
+        FakeDB::$log[] = ['close'];
+        return true;
+    }
+}
+
+class mysqli_result implements IteratorAggregate
+{
+    public $num_rows = 0;
+    public $field_count = 0;
+    private $rows = [];
+    private $position = 0;
+
+    public function __construct(array $rows)
+    {
+        // Come il vero mysqli (query non preparate): tutti i valori arrivano come stringhe
+        foreach ($rows as $row) {
+            $this->rows[] = array_map(function ($v) {
+                return $v === null ? null : (string)$v;
+            }, $row);
+        }
+        $this->num_rows = count($this->rows);
+        $this->field_count = $this->num_rows ? count($this->rows[0]) : 0;
+    }
+
+    public function fetch_assoc()
+    {
+        return $this->position < $this->num_rows ? $this->rows[$this->position++] : null;
+    }
+
+    public function fetch_row()
+    {
+        $r = $this->fetch_assoc();
+        return $r === null ? null : array_values($r);
+    }
+
+    public function fetch_object()
+    {
+        $r = $this->fetch_assoc();
+        return $r === null ? null : (object)$r;
+    }
+
+    public function fetch_array($mode = MYSQLI_BOTH)
+    {
+        $r = $this->fetch_assoc();
+        if ($r === null || $mode === MYSQLI_ASSOC) {
+            return $r;
+        }
+        if ($mode === MYSQLI_NUM) {
+            return array_values($r);
+        }
+        $both = [];
+        $i = 0;
+        foreach ($r as $k => $v) {
+            $both[$i++] = $v;
+            $both[$k] = $v;
+        }
+        return $both;
+    }
+
+    public function fetch_all($mode = MYSQLI_NUM)
+    {
+        $all = [];
+        while (($r = $this->fetch_array($mode)) !== null) {
+            $all[] = $r;
+        }
+        return $all;
+    }
+
+    public function data_seek($offset)
+    {
+        if ($offset < 0 || $offset >= $this->num_rows) {
+            return false;
+        }
+        $this->position = $offset;
+        return true;
+    }
+
+    public function free() {}
+
+    public function getIterator(): Iterator
+    {
+        $rest = array_slice($this->rows, $this->position);
+        $this->position = $this->num_rows;
+        return new ArrayIterator($rest);
+    }
+}
+
+// ---- Stile procedurale (i type hint producono gli stessi TypeError del vero mysqli) ----
+function mysqli_connect($hostname = null, $username = null, $password = null,
+                        $database = '', $port = null, $socket = null)
+{
+    $conn = new mysqli($hostname, $username, $password, $database, $port, $socket);
+    return $conn->connect_errno ? false : $conn;
+}
+function mysqli_connect_errno() { return FakeDB::$connectErrno; }
+function mysqli_connect_error() { return FakeDB::$connectError; }
+function mysqli_query(mysqli $mysql, $query) { return $mysql->query($query); }
+function mysqli_error(mysqli $mysql) { return $mysql->error; }
+function mysqli_errno(mysqli $mysql) { return $mysql->errno; }
+function mysqli_select_db(mysqli $mysql, $database) { return $mysql->select_db($database); }
+function mysqli_set_charset(mysqli $mysql, $charset) { return $mysql->set_charset($charset); }
+function mysqli_real_escape_string(mysqli $mysql, $string) { return $mysql->real_escape_string($string); }
+function mysqli_affected_rows(mysqli $mysql) { return $mysql->affected_rows; }
+function mysqli_insert_id(mysqli $mysql) { return $mysql->insert_id; }
+function mysqli_close(mysqli $mysql) { return $mysql->close(); }
+function mysqli_fetch_assoc(mysqli_result $result) { return $result->fetch_assoc(); }
+function mysqli_fetch_row(mysqli_result $result) { return $result->fetch_row(); }
+function mysqli_fetch_object(mysqli_result $result) { return $result->fetch_object(); }
+function mysqli_fetch_array(mysqli_result $result, $mode = MYSQLI_BOTH) { return $result->fetch_array($mode); }
+function mysqli_fetch_all(mysqli_result $result, $mode = MYSQLI_NUM) { return $result->fetch_all($mode); }
+function mysqli_num_rows(mysqli_result $result) { return $result->num_rows; }
+function mysqli_num_fields(mysqli_result $result) { return $result->field_count; }
+function mysqli_data_seek(mysqli_result $result, $offset) { return $result->data_seek($offset); }
+function mysqli_free_result(mysqli_result $result) { $result->free(); }
+function mysqli_report($flags)
+{
+    FakeDB::$exceptions = (bool)($flags & MYSQLI_REPORT_STRICT);
+    return true;
+}
+
+/* ======================= fine del mock ======================= */
+'''
+# fakedb: fine
+
 ERRORE_PHP = re.compile(r"^(PHP )?(Parse error|Fatal error|Warning|Notice|Deprecated|Uncaught)\b.*$", re.M)
 PHP_TROPPO_LENTO = "La pagina non finisce entro 5 secondi: c'è un ciclo che non si ferma?"
 
@@ -1499,9 +2065,35 @@ def radice_sito(soluzione=False):
 USCITE_PHP = {}   # le richieste già eseguite: ogni test che rifà la stessa richiesta non riesegue php
 
 
+def file_del_database():
+    """Il file .db allegato alla domanda (DATABASE.db, oppure l'unico .db allegato)."""
+    if os.path.isfile(DATABASE + ".db"):
+        return DATABASE + ".db"
+    allegati = [f for f in os.listdir(".") if f.lower().endswith(".db")]
+    if len(allegati) != 1:
+        raise ErrorePHP("Errore nella domanda (avvisa l'insegnante): manca il file %s.db tra i file di supporto." % DATABASE)
+    return allegati[0]
+
+
+def database_di_lavoro(soluzione=False):
+    return os.path.abspath("db_soluzione.sqlite" if soluzione else "db_studente.sqlite")
+
+
+def ripristina_database():
+    """All'inizio di ogni test lo studente e la soluzione ripartono dal database allegato; dentro lo stesso
+    test le richieste si sommano (un'INSERT del modulo si vede poi nella pagina dell'elenco)."""
+    USCITE_PHP.clear()
+    if DATABASE:
+        origine = file_del_database()
+        for soluzione in (False, True):
+            shutil.copy(origine, database_di_lavoro(soluzione))
+
+
 def esegui_php(pagina, get=None, post=None, soluzione=False):
     """Esegue la pagina (percorso dalla cartella del sito) e restituisce quello che stampa,
     con i percorsi del server tolti dai messaggi di errore."""
+    if DATABASE:   # con il database ogni richiesta può cambiare i dati: niente risultati riusati
+        return esegui_php_davvero(pagina, get, post, soluzione)
     chiave = json.dumps([pagina, get, post, soluzione], sort_keys=True)
     if chiave not in USCITE_PHP:
         USCITE_PHP[chiave] = esegui_php_davvero(pagina, get, post, soluzione)
@@ -1518,9 +2110,14 @@ def esegui_php_davvero(pagina, get, post, soluzione):
         raise ConsegnaIncompleta("Non trovo la pagina %s nel tuo sito." % pagina)
     with open("avvio_php_sito.php", "w", encoding="utf-8") as f:
         f.write(AVVIO_PHP)
+    if DATABASE and not os.path.isfile("fakedb_php_sito.php"):
+        with open("fakedb_php_sito.php", "w", encoding="utf-8") as f:
+            f.write(FAKEDB_PHP)
     dati = {"get": {k: v for k, v in (get or {}).items()}, "post": {k: v for k, v in (post or {}).items()},
             "metodo": "POST" if post is not None else "GET", "pagina": pagina,
-            "cartella": os.path.dirname(completo), "radice": radice, "file": os.path.basename(completo)}
+            "cartella": os.path.dirname(completo), "radice": radice, "file": os.path.basename(completo),
+            "db": database_di_lavoro(soluzione) if DATABASE else "", "fakedb": os.path.abspath("fakedb_php_sito.php"),
+            "nomedb": "*" if LASCO and not soluzione else DATABASE}
     with tempfile.NamedTemporaryFile("w", suffix=".json", dir=".", delete=False, encoding="utf-8") as f:
         json.dump(dati, f)
         nome_dati = f.name
@@ -1534,7 +2131,7 @@ def esegui_php_davvero(pagina, get, post, soluzione):
         uscita = PHP_TROPPO_LENTO
     finally:
         os.remove(nome_dati)
-    uscita = uscita.replace(radice + os.sep, "").replace(radice, "")
+    uscita = uscita.replace(radice + os.sep, "").replace(radice, "").replace(os.getcwd() + os.sep, "")
     uscita = re.sub(r"(PHP )?Fatal error: +Maximum execution time of \d+ seconds? exceeded.*", PHP_TROPPO_LENTO, uscita)
     return re.sub(r" on line (\d+)", r" alla riga \1", uscita)
 
@@ -1644,7 +2241,37 @@ def stesso_testo(pagina, get=None, post=None, cerca=None):
 def php_senza_errori(pagina, get=None, post=None):
     """La pagina PHP, eseguita con i dati indicati, non stampa errori né avvisi di PHP."""
     errori = errori_php(esegui_php(file_dello_studente(pagina), *dati_dello_studente(pagina, get, post)))
+    if DATABASE:   # la stessa richiesta sulla soluzione, perché i due database restino confrontabili
+        esegui_php(pagina, get, post, soluzione=True)
     esito(["Aprendo %s %s PHP segnala:" % (pagina, descrivi_dati(get, post))] + errori if errori else [])
+
+
+def righe_del_database(sql, soluzione=False):
+    """Le righe di una SELECT sul database di lavoro (dello studente o della soluzione), come testi."""
+    if not DATABASE:
+        raise ErrorePHP("Errore nella domanda (avvisa l'insegnante): stessa_tabella serve il parametro database.")
+    r = subprocess.run(["sqlite3", database_di_lavoro(soluzione)], input=".mode json\n" + sql.strip().rstrip(";") + ";\n",
+                       capture_output=True, text=True, timeout=10)
+    if r.stderr.strip():
+        raise ErrorePHP("Errore nella domanda (avvisa l'insegnante): la query «%s» non va: %s" % (sql, r.stderr.strip()))
+    righe = json.loads(r.stdout) if r.stdout.strip() else []
+    return [["NULL" if v is None else str(v) for v in riga.values()] for riga in righe]
+
+
+def stessa_tabella(sql):
+    """Dopo le richieste dello stesso test (per esempio un invia che fa un'INSERT), la SELECT indicata dà le
+    stesse righe sul database dello studente e su quello della soluzione: come guardare phpMyAdmin.
+    Esempio: invia("iscrizione.html", {"nome": "Mario"}) e poi stessa_tabella("SELECT Nome FROM Iscritti ORDER BY Id")."""
+    attese = righe_del_database(sql, soluzione=True)
+    trovate = righe_del_database(sql)
+    norma = (lambda v: " ".join(v.lower().split())) if LASCO else (lambda v: v)
+    if [[norma(v) for v in r] for r in trovate] == [[norma(v) for v in r] for r in attese]:
+        esito([])
+        return
+    mostra = lambda righe: " | ".join(", ".join(r) for r in righe[:6]) + (" | …" if len(righe) > 6 else "") if righe else "(nessuna riga)"
+    quante = lambda n: "1 riga" if n == 1 else "%d righe" % n
+    esito(["Nel database, «%s» doveva dare %s: %s" % (sql.strip(), quante(len(attese)), mostra(attese)),
+           "invece dà %s: %s" % (quante(len(trovate)), mostra(trovate))])
 
 
 def carica_uscita(uscita, pagina):
@@ -1664,6 +2291,8 @@ def carica_uscita(uscita, pagina):
 def usa_uscita(pagina, get=None, post=None):
     """Esegue la pagina PHP con i dati indicati: i controlli che seguono guardano quello che stampa.
     Esempio: usa_uscita("elenco.php", get={"genere": "giallo"}) e poi almeno(3, "li")."""
+    if DATABASE:
+        esegui_php(pagina, get, post, soluzione=True)
     get, post = dati_dello_studente(pagina, get, post)
     pagina = file_dello_studente(pagina)
     carica_uscita(esegui_php(pagina, get, post), pagina)
@@ -1905,6 +2534,8 @@ def usa_invio(pagina, dati, numero=1):
     arrivo, uscita, problemi = invio_del_modulo(pagina, dati, numero, soluzione=False)
     if problemi:
         raise ConsegnaIncompleta(" ".join(problemi))
+    if DATABASE:
+        invio_del_modulo(pagina, dati, numero, soluzione=True)
     carica_uscita(uscita, arrivo)
 
 
@@ -1953,18 +2584,25 @@ def modulo(azione=None, metodo=None, campi=(), numero=1):
 
 
 def esegui_test(codice):
+    global PROBLEMI_DEL_TEST
     if ERRORE_CONSEGNA:
         print(ERRORE_CONSEGNA)
         return
+    PROBLEMI_DEL_TEST = []
     try:
+        ripristina_database()
         usa_pagina(dal_sito(PAGINA_PRINCIPALE))   # ogni test riparte dalla pagina principale
         exec(codice, globals())
+        finale = ""
     except ConsegnaIncompleta as errore:
-        print(errore)
+        finale = str(errore)
     except ErrorePHP as errore:
-        print(errore)
+        finale = str(errore)
     except Exception as errore:
-        print("Errore nel controllo (avvisa l'insegnante): %s" % errore)
+        finale = "Errore nel controllo (avvisa l'insegnante): %s" % errore
+    problemi = PROBLEMI_DEL_TEST + ([finale] if finale else [])
+    PROBLEMI_DEL_TEST = None
+    print("\n".join(problemi) if problemi else "OK")
 
 
 # ------------------------------------------------------------ i test della domanda

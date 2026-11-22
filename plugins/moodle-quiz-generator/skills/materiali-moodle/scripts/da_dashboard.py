@@ -33,6 +33,7 @@ Si ferma con l'elenco degli errori se una riga non rispetta le convenzioni.
 Nomi e categoria: con una lezione numerica «L<lezione> - <pos> - …» e «Lezione <lezione> - <argomento>»;
 con una lezione non numerica (le verifiche, per esempio «V5R», o un codice automatico come «4K7») «V5R - <pos> - …» e «V5R - <argomento>».
 """
+import base64
 import glob
 import json
 import os
@@ -831,7 +832,46 @@ PROTOTIPO_CONTROLLO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "
 OPZIONI_CONTROLLO = {"risposta": ("css", "html"), "controllo": ("visibile", "nascosto")}
 
 
-def esegui_controlli(template, testcodes, risposta, pagina, soluzione=None, php=False, lasco=False):
+def db_sqlite(nome, sql):
+    """Il file SQLite (bytes) di un database del quiz, come lo allega crea_xml.py di domande-php-mysqli-mock."""
+    import sqlite3
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        f = os.path.join(d, nome + ".db")
+        con = sqlite3.connect(f)
+        try:
+            con.execute("PRAGMA foreign_keys = ON")
+            con.executescript(sql)
+            con.commit()
+        except sqlite3.Error as e:
+            raise ValueError("errore nel database «%s»: %s" % (nome, e))
+        finally:
+            con.close()
+        return open(f, "rb").read()
+
+
+def ambiente_php(cartella):
+    """L'ambiente per eseguire le pagine PHP come su Jobe: dove manca il client sqlite3 lo sostituisce
+    sqlite3_cli.py, e se il php locale ha l'estensione mysqli (su Jobe non c'è) parte senza estensioni."""
+    import shutil
+    import subprocess
+    env = dict(os.environ)
+    cartella_bin = os.path.join(cartella, "_bin")
+    os.makedirs(cartella_bin, exist_ok=True)
+    if not shutil.which("sqlite3"):
+        with open(os.path.join(cartella_bin, "sqlite3"), "w") as f:
+            f.write('#!/bin/sh\nexec "%s" "%s" "$@"\n' % (sys.executable,
+                                                         os.path.join(os.path.dirname(os.path.abspath(__file__)), "sqlite3_cli.py")))
+        os.chmod(os.path.join(cartella_bin, "sqlite3"), 0o755)
+    if shutil.which("php") and "mysqli" in subprocess.run(["php", "-m"], capture_output=True, text=True).stdout.split():
+        with open(os.path.join(cartella_bin, "php"), "w") as f:
+            f.write('#!/bin/sh\nexec "%s" -n "$@"\n' % shutil.which("php"))
+        os.chmod(os.path.join(cartella_bin, "php"), 0o755)
+    env["PATH"] = cartella_bin + os.pathsep + env.get("PATH", "")
+    return env
+
+
+def esegui_controlli(template, testcodes, risposta, pagina, soluzione=None, php=False, lasco=False, database=None):
     """Esegue il template del prototipo come CodeRunner su Jobe (senza allegati) e restituisce l'uscita di ogni
     test. Le poche righe Twig del template si sostituiscono qui: sono le stesse di sviluppo/prototipo-html-con-file.
     soluzione: la soluzione dell'autore (QUESTION.answer), se diversa dalla risposta (correzione delle verifiche)."""
@@ -847,13 +887,17 @@ def esegui_controlli(template, testcodes, risposta, pagina, soluzione=None, php=
         corpo = corpo.replace(twig, valore)
     corpo = corpo.replace("{{ php | default('') }}", "1" if php else "")
     corpo = corpo.replace("{{ lasco | default('') }}", "1" if lasco else "")
+    corpo = corpo.replace("{{ database | default('') }}", database[0] if database else "")
     separatore = "#<ab@17943918#@>#"
     corpo += "\nprint(SEPARATORE)\n".join('esegui_test("""%s""")' % py(c) for c in testcodes) + "\n"
     with tempfile.TemporaryDirectory() as d:
         with open(os.path.join(d, "__tester__.python3"), "w", encoding="utf-8") as f:
             f.write(corpo)
+        if database:   # il file .db allegato alla domanda
+            with open(os.path.join(d, database[0] + ".db"), "wb") as f:
+                f.write(database[1])
         r = subprocess.run([sys.executable, "-I", "__tester__.python3"], cwd=d, capture_output=True,
-                           text=True, timeout=30)
+                           text=True, timeout=60, env=ambiente_php(d) if php else None)
     if r.returncode or r.stderr:
         raise ValueError("il template del prototipo css_con_test non parte: %s" % (r.stderr or "")[-300:])
     return [u.rstrip("\n") for u in r.stdout.split(separatore + "\n")]
@@ -996,8 +1040,8 @@ def percorso_sito(p, cosa):
 
 
 OPZIONI_SITO = {"sito_html": ("pagina", "controllo", "immagini", "aiuti", "file_pc"),
-                "sito_php": ("pagina", "controllo", "immagini", "aiuti", "file_pc", "tollerante"),
-                "consegna_php": ("nome", "pagina", "controllo", "tollerante")}
+                "sito_php": ("pagina", "controllo", "immagini", "aiuti", "file_pc", "tollerante", "database"),
+                "consegna_php": ("nome", "pagina", "controllo", "tollerante", "database")}
 SI = ("sì", "si", "true", "1")
 
 
@@ -1088,6 +1132,13 @@ def specifica_sito(quiz, r):
         if fornite or immagini:
             raise ValueError("in una consegna PHP le immagini sono nello .zip dello studente: niente «immagini» né "
                              "«=== immagine»")
+    database, db = opzioni.get("database", ""), None
+    if database:
+        dbs = databases_quiz(quiz)
+        if database not in dbs:
+            raise ValueError("database «%s» non definito nel quiz (database del quiz: %s)"
+                             % (database, ", ".join(dbs) or "nessuno"))
+        db = db_sqlite(database, dbs[database])
     pagina = percorso_sito(opzioni.get("pagina") or "index.html", "pagina principale")
     if pagina not in files:
         raise ValueError("la soluzione non ha la pagina principale %s (=== file %s)" % (pagina, pagina))
@@ -1114,7 +1165,8 @@ def specifica_sito(quiz, r):
                       ensure_ascii=False)
     import xml.etree.ElementTree as ET
     template = ET.parse(PROTOTIPO_PHP_SITO if php else PROTOTIPO_CONSEGNA).getroot().find("question/template").text or ""
-    uscite = esegui_controlli(template, [t["codice"] for t in test], sito, pagina, php=php, lasco=lasco)
+    uscite = esegui_controlli(template, [t["codice"] for t in test], sito, pagina, php=php, lasco=lasco,
+                              database=(database, db) if db else None)
     sbagliati = ["«%s»: %s" % (t["extra"], u.replace("\n", " | ")) for t, u in zip(test, uscite) if u != "OK"]
     if len(uscite) != len(test) or sbagliati:
         raise ValueError("la soluzione (=== file …) non supera tutti i controlli: " + "; ".join(sbagliati or uscite))
@@ -1123,7 +1175,8 @@ def specifica_sito(quiz, r):
         parametri["immagini"] = ", ".join(fornite)
     if carica:
         parametri["file_pc"] = True
-    return controllo, pagina, test, sito, fornite, parametri, {"php": php, "lasco": lasco, "nome": nome}
+    return controllo, pagina, test, sito, fornite, parametri, {"php": php, "lasco": lasco, "nome": nome,
+                                                               "database": (database, db) if db else None}
 
 
 PROMEMORIA_CONSEGNA_PHP = (
@@ -1166,7 +1219,10 @@ def domanda_sito(quiz, r):
     punti = "%.7f" % float(r.get("punti") or 1)
     nascosto = controllo == "nascosto"
     php = altro["php"]
-    parametri_template = dict({"pagina": pagina}, **({"php": 1} if php else {}), **({"lasco": 1} if altro["lasco"] else {}))
+    parametri_template = dict({"pagina": pagina}, **({"php": 1} if php else {}), **({"lasco": 1} if altro["lasco"] else {}),
+                              **({"database": altro["database"][0]} if altro["database"] else {}))
+    if altro["database"]:
+        testo += "\n" + DISCLAIMER_PHP   # come nelle domande pagina_php: SQLite al posto di MySQL
     if consegna:
         # niente editor: lo .zip si carica come allegato; al posto della casella un promemoria (interfaccia html)
         nome = altro["nome"]
@@ -1211,6 +1267,10 @@ def domanda_sito(quiz, r):
                  '      <extra>\n                <text>%s</text>\n      </extra>\n'
                  '      <display>\n                <text>SHOW</text>\n      </display>\n'
                  '    </testcase>\n' % (c["peso"], cdata(c["codice"]), cdata(c["extra"])))
+    if altro["database"]:
+        # il database delle pagine PHP, file di supporto invisibile allo studente (come in php_mysqli_sqlite)
+        x.append('<file name="%s.db" path="/" encoding="base64">%s</file>\n'
+                 % (esc_xml(altro["database"][0]), base64.b64encode(altro["database"][1]).decode("ascii")))
     for nome in fornite:
         # file di supporto: il template copia nel sito l'immagine vera (allega_immagini.py la prende dalla cartella)
         x.append('<file name="%s" path="/" encoding="base64">%s</file>\n' % (esc_xml(nome), SEGNAPOSTO_SUPPORTO))

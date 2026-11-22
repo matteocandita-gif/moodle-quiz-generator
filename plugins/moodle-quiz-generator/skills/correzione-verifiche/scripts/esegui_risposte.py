@@ -222,14 +222,14 @@ def prepara_sito(quiz, riga):
     import xml.etree.ElementTree as ET
     import da_dashboard as dd
     _, pagina, test, sito, _, _, altro = dd.specifica_sito(quiz, riga)
-    php, lasco = altro["php"], altro["lasco"]
+    php, lasco, database = altro["php"], altro["lasco"], altro["database"]
     template = ET.parse(dd.PROTOTIPO_PHP_SITO if php else dd.PROTOTIPO_CONSEGNA).getroot().find("question/template").text or ""
-    return (dd.esegui_controlli, template, pagina, sito, php, lasco), [{"codice": t["codice"], "peso": t["peso"],
+    return (dd.esegui_controlli, template, pagina, sito, php, lasco, database), [{"codice": t["codice"], "peso": t["peso"],
                                                             "extra": t["extra"]} for t in test]
 
 
 def esito_sito(ctx, tests, risposta):
-    esegui, template, pagina, soluzione, php, lasco = ctx
+    esegui, template, pagina, soluzione, php, lasco, database = ctx
     o = sito_della_risposta(risposta)
     if o is None:
         return [("errore", "risposta non leggibile come sito dell'editor")] * len(tests)
@@ -237,7 +237,7 @@ def esito_sito(ctx, tests, risposta):
     if html and not any("<" in str(v) for v in html):
         return [("errore", "le pagine non hanno tag: l'export Excel li ha tolti, importa le risposte da Moodle")] * len(tests)
     try:
-        uscite = esegui(template, [t["codice"] for t in tests], json.dumps(o, ensure_ascii=False), pagina, soluzione, php, lasco)
+        uscite = esegui(template, [t["codice"] for t in tests], json.dumps(o, ensure_ascii=False), pagina, soluzione, php, lasco, database)
     except Exception as e:
         return [("errore", str(e)[:120])] * len(tests)
     return [("ok", "") if u.strip() == "OK" else ("diverso", t["extra"].rstrip(".") + ": " + u.strip().replace("\n", " | "))

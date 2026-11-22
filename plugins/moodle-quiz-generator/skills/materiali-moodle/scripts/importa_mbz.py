@@ -933,6 +933,12 @@ class Importatore:
             if tl == "php_sito":
                 # sempre scritto: il valore predefinito cambia tra esercitazioni e verifiche
                 opzioni.append("tollerante: %s" % ("sì" if tp.get("lasco") in (1, "1", True) else "no"))
+            if tl == "php_sito" and tp.get("database"):
+                # pagine con il database: il .db allegato torna tra i database del quiz, l'avviso lo rimette da_dashboard.py
+                testo = re.sub(r'<div[^>]*>\s*<p[^>]*>\s*<strong>N\.B\. questa è una simulazione</strong>\s*</p>[\s\S]*?</div>\s*$',
+                               "", testo.strip())
+                nome_db, _, _ = self.database_di(q)
+                opzioni.append("database: %s" % (nome_db or tp["database"]))
             if ui.get("immagini"):
                 opzioni.append("immagini: %s" % ui["immagini"])
             aiuti = [k for k, v in (("chiusura", "chiusura_automatica"), ("completamento", "completamento"),

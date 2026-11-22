@@ -211,4 +211,132 @@ for prefisso, file_zip, attesa, titolo in [
     fallite += not ok
     print("%s %-60s %s" % ("  " if ok else "!!", titolo, " | ".join(u)[:220]))
 
+
+# pagine con il database (parametro database: facciata di mysqli su SQLite, come php_mysqli_sqlite)
+import sqlite3 as _sqlite3
+import tempfile as _tempfile
+
+
+def db_torneo():
+    with _tempfile.TemporaryDirectory() as d:
+        f = d + "/dbtorneo.db"
+        con = _sqlite3.connect(f)
+        con.executescript("""CREATE TABLE Iscritti (Id INTEGER PRIMARY KEY AUTOINCREMENT, Nome TEXT NOT NULL,
+                             Eta INTEGER NOT NULL, Categoria TEXT NOT NULL);
+                             INSERT INTO Iscritti (Nome, Eta, Categoria) VALUES ('Anna', 16, 'Junior'), ('Luca', 18, 'Senior');""")
+        con.commit()
+        con.close()
+        return open(f, "rb").read()
+
+
+CONNESSIONE = """mysqli_report(MYSQLI_REPORT_OFF);
+$host = "127.0.0.1";
+$username = "root";
+$password = "";
+$nomedb = "dbtorneo";
+$connessione = mysqli_connect($host, $username, $password, $nomedb)
+    or die("Connessione non riuscita: " . mysqli_connect_error());
+"""
+FORM_DB = """<!DOCTYPE html>
+<html><head><title>Iscrizione</title></head><body>
+<form action="pagine/iscrivi.php" method="post">
+  <label for="nome">Nome</label> <input type="text" id="nome" name="nome" required>
+  <label for="eta">Età</label> <input type="number" id="eta" name="eta" required>
+  <button>Iscriviti</button>
+</form>
+<a href="pagine/elenco.php">Elenco</a> <a href="pagine/categoria.php?categoria=Junior">Junior</a>
+</body></html>
+"""
+ISCRIVI = """<?php
+""" + CONNESSIONE + """$nome = $_POST["nome"];
+$eta = $_POST["eta"];
+if ($eta >= 18) {
+    $categoria = "Senior";
+} else {
+    $categoria = "Junior";
+}
+$query = "INSERT INTO Iscritti (Nome, Eta, Categoria) VALUES ('$nome', $eta, '$categoria')";
+mysqli_query($connessione, $query) or die("Errore nell'inserimento: " . mysqli_error($connessione));
+mysqli_close($connessione);
+echo "<p>Iscrizione registrata: $nome, categoria $categoria</p>";
+"""
+ELENCO_DB = """<?php
+""" + CONNESSIONE + """$risultato = mysqli_query($connessione, "SELECT Nome, Categoria FROM Iscritti ORDER BY Nome")
+    or die("Errore nella query: " . mysqli_error($connessione));
+mysqli_close($connessione);
+echo "<ul>\\n";
+while ($riga = mysqli_fetch_array($risultato)) {
+    echo "<li>$riga[Nome] ($riga[Categoria])</li>\\n";
+}
+echo "</ul>\\n";
+"""
+CATEGORIA_DB = """<?php
+""" + CONNESSIONE + """$categoria = $_GET["categoria"];
+$risultato = mysqli_query($connessione, "SELECT Nome FROM Iscritti WHERE Categoria = '$categoria' ORDER BY Nome")
+    or die("Errore nella query: " . mysqli_error($connessione));
+echo "<h1>$categoria</h1>\\n";
+while ($riga = mysqli_fetch_array($risultato)) {
+    echo "<p>$riga[Nome]</p>\\n";
+}
+"""
+
+
+def sito_db(**files):
+    f = {"index.html": FORM_DB, "pagine/iscrivi.php": ISCRIVI, "pagine/elenco.php": ELENCO_DB,
+         "pagine/categoria.php": CATEGORIA_DB}
+    f.update(files)
+    return json.dumps({"htmlve": 1, "cartelle": ["pagine"], "files": {k: v for k, v in f.items() if v is not None},
+                       "immagini": {}})
+
+
+DB = db_torneo()
+SOLUZIONE_DB = sito_db()
+
+
+def con_db(codici, risposta, attese, titolo, contiene=None, lasco=False):
+    global fallite
+    u = esegui(codici if isinstance(codici, list) else [codici], risposta=risposta, soluzione=SOLUZIONE_DB,
+               pagina="index.html", php=True, lasco=lasco, database="dbtorneo", supporto={"dbtorneo.db": DB})
+    attese = attese if isinstance(attese, list) else [attese]
+    ok = [(x == "OK") == a for x, a in zip(u, attese)] == [True] * len(attese) and len(u) == len(attese) \
+        and (contiene is None or contiene in " ".join(u))
+    fallite += not ok
+    print("%s %-60s %s" % ("  " if ok else "!!", titolo, " || ".join(x.replace("\n", " | ") for x in u)[:260]))
+
+
+con_db('stessa_uscita("pagine/elenco.php")', sito_db(), True, "db: elenco dal database come la soluzione")
+con_db('stessa_uscita("pagine/categoria.php", get={"categoria": "Senior"})', sito_db(), True, "db: GET e WHERE")
+con_db('invia("index.html", {"nome": "Mario", "eta": "17"})', sito_db(), True, "db: invio con INSERT")
+con_db('invia("index.html", {"nome": "Mario", "eta": "17"})\nstessa_tabella("SELECT Nome, Eta, Categoria FROM Iscritti ORDER BY Id")',
+       sito_db(), True, "db: stessa_tabella dopo l'invio")
+con_db('invia("index.html", {"nome": "Mario", "eta": "17"})\nstessa_tabella("SELECT Nome, Eta, Categoria FROM Iscritti ORDER BY Id")',
+       sito_db(**{"pagine/iscrivi.php": ISCRIVI.replace("$eta >= 18", "$eta >= 16")}), False,
+       "db: categoria sbagliata nella tabella", "invece dà 3 righe")
+con_db('usa_invio("index.html", {"nome": "Mario", "eta": "17"})\nusa_uscita("pagine/elenco.php")\ncontiene("Mario (Junior)")',
+       sito_db(), True, "db: le richieste dello stesso test si sommano")
+con_db(['invia("index.html", {"nome": "Mario", "eta": "17"})',
+        'esito([] if righe_del_database("SELECT COUNT(*) FROM Iscritti") == [["2"]] else ["non riparte"])'],
+       sito_db(), [True, True], "db: ogni test riparte dal database allegato")
+con_db('stessa_uscita("pagine/elenco.php")', sito_db(**{"pagine/elenco.php": ELENCO_DB.replace("FROM Iscritti", "FROM Iscritto")}),
+       False, "db: tabella sbagliata, messaggio di SQLite", "no such table: Iscritto")
+con_db('stessa_uscita("pagine/elenco.php")', sito_db(**{"pagine/elenco.php": ELENCO_DB.replace('"dbtorneo"', '"torneo"')}),
+       False, "db: nome del database sbagliato", "Unknown database 'torneo'")
+con_db('stessa_uscita("pagine/elenco.php")', sito_db(**{"pagine/elenco.php": ELENCO_DB.replace('"dbtorneo"', '"torneo"')}),
+       True, "db, lasco: nome del database libero", lasco=True)
+con_db('stessa_uscita("pagine/elenco.php")', sito_db(**{"pagine/elenco.php": ELENCO_DB.replace('$password = "";', '$password = "root";')}),
+       False, "db, lasco: password sbagliata resta un errore", "Access denied", lasco=True)
+NOMI_DB = {"index.html": FORM_DB.replace('name="nome"', 'name="giocatore"').replace('name="eta"', 'name="anni"'),
+           "pagine/iscrivi.php": ISCRIVI.replace('$_POST["nome"]', '$_POST["giocatore"]').replace('$_POST["eta"]', '$_POST["anni"]')}
+con_db('invia("index.html", {"nome": "Mario", "eta": "17"}, cerca=["Mario", "Junior"])\nstessa_tabella("SELECT Nome, Eta, Categoria FROM Iscritti ORDER BY Id")',
+       sito_db(**NOMI_DB), True, "db, lasco: name diversi, invio e tabella", lasco=True)
+con_db('php_senza_errori("pagine/iscrivi.php", post={"nome": "Mario", "eta": "17"})\nstessa_tabella("SELECT Nome FROM Iscritti ORDER BY Id")',
+       sito_db(**NOMI_DB), True, "db, lasco: pagina aperta direttamente con i suoi name", lasco=True)
+con_db('stessa_tabella("SELECT Nome FROM Iscritto")', sito_db(), False, "db: query del test sbagliata", "Errore nella domanda")
+
+
+import facciata
+ok = facciata.nel_template() == facciata.originale()
+fallite += not ok
+print("%s %-60s %s" % ("  " if ok else "!!", "facciata di mysqli uguale all'originale", "" if ok else "rilancia crea_prototipo.py"))
+
 print("PROVE PHP FALLITE:", fallite)

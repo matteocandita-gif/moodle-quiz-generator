@@ -71,7 +71,7 @@ final class FakeDB
     public static $port = null;          // null = accetta qualsiasi porta
     public static $user = 'root';
     public static $password = '';
-    public static $database = '';
+    public static $database = '';       // '*' = qualsiasi nome (controllo tollerante del prototipo php_sito)
     public static $schema = '';          // SQL che crea e popola il database
     public static $dbfile = '';          // file .db allegato; se vuoto, l'unico .db allegato alla domanda
     public static $foreignKeys = true;   // PRAGMA foreign_keys = ON a ogni query
@@ -303,7 +303,7 @@ final class FakeDB
             $usingPassword = $password === '' ? 'NO' : 'YES';
             return [1045, "Access denied for user '$user'@'localhost' (using password: $usingPassword)"];
         }
-        if ($database !== '' && $database !== self::$database) {
+        if ($database !== '' && self::$database !== '*' && $database !== self::$database) {
             return [1049, "Unknown database '$database'"];
         }
         return null;
@@ -440,7 +440,7 @@ class mysqli
     public function select_db($database)
     {
         $this->ensureUsable();
-        if ($database !== FakeDB::$database) {
+        if (FakeDB::$database !== '*' && $database !== FakeDB::$database) {
             return $this->fail(1049, "Unknown database '$database'");
         }
         $this->db = $database;

@@ -412,6 +412,9 @@ FUNZIONI_PHP = [
      "pagina con l'invio del modulo."),
     ('contiene("Ciao Mario", "maggiorenne")', "Il testo visibile della pagina che si sta controllando "
      "contiene tutte le parole indicate (maiuscole e spazi non contano)."),
+    ('stessa_tabella("SELECT Nome, Eta FROM Iscritti ORDER BY Id")', "Solo con il database: dopo le richieste "
+     "dello stesso test (per esempio un " + CODICE % "invia" + " che fa un'INSERT), la SELECT dà le stesse righe sul "
+     "database dello studente e su quello della soluzione, come guardare phpMyAdmin."),
     ('modulo("risultato.php", "post", ["nome", "eta"])', "Il modulo (il primo, o " + CODICE % "numero="
      + ") invia i dati alla pagina indicata, con il metodo indicato, e ha i campi con quei name. "
      "Ogni argomento si può omettere."),
@@ -455,5 +458,13 @@ DESCRIZIONE_PHP_SITO = "\n".join([
     + m("open_basedir") + " sulla cartella del sito: una pagina non legge file fuori dal sito. "
     + m("$_SERVER['REQUEST_METHOD']") + ", " + m("$_REQUEST") + " e " + m("include") + " di altre pagine del sito "
     "funzionano. Per ora non ci sono sessioni, cookie e reindirizzamenti (" + m("header('Location: …')")
-    + " non fa niente) né database.</p>",
+    + " non fa niente).</p>",
+    "<p><strong>Database.</strong> Con " + m('"database": "dblibreria"') + " nei parametri del template e il file "
+    + m("dblibreria.db") + " tra i file di supporto, le pagine PHP usano mysqli con la facciata del prototipo "
+    "<strong>php_mysqli_sqlite</strong>: le query si eseguono davvero su SQLite (client " + m("sqlite3") + " di Jobe), "
+    "con i suoi messaggi di errore; " + m("mysqli_connect") + " accetta " + m("127.0.0.1") + " o " + m("localhost")
+    + ", " + m("root") + ", password vuota e il nome del database (con il controllo tollerante qualsiasi nome). "
+    "Lo studente e la soluzione hanno ciascuno la sua copia del database: ogni test riparte dal file allegato, e "
+    "dentro lo stesso test le richieste si sommano (l'INSERT del modulo si vede poi nella pagina dell'elenco). "
+    "Un test con più controlli stampa un solo esito.</p>",
 ])

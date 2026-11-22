@@ -38,7 +38,7 @@ FakeDB::configure([
 
 | Opzione | Predefinito | Significato |
 |---|---|---|
-| `user`, `password`, `database` | `'root'`, `''`, `''` | credenziali e nome del database accettati |
+| `user`, `password`, `database` | `'root'`, `''`, `''` | credenziali e nome del database accettati (`database` `'*'`: qualsiasi nome, lo usa il controllo tollerante del prototipo `php_sito`) |
 | `hosts` | `['localhost', '127.0.0.1']` | host accettati |
 | `port` | `null` | porta richiesta (`null` = qualsiasi) |
 | `dbfile` | `''` | file `.db` allegato da copiare; vuoto = l'unico allegato, se c'è |

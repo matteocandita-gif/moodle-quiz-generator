@@ -2742,6 +2742,119 @@ if ($eta &gt;= 18) {
     </testcases>
   </question>
 
+  <question type="coderunner">
+    <name>
+      <text>L9 - G11 - Sito PHP: Biblioteca con il database (PHP)</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Scrivere nell'editor la pagina <strong>index.html</strong> con un modulo che sceglie un genere e lo invia con GET alla pagina <strong>pagine/libri.php</strong>, che elenca titolo e anno dei libri di quel genere (tabella Libri del database <strong>biblioteca</strong>), in ordine di titolo. Scrivere poi la pagina <strong>pagine/nuovo.html</strong> con un modulo che invia con POST matricola, nome, cognome, classe ed email a <strong>pagine/registra.php</strong>, che inserisce lo studente nella tabella Studenti e conferma la registrazione.</p>
+<div style="background-color: #f9cb9c; border-left: 5px solid #e69138; padding: 12px 16px; border-radius: 4px; margin: 0 0 16px;">
+<p style="margin: 0 0 6px; color: #783f04;"><strong>N.B. questa è una simulazione</strong></p>
+<p style="margin: 0 0 6px;">Il tuo codice PHP viene eseguito davvero, ma dietro non c'è un database MySQL permanente: c'è un database di prova, che non conserva le modifiche. A ogni prova riparte sempre dagli stessi dati. Il comportamento e i messaggi d'errore possono essere diversi da quelli di un vero database MySQL.</p>
+<p style="margin: 0;">Per realizzare davvero le pagine occorre usare XAMPP con un vero database MySQL.</p>
+</div>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>5.0000000</defaultgrade>
+    <penalty>0.0000000</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>php_sito</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>0</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>18</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload></answerpreload>
+    <globalextra></globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer><![CDATA[{"htmlve": 1, "versione": "dashboard", "salvato": "", "cartelle": ["pagine"], "files": {"index.html": "<!DOCTYPE html>\n<html lang=\"it\">\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Biblioteca</title>\n</head>\n<body>\n    <h1>Libri per genere</h1>\n    <form action=\"pagine/libri.php\" method=\"get\">\n        <label for=\"genere\">Genere</label>\n        <select id=\"genere\" name=\"genere\">\n            <option>Fantasy</option>\n            <option>Giallo</option>\n            <option>Poesia</option>\n            <option>Romanzo</option>\n            <option>Storico</option>\n        </select>\n        <button>Cerca</button>\n    </form>\n    <p><a href=\"pagine/nuovo.html\">Registra uno studente</a></p>\n</body>\n</html>\n", "pagine/libri.php": "<?php\n// 1. Connessione\nmysqli_report(MYSQLI_REPORT_OFF);\n$host = \"127.0.0.1\";\n$username = \"root\";\n$password = \"\";\n$nomedb = \"biblioteca\";\n$connessione = mysqli_connect($host, $username, $password, $nomedb)\n    or die(\"Connessione non riuscita: \" . mysqli_connect_error());\n// 2. Scrittura della query\n$genere = $_GET[\"genere\"];\n$query = \"SELECT Titolo, AnnoPubblicazione FROM Libri WHERE Genere = '$genere' ORDER BY Titolo\";\n// 3. Esecuzione\n$risultato = mysqli_query($connessione, $query)\n    or die(\"Errore nella query: \" . mysqli_error($connessione));\n// 4. Chiusura\nmysqli_close($connessione);\n// 5. Elaborazione\necho \"<h1>Libri: $genere</h1>\\n\";\nif (mysqli_num_rows($risultato) == 0) {\n    echo \"<p>Nessun libro.</p>\\n\";\n} else {\n    echo \"<ul>\\n\";\n    while ($riga = mysqli_fetch_array($risultato)) {\n        echo \"<li>$riga[Titolo] ($riga[AnnoPubblicazione])</li>\\n\";\n    }\n    echo \"</ul>\\n\";\n}\n", "pagine/nuovo.html": "<!DOCTYPE html>\n<html lang=\"it\">\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Nuovo studente</title>\n</head>\n<body>\n    <h1>Registra uno studente</h1>\n    <form action=\"registra.php\" method=\"post\">\n        <p><label for=\"matricola\">Matricola</label> <input type=\"number\" id=\"matricola\" name=\"matricola\" required></p>\n        <p><label for=\"nome\">Nome</label> <input type=\"text\" id=\"nome\" name=\"nome\" required></p>\n        <p><label for=\"cognome\">Cognome</label> <input type=\"text\" id=\"cognome\" name=\"cognome\" required></p>\n        <p><label for=\"classe\">Classe</label> <input type=\"text\" id=\"classe\" name=\"classe\" required></p>\n        <p><label for=\"email\">Email</label> <input type=\"email\" id=\"email\" name=\"email\" required></p>\n        <button>Registra</button>\n    </form>\n</body>\n</html>\n", "pagine/registra.php": "<?php\n// 1. Connessione\nmysqli_report(MYSQLI_REPORT_OFF);\n$host = \"127.0.0.1\";\n$username = \"root\";\n$password = \"\";\n$nomedb = \"biblioteca\";\n$connessione = mysqli_connect($host, $username, $password, $nomedb)\n    or die(\"Connessione non riuscita: \" . mysqli_connect_error());\n// 2. Scrittura della query\n$matricola = $_POST[\"matricola\"];\n$nome = $_POST[\"nome\"];\n$cognome = $_POST[\"cognome\"];\n$classe = $_POST[\"classe\"];\n$email = $_POST[\"email\"];\n$query = \"INSERT INTO Studenti (Matricola, Nome, Cognome, Classe, Email) VALUES ($matricola, '$nome', '$cognome', '$classe', '$email')\";\n// 3. Esecuzione\nmysqli_query($connessione, $query)\n    or die(\"Errore nell'inserimento: \" . mysqli_error($connessione));\n// 4. Chiusura\nmysqli_close($connessione);\n// 5. Elaborazione\necho \"<p>Registrato: $nome $cognome ($classe)</p>\\n\";\n"}, "immagini": {}}]]></answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams>{"pagina": "index.html", "php": 1, "lasco": 1, "database": "biblioteca"}</templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <extractcodefromjson>1</extractcodefromjson>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin>html_sito</uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="3.0000000" >
+      <testcode>
+                <text><![CDATA[invia("index.html", {"genere": "Giallo"}, cerca=["Il ritorno", "2018"])]]></text>
+      </testcode>
+      <stdin>
+                <text></text>
+      </stdin>
+      <expected>[output 49]</expected>
+      <extra>
+                <text><![CDATA[Scegliendo il genere Giallo la pagina elenca i libri gialli]]></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="3.0000000" >
+      <testcode>
+                <text><![CDATA[invia("index.html", {"genere": "Poesia"}, cerca=["La lettera e l'ombra", "2001", "Racconti della memoria", "2002"])]]></text>
+      </testcode>
+      <stdin>
+                <text></text>
+      </stdin>
+      <expected>[output 50]</expected>
+      <extra>
+                <text><![CDATA[Scegliendo il genere Poesia la pagina elenca i libri di poesia]]></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+      <testcase testtype="0" useasexample="0" hiderestiffail="0" mark="4.0000000" >
+      <testcode>
+                <text><![CDATA[invia("pagine/nuovo.html", {"matricola": "9001", "nome": "Giulia", "cognome": "Neri", "classe": "4A", "email": "giulia.neri@scuola.it"}, cerca="Giulia")
+stessa_tabella("SELECT Matricola, Nome, Cognome, Classe, Email FROM Studenti WHERE Matricola = 9001")]]></text>
+      </testcode>
+      <stdin>
+                <text></text>
+      </stdin>
+      <expected>[output 51]</expected>
+      <extra>
+                <text><![CDATA[Il modulo di registrazione inserisce lo studente nella tabella Studenti]]></text>
+      </extra>
+      <display>
+                <text>SHOW</text>
+      </display>
+    </testcase>
+<file name="biblioteca.db" path="/" encoding="base64">[file]</file>
+    </testcases>
+  </question>
+
 </quiz>
 
 
@@ -2961,6 +3074,11 @@ if ($eta &gt;= 18) {
     {
      "nome": "L9 - G10 - Consegna PHP: Iscrizione al torneo (consegna .zip)",
      "pagina": 36,
+     "punti": 5.0
+    },
+    {
+     "nome": "L9 - G11 - Sito PHP: Biblioteca con il database (PHP)",
+     "pagina": 37,
      "punti": 5.0
     }
    ],

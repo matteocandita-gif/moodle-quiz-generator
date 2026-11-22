@@ -2,6 +2,20 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.16.1 — 22/11/2026
+
+Le pagine del sito PHP possono usare il database con mysqli.
+
+- **Sito PHP con il database** (sito con l'editor e consegna .zip): con `database: nome` nella riga (un database del quiz) le pagine PHP usano mysqli, con la stessa simulazione delle domande `pagina_php`: le query si eseguono davvero su SQLite, con gli stessi messaggi di errore. Il database è allegato alla domanda, e in fondo al testo compare il riquadro «N.B. questa è una simulazione».
+- **Lo stato del database**: ogni controllo riparte dai dati originali; dentro lo stesso controllo le richieste si sommano, così si prova il percorso completo (il modulo che inserisce, poi l'elenco che mostra la riga nuova). Lo studente e la soluzione hanno ciascuno la sua copia.
+- **Controllo nuovo** `stessa_tabella("SELECT …")`: dopo un invio confronta la tabella dello studente con quella della soluzione, come guardare phpMyAdmin.
+- **Credenziali**: utente `root` e password vuota sempre controllati; il nome del database solo nelle verifiche (con il controllo tollerante è libero, perché con XAMPP lo studente può averlo chiamato in un altro modo).
+- **Un solo esito per controllo**: un controllo che ne contiene più d'uno (l'invio e poi la tabella) mostra un solo «OK» o l'elenco dei problemi.
+- **Dashboard** (pagina 0.8.1): l'opzione `database` nel sito PHP e nella consegna PHP, con il controllo che il database esista nel quiz.
+- **Da fare in Moodle**: nel prototipo `php_sito` sostituire il Template con quello di `prototipo-php-sito.xml` (senza reimportarlo). Il prototipo `php_mysqli_sqlite` non cambia. Aggiornare la pagina «Bozze dei quiz».
+- **Domande generate**: nel quiz di prova una riga nuova, un sito PHP con il database.
+- Prove superate.
+
 ## 0.16.0 — 22/11/2026
 
 Siti con pagine PHP che girano davvero: gli studenti scrivono la pagina con il modulo e la pagina PHP che riceve i dati, e i controlli le eseguono.
