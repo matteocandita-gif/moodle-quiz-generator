@@ -2,6 +2,16 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.16.3 — 24/11/2026
+
+Nelle esercitazioni un sito con l'editor può partire da un sito già pronto.
+
+- **Sito di partenza** (sito con l'editor e sito PHP con l'editor, solo nelle esercitazioni): nella riga, con le stesse sezioni della soluzione precedute da `partenza` (`=== partenza file index.html`, `=== partenza cartella immagini`, `=== partenza immagine immagini/logo.png`). Diventa il preload della domanda: alla prima apertura lo studente trova il sito nell'editor. Serve per far ripartire tutti dallo stesso sito, per esempio quello della lezione prima. La generazione si ferma se il sito di partenza supera già tutti i controlli, e lo rifiuta nelle verifiche, dove resta la regola del sito vuoto.
+- **Pulsante di ripristino** (interfaccia `html_sito` 0.12.1): il pulsante di CodeRunner che riporta la risposta all'inizio ora rimette davvero il sito di partenza. Prima l'editor ripartiva dalla copia di sicurezza nel browser, cioè dal lavoro dello studente. La copia di sicurezza resta per la pagina riaperta dopo che il PC si è spento.
+- **Dashboard** (pagina 0.8.3): il sito di partenza nel dettaglio della riga, sotto la soluzione, e i suoi controlli negli avvisi.
+- **Da fare in Moodle**: reinstallare l'interfaccia con `installa.sh` e svuotare le cache. Aggiornare la pagina «Bozze dei quiz».
+- Prove superate.
+
 ## 0.16.2 — 22/11/2026
 
 L'editor del sito diventa un piccolo ambiente di lavoro: traccia sempre a portata, anteprima che si comporta come un browser, pagine PHP eseguite anche nell'anteprima.

@@ -25,6 +25,8 @@ Nelle immagini, un nome è un'immagine fornita dalla domanda; un `data:` è un'i
 
 **Salvataggio**: l'interfaccia scrive il sito nella risposta 0,8 secondi dopo ogni modifica e CodeRunner lo ricopia ogni 2 secondi e all'invio della pagina, poi lo salva il quiz di Moodle. Durante un tentativo c'è anche una copia nel browser, usata solo se è più recente della risposta salvata (PC spento prima del salvataggio automatico). In revisione, in Valutazione manuale e nella soluzione dell'autore il sito è in sola lettura. Ctrl-Alt-M (di CodeRunner) mostra la risposta grezza.
 
+**Sito di partenza** (dalla 0.12.1): il preload della domanda (`answerpreload`) può contenere un sito nello stesso formato della risposta; `da_dashboard.py` lo scrive dalle sezioni `=== partenza …` della riga (`tracce-html.md` di `progettazione-quiz`). Al primo accesso CodeRunner lo mette nella risposta e l'editor lo apre. Il pulsante di ripristino di CodeRunner ferma l'editor, rimette il preload nella risposta e lo fa ripartire: quando riparte nella stessa pagina (ripristino o ritorno da Ctrl-Alt-M) l'editor legge solo la risposta, senza la copia nel browser, e la salva subito, così il ripristino arriva anche a Moodle.
+
 ## I parametri dell'interfaccia
 
 Tutti facoltativi; `da_dashboard.py` li scrive dalle opzioni della riga.

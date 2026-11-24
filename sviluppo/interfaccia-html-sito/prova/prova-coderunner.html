@@ -58,6 +58,7 @@
     <button type="button" id="riapri">Simula spegnimento e riapertura</button>
     <button type="button" id="revisione">Apri in revisione (sola lettura)</button>
     <button type="button" id="ctrlaltm">Disattiva / riattiva l'interfaccia (come Ctrl-Alt-M)</button>
+    <button type="button" id="ripristina">Ripristina il sito di partenza (come il pulsante di CodeRunner, con il preload)</button>
     <button type="button" id="azzera">Azzera la prova</button>
     <button type="button" id="aiuti">Aiuti dell'editor e caricamento di immagini: accesi / spenti</button>
     <div id="registro"></div>
@@ -68,7 +69,11 @@
 (function () {
   var revisione = /[?&]revisione=1/.test(location.search);
   var ta = document.getElementById('id_q3_1_answer');
-  ta.value = localStorage.getItem('prova-cr-server') || '';
+  // Il sito di partenza della domanda (answerpreload): CodeRunner lo mette nella risposta al primo accesso.
+  var PRELOAD = JSON.stringify({htmlve: 1, versione: 'dashboard', salvato: '', cartelle: ['img'],
+    files: {'index.html': '<!DOCTYPE html>\n<html>\n<head>\n    <title>Pizzeria Da Mario</title>\n</head>\n<body>\n' +
+      '    <h1>Pizzeria Da Mario</h1>\n</body>\n</html>\n'}, immagini: {'img/logo.png': 'logo.png'}});
+  ta.value = localStorage.getItem('prova-cr-server') || PRELOAD;
   if (revisione) {
     ta.readOnly = true;
     document.body.classList.add('revisione');
@@ -130,6 +135,13 @@
   }
   avviaUi();
   document.getElementById('ctrlaltm').onclick = function () { if (ui) { fermaUi(); } else { avviaUi(); } };
+  // Come resetbutton.js di CodeRunner: ferma l'interfaccia, rimette il preload nella risposta, la fa ripartire.
+  document.getElementById('ripristina').onclick = function () {
+    if (ui) { fermaUi(); }
+    ta.value = PRELOAD;
+    avviaUi();
+    log('risposta riportata al sito di partenza');
+  };
 
   // --- Come il quiz di Moodle ---
   var form = document.getElementById('responseform'), attesa = null;

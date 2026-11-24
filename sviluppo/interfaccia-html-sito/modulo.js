@@ -470,6 +470,11 @@ define('qtype_coderunner/ui_html_sito', [], function() {
             this.salvaSubito();
             this.recuperato = true;
             this.aggiornaStato();
+        } else if (this.ripartito && !this.solaLettura) {
+            // Dopo un ripristino il sito di partenza va subito nella risposta e nella copia nel browser,
+            // e Moodle deve sapere che la risposta è cambiata.
+            this.daSalvare = true;
+            this.salvaSubito();
         }
     };
 
@@ -539,8 +544,13 @@ define('qtype_coderunner/ui_html_sito', [], function() {
     SitoUi.prototype.carica = function() {
         var dati = leggiSito(this.textarea.value);
         this.testoRisposta = this.textarea.value;
+        // L'editor riparte nella stessa pagina (pulsante di ripristino di CodeRunner, che rimette il sito
+        // di partenza nella risposta, o ritorno da Ctrl-Alt-M): la risposta è aggiornata e vale lei, non la
+        // copia nel browser, che altrimenti riporterebbe il lavoro di prima.
+        this.ripartito = !!this.textarea.htmlveCaricato;
+        this.textarea.htmlveCaricato = true;
         // Copia di sicurezza nel browser, solo durante un tentativo: si usa se è più recente della risposta.
-        var chiave = this.solaLettura ? null : this.chiaveCopia();
+        var chiave = this.solaLettura || this.ripartito ? null : this.chiaveCopia();
         if (chiave) {
             try {
                 var copia = leggiSito(window.localStorage.getItem(chiave));

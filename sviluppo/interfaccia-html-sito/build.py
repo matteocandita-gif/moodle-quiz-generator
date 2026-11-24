@@ -8,7 +8,7 @@ con la versione presa da VERSIONE qui sotto: alzala a ogni modifica, così i bro
 import json
 import os
 
-VERSIONE = "0.12.0"
+VERSIONE = "0.12.1"
 
 QUI = os.path.dirname(os.path.abspath(__file__))
 RADICE = os.path.abspath(os.path.join(QUI, "..", ".."))

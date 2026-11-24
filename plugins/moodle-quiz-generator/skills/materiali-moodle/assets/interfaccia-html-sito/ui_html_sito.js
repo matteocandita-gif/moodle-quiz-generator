@@ -1,5 +1,5 @@
 /**
- * Interfaccia «html_sito» per CodeRunner — versione 0.12.0
+ * Interfaccia «html_sito» per CodeRunner — versione 0.12.1
  *
  * Lo studente crea le cartelle e i file del sito (HTML, CSS, JS), li scrive con l'editor Ace
  * di CodeRunner e vede l'anteprima delle pagine. La risposta è un JSON:
@@ -45,7 +45,7 @@
 define('qtype_coderunner/ui_html_sito', [], function() {
     'use strict';
 
-    var VERSIONE = '0.12.0';
+    var VERSIONE = '0.12.1';
     var NOME_VALIDO = /^[a-z0-9_-][a-z0-9._-]*$/;
     var ESTERNO = /^([a-z][a-z0-9+.-]*:|\/\/)/i;
     var ALTEZZA_MINIMA = 420;
@@ -470,6 +470,11 @@ define('qtype_coderunner/ui_html_sito', [], function() {
             this.salvaSubito();
             this.recuperato = true;
             this.aggiornaStato();
+        } else if (this.ripartito && !this.solaLettura) {
+            // Dopo un ripristino il sito di partenza va subito nella risposta e nella copia nel browser,
+            // e Moodle deve sapere che la risposta è cambiata.
+            this.daSalvare = true;
+            this.salvaSubito();
         }
     };
 
@@ -539,8 +544,13 @@ define('qtype_coderunner/ui_html_sito', [], function() {
     SitoUi.prototype.carica = function() {
         var dati = leggiSito(this.textarea.value);
         this.testoRisposta = this.textarea.value;
+        // L'editor riparte nella stessa pagina (pulsante di ripristino di CodeRunner, che rimette il sito
+        // di partenza nella risposta, o ritorno da Ctrl-Alt-M): la risposta è aggiornata e vale lei, non la
+        // copia nel browser, che altrimenti riporterebbe il lavoro di prima.
+        this.ripartito = !!this.textarea.htmlveCaricato;
+        this.textarea.htmlveCaricato = true;
         // Copia di sicurezza nel browser, solo durante un tentativo: si usa se è più recente della risposta.
-        var chiave = this.solaLettura ? null : this.chiaveCopia();
+        var chiave = this.solaLettura || this.ripartito ? null : this.chiaveCopia();
         if (chiave) {
             try {
                 var copia = leggiSito(window.localStorage.getItem(chiave));

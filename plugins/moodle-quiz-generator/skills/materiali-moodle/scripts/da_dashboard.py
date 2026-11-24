@@ -1046,6 +1046,20 @@ OPZIONI_SITO = {"sito_html": ("pagina", "controllo", "immagini", "aiuti", "file_
 SI = ("sì", "si", "true", "1")
 
 
+def sito_json(files, cartelle, immagini):
+    """Il sito nel formato della risposta dell'editor ({"htmlve": 1, …}), con tutte le cartelle che contengono
+    file o immagini. Serve per la soluzione e per il sito di partenza (preload)."""
+    tutte = set(cartelle)
+    for p in list(files) + list(immagini) + list(cartelle):
+        d = p.rsplit("/", 1)[0] if "/" in p else ""
+        while d:
+            tutte.add(d)
+            d = d.rsplit("/", 1)[0] if "/" in d else ""
+    return json.dumps({"htmlve": 1, "versione": "dashboard", "salvato": "", "cartelle": sorted(tutte),
+                       "files": dict(sorted(files.items())), "immagini": dict(sorted(immagini.items()))},
+                      ensure_ascii=False)
+
+
 def specifica_sito(quiz, r):
     """Opzioni, test e sito della soluzione di un «Sito con l'editor» (o di una «Consegna PHP (.zip)»), già
     controllati: (controllo, pagina, test, sito, immagini fornite, parametri dell'interfaccia, altro), dove altro
@@ -1054,6 +1068,8 @@ def specifica_sito(quiz, r):
     ammesse = OPZIONI_SITO.get(tipologia, OPZIONI_SITO["sito_html"])
     cosa = "una consegna PHP" if tipologia == "consegna_php" else "un sito con l'editor"
     opzioni, test, files, cartelle, immagini = {}, [], {}, [], {}
+    # il sito di partenza (=== partenza file|cartella|immagine …): va nel preload della domanda
+    p_files, p_cartelle, p_immagini = {}, [], {}
     for n, a, c in sezioni_cr(r.get("coderunner")):
         if n == "options":
             for l in c.split("\n"):
@@ -1092,9 +1108,29 @@ def specifica_sito(quiz, r):
                                  "fornita (es. «=== immagine img/logo.png» o «=== immagine img/marchio.png logo.png»)" % a)
             p = percorso_sito(parti[0], "immagine")
             immagini[p] = parti[1] if len(parti) == 2 else p.split("/")[-1]
+        elif n == "partenza":
+            cosa_p, _, resto = a.partition(" ")
+            resto = resto.strip()
+            if cosa_p == "file":
+                p = percorso_sito(resto, "file")
+                if p in p_files:
+                    raise ValueError("il file %s compare due volte nel sito di partenza" % p)
+                p_files[p] = c + "\n" if c else ""
+            elif cosa_p == "cartella":
+                p_cartelle.append(percorso_sito(resto, "cartella"))
+            elif cosa_p == "immagine":
+                parti = resto.split()
+                if not parti or len(parti) > 2:
+                    raise ValueError("«=== partenza immagine %s»: scrivi il percorso nel sito e, se il nome è diverso, "
+                                     "l'immagine fornita (es. «=== partenza immagine img/logo.png»)" % resto)
+                p = percorso_sito(parti[0], "immagine")
+                p_immagini[p] = parti[1] if len(parti) == 2 else p.split("/")[-1]
+            else:
+                raise ValueError("«=== partenza %s»: dopo «partenza» scrivi file, cartella o immagine e il percorso "
+                                 "(es. «=== partenza file index.html»)" % a)
         else:
             raise ValueError("sezione '=== %s' non prevista in un sito con l'editor "
-                             "(options, test, extra, file, cartella, immagine)" % n)
+                             "(options, test, extra, file, cartella, immagine, partenza)" % n)
     verifica = quiz.get("tipoQuiz") in ("V", "VT")
     controllo = (opzioni.get("controllo") or ("nascosto" if verifica else "visibile")).lower()
     if controllo not in ("visibile", "nascosto"):
@@ -1108,6 +1144,13 @@ def specifica_sito(quiz, r):
         if nome not in fornite:
             raise ValueError("«=== immagine %s»: l'immagine %s non è tra quelle fornite («immagini:» in === options)"
                              % (p, nome))
+    for p, nome in p_immagini.items():
+        if nome not in fornite:
+            raise ValueError("«=== partenza immagine %s»: l'immagine %s non è tra quelle fornite («immagini:» in "
+                             "=== options)" % (p, nome))
+    if (p_files or p_cartelle or p_immagini) and (verifica or tipologia == "consegna_php"):
+        raise ValueError("il sito di partenza (=== partenza …) non va nelle verifiche (niente codice di partenza) né "
+                         "nelle consegne PHP (lo studente carica il suo .zip)")
     aiuti = [x.strip().lower() for x in re.split(r"[,;\s]+", opzioni.get("aiuti", "")) if x.strip()]
     if aiuti in (["nessuno"], []):
         aiuti = []
@@ -1155,15 +1198,8 @@ def specifica_sito(quiz, r):
         errore = controlla_test_consegna(t["codice"], funzioni)
         if errore:
             raise ValueError(errore)
-    tutte = set(cartelle)
-    for p in list(files) + list(immagini) + cartelle:
-        d = p.rsplit("/", 1)[0] if "/" in p else ""
-        while d:
-            tutte.add(d)
-            d = d.rsplit("/", 1)[0] if "/" in d else ""
-    sito = json.dumps({"htmlve": 1, "versione": "dashboard", "salvato": "", "cartelle": sorted(tutte),
-                       "files": dict(sorted(files.items())), "immagini": dict(sorted(immagini.items()))},
-                      ensure_ascii=False)
+    sito = sito_json(files, cartelle, immagini)
+    partenza = sito_json(p_files, p_cartelle, p_immagini) if (p_files or p_cartelle or p_immagini) else ""
     import xml.etree.ElementTree as ET
     template = ET.parse(PROTOTIPO_PHP_SITO if php else PROTOTIPO_CONSEGNA).getroot().find("question/template").text or ""
     uscite = esegui_controlli(template, [t["codice"] for t in test], sito, pagina, php=php, lasco=lasco,
@@ -1171,6 +1207,13 @@ def specifica_sito(quiz, r):
     sbagliati = ["«%s»: %s" % (t["extra"], u.replace("\n", " | ")) for t, u in zip(test, uscite) if u != "OK"]
     if len(uscite) != len(test) or sbagliati:
         raise ValueError("la soluzione (=== file …) non supera tutti i controlli: " + "; ".join(sbagliati or uscite))
+    if partenza:
+        # il sito di partenza deve lasciare qualcosa da fare: se supera già tutti i controlli, l'esercizio è fatto
+        uscite_p = esegui_controlli(template, [t["codice"] for t in test], partenza, pagina, php=php, lasco=lasco,
+                                    database=(database, db) if db else None)
+        if len(uscite_p) == len(test) and all(u == "OK" for u in uscite_p):
+            raise ValueError("il sito di partenza (=== partenza …) supera già tutti i controlli: lo studente non ha "
+                             "niente da fare")
     parametri = {AIUTI_SITO[x]: True for x in aiuti}
     if fornite:
         parametri["immagini"] = ", ".join(fornite)
@@ -1192,7 +1235,8 @@ def specifica_sito(quiz, r):
             parametri["anteprima_php_db"] = json.dumps({"nome": database, "nomedb": "*" if lasco else database,
                                                         "sql": databases_quiz(quiz)[database]}, ensure_ascii=False)
     return controllo, pagina, test, sito, fornite, parametri, {"php": php, "lasco": lasco, "nome": nome,
-                                                               "database": (database, db) if db else None}
+                                                               "database": (database, db) if db else None,
+                                                               "partenza": partenza}
 
 
 PROMEMORIA_CONSEGNA_PHP = (
@@ -1262,7 +1306,8 @@ def domanda_sito(quiz, r):
          t("defaultgrade", punti), t("penalty", "0.0000000"), t("hidden", "0"), t("idnumber", ""),
          t("coderunnertype", "php_sito" if php else "html_con_file"), t("prototypetype", "0"), t("allornothing", "0"),
          t("penaltyregime", "0"), t("precheck", "0"), t("hidecheck", "1" if nascosto else "0"), t("showsource", "0"),
-         t("answerboxlines", "3" if consegna else "18"), t("answerboxcolumns", "100"), t("answerpreload", ""),
+         t("answerboxlines", "3" if consegna else "18"), t("answerboxcolumns", "100"),
+         t("answerpreload", cdata(altro["partenza"]) if altro["partenza"] else ""),
          t("globalextra", promemoria), t("useace", ""), t("resultcolumns", ""), t("template", ""),
          t("iscombinatortemplate", ""), t("allowmultiplestdins", ""), t("answer", cdata(sito)),
          t("validateonsave", "0" if consegna else "1"), t("testsplitterre", ""), t("language", ""), t("acelang", ""),
