@@ -26,7 +26,7 @@ Impostazioni dell'.mbz, verificate su backup reali del Moodle della scuola (5.2)
 
 **Impostazioni avanzate**: scorrimento, feedback, Safe Exam Browser e password le valorizza il tipo di quiz e si cambiano quiz per quiz nel pannello della pagina (campi `navigazione`, `feedback`, `seb`, `password`, in `dashboard.md`). Il tipo dà: scorrimento libero, forzato solo in SD; feedback immediato nelle esercitazioni, differito in verifiche e SD; SEB con file nelle verifiche di programmazione, manuale nelle verifiche teoriche, nessuno altrove; nessuna password.
 
-Voto del quiz: 10, sufficienza 6, salvo indicazione diversa nel quiz della dashboard.
+Voto del quiz: 10, sufficienza 6, salvo indicazione diversa nel quiz della dashboard. Nelle esercitazioni (impostazioni esercitazione e studio) l'attività si completa ricevendo una valutazione sufficiente; nelle verifiche niente criteri di completamento.
 
 ## LIB · Libero (senza preset)
 

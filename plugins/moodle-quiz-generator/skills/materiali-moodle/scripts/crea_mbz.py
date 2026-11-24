@@ -19,6 +19,8 @@ Il formato dell'impaginazione è in references/formato-impaginazione.md. In brev
   "seb": {"modo": "file", "nome": "x.seb", "file": "..."},  # facoltativo: Safe Exam Browser con file,
                                         # oppure {"modo": "manuale"}: impostazioni standard di Moodle
   "voto_massimo": 10, "voto_sufficienza": 6,
+  "completamento": true,                # facoltativo: completamento «Ricevere una valutazione sufficiente»;
+                                        # predefinito sì con i preset esercitazione e studio, no con verifica
   "sezioni": [
     {"titolo": "", "domande": [{"nome": "L1 - 00 - ...", "pagina": 1, "punti": 0}]},
     {"titolo": "Blocco A", "domande": [...]}
@@ -847,6 +849,9 @@ def main():
   <grade_letters>
   </grade_letters>
 </activity_gradebook>"""
+    # completamento automatico «Ricevere una valutazione sufficiente» nelle esercitazioni (preset esercitazione e
+    # studio; con "completamento": false nell'impaginazione si toglie). Serve la sufficienza (gradepass) maggiore di 0
+    completamento = L.get("completamento", L.get("preset", "esercitazione") in ("esercitazione", "studio")) and gp > 0
     module = f"""<?xml version="1.0" encoding="UTF-8"?>
 <module id="{mid}" version="2026042000">
   <modulename>quiz</modulename>
@@ -861,9 +866,9 @@ def main():
   <visibleold>1</visibleold>
   <groupmode>0</groupmode>
   <groupingid>0</groupingid>
-  <completion>0</completion>
-  <completiongradeitemnumber>{NULL}</completiongradeitemnumber>
-  <completionpassgrade>0</completionpassgrade>
+  <completion>{2 if completamento else 0}</completion>
+  <completiongradeitemnumber>{0 if completamento else NULL}</completiongradeitemnumber>
+  <completionpassgrade>{1 if completamento else 0}</completionpassgrade>
   <completionview>0</completionview>
   <completionexpected>0</completionexpected>
   <availability>{NULL}</availability>

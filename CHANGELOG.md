@@ -2,6 +2,17 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.16.4 — 25/11/2026
+
+Le esercitazioni arrivano in Moodle con il completamento già impostato, e la dashboard delle correzioni riporta i punteggi cambiati in Moodle.
+
+- **Completamento automatico**: nelle esercitazioni (impostazioni da esercitazione e da studio) il quiz ripristinato ha come criterio «Ricevere una valutazione» con «Ricevere una valutazione sufficiente», cioè la sufficienza del quiz (6 su 10). Le verifiche restano senza criteri di completamento. Il criterio vale solo nei corsi con il tracciamento del completamento attivo.
+- **Importa valutazioni** (dashboard «Correzione verifiche», pagina 1.5.2): un riquadro nuovo in «Importa da Moodle». Dopo aver inserito i voti in Moodle si trascina l'export Valutazioni del quiz: dove il punteggio di Moodle è uguale alla correzione la riga diventa «inserita», dove è diverso la pagina prende il tuo punteggio e sulla scheda resta «Proposta di Claude: …». Le colonne si abbinano da sole alle domande (anche nella copia PDP, che ha una domanda in più all'inizio) e l'abbinamento si corregge dalla tabella. I nomi restano nel browser. I commenti non sono nell'export.
+- **Copie PDP**: nella riduzione resta almeno una domanda per argomento, magari la più guidata, così nessun argomento resta senza valutazione.
+- **Correzione delle verifiche di HTML**: `lang="it"` non è richiesto; la formattazione del codice (rientri, una riga per elemento, niente righe vuote in mezzo) vale 2 punti su 15, quindi un codice giusto ma disordinato vale 13.
+- **Da fare**: aggiornare la pagina «Correzione verifiche» (chi l'ha già alla 1.5.2 non deve fare niente).
+- Prove superate.
+
 ## 0.16.3 — 24/11/2026
 
 Nelle esercitazioni un sito con l'editor può partire da un sito già pronto.

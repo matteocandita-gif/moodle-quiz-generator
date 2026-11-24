@@ -109,7 +109,7 @@ Per gli studenti con PDP (DSA) la verifica si adatta in uno dei due modi, scelto
 
 La riduzione si fa in una **copia PDP** del quiz: in apertura, su una pagina sua, la dichiarazione «Solo mappe concettuali» (a 0 punti); prima di ogni domanda tolta, sulla stessa pagina, una delle descrizioni «Riduzione contenuti PDP -1…-7» (una diversa per ogni domanda: un quiz non può usare due volte la stessa; «PEI -1…-6» per gli studenti con PEI) della banca condivisa «Domande per riduzione PDP - DSA» del corso «Terze SIA - Deposito»; la domanda tolta resta nel quiz a 0 punti.
 
-**Quali togliere si decide in progettazione**: nella scaletta della verifica proponi le posizioni da togliere (domande intere, fino al 30% dei minuti consigliati, senza togliere gli argomenti essenziali) e segnale «tolta nella PDP»; l'utente le conferma o le cambia. La dashboard mostra la riduzione in minuti e avvisa oltre il 30%.
+**Quali togliere si decide in progettazione**: nella scaletta della verifica proponi le posizioni da togliere (domande intere, fino al 30% dei minuti consigliati, senza togliere gli argomenti essenziali; di ogni argomento resta almeno una domanda, magari la più guidata, così nessun argomento resta senza valutazione: per esempio non si tolgono insieme la lettura e la scrittura della tabella) e segnale «tolta nella PDP»; l'utente le conferma o le cambia. La dashboard mostra la riduzione in minuti e avvisa oltre il 30%.
 
 **La copia la genera `materiali-moodle`** (`crea_pdp.py`, «Copia PDP» in `references/verifiche.md`), verificata con ripristini reali il 25/10/2026: direttamente dalla dashboard se le domande della verifica stanno in un deposito registrato, altrimenti dal backup della verifica ripristinata. L'utente la chiede quando la verifica è pronta.
 
