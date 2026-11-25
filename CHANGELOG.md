@@ -2,6 +2,17 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.16.5 — 25/11/2026
+
+Gli studenti che fanno la verifica dopo, nello stesso quiz, si aggiungono a una correzione già fatta.
+
+- **Aggiungi studenti che hanno recuperato** (dashboard «Correzione verifiche», pagina 1.6.0): un riquadro nuovo in «Importa da Moodle». Dopo il recupero si scarica di nuovo l'Excel «Risposte» del quiz, completo o con i soli tentativi nuovi, e lo si trascina nel riquadro, anche con i nomi (restano nel browser). Chi è già nella verifica non viene toccato; i nuovi entrano come studenti della classe, non come PDP, con le righe da correggere. Se due studenti hanno le stesse iniziali, la pagina chiede se sono la stessa persona.
+- **Ordine per cognome**: con l'Excel completo è esatto, come in Valutazione manuale. Con i soli tentativi nuovi lo studente va tra le sigle vicine; quando le prime lettere del cognome coincidono la pagina lo segnala e la posizione si cambia da un menù.
+- **Elenco delle verifiche**: una verifica con studenti ancora senza punteggio mostra «N studenti da correggere».
+- **Correzione**: con «correggi i nuovi» Claude corregge solo gli studenti aggiunti, con lo stesso metro usato per la classe, e senza toccare le altre righe. Poi rifà il controllo delle somiglianze.
+- **Da fare**: aggiornare la pagina «Correzione verifiche».
+- Prove superate.
+
 ## 0.16.4 — 25/11/2026
 
 Le esercitazioni arrivano in Moodle con il completamento già impostato, e la dashboard delle correzioni riporta i punteggi cambiati in Moodle.
