@@ -2,6 +2,18 @@
 
 Le novità di ogni versione di «Moodle: quiz generator». Le righe segnate **Dashboard** cambiano la pagina «Bozze dei quiz», quelle segnate **Editor mappe** la pagina «Mappe dei prerequisiti», quelle segnate **Tracce** la pagina «Tracce di progettazione»: Claude propone di aggiornarle, e quiz e mappe salvati restano.
 
+## 0.16.6 — 26/11/2026
+
+Le verifiche con il «Sito con l'editor» si correggono come le altre, anche quando il sito cresce di domanda in domanda.
+
+- **La risposta si legge** (dashboard «Correzione verifiche», pagina 1.7.0): il sito non compare più come una riga di JSON, ma un file sotto l'altro. Nei passi dello stesso sito («Copia sito» e «Incolla sito») ogni file è segnato «nuovo», «modificato» o «tolto» rispetto alla domanda prima dello stesso studente, e i file uguali restano chiusi. Niente anteprima: il sito si vede già in Moodle, in Valutazione manuale.
+- **Tag recuperati**: l'Excel «Risposte» toglie i tag anche dai siti (resta solo `<!DOCTYPE html>`), e prima Claude non se ne accorgeva. Ora lo segnala, e con la tabella incollata in «Importa da Moodle» il sito torna con tag, a capo e rientri. Provato sulla consegna vera di un'esercitazione.
+- **Controlli**: l'esito dice quanti controlli sono superati, e Claude li vede tutti, non solo il primo che manca.
+- **Passi dello stesso sito**: ogni domanda si valuta solo sulla parte nuova del suo passo, formattazione compresa. Un errore si conta solo nel passo in cui compare la prima volta: se resta nei passi dopo non si toglie di nuovo, e se lo studente lo corregge dopo il punteggio del passo prima non cambia.
+- **Somiglianze**: il controllo confronta il codice delle pagine e non il JSON, e nei passi solo la parte nuova, così il codice incollato dal passo prima non conta tre volte. Il codice della soluzione e del sito di partenza non si segnala. Due risposte giuste e identiche (stessi testi inventati, stessa forma) ora si segnalano come «quasi uguali»: prima il punteggio pieno le nascondeva.
+- **Da fare**: aggiornare la pagina «Correzione verifiche».
+- Prove superate.
+
 ## 0.16.5 — 25/11/2026
 
 Gli studenti che fanno la verifica dopo, nello stesso quiz, si aggiungono a una correzione già fatta.

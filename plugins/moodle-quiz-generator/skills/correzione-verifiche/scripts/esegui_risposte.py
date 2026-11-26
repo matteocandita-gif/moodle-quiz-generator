@@ -202,15 +202,27 @@ def sito_della_risposta(testo):
     return o if isinstance(o, dict) and o.get("htmlve") == 1 and isinstance(o.get("files"), dict) else None
 
 
-def sito_leggibile(testo):
-    """La risposta di un sito con l'editor, file per file, per i DNN.txt."""
+def sito_leggibile(testo, prima=None):
+    """La risposta di un sito con l'editor, file per file, per i DNN.txt. Nei passi dello stesso sito
+    (prima = (numero, sito) dello stesso studente nella domanda prima) i file uguali al passo prima non si
+    ripetono: si valuta solo la parte nuova (references/criteri.md)."""
     o = sito_della_risposta(testo)
     if o is None:
         return testo
-    parti = ["[sito con l'editor: %d file%s]" % (len(o["files"]), ", cartelle " + ", ".join(o.get("cartelle") or [])
-                                                 if o.get("cartelle") else "")]
+    parti = ["[sito con l'editor: %d file%s%s]" % (len(o["files"]), ", cartelle " + ", ".join(o.get("cartelle") or [])
+                                                   if o.get("cartelle") else "",
+                                                   "; passo dopo D%02d" % prima[0] if prima else "")]
     for p in sorted(o["files"]):
-        parti.append("--- %s ---\n%s" % (p, str(o["files"][p]).rstrip("\n")))
+        testo_f = str(o["files"][p]).rstrip("\n")
+        if prima and p in prima[1]["files"]:
+            if str(prima[1]["files"][p]).rstrip() == testo_f.rstrip():
+                parti.append("--- %s --- uguale a D%02d" % (p, prima[0]))
+                continue
+            parti.append("--- %s (modificato rispetto a D%02d) ---\n%s" % (p, prima[0], testo_f))
+        else:
+            parti.append("--- %s%s ---\n%s" % (p, " (nuovo)" if prima else "", testo_f))
+    if prima:
+        parti += ["--- %s --- tolto rispetto a D%02d" % (p, prima[0]) for p in sorted(set(prima[1]["files"]) - set(o["files"]))]
     for p, v in sorted((o.get("immagini") or {}).items()):
         parti.append("--- %s --- immagine %s" % (p, v if not str(v).startswith("data:") else "caricata dallo studente"))
     return "\n".join(parti)
@@ -234,7 +246,8 @@ def esito_sito(ctx, tests, risposta):
     if o is None:
         return [("errore", "risposta non leggibile come sito dell'editor")] * len(tests)
     html = [v for p, v in o["files"].items() if p.lower().endswith((".html", ".htm"))]
-    if html and not any("<" in str(v) for v in html):
+    # L'Excel lascia solo <!DOCTYPE html>: contano i tag veri (<html, <p, </p…)
+    if html and not any(re.search(r"<[a-zA-Z/]", str(v)) for v in html):
         return [("errore", "le pagine non hanno tag: l'export Excel li ha tolti, importa le risposte da Moodle")] * len(tests)
     try:
         uscite = esegui(template, [t["codice"] for t in tests], json.dumps(o, ensure_ascii=False), pagina, soluzione, php, lasco, database)
@@ -311,12 +324,16 @@ def main():
                 auto = punti if passati == len(tests) else (0 if tutto else round(punti * passati / len(tests), 2))
             if passati == len(tests):
                 testo = "OK, test superati"
+            elif lingua == "sito" and e[0][0] != "errore":
+                # tutti i controlli che mancano: nella pagina il primo, nei DNN.txt l'elenco
+                mancano = [x[1] for x in e if x[0] != "ok"]
+                testo = f"{passati}/{len(tests)} controlli · " + mancano[0] + (f" (e altri {len(mancano) - 1})" if len(mancano) > 1 else "")
             else:
                 primo = next(x for x in e if x[0] != "ok")
                 quale = "" if e[0][0] != "ok" or lingua == "sito" else "test nascosto: "
                 testo = (f"{passati}/{len(tests)} test · " if not tutto else "") + quale + (
                     primo[1] if primo[0] != "errore" else "ERRORE: " + primo[1])
-            risultati[s["chiave"]] = {"esito": testo[:110], "auto": auto, "riga": rid,
+            risultati[s["chiave"]] = {"esito": testo[:160 if lingua == "sito" else 110], "auto": auto, "riga": rid,
                                       "dettaglio": [list(x) for x in e]}
         if not risultati:
             continue
@@ -327,6 +344,16 @@ def main():
     json.dump(esiti, open(os.path.join(lavoro, "esiti.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     posizioni = {os.path.basename(f)[:-5]: json.load(open(f, encoding="utf-8")).get("pos", "")
                  for f in glob.glob(os.path.join(opz["dashboard"], "quiz", opz["quiz"], "domande", "*.json"))}
+    numeri = sorted(dati["domande"], key=int)
+
+    def passo_prima(s, k, sito):
+        """(numero, sito) dello stesso studente nella domanda prima, se è un passo dello stesso sito."""
+        for k2 in reversed(numeri[:numeri.index(k)]):
+            o2 = sito_della_risposta(s["risposte"].get(k2))
+            if o2 is not None and set(o2["files"]) & set(sito["files"]):
+                return int(k2), o2
+        return None
+
     for k in dati["domande"]:
         with open(os.path.join(lavoro, f"D{int(k):02d}.txt"), "w", encoding="utf-8") as f:
             for s in dati["studenti"]:
@@ -336,7 +363,11 @@ def main():
                 testo = s["risposte"][k]
                 r2 = rid or dati["domande"][k].get("riga")
                 if r2 and cache.get(r2) and cache[r2][0] == "sito":
-                    testo = sito_leggibile(testo)
+                    sito = sito_della_risposta(testo)
+                    testo = sito_leggibile(testo, passo_prima(s, k, sito) if sito else None)
+                    mancano = [x[1] for x in es.get("dettaglio") or [] if x[0] == "diverso"]
+                    if len(mancano) > 1:
+                        testo = "Controlli non superati:\n" + "\n".join("- " + m for m in mancano) + "\n" + testo
                 f.write(f"\n##### {s['sigla']}   {pos}{es.get('esito', '')}\n{testo}\n")
     print("esiti.json scritto; i file D01.txt… hanno l'esito accanto a ogni studente.")
 

@@ -61,14 +61,75 @@ def documenti(base, nome):
             for f in glob.glob(os.path.join(base, "**", nome, "*.json"), recursive=True)}
 
 
+def sito_di(testo):
+    """Il sito dell'editor html_sito (JSON {"htmlve": 1, "files": …}, anche dentro {"crui_…": [json]}), oppure None."""
+    t = str(testo or "").strip()
+    if '"htmlve"' not in t:
+        return None
+    try:
+        o = json.loads(t)
+        if isinstance(o, dict) and "htmlve" not in o and len(o) == 1:
+            v = next(iter(o.values()))
+            o = json.loads(v[0] if isinstance(v, list) and v else v)
+    except (ValueError, TypeError, StopIteration):
+        a = t.find('{"htmlve"')
+        try:
+            o = json.loads(t[a:]) if a >= 0 else None
+        except ValueError:
+            o = None
+    return o if isinstance(o, dict) and o.get("htmlve") == 1 and isinstance(o.get("files"), dict) else None
+
+
+def parte_nuova(sito, prima):
+    """Il codice del sito come testo, file per file. Nei passi dello stesso sito (prima = il sito dello stesso
+    studente nella domanda prima) restano solo i file nuovi e, nei file cambiati, le righe aggiunte o cambiate:
+    il codice incollato dal passo prima non si confronta di nuovo."""
+    parti = []
+    for nome in sorted(sito["files"]):
+        testo = str(sito["files"][nome] or "")
+        if prima is not None and nome in prima["files"]:
+            vecchie = collections.Counter(r.strip() for r in str(prima["files"][nome] or "").splitlines())
+            nuove = []
+            for r in testo.splitlines():
+                if vecchie[r.strip()] > 0:
+                    vecchie[r.strip()] -= 1
+                else:
+                    nuove.append(r)
+            testo = "\n".join(nuove)
+        if testo.strip():
+            parti.append(testo)
+    return "\n".join(parti)
+
+
+def siti_come_testo(dati):
+    """Le risposte dei siti con l'editor diventano il loro codice (solo la parte nuova nei passi)."""
+    ordine = sorted(dati, key=lambda d: dati[d]["n"])
+    siti = {(d, k): sito_di(r.get("risposta")) for d in ordine for k, r in dati[d]["righe"].items()}   # prima di cambiarle
+    for i, d in enumerate(ordine):
+        for k, r in dati[d]["righe"].items():
+            sito = siti[(d, k)]
+            if sito is None:
+                continue
+            prima = None
+            for d2 in reversed(ordine[:i]):
+                s2 = siti.get((d2, k))
+                if s2 is not None and set(s2["files"]) & set(sito["files"]):
+                    prima = s2
+                    break
+            dati[d]["righe"][k] = dict(r, risposta=parte_nuova(sito, prima))
+    return dati
+
+
 def carica(base, salta=()):
     domande = documenti(base, "domande")
     val = documenti(base, "valutazioni")
     if not domande or not val:
         sys.exit("Nella cartella non ci sono domande e valutazioni: esporta la verifica dalla dashboard.")
-    return {d: {"max": float(q.get("max") or 0), "n": int(q.get("n") or 0), "testi": q.get("testi") or [],
-                "righe": val.get(d, {}).get("righe", {})}
-            for d, q in domande.items() if d not in salta and not (q.get("note") or q.get("tipo") == "note")}
+    tutte = {d: {"max": float(q.get("max") or 0), "n": int(q.get("n") or 0), "testi": q.get("testi") or [],
+                 "righe": val.get(d, {}).get("righe", {})}
+             for d, q in domande.items() if not (q.get("note") or q.get("tipo") == "note")}
+    siti_come_testo(tutte)            # prima di togliere le domande saltate: il passo prima serve comunque
+    return {d: q for d, q in tutte.items() if d not in salta}
 
 
 def parole_traccia(testo):
@@ -98,6 +159,8 @@ def soluzioni(cartella, quiz):
         m = re.search(r"^=== answer\n(.*?)(?=^=== |\Z)", codice, re.S | re.M)
         if m:
             uscita.append(m.group(1))
+        # Sito con l'editor: i file della soluzione e del sito di partenza (uguale per tutti)
+        uscita += re.findall(r"^=== (?:partenza )?file [^\n]*\n(.*?)(?=^=== |\Z)", codice, re.S | re.M)
     return uscita
 
 
@@ -162,6 +225,8 @@ def errori_condivisi(dati, testi_buoni):
         for t in q["testi"]:
             dettati |= frammenti_di([x[0] for x in tokenizza(t)])
         pieni = {k for k, r in righe.items() if (frazione(r, q["max"]) or 0) >= 1}
+        base = set(dettati)                       # traccia e soluzioni, senza le risposte degli studenti
+        da_pieni = collections.Counter(g for k in pieni for g in fr[k])
         for k in pieni:
             dettati |= fr[k]
         df = collections.Counter(g for v in fr.values() for g in v)
@@ -175,7 +240,11 @@ def errori_condivisi(dati, testi_buoni):
             lung = min(len(chiavi[a]), len(chiavi[b]))
             if lung >= MIN_TOKEN_UGUALI:
                 propri = fr[a] | fr[b]
-                sim = len((fr[a] & fr[b]) - dettati) / max(1, len(propri - dettati))
+                # il codice corretto delle ALTRE risposte a punteggio pieno è «dettato», quello di a e b no:
+                # due risposte giuste e identiche (stessi testi inventati, stessa forma) restano un indizio
+                altri = {g for g, c in da_pieni.items() if c > sum(1 for k in (a, b) if k in pieni and g in fr[k])}
+                esclusi = base | altri
+                sim = len((fr[a] & fr[b]) - esclusi) / max(1, len(propri - esclusi))
                 if sim >= QUASI_UGUALI:
                     uguali.append({"studenti": [a, b], "domanda": d, "somiglianza": round(sim, 2),
                                    "risposte": {a: righe[a]["risposta"], b: righe[b]["risposta"]}})

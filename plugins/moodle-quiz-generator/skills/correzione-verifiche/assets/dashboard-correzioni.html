@@ -61,6 +61,11 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 .n{color:var(--muted);font-size:.8rem;font-variant-numeric:tabular-nums}
 .chip{font-size:.75rem;border-radius:999px;padding:1px 8px;border:1px solid currentColor}
 .chip.ok{color:var(--ok)} .chip.bad{color:var(--bad)} .chip.warn{color:var(--warn)} .chip.muted{color:var(--muted)}
+.sito{display:grid;gap:6px;align-content:start;min-width:0}
+.sito .file-tit{font-family:var(--f-mono);font-size:.78rem;font-weight:600;color:var(--muted);margin-top:2px}
+.sito .file-tit .chip{font-family:var(--f-sans, inherit);font-weight:400;margin-left:6px}
+.sito details > summary{cursor:pointer;font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
+.sito details[open] > summary{margin-bottom:4px}
 pre.risp{margin:0;background:var(--code);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-family:var(--f-mono);font-size:.8rem;white-space:pre-wrap;word-break:break-word;max-height:320px;overflow:auto;min-width:0}
 .voto{display:grid;gap:8px;align-content:start;min-width:0}
 .riga{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -576,7 +581,7 @@ details.somi-scartate summary{cursor:pointer;color:var(--muted);font-size:.9rem;
 /* incluso: griglia.js — fine */
 </script>
 <script>
-const VERSIONE_PAGINA="1.6.0"; /* alzala a ogni modifica della pagina: la skill propone l'aggiornamento */
+const VERSIONE_PAGINA="1.7.0"; /* alzala a ogni modifica della pagina: la skill propone l'aggiornamento */
 const DISCLAIMER_STD = "Il seguente feedback è stato scritto con l'aiuto di una IA generativa. La valutazione è stata svolta dal docente.";
 const st = { nuova:false, verifiche:{}, vid:null, domande:{}, val:{}, res:{}, resClasse:null, fb:{}, fbEsiste:false, somi:null, vista:"domanda", ordine:1, tab:null, stud:null, soloMoodle:false, nascondiRisp:false, db:null, unsub:[] };
 const $ = s => document.querySelector(s);
@@ -1005,7 +1010,7 @@ function cardHtml(v, dom, modo){
   return `<article class="card ${v.inserito?'inserito':(m?'da-moodle':'')}">
     <div class="chi">${testa}${pdpChip}${chip}
       ${m && !v.inserito ? `<span class="chip warn">${dom.tipo==='manuale'?'da inserire':(cambiaPunti(v)?'da modificare':'commento da inserire')}</span>`:''}</div>
-    ${st.nascondiRisp ? '' : `<pre class="risp">${esc(v.risposta || "(nessuna risposta)")}</pre>`}
+    ${st.nascondiRisp ? '' : rispostaHtml(v, dom.id, v.k)}
     <div class="voto">
       <div class="riga">
         <label class="punti" for="p-${v.id}"><input id="p-${v.id}" type="number" inputmode="decimal" min="0" max="${dom.max}" step="0.5" value="${v.punti ?? ''}" data-id="${v.id}" data-max="${dom.max}" class="in-punti" placeholder="—"><span>/ ${fmt(dom.max)}</span></label>
@@ -1198,11 +1203,53 @@ function conSegni(testo, frammenti){                  // evidenzia i pezzi in co
   }
   return h + esc(testo.slice(i));
 }
+/* ---------- «Sito con l'editor» (sito_html, sito_php): la risposta è un JSON {"htmlve":1, "files":{…}} ----------
+   Si mostra un file sotto l'altro, senza anteprima. Nei passi dello stesso sito (Copia sito, Incolla sito)
+   i file uguali a quelli dello stesso studente nella domanda prima restano chiusi. */
+function sitoDi(testo){
+  let t = String(testo || "").trim(); if (!t.includes('"htmlve"')) return null;
+  const leggi = x => { try { return JSON.parse(x); } catch(e) { return null; } };
+  let o = leggi(t);
+  if (o && typeof o === "object" && !("htmlve" in o) && Object.keys(o).length === 1) {   // {"crui_…": ["{…}"]}
+    const v = Object.values(o)[0]; o = typeof v === "string" ? leggi(v) : (Array.isArray(v) && typeof v[0] === "string" ? leggi(v[0]) : null);
+  }
+  if (!o) { const a = t.indexOf('{"htmlve"'); if (a >= 0) o = leggi(t.slice(a)); }
+  return o && o.htmlve === 1 && o.files && typeof o.files === "object" ? o : null;
+}
+function sitoPrima(d, k){                  // il sito dello stesso studente nella domanda prima, se è un passo dello stesso sito
+  const dom = st.domande[d]; if (!dom) return null;
+  const prima = domOrd().filter(x => x.n < dom.n).reverse();
+  const qui = sitoDi(rigaDi(d, k)?.risposta); if (!qui) return null;
+  for (const x of prima) {
+    const o = sitoDi(rigaDi(x.id, k)?.risposta);
+    if (o && Object.keys(o.files).some(f => f in qui.files)) return {dom: x, sito: o};
+  }
+  return null;
+}
+function rispostaHtml(v, d, k, frammenti){
+  const o = sitoDi(v?.risposta);
+  if (!o) return `<pre class="risp">${frammenti ? conSegni(String(v?.risposta || ""), frammenti) : esc(v?.risposta || "(nessuna risposta)")}</pre>`;
+  const prima = d && k ? sitoPrima(d, k) : null, nomi = Object.keys(o.files).sort();
+  const cart = (o.cartelle || []).length ? `, cartelle ${o.cartelle.map(esc).join(", ")}` : "";
+  let h = `<div class="sito"><div class="n">Sito con l'editor: ${nomi.length} file${cart}${prima ? ` · passo dopo ${nomeDom(prima.dom)}` : ""}</div>`;
+  for (const f of nomi) {
+    const testo = String(o.files[f] ?? "").replace(/\n+$/, ""), corpo = frammenti ? conSegni(testo, frammenti) : esc(testo || "(file vuoto)");
+    const vecchio = prima ? prima.sito.files[f] : undefined;
+    if (vecchio !== undefined && String(vecchio).replace(/\s+$/, "") === testo.replace(/\s+$/, ""))
+      h += `<details><summary>${esc(f)} · uguale a ${nomeDom(prima.dom)}</summary><pre class="risp">${corpo}</pre></details>`;
+    else h += `<div class="file-tit">${esc(f)}${prima ? (vecchio === undefined ? '<span class="chip ok">nuovo</span>' : '<span class="chip warn">modificato</span>') : ""}</div><pre class="risp">${corpo}</pre>`;
+  }
+  if (prima) for (const f of Object.keys(prima.sito.files).filter(f => !(f in o.files)).sort())
+    h += `<div class="file-tit">${esc(f)}<span class="chip bad">tolto rispetto a ${nomeDom(prima.dom)}</span></div>`;
+  const imm = Object.entries(o.immagini || {});
+  if (imm.length) h += `<div class="n">Immagini: ${imm.map(([p, x]) => esc(p) + (String(x).startsWith("data:") ? " (caricata dallo studente)" : "")).join(", ")}</div>`;
+  return h + "</div>";
+}
 function siglaDi(k){ const s = studenti().find(x => x.k === k); return s ? s.s : k; }
 function rispostaSomi(d, k, frammenti){
   const dom = st.domande[d], v = rigaDi(d, k); if (!dom) return "";
   return `<div class="somi-col"><div class="n"><span class="sigla">${esc(siglaDi(k))}</span> ${nomeDom(dom)}${v && v.punti != null ? ` · ${fmt(v.punti)}/${fmt(dom.max)}` : ""}</div>
-    <pre class="risp">${v ? conSegni(String(v.risposta || ""), frammenti) : "Risposta non disponibile"}</pre></div>`;
+    ${v ? rispostaHtml(v, null, null, frammenti || []) : '<pre class="risp">Risposta non disponibile</pre>'}</div>`;
 }
 function voceSomi(id, v){
   const dec = v.decisione || "", chi = (v.studenti || []).map(k => `<span class="sigla">${esc(siglaDi(k))}</span>${isPdp(k) ? ' <span class="pdp">PDP</span>' : ""}`).join(" ");
@@ -1258,7 +1305,7 @@ function fondi(E, I){
       else if (I[i] === "<" && tagA(I, i) && !(j < E.length && E[j] === "<" && !token.length)) { const t = tagA(I, i); token.push(t); i += t.length; }
       else break;
     }
-    let k = j; while (k < E.length && sp(E[k])) k++;
+    const j0 = j; let k = j; while (k < E.length && sp(E[k])) k++;
     const run = E.slice(j, k); j = k;
     const n = token.filter(t => t === null).length;
     const pezzi = run.split(/(?=\n)/).filter(Boolean);
@@ -1266,11 +1313,19 @@ function fondi(E, I){
     let parti;
     if (!pezzi.length) parti = Array(n).fill(j >= E.length ? "\n" : " ");
     else if (pezzi.length >= n) parti = [pezzi.slice(0, pezzi.length - n + 1).join("")].concat(pezzi.slice(pezzi.length - n + 1));
+    else if (E.slice(Math.max(0, j0 - 2), j0) === "\\n") {   // nel JSON del sito: rientro dopo «\n», poi il tag e uno spazio («<td> Il»)
+      const m = n - pezzi.length; let r = pezzi.join("");
+      for (let t = 0; t < m && r.length > 1 && / $/.test(r); t++) r = r.slice(0, -1);
+      parti = [r].concat(Array(n - 1).fill(" "));
+    }
     else parti = Array(n - pezzi.length).fill(" ").concat(pezzi);
     for (const t of token) out.push(t === null ? parti.shift() : t);
   }
   return out.join("").replace(/\s+$/, "");
 }
+// Nel sito con l'editor la risposta è un JSON: se la fusione non si legge più come sito, resta la versione copiata
+// Nel sito con l'editor la risposta è un JSON: se la fusione non si legge più come sito, resta la versione copiata
+function fondiRisposta(E, I){ const f = fondi(E, I); return sitoDi(I) && !sitoDi(f) ? String(I || "") : f; }
 /* ---------- importazione dalla tabella «Risposte» di Moodle ----------
    I nomi degli studenti restano in questa pagina, nel browser: si salvano solo sigla e risposta. */
 const imp = { righe: null, colonne: [], assegna: {}, scelte: new Set() };
@@ -1386,7 +1441,7 @@ I nomi degli studenti restano in questa pagina, nel tuo browser: vengono trasfor
           // dall'export (non ancora importata) si recuperano a capo e rientri; se fondi() perdesse qualcosa, resta la versione copiata
           const nuova = r.risposte[q] || "";
           if (norm(nuova).replace(/ /g, "") === norm(v.risposta).replace(/ /g, "")) return;   // uguale: non si tocca (resta con i suoi a capo)
-          let fusa = v.importata ? nuova : fondi(v.risposta, nuova);
+          let fusa = v.importata ? nuova : fondiRisposta(v.risposta, nuova);
           if (norm(fusa).replace(/ /g, "") !== norm(nuova).replace(/ /g, "")) fusa = nuova;
           righeDoc[k] = {risposta: fusa, importata: true}; n++; });
         if (Object.keys(righeDoc).length) await st.db.collection(`verifiche/${vid}/valutazioni`).doc(d.id).update({righe: righeDoc});
@@ -1990,7 +2045,7 @@ function uniscitabella(html){
     for (const [n, val] of Object.entries(t.risposte)) {
       if (!(n in s.risposte)) continue; const v = s.pulisci(val), E = s.risposte[n];
       if (norm(v).replace(/ /g, "") === norm(E).replace(/ /g, "")) continue;
-      let f = fondi(E, v); if (norm(f).replace(/ /g, "") !== norm(v).replace(/ /g, "")) f = v;
+      let f = fondiRisposta(E, v); if (norm(f).replace(/ /g, "") !== norm(v).replace(/ /g, "")) f = v;
       s.risposte[n] = f; rec++; } });
   nuova.tabella = {lette: r.righe.length, abbinate: abb, recuperate: rec};
   return null;
